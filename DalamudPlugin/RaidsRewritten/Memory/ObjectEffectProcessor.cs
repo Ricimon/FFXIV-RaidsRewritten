@@ -50,7 +50,7 @@ public unsafe class ObjectEffectProcessor : IDisposable
 
     private Action<uint, ushort, ushort>? callback;
 
-    internal ObjectEffectProcessor(IGameInteropProvider gameInteropProvider, ILogger logger)
+    public ObjectEffectProcessor(IGameInteropProvider gameInteropProvider, ILogger logger)
     {
         this.gameInteropProvider = gameInteropProvider;
         this.logger = logger;

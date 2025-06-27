@@ -1,16 +1,11 @@
-﻿using Dalamud.Hooking;
-using ECommons.EzHookManager;
+﻿using ECommons.EzHookManager;
 using RaidsRewritten.Extensions;
 using RaidsRewritten.Log;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace RaidsRewritten.Memory;
 
-public class ActorControlProcessor
+public class ActorControlProcessor : IDisposable
 {
     private delegate void ProcessPacketActorControlDelegate(uint sourceId, uint command, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, ulong targetId, byte replaying);
     private EzHook<ProcessPacketActorControlDelegate> ProcessPacketActorControlHook;
@@ -34,6 +29,11 @@ public class ActorControlProcessor
     public void Init(Action<uint, uint, uint, uint, uint, uint, uint, uint, ulong, byte> callback)
     {
         this.callback = callback;
+    }
+
+    public void Dispose()
+    {
+        ProcessPacketActorControlHook?.Disable();
     }
 
     private void ProcessPacketActorControlDetour(uint sourceId, uint command, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, ulong targetId, byte replaying)

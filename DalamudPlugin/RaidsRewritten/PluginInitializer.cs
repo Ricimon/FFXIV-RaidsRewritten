@@ -4,6 +4,7 @@ using Dalamud.Game.ClientState.Objects;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
+using ECommons.DalamudServices;
 using Ninject;
 using Ninject.Extensions.Factory;
 using Pictomancy;
@@ -41,10 +42,11 @@ public sealed class PluginInitializer : IDalamudPlugin
 
     public PluginInitializer()
     {
+        this.kernel = new StandardKernel(new PluginModule(), new FuncModule());
+
         //Services
         PictoService.Initialize(PluginInterface);
-
-        this.kernel = new StandardKernel(new PluginModule(), new FuncModule());
+        Svc.Init(PluginInterface, this.kernel.Get<ILogger>());
 
         // Logging
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;

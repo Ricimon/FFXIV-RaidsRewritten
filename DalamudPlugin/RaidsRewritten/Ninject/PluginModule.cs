@@ -5,9 +5,9 @@ using Dalamud.Plugin.Services;
 using Ninject.Activation;
 using Ninject.Modules;
 using RaidsRewritten.Audio;
-using RaidsRewritten.Data;
 using RaidsRewritten.Input;
 using RaidsRewritten.Log;
+using RaidsRewritten.Memory;
 using RaidsRewritten.Network;
 using RaidsRewritten.UI;
 using RaidsRewritten.UI.Presenter;
@@ -39,7 +39,9 @@ public class PluginModule : NinjectModule
         Bind<IPluginLog>().ToConstant(PluginInitializer.Log).InTransientScope();
 
         // External Libraries (and taken code)
-        //Bind<Chat>().ToSelf().InSingletonScope();
+        Bind<MapEffectProcessor>().ToSelf().InSingletonScope();
+        Bind<ObjectEffectProcessor>().ToSelf().InSingletonScope();
+        Bind<ActorControlProcessor>().ToSelf().InSingletonScope();
 
         // Plugin classes
         Bind<Plugin>().ToSelf().InSingletonScope();
@@ -51,7 +53,6 @@ public class PluginModule : NinjectModule
         Bind<Spatializer>().ToSelf().InSingletonScope();
         Bind<MapManager>().ToSelf().InSingletonScope();
         Bind<EncounterManager>().ToSelf().InSingletonScope();
-        Bind<XivHudNodeMap>().ToSelf().InSingletonScope();
 
         // Views and Presenters
         Bind<WindowSystem>().ToMethod(_ => new(PluginInitializer.Name)).InSingletonScope();
