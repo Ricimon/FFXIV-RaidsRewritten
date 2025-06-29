@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Dalamud.Game;
@@ -14,6 +15,7 @@ using ECommons.ObjectLifeTracker;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using RaidsRewritten.Log;
 using RaidsRewritten.Memory;
+using RaidsRewritten.Scripts;
 using RaidsRewritten.Utility;
 
 namespace RaidsRewritten;
@@ -30,6 +32,18 @@ public class EncounterManager : IDisposable
     private readonly ObjectEffectProcessor objectEffectProcessor;
     private readonly ActorControlProcessor actorControlProcessor;
     private readonly ILogger logger;
+
+    private readonly List<string> BlacklistedPcVfx = [
+        "vfx/common/eff/dk02ht_zan0m.avfx",
+        "vfx/common/eff/dk03ht_bct0m.avfx",
+        "vfx/common/eff/dk03ht_mct0s.avfx",
+        "vfx/common/eff/dk04ht_cur0h.avfx",
+        "vfx/common/eff/dk04ht_ele0h.avfx",
+        "vfx/common/eff/dk04ht_hpt0h.avfx",
+        "vfx/common/eff/dk04ht_win0h.avfx",
+    ];
+
+    private List<Mechanic> activeMechanics = [];
 
     public EncounterManager(
         IGameInteropProvider gameInteropProvider,
@@ -77,9 +91,19 @@ public class EncounterManager : IDisposable
         GC.SuppressFinalize(this);
     }
 
+    public void AddMechanic(Mechanic mechanic)
+    {
+        activeMechanics.Add(mechanic);
+    }
+
+    public void RemoveMechanic(Mechanic mechanic)
+    {
+        activeMechanics.Remove(mechanic);
+    }
+
     private void OnMapEffect(uint Position, ushort Param1, ushort Param2)
     {
-        var text = $"MapEffect: {Position}, {Param1}, {Param2}";
+        var text = $"MAP_EFFECT: {Position}, {Param1}, {Param2}";
         this.logger.Debug(text);
     }
 
@@ -88,7 +112,7 @@ public class EncounterManager : IDisposable
         var gameObject = this.objectTable.SearchByEntityId(Target);
         if (gameObject == null) { return; }
 
-        var text = $"ObjectEffect: on {gameObject.Name.TextValue} 0x{Target:X}/0x{gameObject.GameObjectId:X} data {Param1}, {Param2}";
+        var text = $"OBJECT_EFFECT: on {gameObject.Name.TextValue} 0x{Target:X}/0x{gameObject.GameObjectId:X} data {Param1}, {Param2}";
         this.logger.Debug(text);
     }
 
@@ -115,30 +139,34 @@ public class EncounterManager : IDisposable
 
     private void OnVFXSpawn(uint target, string vfxPath)
     {
-        return;
-        var obj = this.objectTable.SearchByEntityId(target);
-        if (obj == null) { return; }
+        if (Utils.BlacklistedVFX.Contains(vfxPath)) { return; }
 
-        if (!Utils.BlacklistedVFX.Contains(vfxPath))
+        var text = new StringBuilder($"VFX: {vfxPath}");
+
+        var obj = this.objectTable.SearchByEntityId(target);
+        if (obj == null)
         {
-            if (obj is ICharacter c)
+            this.logger.Debug(text.ToString());
+            return;
+        }
+
+        if (obj is ICharacter c)
+        {
+            if (c is IPlayerCharacter && BlacklistedPcVfx.Contains(vfxPath)) { return; }
+            var targetText = c.AddressEquals(this.clientState.LocalPlayer) ? "me" : (c is IPlayerCharacter pc ? pc.GetJob().ToString() : c.DataId.ToString() ?? "Unknown");
+            unsafe
             {
-                var targetText = c.AddressEquals(this.clientState.LocalPlayer) ? "me" : (c is IPlayerCharacter pc ? pc.GetJob().ToString() : c.DataId.ToString() ?? "Unknown");
-                unsafe
-                {
-                    var text = $"VFX {vfxPath} spawned on {targetText} npc id={c.NameId}, model id={c.Struct()->ModelContainer.ModelCharaId}, name npc id={c.NameId}, position={c.Position}, name={c.Name}";
-                    this.logger.Debug(text);
-                }
-            }
-            else
-            {
-                unsafe
-                {
-                    var text = $"VFX {vfxPath} spawned on {obj.DataId} npc id={obj.Struct()->GetNameId()}, position={obj.Position}";
-                    this.logger.Debug(text);
-                }
+                text.Append($" spawned on {targetText}, npc id={c.NameId}, model id={c.Struct()->ModelContainer.ModelCharaId}, name npc id={c.NameId}, position={c.Position}, name={c.Name}");
             }
         }
+        else
+        {
+            unsafe
+            {
+                text.Append($" spawned on {obj.DataId}, npc id={obj.Struct()->GetNameId()}, position={obj.Position}");
+            }
+        }
+        this.logger.Debug(text.ToString());
     }
 
     private void OnDirectorUpdate(long a1, long a2, DirectorUpdateCategory a3, uint a4, uint a5, int a6, int a7)
@@ -157,6 +185,11 @@ public class EncounterManager : IDisposable
             {
                 text.Append($"0x{newObjectPointer:X}");
                 this.logger.Debug(text.ToString());
+
+                foreach (var mechanic in activeMechanics)
+                {
+                    mechanic.OnObjectCreation(newObjectPointer, null);
+                }
                 return;
             }
 
@@ -168,6 +201,11 @@ public class EncounterManager : IDisposable
             text.Append($" Kind {obj.ObjectKind}");
             text.Append($" DataId 0x{obj.DataId:X}");
             this.logger.Debug(text.ToString());
+
+            foreach (var mechanic in activeMechanics)
+            {
+                mechanic.OnObjectCreation(newObjectPointer, obj);
+            }
         });
     }
 

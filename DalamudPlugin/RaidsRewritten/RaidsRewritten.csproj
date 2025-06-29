@@ -25,12 +25,16 @@
 
   <ItemGroup>
     <PackageReference Include="AsyncAwaitBestPractices" Version="9.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.5" />
+    <PackageReference Include="Flecs.NET.Debug" Version="4.0.3" Condition="'$(Configuration)' == 'Debug'" />
+    <PackageReference Include="Flecs.NET.Release" Version="4.0.3" Condition="'$(Configuration)' == 'Release'" />
+    <PackageReference Include="HelixToolkit.SharpDX.Core" Version="2.27.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.6" />
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="Ninject" Version="3.3.6" />
     <PackageReference Include="Ninject.Extensions.Factory" Version="3.3.3" />
     <PackageReference Include="NLog" Version="5.4.0" />
     <PackageReference Include="ReactiveProperty" Version="9.7.0" />
+    <PackageReference Include="SharpDX.D3DCompiler" Version="4.2.0" />
     <PackageReference Include="SocketIOClient" Version="3.1.2" />
     <PackageReference Include="YamlDotNet" Version="16.3.0" />
   </ItemGroup>
@@ -53,6 +57,7 @@
     <Content Include="config.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="notes.txt" />
     <Content Include="RaidsRewritten.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

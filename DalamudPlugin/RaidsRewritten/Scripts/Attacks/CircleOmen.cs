@@ -1,0 +1,15 @@
+﻿using Flecs.NET.Core;
+using RaidsRewritten.Scripts.Attacks.Components;
+
+namespace RaidsRewritten.Scripts.Attacks;
+
+public class CircleOmen : IAttack
+{
+    public Entity Create(World world)
+    {
+        return world.Entity()
+            .Set(new Vfx("vfx/omen/eff/general_1bf.avfx"))
+            .Set(new Transform())
+            .Add<Attack>();
+    }
+}

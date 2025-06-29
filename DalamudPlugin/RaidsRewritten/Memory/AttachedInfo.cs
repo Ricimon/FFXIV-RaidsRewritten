@@ -18,6 +18,7 @@ using Reloaded.Hooks.Definitions.X64;
 
 namespace RaidsRewritten.Memory;
 
+#nullable enable
 public static unsafe class AttachedInfo
 {
     private delegate nint GameObject_ctor(nint obj);

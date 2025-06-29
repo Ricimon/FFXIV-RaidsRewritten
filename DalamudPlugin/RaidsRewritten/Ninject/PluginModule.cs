@@ -6,9 +6,15 @@ using Ninject.Activation;
 using Ninject.Modules;
 using RaidsRewritten.Audio;
 using RaidsRewritten.Input;
+using RaidsRewritten.Interop;
 using RaidsRewritten.Log;
 using RaidsRewritten.Memory;
 using RaidsRewritten.Network;
+using RaidsRewritten.Scripts;
+using RaidsRewritten.Scripts.Attacks;
+using RaidsRewritten.Scripts.Attacks.Systems;
+using RaidsRewritten.Scripts.Encounters.E1S;
+using RaidsRewritten.Spawn;
 using RaidsRewritten.UI;
 using RaidsRewritten.UI.Presenter;
 using RaidsRewritten.UI.View;
@@ -20,6 +26,7 @@ public class PluginModule : NinjectModule
     public override void Load()
     {
         // Dalamud services
+        // TODO: Deprecate these
         Bind<IDalamudPluginInterface>().ToConstant(PluginInitializer.PluginInterface).InTransientScope();
         Bind<ICommandManager>().ToConstant(PluginInitializer.CommandManager).InTransientScope();
         Bind<IGameInteropProvider>().ToConstant(PluginInitializer.GameInteropProvider).InTransientScope();
@@ -39,9 +46,12 @@ public class PluginModule : NinjectModule
         Bind<IPluginLog>().ToConstant(PluginInitializer.Log).InTransientScope();
 
         // External Libraries (and taken code)
+        Bind<DalamudServices>().ToSelf();
         Bind<MapEffectProcessor>().ToSelf().InSingletonScope();
         Bind<ObjectEffectProcessor>().ToSelf().InSingletonScope();
         Bind<ActorControlProcessor>().ToSelf().InSingletonScope();
+        Bind<ResourceLoader>().ToSelf().InSingletonScope();
+        Bind<VfxSpawn>().ToSelf().InSingletonScope();
 
         // Plugin classes
         Bind<Plugin>().ToSelf().InSingletonScope();
@@ -53,6 +63,8 @@ public class PluginModule : NinjectModule
         Bind<Spatializer>().ToSelf().InSingletonScope();
         Bind<MapManager>().ToSelf().InSingletonScope();
         Bind<EncounterManager>().ToSelf().InSingletonScope();
+        Bind<AttackManager>().ToSelf().InSingletonScope();
+        Bind<Mechanic.Factory>().ToSelf();
 
         // Views and Presenters
         Bind<WindowSystem>().ToMethod(_ => new(PluginInitializer.Name)).InSingletonScope();
@@ -62,6 +74,14 @@ public class PluginModule : NinjectModule
 
         // Data
         Bind<Configuration>().ToMethod(GetConfiguration).InSingletonScope();
+
+        // Encounters
+        Bind<IDalamudHook>().To<EdenPrimeTest>().InSingletonScope();
+
+        // Attacks & Systems
+        Bind<IAttack>().To<CircleOmen>();
+        Bind<IAttack, ISystem>().To<Twister>();
+        Bind<ISystem>().To<VfxSystem>();
 
         Bind<ILogger>().To<DalamudLogger>();
         Bind<DalamudLoggerFactory>().ToSelf();

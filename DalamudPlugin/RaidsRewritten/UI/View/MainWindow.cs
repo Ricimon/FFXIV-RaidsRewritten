@@ -9,8 +9,6 @@ using System.Text;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
-using Dalamud.Plugin;
-using Dalamud.Plugin.Services;
 using ImGuiNET;
 using RaidsRewritten.Audio;
 using RaidsRewritten.Data;
@@ -18,6 +16,8 @@ using RaidsRewritten.Extensions;
 using RaidsRewritten.Input;
 using RaidsRewritten.Log;
 using RaidsRewritten.Network;
+using RaidsRewritten.Scripts.Attacks;
+using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.UI.Util;
 using Reactive.Bindings;
 
@@ -71,12 +71,12 @@ public class MainWindow : Window, IPluginUIView, IDisposable
     public IReactiveProperty<int> MinimumVisibleLogLevel { get; } = new ReactiveProperty<int>();
 
     private readonly WindowSystem windowSystem;
-    private readonly IDalamudPluginInterface pluginInterface;
-    private readonly ITextureProvider textureProvider;
+    private readonly DalamudServices dalamudServices;
     private readonly ServerConnection serverConnection;
     private readonly MapManager mapChangeHandler;
+    private readonly AttackManager attackManager;
     private readonly Configuration configuration;
-    private readonly IClientState clientState;
+    private readonly ILogger logger;
 
     private readonly string[] xivChatSendLocations;
     private readonly string[] falloffTypes;
@@ -89,21 +89,21 @@ public class MainWindow : Window, IPluginUIView, IDisposable
 
     public MainWindow(
         WindowSystem windowSystem,
-        IDalamudPluginInterface pluginInterface,
-        ITextureProvider textureProvider,
+        DalamudServices dalamudServices,
         ServerConnection serverConnection,
         MapManager mapChangeHandler,
+        AttackManager attackManager,
         Configuration configuration,
-        IClientState clientState) : base(
+        ILogger logger) : base(
         PluginInitializer.Name)
     {
         this.windowSystem = windowSystem;
-        this.pluginInterface = pluginInterface;
-        this.textureProvider = textureProvider;
+        this.dalamudServices = dalamudServices;
         this.serverConnection = serverConnection;
         this.mapChangeHandler = mapChangeHandler;
+        this.attackManager = attackManager;
         this.configuration = configuration;
-        this.clientState = clientState;
+        this.logger = logger;
         this.xivChatSendLocations = Enum.GetNames<XivChatSendLocation>();
         this.falloffTypes = Enum.GetNames<AudioFalloffModel.FalloffType>();
         this.allLoggingLevels = [.. LogLevel.AllLoggingLevels.Select(l => l.Name)];
@@ -150,6 +150,44 @@ public class MainWindow : Window, IPluginUIView, IDisposable
     {
         using var mainTab = ImRaii.TabItem("Main");
         if (!mainTab) return;
+
+        if (ImGui.Button("Clear All Attacks"))
+        {
+            this.attackManager.ClearAllAttacks();
+        }
+
+        if (ImGui.Button("Spawn Circle Omen"))
+        {
+            var player = this.dalamudServices.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<CircleOmen>(out var circle))
+                {
+                    circle.Set(new Transform(player.Position, player.Rotation, 0.9f * Vector3.One));
+                }
+            }
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Spawn Twister"))
+        {
+            var player = this.dalamudServices.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<Twister>(out var twister))
+                {
+                    twister.Set(new Transform(player.Position, player.Rotation));
+                }
+            }
+        }
+
+        if (ImGui.Button("Print Player Position"))
+        {
+            var player = this.dalamudServices.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                this.logger.Info("Player position: {0}", player.Position);
+            }
+        }
     }
 
     #region Rooms
@@ -231,7 +269,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         ImGui.BeginDisabled(this.serverConnection.InRoom);
         if (this.createPrivateRoomButtonText == null || !this.serverConnection.InRoom)
         {
-            var playerName = this.clientState.GetLocalPlayerFullName();
+            var playerName = this.dalamudServices.ClientState.GetLocalPlayerFullName();
             this.createPrivateRoomButtonText = roomName.Length == 0 || roomName == playerName ?
                 "Create Private Room" : "Join Private Room";
         }

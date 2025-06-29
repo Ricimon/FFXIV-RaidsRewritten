@@ -27,6 +27,7 @@ public sealed class PluginInitializer : IDalamudPlugin
     [PluginService] internal static IDataManager DataManager { get; private set; } = null!;
     [PluginService] internal static IObjectTable ObjectTable { get ; private set; } = null!;
     [PluginService] internal static IGameGui GameGui { get; private set; } = null!;
+    [PluginService] internal static IGameConfig GameConfig { get; private set; } = null!;
     [PluginService] internal static IAddonEventManager AddonEventManager { get; private set; } = null!;
     [PluginService] internal static IAddonLifecycle AddonLifecycle { get; private set; } = null!;
     [PluginService] internal static IFramework Framework { get; private set; } = null!;
@@ -64,14 +65,7 @@ public sealed class PluginInitializer : IDalamudPlugin
 
     private void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
     {
-#if DEBUG
-        // There's a number of unobserved Task exceptions that can be thrown by 3rd party libraries
-        // in this project, some of which seem to be unavoidable but harmless.
         this.kernel.Get<ILogger>().Error(e.Exception.ToString());
-#else
-        // So, lower the severity of the log in release builds.
-        this.kernel.Get<ILogger>().Trace(e.Exception.ToString());
-#endif
         e.SetObserved();
     }
 }
