@@ -23,6 +23,9 @@ namespace RaidsRewritten
         public bool KeybindsRequireGameFocus { get; set; }
         public bool PrintLogsToChat { get; set; }
 
+        public int EffectsRendererPositionX { get; set; } = 0;
+        public int EffectsRendererPositionY { get; set; } = 0;
+
         public int MinimumVisibleLogLevel { get; set; } = LogLevel.Info.Ordinal;
 
         // the below exist just to make saving less cumbersome

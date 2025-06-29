@@ -69,6 +69,7 @@ public class PluginModule : NinjectModule
         // Views and Presenters
         Bind<WindowSystem>().ToMethod(_ => new(PluginInitializer.Name)).InSingletonScope();
         Bind<IPluginUIView, EffectsRenderer>().To<EffectsRenderer>().InSingletonScope();
+        Bind<IPluginUIPresenter, EffectsRendererPresenter>().To<EffectsRendererPresenter>().InSingletonScope();
         Bind<IPluginUIView, MainWindow>().To<MainWindow>().InSingletonScope();
         Bind<IPluginUIPresenter, MainWindowPresenter>().To<MainWindowPresenter>().InSingletonScope();
 
