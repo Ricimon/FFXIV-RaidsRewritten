@@ -87,6 +87,9 @@ public class MainWindow : Window, IPluginUIView, IDisposable
     private string[]? inputDevices;
     private string[]? outputDevices;
 
+    private int effectsRendererPositionX = 0;
+    private int effectsRendererPositionY = 0;
+
     public MainWindow(
         WindowSystem windowSystem,
         DalamudServices dalamudServices,
@@ -108,6 +111,9 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         this.falloffTypes = Enum.GetNames<AudioFalloffModel.FalloffType>();
         this.allLoggingLevels = [.. LogLevel.AllLoggingLevels.Select(l => l.Name)];
         windowSystem.AddWindow(this);
+
+        this.effectsRendererPositionX = configuration.EffectsRendererPositionX;
+        this.effectsRendererPositionY = configuration.EffectsRendererPositionY;
     }
 
     public override void Draw()
@@ -190,6 +196,18 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             {
                 this.logger.Info("Player position: {0}", player.Position);
             }
+        }
+
+        if (ImGui.InputInt("Position X", ref effectsRendererPositionX))
+        {
+            configuration.EffectsRendererPositionX = effectsRendererPositionX;
+            configuration.Save();
+        }
+
+        if (ImGui.InputInt("Position Y", ref effectsRendererPositionY))
+        {
+            configuration.EffectsRendererPositionY = effectsRendererPositionY;
+            configuration.Save();
         }
     }
 
