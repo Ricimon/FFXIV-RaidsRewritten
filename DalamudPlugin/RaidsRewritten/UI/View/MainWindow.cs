@@ -163,7 +163,9 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             {
                 if (this.attackManager.TryCreateAttackEntity<CircleOmen>(out var circle))
                 {
-                    circle.Set(new Transform(player.Position, player.Rotation, 0.9f * Vector3.One));
+                    circle.Set(new Position(player.Position));
+                    circle.Set(new Rotation(player.Rotation));
+                    circle.Set(new Scale(0.9f * Vector3.One));
                 }
             }
         }
@@ -175,7 +177,8 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             {
                 if (this.attackManager.TryCreateAttackEntity<Twister>(out var twister))
                 {
-                    twister.Set(new Transform(player.Position, player.Rotation));
+                    twister.Set(new Position(player.Position));
+                    twister.Set(new Rotation(player.Rotation));
                 }
             }
         }

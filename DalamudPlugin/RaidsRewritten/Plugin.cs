@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Dalamud.Plugin;
+using RaidsRewritten.Extensions;
 using RaidsRewritten.Log;
 
 namespace RaidsRewritten;
@@ -17,13 +19,20 @@ public class Plugin(
 
     public void Initialize()
     {
-        foreach (var dalamudHook in this.DalamudHooks)
+        try
         {
-            dalamudHook.HookToDalamud();
+            foreach (var dalamudHook in this.DalamudHooks)
+            {
+                dalamudHook.HookToDalamud();
+            }
+
+            EncounterManager.Init();
+
+            Logger.Info("{0} initialized", PluginInitializer.Name);
         }
-
-        EncounterManager.Init();
-
-        Logger.Info("{0} initialized", PluginInitializer.Name);
+        catch(Exception e)
+        {
+            Logger.Error(e.ToStringFull());
+        }
     }
 }

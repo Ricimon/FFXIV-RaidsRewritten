@@ -1,4 +1,5 @@
 ﻿using Flecs.NET.Core;
+using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Spawn;
@@ -12,25 +13,20 @@ public unsafe class VfxSystem(VfxSpawn vfxSpawn, ILogger logger) : ISystem
 
     public void Register(World world)
     {
-        world.System<Vfx, Transform>()
-            .Each((ref Vfx vfx, ref Transform transform) =>
+        world.System<Vfx, Position, Rotation, Scale>()
+            .Each((ref Vfx vfx, ref Position position, ref Rotation rotation, ref Scale scale) =>
             {
                 if (vfx.VfxPtr == null)
                 {
-                    vfx.VfxPtr = this.vfxSpawn.SpawnStaticVfx(vfx.Path, transform.Position, transform.Rotation);
-                    if (transform.Scale != default)
+                    vfx.VfxPtr = this.vfxSpawn.SpawnStaticVfx(vfx.Path, position.Value, rotation.Value);
+                    if (scale.Value != default)
                     {
-                        vfx.VfxPtr.UpdateScale(transform.Scale);
+                        vfx.VfxPtr.UpdateScale(scale.Value);
                     }
                     else
                     {
-                        transform.Scale = vfx.VfxPtr.Vfx->Scale;
+                        scale.Value = vfx.VfxPtr.Vfx->Scale;
                     }
-                }
-                else
-                {
-                    //vfx.VfxPtr.UpdatePosition(transform.Position);
-                    //vfx.VfxPtr.UpdateRotation(new(0, 0, transform.Rotation));
                 }
             });
 

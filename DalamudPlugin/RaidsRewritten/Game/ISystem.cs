@@ -1,6 +1,6 @@
 ﻿using Flecs.NET.Core;
 
-namespace RaidsRewritten.Scripts.Attacks.Systems;
+namespace RaidsRewritten.Game;
 
 public interface ISystem
 {
