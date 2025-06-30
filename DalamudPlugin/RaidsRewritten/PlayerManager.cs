@@ -1,14 +1,36 @@
 ﻿using System;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using Dalamud.Game.Config;
 using Dalamud.Hooking;
 using Dalamud.Utility.Signatures;
+using ECommons.MathHelpers;
+using FFXIVClientStructs.FFXIV.Client.Game.Control;
+using RaidsRewritten.Interop.Structs;
 using RaidsRewritten.Log;
+using RaidsRewritten.Structures;
 
 namespace RaidsRewritten;
 
 public unsafe class PlayerManager : IDisposable
 {
+    public bool OverrideMovement
+    {
+        get => _rmiWalkHook.IsEnabled;
+        set
+        {
+            if (value)
+            {
+                _rmiWalkHook.Enable();
+            }
+            else
+            {
+                _rmiWalkHook.Disable();
+            }
+        }
+    }
+    public Vector3 OverrideMovementDirection { get; set; }
+
     private readonly DalamudServices dalamud;
     private readonly ILogger logger;
 
@@ -49,12 +71,29 @@ public unsafe class PlayerManager : IDisposable
         // TODO: we really need to introduce some extra checks that PlayerMoveController::readInput does - sometimes it skips reading input, and returning something non-zero breaks stuff...
         bool movementAllowed = bAdditiveUnk == 0 && _rmiWalkIsInputEnabled1(self) && _rmiWalkIsInputEnabled2(self); //&& !Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.BeingMoved];
         //UserInput = *sumLeft != 0 || *sumForward != 0;
-        //if (movementAllowed && DirectionToDestination(false) is var relDir && relDir != null)
-        //{
-        //    var dir = relDir.Value.h.ToDirection();
-        //    *sumLeft = dir.X;
-        //    *sumForward = dir.Y;
-        //}
+        if (movementAllowed && GetDirectionAngles(false) is var relDir && relDir != null)
+        {
+            var dir = relDir.Value.h.ToDirection();
+            *sumLeft = dir.X;
+            *sumForward = dir.Y;
+        }
+    }
+
+    private (Angle h, Angle v)? GetDirectionAngles(bool allowVertical)
+    {
+        var player = this.dalamud.ClientState.LocalPlayer;
+        if (player == null) { return null; }
+
+        if (this.OverrideMovementDirection == Vector3.Zero) { return null; }
+
+        var dirH = Angle.FromDirectionXZ(this.OverrideMovementDirection);
+        var dirV = allowVertical ? Angle.FromDirection(new(this.OverrideMovementDirection.Y, this.OverrideMovementDirection.ToVector2().Length())) : default;
+
+        var refDir = this.legacyMode
+            ? ((CameraEx*)CameraManager.Instance()->GetActiveCamera())->DirH.Radians() + 180.Degrees()
+            : player.Rotation.Radians();
+        return (dirH - refDir, dirV);
+            
     }
 
     private void OnConfigChanged(object? sender, ConfigChangeEvent evt) => UpdateLegacyMode();

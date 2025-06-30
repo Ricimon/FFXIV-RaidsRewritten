@@ -1,6 +1,6 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
 
-namespace RaidsRewritten.Scripts.Mechanics;
+namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
 public class PermanentTwisters : Mechanic
 {

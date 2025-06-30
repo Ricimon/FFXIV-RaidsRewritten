@@ -2,9 +2,11 @@
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
+using Flecs.NET.Core;
 using Ninject.Activation;
 using Ninject.Modules;
 using RaidsRewritten.Audio;
+using RaidsRewritten.Game;
 using RaidsRewritten.Input;
 using RaidsRewritten.Interop;
 using RaidsRewritten.Log;
@@ -13,6 +15,7 @@ using RaidsRewritten.Network;
 using RaidsRewritten.Scripts;
 using RaidsRewritten.Scripts.Attacks;
 using RaidsRewritten.Scripts.Attacks.Systems;
+using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Scripts.Encounters.E1S;
 using RaidsRewritten.Spawn;
 using RaidsRewritten.UI;
@@ -64,7 +67,9 @@ public class PluginModule : NinjectModule
         Bind<MapManager>().ToSelf().InSingletonScope();
         Bind<EncounterManager>().ToSelf().InSingletonScope();
         Bind<AttackManager>().ToSelf().InSingletonScope();
+        Bind<PlayerManager>().ToSelf().InSingletonScope();
         Bind<Mechanic.Factory>().ToSelf();
+        Bind<EcsContainer>().ToSelf().InSingletonScope();
 
         // Views and Presenters
         Bind<WindowSystem>().ToMethod(_ => new(PluginInitializer.Name)).InSingletonScope();
@@ -82,7 +87,10 @@ public class PluginModule : NinjectModule
         // Attacks & Systems
         Bind<IAttack>().To<CircleOmen>();
         Bind<IAttack, ISystem>().To<Twister>();
+        Bind<ISystem>().To<Player>();
         Bind<ISystem>().To<VfxSystem>();
+        // Conditions
+        Bind<ISystem>().To<KnockedBack>();
 
         Bind<ILogger>().To<DalamudLogger>();
         Bind<DalamudLoggerFactory>().ToSelf();

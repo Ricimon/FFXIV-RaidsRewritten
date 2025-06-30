@@ -9,7 +9,9 @@ public class CircleOmen : IAttack
     {
         return world.Entity()
             .Set(new Vfx("vfx/omen/eff/general_1bf.avfx"))
-            .Set(new Transform())
+            .Set(new Position())
+            .Set(new Rotation())
+            .Set(new Scale())
             .Add<Attack>();
     }
 }
