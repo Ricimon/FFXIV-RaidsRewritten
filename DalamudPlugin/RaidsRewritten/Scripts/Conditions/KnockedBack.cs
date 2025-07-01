@@ -9,25 +9,31 @@ namespace RaidsRewritten.Scripts.Conditions;
 
 public class KnockedBack(ILogger logger) : ISystem
 {
-    public record struct Component(Vector3 KnockbackDirection, float TimeRemaining);
+    public record struct Component(Vector3 KnockbackDirection);
 
     private readonly ILogger logger = logger;
 
+    public static void ApplyToPlayer(Entity playerEntity, Vector3 knockbackDirection, float duration)
+    {
+        playerEntity.CsWorld().Entity()
+            .Set(new Condition("Knocked Back", duration))
+            .Set(new Component(knockbackDirection))
+            .ChildOf(playerEntity);
+    }
+
     public void Register(World world)
     {
-        world.Component<Component>().IsA<Condition>();
-
-        world.System<Component>()
-            .Each((Iter it, int i, ref Component component) =>
+        world.System<Condition, Component>()
+            .Each((Iter it, int i, ref Condition condition, ref Component component) =>
             {
                 try
                 {
-                    component.TimeRemaining = Math.Max(component.TimeRemaining - it.DeltaTime(), 0);
+                    condition.TimeRemaining = Math.Max(condition.TimeRemaining - it.DeltaTime(), 0);
 
-                    if (component.TimeRemaining <= 0)
+                    if (condition.TimeRemaining <= 0)
                     {
                         var e = it.Entity(i);
-                        e.Remove<Component>();
+                        e.Destruct();
                     }
                 }
                 catch(Exception e)

@@ -8,7 +8,7 @@ using RaidsRewritten.Scripts.Attacks.Components;
 
 namespace RaidsRewritten;
 
-public sealed class AttackManager
+public sealed class AttackManager : IDisposable
 {
     private readonly DalamudServices dalamud;
     private readonly World world;
@@ -31,6 +31,13 @@ public sealed class AttackManager
         {
             entityCreationFunctions.Add(attack.GetType(), attack.Create);
         }
+
+        this.dalamud.ClientState.TerritoryChanged += OnTerritoryChanged;
+    }
+
+    public void Dispose()
+    {
+        this.dalamud.ClientState.TerritoryChanged -= OnTerritoryChanged;
     }
 
     public bool TryCreateAttackEntity<T>(out Entity entity)
@@ -48,5 +55,10 @@ public sealed class AttackManager
     public void ClearAllAttacks()
     {
         this.world.DeleteWith<Attack>();
+    }
+
+    private void OnTerritoryChanged(ushort obj)
+    {
+        ClearAllAttacks();
     }
 }
