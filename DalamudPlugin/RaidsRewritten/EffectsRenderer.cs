@@ -17,6 +17,19 @@ namespace RaidsRewritten;
 
 public class EffectsRenderer : IPluginUIView, IDisposable
 {
+    private class EffectTextEntry
+    {
+        public string Text { get; set; }
+        public Vector2 Position { get; set; }
+
+        public EffectTextEntry(string Text, Vector2 Position)
+        {
+            this.Text = Text;
+            this.Position = Position;
+        }
+
+    }
+
     // this extra bool exists for ImGui, since you can't ref a property
     private bool visible = false;
     public bool Visible
@@ -40,6 +53,9 @@ public class EffectsRenderer : IPluginUIView, IDisposable
     private readonly EcsContainer ecsContainer;
 
     private readonly IFontHandle font;
+
+    private const float PADDING_X = 10f;
+
 
     public EffectsRenderer(
         Lazy<EffectsRendererPresenter> presenter,
@@ -93,6 +109,7 @@ public class EffectsRenderer : IPluginUIView, IDisposable
         if (this.presenter == null) return;
         if (!this.font.Available) return;
 
+        var toDraw = new List<EffectTextEntry>();
         var drawList = ImGui.GetForegroundDrawList();
         var maxWidth = 0f;
         var offsetY = 0f;
@@ -104,25 +121,30 @@ public class EffectsRenderer : IPluginUIView, IDisposable
             // matches all conditions that exist in the world
             world.QueryBuilder<Scripts.Conditions.Condition>().Build().Each((ref Scripts.Conditions.Condition status) =>
             {
-                AddStatus(drawList, status.Name, Math.Round(status.TimeRemaining), ref offsetY, ref maxWidth);
+                AddStatus(toDraw, status.Name, Math.Round(status.TimeRemaining), ref offsetY, ref maxWidth);
             });
-        }
 
-        if (offsetY > 0f)
-        {
-            var min = new Vector2(configuration.EffectsRendererPositionX - maxWidth / 2, configuration.EffectsRendererPositionY);
-            var max = new Vector2(configuration.EffectsRendererPositionX + maxWidth / 2, configuration.EffectsRendererPositionY + offsetY);
-            drawList.AddRectFilled(min, max, ImGui.ColorConvertFloat4ToU32(new Vector4(0, 0, 0, 0.3f)));
+            if (offsetY > 0f)
+            {
+                var min = new Vector2(configuration.EffectsRendererPositionX - maxWidth / 2 - PADDING_X, configuration.EffectsRendererPositionY);
+                var max = new Vector2(configuration.EffectsRendererPositionX + maxWidth / 2 + PADDING_X, configuration.EffectsRendererPositionY + offsetY);
+                drawList.AddRectFilled(min, max, ImGui.ColorConvertFloat4ToU32(new Vector4(0, 0, 0, 0.3f)), 5);
+                foreach (var effectEntry in toDraw)
+                {
+                    drawList.AddText(ImGui.GetFont(), 50, effectEntry.Position, Vector4Colors.Red.ToColorU32(), effectEntry.Text);
+                }
+            }
         }
 
     }
 
-    private void AddStatus(ImDrawListPtr drawList, string statusName, double timeRemaining, ref float offsetY, ref float maxWidth)
+    private void AddStatus(List<EffectTextEntry> toDraw, string statusName, double timeRemaining, ref float offsetY, ref float maxWidth)
     {
         var text = $"{statusName} for {timeRemaining}s";
         var textSize = ImGui.CalcTextSize(text);
         var position = new Vector2(configuration.EffectsRendererPositionX - textSize.X / 2, configuration.EffectsRendererPositionY + offsetY);
-        drawList.AddText(ImGui.GetFont(), 50, position, Vector4Colors.Red.ToColorU32(), text);
+        //drawList.AddText(ImGui.GetFont(), 50, position, Vector4Colors.Red.ToColorU32(), text);
+        toDraw.Add(new EffectTextEntry(text, position));
         offsetY += textSize.Y;
         if (textSize.X > maxWidth) maxWidth = textSize.X;
     }
