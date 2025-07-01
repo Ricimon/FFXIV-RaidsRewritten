@@ -15,6 +15,15 @@ public class KnockedBack(ILogger logger) : ISystem
 
     public static void ApplyToPlayer(Entity playerEntity, Vector3 knockbackDirection, float duration)
     {
+        // Remove existing knockback conditions
+        playerEntity.Scope(() =>
+        {
+            playerEntity.CsWorld().Query<Component>().Each((Entity e, ref Component _) =>
+            {
+                e.Destruct();
+            });
+        });
+
         playerEntity.CsWorld().Entity()
             .Set(new Condition("Knocked Back", duration))
             .Set(new Component(knockbackDirection))
