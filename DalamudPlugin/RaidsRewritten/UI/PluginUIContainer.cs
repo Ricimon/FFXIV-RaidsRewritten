@@ -1,29 +1,27 @@
 ﻿using Dalamud.Interface.Windowing;
-using Dalamud.Plugin;
 using RaidsRewritten.UI.Presenter;
-using System;
 
 namespace RaidsRewritten.UI;
 
 // It is good to have this be disposable in general, in case you ever need it
 // to do any cleanup
-public class PluginUIContainer : IDalamudHook
+public sealed class PluginUIContainer : IDalamudHook
 {
     private readonly IPluginUIPresenter[] pluginUIPresenters;
     private readonly MainWindowPresenter mainWindowPresenter;
-    private readonly IDalamudPluginInterface pluginInterface;
+    private readonly DalamudServices dalamud;
     private readonly WindowSystem windowSystem;
 
     public PluginUIContainer(
         IPluginUIPresenter[] pluginUIPresenters,
         MainWindowPresenter mainWindowPresenter,
-        IDalamudPluginInterface pluginInterface,
+        DalamudServices dalamud,
         WindowSystem windowSystem)
     {
-        this.pluginUIPresenters = pluginUIPresenters ?? throw new ArgumentNullException(nameof(pluginUIPresenters));
-        this.mainWindowPresenter = mainWindowPresenter ?? throw new ArgumentNullException(nameof(mainWindowPresenter));
-        this.pluginInterface = pluginInterface ?? throw new ArgumentNullException(nameof(pluginInterface));
-        this.windowSystem = windowSystem ?? throw new ArgumentNullException(nameof(windowSystem));
+        this.pluginUIPresenters = pluginUIPresenters;
+        this.mainWindowPresenter = mainWindowPresenter;
+        this.dalamud = dalamud;
+        this.windowSystem = windowSystem;
 
         foreach (var pluginUIPresenter in this.pluginUIPresenters)
         {
@@ -33,15 +31,14 @@ public class PluginUIContainer : IDalamudHook
 
     public void Dispose()
     {
-        this.pluginInterface.UiBuilder.Draw -= Draw;
-        this.pluginInterface.UiBuilder.OpenMainUi -= ShowMainWindow;
-        GC.SuppressFinalize(this);
+        this.dalamud.PluginInterface.UiBuilder.Draw -= Draw;
+        this.dalamud.PluginInterface.UiBuilder.OpenMainUi -= ShowMainWindow;
     }
 
     public void HookToDalamud()
     {
-        this.pluginInterface.UiBuilder.Draw += Draw;
-        this.pluginInterface.UiBuilder.OpenMainUi += ShowMainWindow;
+        this.dalamud.PluginInterface.UiBuilder.Draw += Draw;
+        this.dalamud.PluginInterface.UiBuilder.OpenMainUi += ShowMainWindow;
     }
 
     public void Draw()

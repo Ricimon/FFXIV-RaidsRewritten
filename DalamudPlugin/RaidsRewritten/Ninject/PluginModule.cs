@@ -68,6 +68,9 @@ public class PluginModule : NinjectModule
         Bind<EncounterManager>().ToSelf().InSingletonScope();
         Bind<AttackManager>().ToSelf().InSingletonScope();
         Bind<PlayerManager>().ToSelf().InSingletonScope();
+        Bind<PlayerMovementOverride>().ToSelf().WhenInjectedInto<PlayerManager>().InSingletonScope();
+        Bind<PlayerCameraOverride>().ToSelf().WhenInjectedInto<PlayerManager>().InSingletonScope();
+        Bind<KeybindManager>().ToSelf().WhenInjectedInto<PlayerManager>().InSingletonScope();
         Bind<Mechanic.Factory>().ToSelf();
         Bind<EcsContainer>().ToSelf().InSingletonScope();
 
@@ -90,7 +93,7 @@ public class PluginModule : NinjectModule
         Bind<ISystem>().To<Player>();
         Bind<ISystem>().To<VfxSystem>();
         // Conditions
-        Bind<ISystem>().To<KnockedBack>();
+        Bind<ISystem>().To<Condition>();
 
         Bind<ILogger>().To<DalamudLogger>();
         Bind<DalamudLoggerFactory>().ToSelf();
