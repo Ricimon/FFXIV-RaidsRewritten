@@ -21,7 +21,7 @@ public class Player(DalamudServices dalamud, PlayerManager playerManager, ILogge
 
     public void Register(World world)
     {
-        var knockbackQuery = world.QueryBuilder<Condition, KnockedBack.Component>().Cached().Build();
+        var knockbackQuery = world.QueryBuilder<Condition.Component, KnockedBack.Component>().Cached().Build();
 
         world.System<Component>()
             .Each((Iter it, int i, ref Component component) =>
@@ -33,7 +33,7 @@ public class Player(DalamudServices dalamud, PlayerManager playerManager, ILogge
                     var player = this.dalamud.ClientState.LocalPlayer;
                     if (player == null || player.IsDead)
                     {
-                        playerEntity.Children<Condition>(c => c.Mut(ref it).Destruct());
+                        playerEntity.Children<Condition.Component>(c => c.Mut(ref it).Destruct());
                         return;
                     }
 
@@ -47,7 +47,7 @@ public class Player(DalamudServices dalamud, PlayerManager playerManager, ILogge
                     if (knockbackQuery.IsTrue())
                     {
                         var knockbackEntity = knockbackQuery.First();
-                        var condition = knockbackEntity.Get<Condition>();
+                        var condition = knockbackEntity.Get<Condition.Component>();
                         var knockback = knockbackEntity.Get<KnockedBack.Component>();
                         //this.logger.Info("Player has knockback, direction {0}, time left {1}", knockback.KnockbackDirection, condition.TimeRemaining);
 

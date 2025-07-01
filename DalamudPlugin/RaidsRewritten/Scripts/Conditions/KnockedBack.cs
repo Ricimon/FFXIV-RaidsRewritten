@@ -7,7 +7,7 @@ using RaidsRewritten.Log;
 
 namespace RaidsRewritten.Scripts.Conditions;
 
-public class KnockedBack(ILogger logger) : ISystem
+public class KnockedBack(ILogger logger)
 {
     public record struct Component(Vector3 KnockbackDirection);
 
@@ -25,30 +25,8 @@ public class KnockedBack(ILogger logger) : ISystem
         });
 
         playerEntity.CsWorld().Entity()
-            .Set(new Condition("Knocked Back", duration))
+            .Set(new Condition.Component("Knocked Back", duration))
             .Set(new Component(knockbackDirection))
             .ChildOf(playerEntity);
-    }
-
-    public void Register(World world)
-    {
-        world.System<Condition, Component>()
-            .Each((Iter it, int i, ref Condition condition, ref Component component) =>
-            {
-                try
-                {
-                    condition.TimeRemaining = Math.Max(condition.TimeRemaining - it.DeltaTime(), 0);
-
-                    if (condition.TimeRemaining <= 0)
-                    {
-                        var e = it.Entity(i);
-                        e.Destruct();
-                    }
-                }
-                catch(Exception e)
-                {
-                    this.logger.Error(e.ToStringFull());
-                }
-            });
     }
 }
