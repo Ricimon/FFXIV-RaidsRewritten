@@ -94,6 +94,7 @@ public class EffectsRenderer : IPluginUIView, IDisposable
         if (!this.font.Available) return;
 
         var drawList = ImGui.GetForegroundDrawList();
+        var maxWidth = 0f;
         var offsetY = 0f;
 
         var world = ecsContainer.World;
@@ -103,17 +104,26 @@ public class EffectsRenderer : IPluginUIView, IDisposable
             // matches all conditions that exist in the world
             world.QueryBuilder<Scripts.Conditions.Condition>().Build().Each((ref Scripts.Conditions.Condition status) =>
             {
-                AddStatus(drawList, "Knocked back", Math.Round(status.TimeRemaining), ref offsetY);
+                AddStatus(drawList, status.Name, Math.Round(status.TimeRemaining), ref offsetY, ref maxWidth);
             });
         }
+
+        if (offsetY > 0f)
+        {
+            var min = new Vector2(configuration.EffectsRendererPositionX - maxWidth / 2, configuration.EffectsRendererPositionY);
+            var max = new Vector2(configuration.EffectsRendererPositionX + maxWidth / 2, configuration.EffectsRendererPositionY + offsetY);
+            drawList.AddRectFilled(min, max, ImGui.ColorConvertFloat4ToU32(new Vector4(0, 0, 0, 0.3f)));
+        }
+
     }
 
-    private void AddStatus(ImDrawListPtr drawList, string statusName, double timeRemaining, ref float offsetY)
+    private void AddStatus(ImDrawListPtr drawList, string statusName, double timeRemaining, ref float offsetY, ref float maxWidth)
     {
         var text = $"{statusName} for {timeRemaining}s";
         var textSize = ImGui.CalcTextSize(text);
         var position = new Vector2(configuration.EffectsRendererPositionX - textSize.X / 2, configuration.EffectsRendererPositionY + offsetY);
         drawList.AddText(ImGui.GetFont(), 50, position, Vector4Colors.Red.ToColorU32(), text);
         offsetY += textSize.Y;
+        if (textSize.X > maxWidth) maxWidth = textSize.X;
     }
 }
