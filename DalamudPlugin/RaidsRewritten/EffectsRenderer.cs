@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Numerics;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.Utility;
 using Dalamud.Plugin;
@@ -99,7 +100,8 @@ public class EffectsRenderer : IPluginUIView, IDisposable
 
         using (font.Push())
         {
-            world.QueryBuilder<Scripts.Conditions.KnockedBack.Component>().With<Player.Component>().Build().Each((ref Scripts.Conditions.KnockedBack.Component status) =>
+            // matches all conditions that exist in the world
+            world.QueryBuilder<Scripts.Conditions.Condition>().Build().Each((ref Scripts.Conditions.Condition status) =>
             {
                 AddStatus(drawList, "Knocked back", Math.Round(status.TimeRemaining), ref offsetY);
             });
@@ -110,7 +112,7 @@ public class EffectsRenderer : IPluginUIView, IDisposable
     {
         var text = $"{statusName} for {timeRemaining}s";
         var textSize = ImGui.CalcTextSize(text);
-        var position = new System.Numerics.Vector2(configuration.EffectsRendererPositionX - textSize.X / 2, configuration.EffectsRendererPositionY + offsetY);
+        var position = new Vector2(configuration.EffectsRendererPositionX - textSize.X / 2, configuration.EffectsRendererPositionY + offsetY);
         drawList.AddText(ImGui.GetFont(), 50, position, Vector4Colors.Red.ToColorU32(), text);
         offsetY += textSize.Y;
     }
