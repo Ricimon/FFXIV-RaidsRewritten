@@ -119,7 +119,7 @@ public class EffectsRenderer : IPluginUIView, IDisposable
         using (font.Push())
         {
             // matches all conditions that exist in the world
-            world.QueryBuilder<Scripts.Conditions.Condition>().Build().Each((ref Scripts.Conditions.Condition status) =>
+            world.QueryBuilder<Scripts.Conditions.Condition.Component>().Build().Each((ref Scripts.Conditions.Condition.Component status) =>
             {
                 AddStatus(toDraw, status.Name, Math.Round(status.TimeRemaining), ref offsetY, ref maxWidth);
             });
