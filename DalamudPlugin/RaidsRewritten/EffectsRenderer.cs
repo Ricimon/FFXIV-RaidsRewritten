@@ -6,6 +6,7 @@ using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using ImGuiNET;
 using RaidsRewritten.Extensions;
+using RaidsRewritten.Game;
 using RaidsRewritten.Input;
 using RaidsRewritten.Log;
 using RaidsRewritten.UI.Util;
@@ -35,10 +36,9 @@ public class EffectsRenderer : IPluginUIView, IDisposable
     private readonly Configuration configuration;
     private readonly MapManager mapManager;
     private readonly ILogger logger;
-    private readonly IFontHandle font;
-    private readonly OrderedDictionary<int, string> displayText = new();
+    private readonly EcsContainer ecsContainer;
 
-    private int displayTextId = 0;
+    private readonly IFontHandle font;
 
     public EffectsRenderer(
         Lazy<EffectsRendererPresenter> presenter,
@@ -52,7 +52,8 @@ public class EffectsRenderer : IPluginUIView, IDisposable
         KeyStateWrapper keyStateWrapper,
         Configuration configuration,
         MapManager mapManager,
-        ILogger logger)
+        ILogger logger,
+        EcsContainer ecsContainer)
     {
         this.presenter = presenter;
         this.pluginInterface = pluginInterface;
@@ -66,9 +67,12 @@ public class EffectsRenderer : IPluginUIView, IDisposable
         this.configuration = configuration;
         this.mapManager = mapManager;
         this.logger = logger;
+        this.ecsContainer = ecsContainer;
+
         this.font = pluginInterface.UiBuilder.FontAtlas.NewDelegateFontHandle(e =>
         {
-            e.OnPreBuild(tk => {
+            e.OnPreBuild(tk =>
+            {
                 tk.AddDalamudAssetFont(Dalamud.DalamudAsset.NotoSansJpMedium, new()
                 {
                     SizePx = 50
@@ -91,35 +95,23 @@ public class EffectsRenderer : IPluginUIView, IDisposable
         var drawList = ImGui.GetForegroundDrawList();
         var offsetY = 0f;
 
-        // font.Push() just to convert IFontHandle to ImFontPtr
+        var world = ecsContainer.World;
+
         using (font.Push())
         {
-            foreach(var text in displayText.Values)
+            world.QueryBuilder<Scripts.Conditions.KnockedBack.Component>().With<Player.Component>().Build().Each((ref Scripts.Conditions.KnockedBack.Component status) =>
             {
-                var textSize = ImGui.CalcTextSize(text);
-                var position = new System.Numerics.Vector2(configuration.EffectsRendererPositionX - textSize.X / 2, configuration.EffectsRendererPositionY + offsetY);
-                drawList.AddText(ImGui.GetFont(), 50, position, Vector4Colors.Red.ToColorU32(), text);
-                offsetY += textSize.Y;
-            }
+                AddStatus(drawList, "Knocked back", Math.Round(status.TimeRemaining), ref offsetY);
+            });
         }
     }
 
-    public int AddText(string text)
+    private void AddStatus(ImDrawListPtr drawList, string statusName, double timeRemaining, ref float offsetY)
     {
-        displayText[displayTextId] = text;
-        return displayTextId++;
-    }
-
-    public bool ModifyText(int id, string text)
-    {
-        if (id < 0 && id >= displayText.Count) return false;
-        displayText[id] = text;
-        return true;
-    }
-
-    public bool RemoveText(int id)
-    {
-        if (id < 0) return false;
-        return displayText.Remove(id);
+        var text = $"{statusName} for {timeRemaining}s";
+        var textSize = ImGui.CalcTextSize(text);
+        var position = new System.Numerics.Vector2(configuration.EffectsRendererPositionX - textSize.X / 2, configuration.EffectsRendererPositionY + offsetY);
+        drawList.AddText(ImGui.GetFont(), 50, position, Vector4Colors.Red.ToColorU32(), text);
+        offsetY += textSize.Y;
     }
 }
