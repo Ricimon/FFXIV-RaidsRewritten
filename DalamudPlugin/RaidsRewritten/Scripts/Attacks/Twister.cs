@@ -47,7 +47,7 @@ public class Twister(DalamudServices dalamud, VfxSpawn vfxSpawn, Random random, 
                     if (component.Cooldown > 0) { return; }
 
                     var player = this.dalamud.ClientState.LocalPlayer;
-                    if (player == null) { return; }
+                    if (player == null || player.IsDead) { return; }
 
                     if (Vector2.Distance(position.Value.ToVector2(), player.Position.ToVector2()) < Radius)
                     {
@@ -67,7 +67,7 @@ public class Twister(DalamudServices dalamud, VfxSpawn vfxSpawn, Random random, 
                         }
                         it.World().Query<Player.Component>().Each((Entity e, ref Player.Component pc) =>
                         {
-                            e.Set(new KnockedBack.Component(knockbackDirection, KnockbackDuration));
+                            KnockedBack.ApplyToPlayer(e, knockbackDirection, KnockbackDuration);
                         });
                     }
                 }

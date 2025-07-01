@@ -21,6 +21,8 @@ public class Player(DalamudServices dalamud, PlayerManager playerManager, ILogge
 
     public void Register(World world)
     {
+        var knockbackQuery = world.QueryBuilder<Condition, KnockedBack.Component>().Cached().Build();
+
         world.System<Component>()
             .Each((Iter it, int i, ref Component component) =>
             {
@@ -31,21 +33,23 @@ public class Player(DalamudServices dalamud, PlayerManager playerManager, ILogge
                     var player = this.dalamud.ClientState.LocalPlayer;
                     if (player == null || player.IsDead)
                     {
-                        playerEntity.Each<Condition>(hc => hc.Mut(ref it).Destruct());
+                        playerEntity.Children<Condition>(c => c.Mut(ref it).Destruct());
                         return;
                     }
 
-                    var conditionCount = it.World().Query<Component, Condition>().Count();
-                    if (conditionCount == 0)
-                    {
-                        this.logger.Info("Player has no conditions");
-                    }
+                    it.World().SetScope(playerEntity);
+                    //if (!it.World().Query<Condition>().IsTrue())
+                    //{
+                    //    this.logger.Info("Player has no conditions");
+                    //}
 
                     // Handle each condition
-                    if (playerEntity.Has<KnockedBack.Component>())
+                    if (knockbackQuery.IsTrue())
                     {
-                        var knockback = playerEntity.Get<KnockedBack.Component>();
-                        this.logger.Info("Player has knockback, direction {0}, time left {1}", knockback.KnockbackDirection, knockback.TimeRemaining);
+                        var knockbackEntity = knockbackQuery.First();
+                        var condition = knockbackEntity.Get<Condition>();
+                        var knockback = knockbackEntity.Get<KnockedBack.Component>();
+                        //this.logger.Info("Player has knockback, direction {0}, time left {1}", knockback.KnockbackDirection, condition.TimeRemaining);
 
                         this.playerManager.OverrideMovement = true;
                         this.playerManager.OverrideMovementDirection = knockback.KnockbackDirection;
