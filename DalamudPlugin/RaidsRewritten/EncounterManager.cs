@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.DirectoryServices.ActiveDirectory;
 using System.Linq;
 using System.Text;
-using Dalamud.Game;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Plugin.Services;
 using ECommons;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
@@ -15,19 +14,16 @@ using ECommons.ObjectLifeTracker;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using RaidsRewritten.Log;
 using RaidsRewritten.Memory;
-using RaidsRewritten.Scripts;
+using RaidsRewritten.Scripts.Encounters;
 using RaidsRewritten.Utility;
 
 namespace RaidsRewritten;
 
-public class EncounterManager : IDisposable
+public sealed class EncounterManager : IDalamudHook
 {
-    private readonly IGameInteropProvider gameInteropProvider;
-    private readonly ISigScanner sigScanner;
-    private readonly IObjectTable objectTable;
-    private readonly IClientState clientState;
-    private readonly IDataManager dataManager;
-    private readonly IFramework framework;
+    public IEncounter? ActiveEncounter { get; private set; }
+
+    private readonly DalamudServices dalamud;
     private readonly MapEffectProcessor mapEffectProcessor;
     private readonly ObjectEffectProcessor objectEffectProcessor;
     private readonly ActorControlProcessor actorControlProcessor;
@@ -38,48 +34,45 @@ public class EncounterManager : IDisposable
         "vfx/common/eff/dk03ht_bct0m.avfx",
         "vfx/common/eff/dk03ht_mct0s.avfx",
         "vfx/common/eff/dk04ht_cur0h.avfx",
+        "vfx/common/eff/dk04ht_ear0h.avfx",
         "vfx/common/eff/dk04ht_ele0h.avfx",
         "vfx/common/eff/dk04ht_hpt0h.avfx",
         "vfx/common/eff/dk04ht_win0h.avfx",
+        "vfx/common/eff/cmat_aoz0f.avfx",
     ];
-
-    private List<Mechanic> activeMechanics = [];
+    private readonly Dictionary<ushort, IEncounter> encounters;
 
     public EncounterManager(
-        IGameInteropProvider gameInteropProvider,
-        ISigScanner sigScanner,
-        IObjectTable objectTable,
-        IClientState clientState,
-        IDataManager dataManager,
-        IFramework framework,
+        DalamudServices dalamud,
         MapEffectProcessor mapEffectProcessor,
         ObjectEffectProcessor objectEffectProcessor,
         ActorControlProcessor actorControlProcessor,
+        IEncounter[] encounters,
         ILogger logger)
     {
-        this.gameInteropProvider = gameInteropProvider;
-        this.sigScanner = sigScanner;
-        this.objectTable = objectTable;
-        this.clientState = clientState;
-        this.dataManager = dataManager;
-        this.framework = framework;
+        this.dalamud = dalamud;
         this.mapEffectProcessor = mapEffectProcessor;
         this.objectEffectProcessor = objectEffectProcessor;
         this.actorControlProcessor = actorControlProcessor;
         this.logger = logger;
+
+        this.encounters = encounters.ToDictionary(e => e.TerritoryId, e => e);
     }
 
-    public void Init()
+    public void HookToDalamud()
     {
         this.mapEffectProcessor.Init(OnMapEffect);
         this.objectEffectProcessor.Init(OnObjectEffect);
         this.actorControlProcessor.Init(OnActorControl);
         AttachedInfo.Init(logger, OnStartingCast, OnVFXSpawn);
         DirectorUpdate.Init(OnDirectorUpdate, logger);
-        ObjectLife.Init(gameInteropProvider, sigScanner, objectTable, logger);
+        ObjectLife.Init(dalamud.GameInteropProvider, dalamud.SigScanner, dalamud.ObjectTable, logger);
         ObjectLife.OnObjectCreation += OnObjectCreation;
         ActionEffect.ActionEffectEntryEvent += OnActionEffect;
         ActionEffect.ActionEffectEvent += OnActionEffectEvent;
+
+        this.dalamud.ClientState.TerritoryChanged += this.OnTerritoryChanged;
+        OnTerritoryChanged(this.dalamud.ClientState.TerritoryType);
     }
 
     public void Dispose()
@@ -88,17 +81,20 @@ public class EncounterManager : IDisposable
         DirectorUpdate.Dispose();
         ObjectLife.Dispose();
         ActionEffect.Dispose();
-        GC.SuppressFinalize(this);
+        this.dalamud.ClientState.TerritoryChanged -= this.OnTerritoryChanged;
     }
 
-    public void AddMechanic(Mechanic mechanic)
+    private void OnTerritoryChanged(ushort obj)
     {
-        activeMechanics.Add(mechanic);
-    }
-
-    public void RemoveMechanic(Mechanic mechanic)
-    {
-        activeMechanics.Remove(mechanic);
+        if (this.encounters.TryGetValue(obj, out var encounter))
+        {
+            ActiveEncounter = encounter;
+            this.logger.Info("Active encounter set to {0}", encounter.GetType());
+        }
+        else
+        {
+            ActiveEncounter = null;
+        }
     }
 
     private void OnMapEffect(uint Position, ushort Param1, ushort Param2)
@@ -109,7 +105,7 @@ public class EncounterManager : IDisposable
 
     private void OnObjectEffect(uint Target, ushort Param1, ushort Param2)
     {
-        var gameObject = this.objectTable.SearchByEntityId(Target);
+        var gameObject = this.dalamud.ObjectTable.SearchByEntityId(Target);
         if (gameObject == null) { return; }
 
         var text = $"OBJECT_EFFECT: on {gameObject.Name.TextValue} 0x{Target:X}/0x{gameObject.GameObjectId:X} data {Param1}, {Param2}";
@@ -118,7 +114,7 @@ public class EncounterManager : IDisposable
 
     private void OnStartingCast(uint source, uint castId)
     {
-        var sourceObject = this.objectTable.SearchByEntityId(source);
+        var sourceObject = this.dalamud.ObjectTable.SearchByEntityId(source);
         if (sourceObject == null) { return; }
         if (sourceObject is not IBattleChara battleChara) { return; }
 
@@ -128,7 +124,7 @@ public class EncounterManager : IDisposable
         }
 
         var actionName = "<Unknown>";
-        var actionSheet = this.dataManager.GetExcelSheet<Lumina.Excel.Sheets.Action>(this.clientState.ClientLanguage);
+        var actionSheet = this.dalamud.DataManager.GetExcelSheet<Lumina.Excel.Sheets.Action>(this.dalamud.ClientState.ClientLanguage);
         if (actionSheet.TryGetRow(battleChara.CastActionId, out var action))
         {
             actionName = action.Name.ExtractText();
@@ -143,7 +139,7 @@ public class EncounterManager : IDisposable
 
         var text = new StringBuilder($"VFX: {vfxPath}");
 
-        var obj = this.objectTable.SearchByEntityId(target);
+        var obj = this.dalamud.ObjectTable.SearchByEntityId(target);
         if (obj == null)
         {
             this.logger.Debug(text.ToString());
@@ -153,7 +149,7 @@ public class EncounterManager : IDisposable
         if (obj is ICharacter c)
         {
             if (c is IPlayerCharacter && BlacklistedPcVfx.Contains(vfxPath)) { return; }
-            var targetText = c.AddressEquals(this.clientState.LocalPlayer) ? "me" : (c is IPlayerCharacter pc ? pc.GetJob().ToString() : c.DataId.ToString() ?? "Unknown");
+            var targetText = c.AddressEquals(this.dalamud.ClientState.LocalPlayer) ? "me" : (c is IPlayerCharacter pc ? pc.GetJob().ToString() : c.DataId.ToString() ?? "Unknown");
             unsafe
             {
                 text.Append($" spawned on {targetText}, npc id={c.NameId}, model id={c.Struct()->ModelContainer.ModelCharaId}, name npc id={c.NameId}, position={c.Position}, name={c.Name}");
@@ -173,22 +169,33 @@ public class EncounterManager : IDisposable
     {
         var text = $"DIRECTOR_UPDATE: {a3}, {a4:X8}, {a5:X8}, {a6:X8}, {a7:X8}";
         this.logger.Debug(text);
+
+        if (ActiveEncounter != null)
+        {
+            foreach (var mechanic in ActiveEncounter.GetMechanics())
+            {
+                mechanic.OnDirectorUpdate(a3);
+            }
+        }
     }
 
     private unsafe void OnObjectCreation(nint newObjectPointer)
     {
-        this.framework.Run(() =>
+        this.dalamud.Framework.Run(() =>
         {
             var text = new StringBuilder("OBJECT_CREATED: ");
-            var obj = this.objectTable.FirstOrDefault(x => x.Address == newObjectPointer);
+            var obj = this.dalamud.ObjectTable.FirstOrDefault(x => x.Address == newObjectPointer);
             if (obj == null)
             {
                 text.Append($"0x{newObjectPointer:X}");
                 this.logger.Debug(text.ToString());
 
-                foreach (var mechanic in activeMechanics)
+                if (ActiveEncounter != null)
                 {
-                    mechanic.OnObjectCreation(newObjectPointer, null);
+                    foreach (var mechanic in ActiveEncounter.GetMechanics())
+                    {
+                        mechanic.OnObjectCreation(newObjectPointer, null);
+                    }
                 }
                 return;
             }
@@ -202,9 +209,12 @@ public class EncounterManager : IDisposable
             text.Append($" DataId 0x{obj.DataId:X}");
             this.logger.Debug(text.ToString());
 
-            foreach (var mechanic in activeMechanics)
+            if (ActiveEncounter != null)
             {
-                mechanic.OnObjectCreation(newObjectPointer, obj);
+                foreach (var mechanic in ActiveEncounter.GetMechanics())
+                {
+                    mechanic.OnObjectCreation(newObjectPointer, obj);
+                }
             }
         });
     }
@@ -221,17 +231,18 @@ public class EncounterManager : IDisposable
         if (set.SourceCharacter.HasValue)
         {
             var source = set.SourceCharacter.Value;
-            if (source.GetObjectKind() == ObjectKind.Pc)
+            if (source.GetObjectKind() == ObjectKind.Pc &&
+                source.EntityId != this.dalamud.ClientState.LocalPlayer?.EntityId)
             {
                 return;
             }
-            text.Append($" source: {source.NameString} (0x{source.EntityId:X}),");
+            text.Append($" source {source.NameString} (0x{source.EntityId:X}),");
         }
 
         if (!set.Action.HasValue) { return; }
 
         var actionName = "<Unknown>";
-        var actionSheet = this.dataManager.GetExcelSheet<Lumina.Excel.Sheets.Action>(this.clientState.ClientLanguage);
+        var actionSheet = this.dalamud.DataManager.GetExcelSheet<Lumina.Excel.Sheets.Action>(this.dalamud.ClientState.ClientLanguage);
         if (actionSheet.TryGetRow(set.Action.Value.RowId, out var action))
         {
             actionName = action.Name.ExtractText();
@@ -242,7 +253,7 @@ public class EncounterManager : IDisposable
 
     private void OnActorControl(uint sourceId, uint command, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, ulong targetId, byte replaying)
     {
-        var source = this.objectTable.SearchByEntityId(sourceId);
+        var source = this.dalamud.ObjectTable.SearchByEntityId(sourceId);
         if (source == null) { return; }
         if (source is not IBattleChara battleChara) { return; }
 

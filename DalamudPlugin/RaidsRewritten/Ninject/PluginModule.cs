@@ -2,7 +2,6 @@
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
-using Flecs.NET.Core;
 using Ninject.Activation;
 using Ninject.Modules;
 using RaidsRewritten.Audio;
@@ -16,7 +15,9 @@ using RaidsRewritten.Scripts;
 using RaidsRewritten.Scripts.Attacks;
 using RaidsRewritten.Scripts.Attacks.Systems;
 using RaidsRewritten.Scripts.Conditions;
+using RaidsRewritten.Scripts.Encounters;
 using RaidsRewritten.Scripts.Encounters.E1S;
+using RaidsRewritten.Scripts.Encounters.UCOB;
 using RaidsRewritten.Spawn;
 using RaidsRewritten.UI;
 using RaidsRewritten.UI.Presenter;
@@ -60,13 +61,13 @@ public class PluginModule : NinjectModule
         Bind<Plugin>().ToSelf().InSingletonScope();
         Bind<IDalamudHook>().To<PluginUIContainer>().InSingletonScope();
         Bind<IDalamudHook>().To<CommandDispatcher>().InSingletonScope();
+        Bind<IDalamudHook>().To<EncounterManager>().InSingletonScope();
+        Bind<IDalamudHook>().To<AttackManager>().InSingletonScope();
         Bind<KeyStateWrapper>().ToSelf().InSingletonScope();
         Bind<IAudioDeviceController, AudioDeviceController>().To<AudioDeviceController>().InSingletonScope();
         Bind<ServerConnection>().ToSelf().InSingletonScope();
         Bind<Spatializer>().ToSelf().InSingletonScope();
         Bind<MapManager>().ToSelf().InSingletonScope();
-        Bind<EncounterManager>().ToSelf().InSingletonScope();
-        Bind<AttackManager>().ToSelf().InSingletonScope();
         Bind<PlayerManager>().ToSelf().InSingletonScope();
         Bind<PlayerMovementOverride>().ToSelf().WhenInjectedInto<PlayerManager>().InSingletonScope();
         Bind<PlayerCameraOverride>().ToSelf().WhenInjectedInto<PlayerManager>().InSingletonScope();
@@ -84,7 +85,8 @@ public class PluginModule : NinjectModule
         Bind<Configuration>().ToMethod(GetConfiguration).InSingletonScope();
 
         // Encounters
-        Bind<IDalamudHook>().To<EdenPrimeTest>().InSingletonScope();
+        Bind<IEncounter>().To<UcobRewritten>().InSingletonScope();
+        Bind<IEncounter>().To<EdenPrimeTest>().InSingletonScope();
 
         // Attacks & Systems
         Bind<IAttack>().To<CircleOmen>();
@@ -93,6 +95,7 @@ public class PluginModule : NinjectModule
         Bind<ISystem>().To<VfxSystem>();
         // Conditions
         Bind<ISystem>().To<Condition>();
+        Bind<ISystem>().To<KnockedBack>();
 
         Bind<ILogger>().To<DalamudLogger>();
         Bind<DalamudLoggerFactory>().ToSelf();

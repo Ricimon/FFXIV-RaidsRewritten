@@ -1,29 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace RaidsRewritten.Scripts.Encounters.E1S;
 
-public class EdenPrimeTest : IDalamudHook
+public class EdenPrimeTest : IEncounter
 {
+    public ushort TerritoryId => 853;
+
     private readonly List<Mechanic> mechanics;
 
-    public EdenPrimeTest(EncounterManager encounterManager, Mechanic.Factory mechanicFactory)
+    public EdenPrimeTest(Mechanic.Factory mechanicFactory)
     {
-        this.mechanics = [mechanicFactory.Create<PermanentViceOfApathy>()];
-
-        foreach(var mechanic in this.mechanics)
-        {
-            encounterManager.AddMechanic(mechanic);
-        }
+        this.mechanics = [mechanicFactory.Create<PermanentViceOfApathyTest>()];
     }
 
-    public void HookToDalamud()
+    public IEnumerable<Mechanic> GetMechanics()
     {
-        
-    }
-
-    public void Dispose()
-    {
-        GC.SuppressFinalize(this);
+        return this.mechanics;
     }
 }

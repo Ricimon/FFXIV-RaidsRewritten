@@ -5,7 +5,7 @@ using RaidsRewritten.UI.Presenter;
 
 namespace RaidsRewritten;
 
-public class CommandDispatcher(
+public sealed class CommandDispatcher(
     ICommandManager commandManager,
     MainWindowPresenter mainWindowPresenter) : IDalamudHook
 {

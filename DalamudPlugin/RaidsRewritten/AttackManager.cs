@@ -8,7 +8,7 @@ using RaidsRewritten.Scripts.Attacks.Components;
 
 namespace RaidsRewritten;
 
-public sealed class AttackManager : IDisposable
+public sealed class AttackManager : IDalamudHook
 {
     private readonly DalamudServices dalamud;
     private readonly World world;
@@ -31,7 +31,10 @@ public sealed class AttackManager : IDisposable
         {
             entityCreationFunctions.Add(attack.GetType(), attack.Create);
         }
+    }
 
+    public void HookToDalamud()
+    {
         this.dalamud.ClientState.TerritoryChanged += OnTerritoryChanged;
     }
 

@@ -71,7 +71,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
     public IReactiveProperty<int> MinimumVisibleLogLevel { get; } = new ReactiveProperty<int>();
 
     private readonly WindowSystem windowSystem;
-    private readonly DalamudServices dalamudServices;
+    private readonly DalamudServices dalamud;
     private readonly ServerConnection serverConnection;
     private readonly MapManager mapChangeHandler;
     private readonly AttackManager attackManager;
@@ -89,7 +89,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
 
     public MainWindow(
         WindowSystem windowSystem,
-        DalamudServices dalamudServices,
+        DalamudServices dalamud,
         ServerConnection serverConnection,
         MapManager mapChangeHandler,
         AttackManager attackManager,
@@ -98,7 +98,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         PluginInitializer.Name)
     {
         this.windowSystem = windowSystem;
-        this.dalamudServices = dalamudServices;
+        this.dalamud = dalamud;
         this.serverConnection = serverConnection;
         this.mapChangeHandler = mapChangeHandler;
         this.attackManager = attackManager;
@@ -158,7 +158,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
 
         if (ImGui.Button("Spawn Circle Omen"))
         {
-            var player = this.dalamudServices.ClientState.LocalPlayer;
+            var player = this.dalamud.ClientState.LocalPlayer;
             if (player != null)
             {
                 if (this.attackManager.TryCreateAttackEntity<CircleOmen>(out var circle))
@@ -172,7 +172,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         ImGui.SameLine();
         if (ImGui.Button("Spawn Twister"))
         {
-            var player = this.dalamudServices.ClientState.LocalPlayer;
+            var player = this.dalamud.ClientState.LocalPlayer;
             if (player != null)
             {
                 if (this.attackManager.TryCreateAttackEntity<Twister>(out var twister))
@@ -185,7 +185,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
 
         if (ImGui.Button("Print Player Position"))
         {
-            var player = this.dalamudServices.ClientState.LocalPlayer;
+            var player = this.dalamud.ClientState.LocalPlayer;
             if (player != null)
             {
                 this.logger.Info("Player position: {0}", player.Position);
@@ -272,7 +272,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         ImGui.BeginDisabled(this.serverConnection.InRoom);
         if (this.createPrivateRoomButtonText == null || !this.serverConnection.InRoom)
         {
-            var playerName = this.dalamudServices.ClientState.GetLocalPlayerFullName();
+            var playerName = this.dalamud.ClientState.GetLocalPlayerFullName();
             this.createPrivateRoomButtonText = roomName.Length == 0 || roomName == playerName ?
                 "Create Private Room" : "Join Private Room";
         }

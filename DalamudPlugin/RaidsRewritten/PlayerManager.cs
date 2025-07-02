@@ -7,6 +7,8 @@ namespace RaidsRewritten;
 
 public class PlayerManager
 {
+    public bool IsMovementAllowedByGame => this.movementOverride.IsMovementAllowedByGame;
+
     public bool OverrideMovement
     {
         get => this.movementOverride.OverrideMovement || 

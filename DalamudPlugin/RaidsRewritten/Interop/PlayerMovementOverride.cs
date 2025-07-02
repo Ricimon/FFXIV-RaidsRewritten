@@ -14,21 +14,9 @@ namespace RaidsRewritten.Interop;
 
 public unsafe sealed class PlayerMovementOverride : IDisposable
 {
-    public bool OverrideMovement
-    {
-        get => _rmiWalkHook.IsEnabled;
-        set
-        {
-            if (value)
-            {
-                _rmiWalkHook.Enable();
-            }
-            else
-            {
-                _rmiWalkHook.Disable();
-            }
-        }
-    }
+    public bool IsMovementAllowedByGame { get; private set; }
+
+    public bool OverrideMovement { get; set; }
     public Vector3 OverrideMovementDirection { get; set; }
 
     private readonly DalamudServices dalamud;
@@ -57,6 +45,8 @@ public unsafe sealed class PlayerMovementOverride : IDisposable
         this.dalamud.GameInteropProvider.InitializeFromAttributes(this);
         this.dalamud.GameConfig.UiControlChanged += OnConfigChanged;
         UpdateLegacyMode();
+
+        _rmiWalkHook.Enable();
     }
 
     public void Dispose()
@@ -69,9 +59,10 @@ public unsafe sealed class PlayerMovementOverride : IDisposable
     {
         _rmiWalkHook.Original(self, sumLeft, sumForward, sumTurnLeft, haveBackwardOrStrafe, a6, bAdditiveUnk);
         // TODO: we really need to introduce some extra checks that PlayerMoveController::readInput does - sometimes it skips reading input, and returning something non-zero breaks stuff...
-        bool movementAllowed = bAdditiveUnk == 0 && _rmiWalkIsInputEnabled1(self) && _rmiWalkIsInputEnabled2(self); //&& !Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.BeingMoved];
+        IsMovementAllowedByGame = bAdditiveUnk == 0 && _rmiWalkIsInputEnabled1(self) && _rmiWalkIsInputEnabled2(self); //&& !Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.BeingMoved];
         //UserInput = *sumLeft != 0 || *sumForward != 0;
-        if (movementAllowed && GetDirectionAngles(false) is var relDir && relDir != null)
+        if (OverrideMovement && IsMovementAllowedByGame &&
+            GetDirectionAngles(false) is var relDir && relDir != null)
         {
             var dir = relDir.Value.h.ToDirection();
             *sumLeft = dir.X;
