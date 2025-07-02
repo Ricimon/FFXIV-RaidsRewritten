@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.DirectoryServices.ActiveDirectory;
 using System.Linq;
 using System.Text;
+using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
@@ -11,7 +11,6 @@ using ECommons.GameHelpers;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ObjectLifeTracker;
-using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using RaidsRewritten.Log;
 using RaidsRewritten.Memory;
 using RaidsRewritten.Scripts.Encounters;
@@ -226,28 +225,18 @@ public sealed class EncounterManager : IDalamudHook
 
     private void OnActionEffectEvent(ActionEffectSet set)
     {
-        var text = new StringBuilder("ACTION:");
+        var text = new StringBuilder("ACTION: ");
 
-        if (set.SourceCharacter.HasValue)
+        // Ignore actions targeting other players
+        var target = set.Target;
+        if (target != null &&
+            target.ObjectKind == ObjectKind.Player &&
+            target.EntityId != this.dalamud.ClientState.LocalPlayer?.EntityId)
         {
-            var source = set.SourceCharacter.Value;
-            if (source.GetObjectKind() == ObjectKind.Pc &&
-                source.EntityId != this.dalamud.ClientState.LocalPlayer?.EntityId)
-            {
-                return;
-            }
-            text.Append($" source {source.NameString} (0x{source.EntityId:X}),");
+            return;
         }
 
-        if (!set.Action.HasValue) { return; }
-
-        var actionName = "<Unknown>";
-        var actionSheet = this.dalamud.DataManager.GetExcelSheet<Lumina.Excel.Sheets.Action>(this.dalamud.ClientState.ClientLanguage);
-        if (actionSheet.TryGetRow(set.Action.Value.RowId, out var action))
-        {
-            actionName = action.Name.ExtractText();
-        }
-        text.Append($" action {actionName} ({set.Action.Value.RowId}), anim id {set.Header.AnimationId} numTargets: {set.Header.TargetCount}");
+        text.Append(set.ToString());
         this.logger.Debug(text.ToString());
     }
 

@@ -65,7 +65,7 @@ public class Twister(DalamudServices dalamud, VfxSpawn vfxSpawn, Random random, 
                             var randomAngle = (float)(random.NextDouble() * 2 * Math.PI);
                             knockbackDirection = new Vector3(MathF.Cos(randomAngle), 0, MathF.Sin(randomAngle));
                         }
-                        it.World().Query<Player.Component>().Each((Entity e, ref Player.Component pc) =>
+                        Player.Query(it.World()).Each((Entity e, ref Player.Component pc) =>
                         {
                             KnockedBack.ApplyToPlayer(e, knockbackDirection, KnockbackDuration);
                         });

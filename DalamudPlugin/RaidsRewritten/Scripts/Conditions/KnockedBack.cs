@@ -1,15 +1,20 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Numerics;
+using ECommons.Hooks;
+using ECommons.Hooks.ActionEffectTypes;
 using Flecs.NET.Core;
+using RaidsRewritten.Extensions;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 
 namespace RaidsRewritten.Scripts.Conditions;
 
-public class KnockedBack(PlayerManager playerManager, ILogger logger) : ISystem
+public sealed class KnockedBack(DalamudServices dalamud, EcsContainer ecsContainer, ILogger logger) : IDalamudHook
 {
     public record struct Component(Vector3 KnockbackDirection);
 
-    private readonly PlayerManager playerManager = playerManager;
+    private readonly DalamudServices dalamud = dalamud;
+    private readonly World world = ecsContainer.World;
     private readonly ILogger logger = logger;
 
     public static void ApplyToPlayer(Entity playerEntity, Vector3 knockbackDirection, float duration)
@@ -17,10 +22,7 @@ public class KnockedBack(PlayerManager playerManager, ILogger logger) : ISystem
         // Remove existing knockback conditions
         playerEntity.Scope(() =>
         {
-            playerEntity.CsWorld().Query<Component>().Each((Entity e, ref Component _) =>
-            {
-                e.Destruct();
-            });
+            playerEntity.CsWorld().DeleteWith<Component>();
         });
 
         playerEntity.CsWorld().Entity()
@@ -29,16 +31,48 @@ public class KnockedBack(PlayerManager playerManager, ILogger logger) : ISystem
             .ChildOf(playerEntity);
     }
 
-    public void Register(World world)
+    public void HookToDalamud()
     {
-        world.System<Component>()
-            .Each((Iter it, int i, ref Component _) =>
+        ActionEffect.ActionEffectEvent += OnActionEffectEvent;
+    }
+
+    public void Dispose()
+    {
+        ActionEffect.ActionEffectEvent -= OnActionEffectEvent;
+    }
+
+    private void OnActionEffectEvent(ActionEffectSet set)
+    {
+        try
+        {
+            var localPlayer = this.dalamud.ClientState.LocalPlayer;
+            if (localPlayer == null) { return; }
+            foreach (var targetEffects in set.TargetEffects)
             {
-                if (!playerManager.IsMovementAllowedByGame)
+                if (targetEffects.TargetID == localPlayer.GameObjectId &&
+                    (targetEffects.GetSpecificTypeEffect(ActionEffectType.Knockback1, out _) ||
+                    targetEffects.GetSpecificTypeEffect(ActionEffectType.Knockback2, out _)))
                 {
-                    var e = it.Entity(i);
-                    e.Destruct();
+                    // Remove any fake knockback conditions if a real knockback occurs
+                    Player.Query(this.world).Each((Entity e, ref Player.Component _) =>
+                    {
+                        e.Scope(() =>
+                        {
+                            this.world.DeleteWith<Component>();
+                        });
+                    });
+                    return;
+
+                    // Do not Destruct entities outside of a system or else this will cause a crash.
+                    // Instead, use scopes and World.DeleteWith()
                 }
-            });
+            }
+
+            // TODO: Remove any fake knockback conditions if any movement abilities occur (Thunderclap, getting Rescued, etc)
+        }
+        catch (Exception e)
+        {
+            this.logger.Error(e.ToStringFull());
+        }
     }
 }

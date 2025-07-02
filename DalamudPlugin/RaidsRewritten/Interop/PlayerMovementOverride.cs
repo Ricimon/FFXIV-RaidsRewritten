@@ -1,4 +1,5 @@
 ﻿// Adapted from https://github.com/awgil/ffxiv_navmesh/blob/master/vnavmesh/Movement/OverrideMovement.cs
+// and https://github.com/Caraxi/SimpleTweaksPlugin/blob/main/Tweaks/SmartStrafe.cs
 using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -24,12 +25,27 @@ public unsafe sealed class PlayerMovementOverride : IDisposable
     private readonly ILogger logger;
 
     private delegate bool RMIWalkIsInputEnabled(void* self);
-    private RMIWalkIsInputEnabled _rmiWalkIsInputEnabled1;
-    private RMIWalkIsInputEnabled _rmiWalkIsInputEnabled2;
+    private RMIWalkIsInputEnabled rmiWalkIsInputEnabled1;
+    private RMIWalkIsInputEnabled rmiWalkIsInputEnabled2;
 
     private delegate void RMIWalkDelegate(void* self, float* sumLeft, float* sumForward, float* sumTurnLeft, byte* haveBackwardOrStrafe, byte* a6, byte bAdditiveUnk);
     [Signature("E8 ?? ?? ?? ?? 80 7B 3E 00 48 8D 3D")]
-    private Hook<RMIWalkDelegate> _rmiWalkHook = null!;
+    private Hook<RMIWalkDelegate> rmiWalkHook = null!;
+
+    private enum KeybindType : int
+    {
+        MoveForward = 321,
+        MoveBack = 322,
+        TurnLeft = 323,
+        TurnRight = 324,
+        StrafeLeft = 325,
+        StrafeRight = 326,
+    }
+
+    [return: MarshalAs(UnmanagedType.U1)]
+    private delegate bool CheckStrafeKeybindDelegate(IntPtr ptr, KeybindType keybind);
+    [Signature("E8 ?? ?? ?? ?? 84 C0 74 04 41 C6 06 01 BA 44 01 00 00")]
+    private Hook<CheckStrafeKeybindDelegate> checkStrafeKeybindHook = null!;
 
     private bool legacyMode;
 
@@ -40,27 +56,29 @@ public unsafe sealed class PlayerMovementOverride : IDisposable
 
         var rmiWalkIsInputEnabled1Addr = dalamud.SigScanner.ScanText("E8 ?? ?? ?? ?? 84 C0 75 10 38 43 3C");
         var rmiWalkIsInputEnabled2Addr = dalamud.SigScanner.ScanText("E8 ?? ?? ?? ?? 84 C0 75 03 88 47 3F");
-        _rmiWalkIsInputEnabled1 = Marshal.GetDelegateForFunctionPointer<RMIWalkIsInputEnabled>(rmiWalkIsInputEnabled1Addr);
-        _rmiWalkIsInputEnabled2 = Marshal.GetDelegateForFunctionPointer<RMIWalkIsInputEnabled>(rmiWalkIsInputEnabled2Addr);
+        rmiWalkIsInputEnabled1 = Marshal.GetDelegateForFunctionPointer<RMIWalkIsInputEnabled>(rmiWalkIsInputEnabled1Addr);
+        rmiWalkIsInputEnabled2 = Marshal.GetDelegateForFunctionPointer<RMIWalkIsInputEnabled>(rmiWalkIsInputEnabled2Addr);
 
         this.dalamud.GameInteropProvider.InitializeFromAttributes(this);
         this.dalamud.GameConfig.UiControlChanged += OnConfigChanged;
         UpdateLegacyMode();
 
-        _rmiWalkHook.Enable();
+        rmiWalkHook.Enable();
+        checkStrafeKeybindHook.Enable();
     }
 
     public void Dispose()
     {
         this.dalamud.GameConfig.UiControlChanged -= OnConfigChanged;
-        _rmiWalkHook.Dispose();
+        rmiWalkHook.Dispose();
+        checkStrafeKeybindHook.Dispose();
     }
 
     private void RMIWalkDetour(void* self, float* sumLeft, float* sumForward, float* sumTurnLeft, byte* haveBackwardOrStrafe, byte* a6, byte bAdditiveUnk)
     {
-        _rmiWalkHook.Original(self, sumLeft, sumForward, sumTurnLeft, haveBackwardOrStrafe, a6, bAdditiveUnk);
+        rmiWalkHook.Original(self, sumLeft, sumForward, sumTurnLeft, haveBackwardOrStrafe, a6, bAdditiveUnk);
         // TODO: we really need to introduce some extra checks that PlayerMoveController::readInput does - sometimes it skips reading input, and returning something non-zero breaks stuff...
-        IsMovementAllowedByGame = bAdditiveUnk == 0 && _rmiWalkIsInputEnabled1(self) && _rmiWalkIsInputEnabled2(self); //&& !Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.BeingMoved];
+        IsMovementAllowedByGame = bAdditiveUnk == 0 && rmiWalkIsInputEnabled1(self) && rmiWalkIsInputEnabled2(self); //&& !Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.BeingMoved];
         //UserInput = *sumLeft != 0 || *sumForward != 0;
         if (OverrideMovement && IsMovementAllowedByGame &&
             GetDirectionAngles(false) is var relDir && relDir != null)
@@ -69,6 +87,16 @@ public unsafe sealed class PlayerMovementOverride : IDisposable
             *sumLeft = dir.X;
             *sumForward = dir.Y;
         }
+    }
+
+    private bool CheckStrafeKeybind(IntPtr ptr, KeybindType keybind)
+    {
+        if (OverrideMovement)
+        {
+            // Disables strafing (but does not unset the input key)
+            return false;
+        }
+        return checkStrafeKeybindHook.Original(ptr, keybind);
     }
 
     private (Angle h, Angle v)? GetDirectionAngles(bool allowVertical)
@@ -93,5 +121,4 @@ public unsafe sealed class PlayerMovementOverride : IDisposable
     {
         this.legacyMode = this.dalamud.GameConfig.UiControl.TryGetUInt("MoveMode", out var mode) && mode == 1;
     }
-
 }

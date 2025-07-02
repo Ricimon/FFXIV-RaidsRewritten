@@ -1,5 +1,6 @@
 ﻿// Adapted from https://github.com/awgil/ffxiv_navmesh/blob/master/vnavmesh/Movement/OverrideCamera.cs
 using System;
+using Dalamud.Game.Config;
 using Dalamud.Hooking;
 using Dalamud.Utility.Signatures;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
@@ -37,16 +38,24 @@ public unsafe sealed class PlayerCameraOverride : IDisposable
     [Signature("E8 ?? ?? ?? ?? EB 05 E8 ?? ?? ?? ?? 44 0F 28 4C 24 ??")]
     private Hook<RMICameraDelegate> _rmiCameraHook = null!;
 
+    private readonly DalamudServices dalamud;
     private readonly ILogger logger;
+
+    private bool legacyMode;
 
     public PlayerCameraOverride(DalamudServices dalamud, ILogger logger)
     {
+        this.dalamud = dalamud;
         this.logger = logger;
+
         dalamud.GameInteropProvider.InitializeFromAttributes(this);
+        this.dalamud.GameConfig.UiControlChanged += OnConfigChanged;
+        UpdateLegacyMode();
     }
 
     public void Dispose()
     {
+        this.dalamud.GameConfig.UiControlChanged -= OnConfigChanged;
         this._rmiCameraHook?.Dispose();
     }
 
@@ -55,7 +64,8 @@ public unsafe sealed class PlayerCameraOverride : IDisposable
         _rmiCameraHook.Original(self, inputMode, speedH, speedV);
         // Special check specifically meant to enforce forced-movement
         // There really shouldn't be another reason to force camera direction...
-        if (InputManager.IsAutoRunning())
+        // Standard mode L: camera direction must be forced or else the character can be seen moonwalking
+        if (!this.legacyMode || InputManager.IsAutoRunning())
         {
             var dt = Framework.Instance()->FrameDeltaTime;
             var deltaH = (DesiredAzimuth - self->DirH.Radians()).Normalized();
@@ -65,5 +75,11 @@ public unsafe sealed class PlayerCameraOverride : IDisposable
             self->InputDeltaH = Math.Clamp(deltaH.Rad, -maxH, maxH);
             //self->InputDeltaV = Math.Clamp(deltaV.Rad, -maxV, maxV);
         }
+    }
+
+    private void OnConfigChanged(object? sender, ConfigChangeEvent evt) => UpdateLegacyMode();
+    private void UpdateLegacyMode()
+    {
+        this.legacyMode = this.dalamud.GameConfig.UiControl.TryGetUInt("MoveMode", out var mode) && mode == 1;
     }
 }

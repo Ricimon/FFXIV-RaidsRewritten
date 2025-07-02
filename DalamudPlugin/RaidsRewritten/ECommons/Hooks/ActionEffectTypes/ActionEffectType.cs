@@ -43,7 +43,8 @@ public enum ActionEffectType : byte
     Unknown1 = ComboSucceed,
 
     Retaliation = 29,
-    Knockback = 32,
+    Knockback1 = 31, // Ricimon: Through testing this can also be 31
+    Knockback2 = 32,
     Attract1 = 33, //Here is an issue bout knockback. some is 32 some is 33.
     Attract2 = 34,
     Mount = 40,

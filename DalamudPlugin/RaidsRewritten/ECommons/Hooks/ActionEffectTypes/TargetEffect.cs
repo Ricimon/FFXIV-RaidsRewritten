@@ -32,8 +32,12 @@ public unsafe struct TargetEffect
 
     public override string ToString()
     {
-        var str = PluginInitializer.ObjectTable.SearchById(TargetID)?.Name?.ToString();
-        ForEach(e => str += "\n    " + e.ToString());
+        var str = "Effect Target: " + PluginInitializer.ObjectTable.SearchById(TargetID)?.Name?.ToString();
+        ForEach(e =>
+        {
+            if (e.type == ActionEffectType.Nothing) { return; }
+            str += "\n    " + e.ToString();
+        });
         return str;
     }
 

@@ -95,7 +95,7 @@ public class PluginModule : NinjectModule
         Bind<ISystem>().To<VfxSystem>();
         // Conditions
         Bind<ISystem>().To<Condition>();
-        Bind<ISystem>().To<KnockedBack>();
+        Bind<IDalamudHook>().To<KnockedBack>();
 
         Bind<ILogger>().To<DalamudLogger>();
         Bind<DalamudLoggerFactory>().ToSelf();

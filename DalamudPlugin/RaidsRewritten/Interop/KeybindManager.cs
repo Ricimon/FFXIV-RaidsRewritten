@@ -26,8 +26,8 @@ public unsafe sealed class KeybindManager : IDisposable
     public bool InterceptMovementKeys { get; set; }
 
     private static readonly List<string> KeybindsToIntercept = [
-        "MOVE_STRIFE_L",
-        "MOVE_STRIFE_R",
+        //"MOVE_STRIFE_L",
+        //"MOVE_STRIFE_R",
         "JUMP",
         "WALK",
         ];

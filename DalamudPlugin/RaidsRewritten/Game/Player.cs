@@ -19,6 +19,11 @@ public class Player(DalamudServices dalamud, PlayerManager playerManager, ILogge
         return world.Entity().Add<Component>();
     }
 
+    public static Query<Component> Query(World world)
+    {
+        return world.Query<Component>();
+    }
+
     public void Register(World world)
     {
         var knockbackQuery = world.QueryBuilder<Condition.Component, KnockedBack.Component>().Cached().Build();
@@ -33,7 +38,13 @@ public class Player(DalamudServices dalamud, PlayerManager playerManager, ILogge
                     var player = this.dalamud.ClientState.LocalPlayer;
                     if (player == null || player.IsDead)
                     {
-                        playerEntity.Children<Condition.Component>(c => c.Mut(ref it).Destruct());
+                        playerEntity.Children(c =>
+                        {
+                            if (c.Has<Condition.Component>())
+                            {
+                                c.Mut(ref it).Destruct();
+                            }
+                        });
                         return;
                     }
 
