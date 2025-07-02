@@ -4,7 +4,7 @@ namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
 public sealed class UcobRewritten : IEncounter
 {
-    public ushort TerritoryId => 0;
+    public ushort TerritoryId => 733;
 
     private readonly List<Mechanic> mechanics;
 
