@@ -1,6 +1,6 @@
-﻿using System;
+﻿// Adapted from https://github.com/0ceal0t/Dalamud-VFXEditor/blob/main/VFXEditor/Interop/ResourceLoader.Vfx.cs
+using System;
 using Dalamud.Hooking;
-using RaidsRewritten.Spawn;
 
 namespace RaidsRewritten.Interop;
 

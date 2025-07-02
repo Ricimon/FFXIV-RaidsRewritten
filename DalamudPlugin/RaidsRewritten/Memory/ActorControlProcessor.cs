@@ -1,4 +1,5 @@
-﻿using ECommons.EzHookManager;
+﻿// Adapted from https://github.com/PunishXIV/Splatoon/blob/main/Splatoon/Memory/ActorControlProcessor.cs
+using ECommons.EzHookManager;
 using RaidsRewritten.Extensions;
 using RaidsRewritten.Log;
 using System;

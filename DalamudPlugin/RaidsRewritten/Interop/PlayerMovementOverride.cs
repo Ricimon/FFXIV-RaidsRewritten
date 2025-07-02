@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Adapted from https://github.com/awgil/ffxiv_navmesh/blob/master/vnavmesh/Movement/OverrideMovement.cs
+using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Dalamud.Game.Config;

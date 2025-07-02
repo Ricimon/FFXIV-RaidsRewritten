@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Adapted from https://github.com/0ceal0t/Dalamud-VFXEditor/blob/main/VFXEditor/Interop/ResourceLoader.cs
+using System;
 using System.Runtime.InteropServices;
 using Dalamud.Game;
 using Dalamud.Plugin.Services;

@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Adapted from https://github.com/Infiziert90/ChatTwo/blob/main/ChatTwo/GameFunctions/KeybindManager.cs
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
