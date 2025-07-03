@@ -9,10 +9,12 @@ using System.Text;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
+using Flecs.NET.Core;
 using ImGuiNET;
 using RaidsRewritten.Audio;
 using RaidsRewritten.Data;
 using RaidsRewritten.Extensions;
+using RaidsRewritten.Game;
 using RaidsRewritten.Input;
 using RaidsRewritten.Log;
 using RaidsRewritten.Network;
@@ -77,6 +79,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
     private readonly AttackManager attackManager;
     private readonly Configuration configuration;
     private readonly ILogger logger;
+    private readonly EcsContainer ecsContainer;
 
     private readonly string[] xivChatSendLocations;
     private readonly string[] falloffTypes;
@@ -87,6 +90,9 @@ public class MainWindow : Window, IPluginUIView, IDisposable
     private string[]? inputDevices;
     private string[]? outputDevices;
 
+    private int effectsRendererPositionX = 0;
+    private int effectsRendererPositionY = 0;
+
     public MainWindow(
         WindowSystem windowSystem,
         DalamudServices dalamud,
@@ -94,7 +100,8 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         MapManager mapChangeHandler,
         AttackManager attackManager,
         Configuration configuration,
-        ILogger logger) : base(
+        ILogger logger,
+        EcsContainer ecsContainer) : base(
         PluginInitializer.Name)
     {
         this.windowSystem = windowSystem;
@@ -107,7 +114,11 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         this.xivChatSendLocations = Enum.GetNames<XivChatSendLocation>();
         this.falloffTypes = Enum.GetNames<AudioFalloffModel.FalloffType>();
         this.allLoggingLevels = [.. LogLevel.AllLoggingLevels.Select(l => l.Name)];
+        this.ecsContainer = ecsContainer;
         windowSystem.AddWindow(this);
+
+        this.effectsRendererPositionX = configuration.EffectsRendererPositionX;
+        this.effectsRendererPositionY = configuration.EffectsRendererPositionY;
     }
 
     public override void Draw()
@@ -190,6 +201,27 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             {
                 this.logger.Info("Player position: {0}", player.Position);
             }
+        }
+
+        if (ImGui.Button("Add status"))
+        {
+            var world = ecsContainer.World;
+            world.Query<Player.Component>().Each((Entity e, ref Player.Component pc) =>
+            {
+                e.CsWorld().Entity().Set(new Scripts.Conditions.Condition.Component("test", 5f));
+            });
+        }
+
+        if (ImGui.InputInt("Position X", ref effectsRendererPositionX))
+        {
+            configuration.EffectsRendererPositionX = effectsRendererPositionX;
+            configuration.Save();
+        }
+
+        if (ImGui.InputInt("Position Y", ref effectsRendererPositionY))
+        {
+            configuration.EffectsRendererPositionY = effectsRendererPositionY;
+            configuration.Save();
         }
     }
 
