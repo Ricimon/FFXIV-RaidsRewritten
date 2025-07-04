@@ -34,7 +34,29 @@ public unsafe class VfxSystem(VfxSpawn vfxSpawn, ILogger logger) : ISystem
             .Event(Ecs.OnRemove)
             .Each((Entity e, ref Vfx _) =>
             {
-                e.Get<Vfx>().VfxPtr?.Remove();
+                // For whatever reason the ref Vfx variable does not match that of the entity variable
+                // Probably some quirk of the Observer binding
+                var vfx = e.Get<Vfx>();
+                if (vfx.VfxPtr != null)
+                {
+                    e.CsWorld().Entity()
+                        .Set(new VfxFadeOut(vfx.VfxPtr, 1.0f, 1.0f));
+                }
+            });
+
+        world.System<VfxFadeOut>()
+            .Each((Iter it, int i, ref VfxFadeOut vfxFade) =>
+            {
+                vfxFade.TimeRemaining -= it.DeltaTime();
+                if (vfxFade.TimeRemaining > 0)
+                {
+                    vfxFade.VfxPtr.UpdateAlpha(vfxFade.TimeRemaining / vfxFade.Duration);
+                }
+                else
+                {
+                    vfxFade.VfxPtr.Remove();
+                    it.Entity(i).Destruct();
+                }
             });
     }
 }

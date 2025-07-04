@@ -1,4 +1,6 @@
-﻿using System.Numerics;
+﻿// Adapted from https://github.com/0ceal0t/Dalamud-VFXEditor/blob/main/VFXEditor/Interop/Structs/Vfx/BaseVfx.cs
+// and https://git.anna.lgbt/anna/OrangeGuidanceTomestone/src/branch/main/client/Vfx.cs
+using System.Numerics;
 using System.Runtime.InteropServices;
 using Dalamud.Game.ClientState.Objects.Types;
 
@@ -39,6 +41,13 @@ public unsafe struct VfxStruct
 
     [FieldOffset(0x1B8)] public int StaticCaster;
     [FieldOffset(0x1C0)] public int StaticTarget;
+
+    [FieldOffset(0x248)] public byte SomeFlags;
+
+    [FieldOffset(0x260)] public byte Red;
+    [FieldOffset(0x264)] public byte Green;
+    [FieldOffset(0x268)] public byte Blue;
+    [FieldOffset(0x26C)] public float Alpha;
 }
 
 public abstract unsafe class BaseVfx
@@ -99,5 +108,11 @@ public abstract unsafe class BaseVfx
             Z = q.Z,
             W = q.W
         };
+    }
+
+    public void UpdateAlpha(float alpha)
+    {
+        if (Vfx == null) { return; }
+        Vfx->Alpha = alpha;
     }
 }
