@@ -61,7 +61,7 @@ public class PluginModule : NinjectModule
         Bind<Plugin>().ToSelf().InSingletonScope();
         Bind<IDalamudHook>().To<PluginUIContainer>().InSingletonScope();
         Bind<IDalamudHook>().To<CommandDispatcher>().InSingletonScope();
-        Bind<IDalamudHook>().To<EncounterManager>().InSingletonScope();
+        Bind<IDalamudHook, EncounterManager>().To<EncounterManager>().InSingletonScope();
         Bind<IDalamudHook>().To<AttackManager>().InSingletonScope();
         Bind<KeyStateWrapper>().ToSelf().InSingletonScope();
         Bind<IAudioDeviceController, AudioDeviceController>().To<AudioDeviceController>().InSingletonScope();

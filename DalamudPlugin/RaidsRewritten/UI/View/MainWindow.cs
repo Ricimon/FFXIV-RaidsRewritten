@@ -243,6 +243,11 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         {
             this.attackManager.ClearAllAttacks();
         }
+        ImGui.SameLine();
+        if (ImGui.Button("Clear All Statuses"))
+        {
+            this.ecsContainer.World.RemoveAll<Condition.Component>();
+        }
 
         if (ImGui.Button("Spawn Circle Omen"))
         {
@@ -282,16 +287,22 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                     twister.Set(new Position(player.Position));
                     twister.Set(new Rotation(player.Rotation));
                 }
-                //if (this.attackManager.TryCreateAttackEntity<Twister>(out var twister2))
-                //{
-                //    twister2.Set(new Position(player.Position + new Vector3(1,0,0)));
-                //    twister2.Set(new Rotation(player.Rotation));
-                //}
-                //if (this.attackManager.TryCreateAttackEntity<Twister>(out var twister3))
-                //{
-                //    twister3.Set(new Position(player.Position + new Vector3(2,0,0)));
-                //    twister3.Set(new Rotation(player.Rotation));
-                //}
+            }
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Spawn 3 Twisters"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                for (var i = 0; i < 3; i++)
+                {
+                    if (this.attackManager.TryCreateAttackEntity<Twister>(out var twister))
+                    {
+                        twister.Set(new Position(player.Position + new Vector3(i, 0, 0)));
+                        twister.Set(new Rotation(player.Rotation));
+                    }
+                }
             }
         }
 
@@ -310,6 +321,15 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             world.Query<Player.Component>().Each((Entity e, ref Player.Component pc) =>
             {
                 Bound.ApplyToPlayer(e, 2.0f);
+            });
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Give knockback status"))
+        {
+            var world = ecsContainer.World;
+            world.Query<Player.Component>().Each((Entity e, ref Player.Component pc) =>
+            {
+                KnockedBack.ApplyToPlayer(e, new Vector3(1, 0, 0), 2.0f);
             });
         }
         ImGui.SameLine();

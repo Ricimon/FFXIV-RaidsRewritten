@@ -16,11 +16,12 @@ public unsafe class StaticVfx : BaseVfx
     {
         if (Vfx != null) { return; }
         Vfx = (VfxStruct*)this.resourceLoader.StaticVfxCreate(this.Path, "Client.System.Scheduler.Instance.VfxObject");
-        this.resourceLoader.StaticVfxRun((IntPtr)Vfx, 0.0f, 0xFFFFFFFF);
 
         UpdatePosition(position);
         UpdateRotation(new Vector3(0, 0, rotation));
         Update();
+
+        this.resourceLoader.StaticVfxRun((IntPtr)Vfx, 0.0f, 0xFFFFFFFF);
     }
 
     public override void Remove()
