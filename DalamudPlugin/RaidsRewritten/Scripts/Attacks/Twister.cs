@@ -20,7 +20,7 @@ public class Twister(DalamudServices dalamud, VfxSpawn vfxSpawn, Random random, 
     private readonly ILogger logger = logger;
 
     private const float Radius = 0.9f;
-    private const float KnockbackDuration = 2.0f;
+    private const float KnockbackDuration = 5.0f;
 
     public Entity Create(World world)
     {

@@ -16,7 +16,7 @@ public unsafe class VfxSystem(VfxSpawn vfxSpawn, ILogger logger) : ISystem
         world.System<Vfx, Position, Rotation, Scale>()
             .Each((ref Vfx vfx, ref Position position, ref Rotation rotation, ref Scale scale) =>
             {
-                if (vfx.VfxPtr == null)
+                if (vfx.VfxPtr == null || vfx.VfxPtr.Vfx == null)
                 {
                     vfx.VfxPtr = this.vfxSpawn.SpawnStaticVfx(vfx.Path, position.Value, rotation.Value);
                     if (scale.Value != default)
