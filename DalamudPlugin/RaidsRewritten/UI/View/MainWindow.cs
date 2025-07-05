@@ -21,6 +21,7 @@ using RaidsRewritten.Network;
 using RaidsRewritten.Scripts.Attacks;
 using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Scripts.Conditions;
+using RaidsRewritten.Spawn;
 using RaidsRewritten.UI.Util;
 using Reactive.Bindings;
 
@@ -81,6 +82,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
     private readonly AttackManager attackManager;
     private readonly Configuration configuration;
     private readonly EcsContainer ecsContainer;
+    private readonly VfxSpawn vfxSpawn;
     private readonly ILogger logger;
 
     private readonly string[] xivChatSendLocations;
@@ -104,6 +106,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         AttackManager attackManager,
         Configuration configuration,
         EcsContainer ecsContainer,
+        VfxSpawn vfxSpawn,
         ILogger logger) : base(
         PluginInitializer.Name)
     {
@@ -115,6 +118,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         this.attackManager = attackManager;
         this.configuration = configuration;
         this.ecsContainer = ecsContainer;
+        this.vfxSpawn = vfxSpawn;
         this.logger = logger;
         this.xivChatSendLocations = Enum.GetNames<XivChatSendLocation>();
         this.falloffTypes = Enum.GetNames<AudioFalloffModel.FalloffType>();
@@ -167,6 +171,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                     // Delete everything
                     this.attackManager.ClearAllAttacks();
                     this.ecsContainer.World.RemoveAll<Condition.Component>();
+                    this.vfxSpawn.Clear();
                 }
             }
         }
@@ -277,6 +282,16 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                     twister.Set(new Position(player.Position));
                     twister.Set(new Rotation(player.Rotation));
                 }
+                //if (this.attackManager.TryCreateAttackEntity<Twister>(out var twister2))
+                //{
+                //    twister2.Set(new Position(player.Position + new Vector3(1,0,0)));
+                //    twister2.Set(new Rotation(player.Rotation));
+                //}
+                //if (this.attackManager.TryCreateAttackEntity<Twister>(out var twister3))
+                //{
+                //    twister3.Set(new Position(player.Position + new Vector3(2,0,0)));
+                //    twister3.Set(new Rotation(player.Rotation));
+                //}
             }
         }
 

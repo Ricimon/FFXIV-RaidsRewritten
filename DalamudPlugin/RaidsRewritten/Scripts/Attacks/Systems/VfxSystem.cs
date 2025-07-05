@@ -1,4 +1,5 @@
-﻿using Flecs.NET.Core;
+﻿using System.Numerics;
+using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks.Components;
@@ -8,14 +9,22 @@ namespace RaidsRewritten.Scripts.Attacks.Systems;
 
 public unsafe class VfxSystem(VfxSpawn vfxSpawn, ILogger logger) : ISystem
 {
+    public record struct VfxSpawnedThisFrame(object _);
+
     private readonly VfxSpawn vfxSpawn = vfxSpawn;
     private readonly ILogger logger = logger;
 
     public void Register(World world)
     {
         world.System<Vfx, Position, Rotation, Scale>()
-            .Each((ref Vfx vfx, ref Position position, ref Rotation rotation, ref Scale scale) =>
+            .Each((Iter it, int i, ref Vfx vfx, ref Position position, ref Rotation rotation, ref Scale scale) =>
             {
+                if (vfx.TimeAlive > 5.0f)
+                {
+                    vfx.VfxPtr?.Remove();
+                    vfx.VfxPtr = null;
+                }
+
                 if (vfx.VfxPtr == null || vfx.VfxPtr.Vfx == null)
                 {
                     vfx.VfxPtr = this.vfxSpawn.SpawnStaticVfx(vfx.Path, position.Value, rotation.Value);
@@ -27,8 +36,30 @@ public unsafe class VfxSystem(VfxSpawn vfxSpawn, ILogger logger) : ISystem
                     {
                         scale.Value = vfx.VfxPtr.Vfx->Scale;
                     }
+                    vfx.TimeAlive = 0;
                 }
+
+                vfx.TimeAlive += it.DeltaTime();
             });
+
+        //world.Observer<Vfx, Position, Rotation, Scale>()
+        //    .Event(Ecs.OnAdd)
+        //    .Each((Entity e, ref Vfx _, ref Position _, ref Rotation _, ref Scale _) =>
+        //    {
+        //        var vfx = e.Get<Vfx>();
+        //        var position = e.Get<Position>();
+        //        var rotation = e.Get<Rotation>();
+        //        var scale = e.Get<Scale>();
+        //        vfx.VfxPtr = this.vfxSpawn.SpawnStaticVfx(vfx.Path, position.Value, rotation.Value);
+        //        if (scale.Value != default)
+        //        {
+        //            vfx.VfxPtr.UpdateScale(scale.Value);
+        //        }
+        //        else
+        //        {
+        //            scale.Value = vfx.VfxPtr.Vfx->Scale;
+        //        }
+        //    });
 
         world.Observer<Vfx>()
             .Event(Ecs.OnRemove)
