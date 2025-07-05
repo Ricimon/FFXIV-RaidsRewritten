@@ -27,7 +27,7 @@ public sealed class EcsContainer : IDisposable
         }
 
         // Create game objects
-        Player.Create(this.World);
+        Player.Create(this.World, true);
 
         this.dalamud.Framework.Update += OnFrameworkUpdate;
     }

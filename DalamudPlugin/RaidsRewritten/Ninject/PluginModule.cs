@@ -91,12 +91,14 @@ public class PluginModule : NinjectModule
 
         // Attacks & Systems
         Bind<IAttack>().To<CircleOmen>();
+        Bind<IAttack>().To<FanOmen>();
         Bind<IAttack, ISystem>().To<Twister>();
         Bind<ISystem>().To<Player>();
         Bind<ISystem>().To<VfxSystem>();
         // Conditions
         Bind<ISystem>().To<Condition>();
         Bind<IDalamudHook>().To<KnockedBack>();
+        Bind<ISystem>().To<Bound>();
 
         Bind<ILogger>().To<DalamudLogger>();
         Bind<DalamudLoggerFactory>().ToSelf();

@@ -39,8 +39,16 @@ public unsafe class VfxSystem(VfxSpawn vfxSpawn, ILogger logger) : ISystem
                 var vfx = e.Get<Vfx>();
                 if (vfx.VfxPtr != null)
                 {
-                    e.CsWorld().Entity()
-                        .Set(new VfxFadeOut(vfx.VfxPtr, 1.0f, 1.0f));
+                    if (e.Has<Omen>())
+                    {
+                        e.CsWorld().Entity()
+                            .Set(new VfxFadeOut(vfx.VfxPtr, 0.25f, 0.25f));
+                    }
+                    else
+                    {
+                        e.CsWorld().Entity()
+                            .Set(new VfxFadeOut(vfx.VfxPtr, 1.0f, 1.0f));
+                    }
                 }
             });
 

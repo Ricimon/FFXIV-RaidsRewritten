@@ -26,6 +26,7 @@ public sealed class EncounterManager : IDalamudHook
     private readonly MapEffectProcessor mapEffectProcessor;
     private readonly ObjectEffectProcessor objectEffectProcessor;
     private readonly ActorControlProcessor actorControlProcessor;
+    private readonly Configuration configuration;
     private readonly ILogger logger;
 
     private readonly List<string> BlacklistedPcVfx = [
@@ -46,6 +47,7 @@ public sealed class EncounterManager : IDalamudHook
         MapEffectProcessor mapEffectProcessor,
         ObjectEffectProcessor objectEffectProcessor,
         ActorControlProcessor actorControlProcessor,
+        Configuration configuration,
         IEncounter[] encounters,
         ILogger logger)
     {
@@ -53,6 +55,7 @@ public sealed class EncounterManager : IDalamudHook
         this.mapEffectProcessor = mapEffectProcessor;
         this.objectEffectProcessor = objectEffectProcessor;
         this.actorControlProcessor = actorControlProcessor;
+        this.configuration = configuration;
         this.logger = logger;
 
         this.encounters = encounters.ToDictionary(e => e.TerritoryId, e => e);
@@ -88,7 +91,7 @@ public sealed class EncounterManager : IDalamudHook
         if (this.encounters.TryGetValue(obj, out var encounter))
         {
             ActiveEncounter = encounter;
-            this.logger.Info("Active encounter set to {0}", encounter.GetType());
+            this.logger.Info("Active encounter set to {0}", encounter.Name);
         }
         else
         {
@@ -100,6 +103,8 @@ public sealed class EncounterManager : IDalamudHook
     {
         var text = $"MAP_EFFECT: {Position}, {Param1}, {Param2}";
         this.logger.Debug(text);
+
+        if (this.configuration.EverythingDisabled) { return; }
     }
 
     private void OnObjectEffect(uint Target, ushort Param1, ushort Param2)
@@ -109,6 +114,8 @@ public sealed class EncounterManager : IDalamudHook
 
         var text = $"OBJECT_EFFECT: on {gameObject.Name.TextValue} 0x{Target:X}/0x{gameObject.GameObjectId:X} data {Param1}, {Param2}";
         this.logger.Debug(text);
+
+        if (this.configuration.EverythingDisabled) { return; }
     }
 
     private void OnStartingCast(uint source, uint castId)
@@ -130,6 +137,8 @@ public sealed class EncounterManager : IDalamudHook
         }
         var text = $"CAST: {battleChara.Name} (0x{battleChara.EntityId:X}|{battleChara.Position}) starts casting {actionName} ({battleChara.NameId}>{battleChara.CastActionId})";
         this.logger.Debug(text);
+
+        if (this.configuration.EverythingDisabled) { return; }
     }
 
     private void OnVFXSpawn(uint target, string vfxPath)
@@ -162,12 +171,16 @@ public sealed class EncounterManager : IDalamudHook
             }
         }
         this.logger.Debug(text.ToString());
+
+        if (this.configuration.EverythingDisabled) { return; }
     }
 
     private void OnDirectorUpdate(long a1, long a2, DirectorUpdateCategory a3, uint a4, uint a5, int a6, int a7)
     {
         var text = $"DIRECTOR_UPDATE: {a3}, {a4:X8}, {a5:X8}, {a6:X8}, {a7:X8}";
         this.logger.Debug(text);
+
+        if (this.configuration.EverythingDisabled) { return; }
 
         if (ActiveEncounter != null)
         {
@@ -189,6 +202,8 @@ public sealed class EncounterManager : IDalamudHook
                 text.Append($"0x{newObjectPointer:X}");
                 this.logger.Debug(text.ToString());
 
+                if (this.configuration.EverythingDisabled) { return; }
+
                 if (ActiveEncounter != null)
                 {
                     foreach (var mechanic in ActiveEncounter.GetMechanics())
@@ -207,6 +222,8 @@ public sealed class EncounterManager : IDalamudHook
             text.Append($" Kind {obj.ObjectKind}");
             text.Append($" DataId 0x{obj.DataId:X}");
             this.logger.Debug(text.ToString());
+
+            if (this.configuration.EverythingDisabled) { return; }
 
             if (ActiveEncounter != null)
             {
@@ -238,6 +255,8 @@ public sealed class EncounterManager : IDalamudHook
 
         text.Append(set.ToString());
         this.logger.Debug(text.ToString());
+
+        if (this.configuration.EverythingDisabled) { return; }
     }
 
     private void OnActorControl(uint sourceId, uint command, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, ulong targetId, byte replaying)
@@ -255,5 +274,7 @@ public sealed class EncounterManager : IDalamudHook
         text.Append($", command {command}, {p1}, {p2}, {p3}, {p4}, {p5}, {p6}");
         text.Append($", targetId 0x{targetId:X}, replaying {replaying}");
         this.logger.Debug(text.ToString());
+
+        if (this.configuration.EverythingDisabled) { return; }
     }
 }

@@ -20,6 +20,7 @@ using RaidsRewritten.Log;
 using RaidsRewritten.Network;
 using RaidsRewritten.Scripts.Attacks;
 using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.UI.Util;
 using Reactive.Bindings;
 
@@ -76,10 +77,11 @@ public class MainWindow : Window, IPluginUIView, IDisposable
     private readonly DalamudServices dalamud;
     private readonly ServerConnection serverConnection;
     private readonly MapManager mapChangeHandler;
+    private readonly EncounterManager encounterManager;
     private readonly AttackManager attackManager;
     private readonly Configuration configuration;
-    private readonly ILogger logger;
     private readonly EcsContainer ecsContainer;
+    private readonly ILogger logger;
 
     private readonly string[] xivChatSendLocations;
     private readonly string[] falloffTypes;
@@ -98,27 +100,33 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         DalamudServices dalamud,
         ServerConnection serverConnection,
         MapManager mapChangeHandler,
+        EncounterManager encounterManager,
         AttackManager attackManager,
         Configuration configuration,
-        ILogger logger,
-        EcsContainer ecsContainer) : base(
+        EcsContainer ecsContainer,
+        ILogger logger) : base(
         PluginInitializer.Name)
     {
         this.windowSystem = windowSystem;
         this.dalamud = dalamud;
         this.serverConnection = serverConnection;
         this.mapChangeHandler = mapChangeHandler;
+        this.encounterManager = encounterManager;
         this.attackManager = attackManager;
         this.configuration = configuration;
+        this.ecsContainer = ecsContainer;
         this.logger = logger;
         this.xivChatSendLocations = Enum.GetNames<XivChatSendLocation>();
         this.falloffTypes = Enum.GetNames<AudioFalloffModel.FalloffType>();
         this.allLoggingLevels = [.. LogLevel.AllLoggingLevels.Select(l => l.Name)];
-        this.ecsContainer = ecsContainer;
         windowSystem.AddWindow(this);
 
         this.effectsRendererPositionX = configuration.EffectsRendererPositionX;
         this.effectsRendererPositionY = configuration.EffectsRendererPositionY;
+
+#if DEBUG
+        visible = true;
+#endif
     }
 
     public override void Draw()
@@ -147,10 +155,39 @@ public class MainWindow : Window, IPluginUIView, IDisposable
 
     private void DrawContents()
     {
+        if (!this.configuration.EverythingDisabled)
+        {
+            using (ImRaii.PushColor(ImGuiCol.Button, Vector4Colors.DarkRed.ToColorU32()))
+            {
+                if (ImGui.Button("SHUTOFF EVERYTHING",
+                    new Vector2(ImGui.GetWindowWidth() - 2 * ImGui.GetStyle().WindowPadding.X, 0)))
+                {
+                    this.configuration.EverythingDisabled = true;
+                    this.configuration.Save();
+                    // Delete everything
+                    this.attackManager.ClearAllAttacks();
+                    this.ecsContainer.World.RemoveAll<Condition.Component>();
+                }
+            }
+        }
+        else
+        {
+            using (ImRaii.PushColor(ImGuiCol.Button, Vector4Colors.DarkGreen.ToColorU32()))
+            {
+                if (ImGui.Button("Enable Plugin",
+                    new Vector2(ImGui.GetWindowWidth() - 2 * ImGui.GetStyle().WindowPadding.X, 0)))
+                {
+                    this.configuration.EverythingDisabled = false;
+                    this.configuration.Save();
+                }
+            }
+        }
+
         using var tabs = ImRaii.TabBar("sp-tabs");
         if (!tabs) return;
 
         DrawMainTab();
+        DrawDebugTab();
         //DrawPublicTab();
         //DrawPrivateTab();
         //DrawConfigTab();
@@ -161,6 +198,41 @@ public class MainWindow : Window, IPluginUIView, IDisposable
     {
         using var mainTab = ImRaii.TabItem("Main");
         if (!mainTab) return;
+
+        if (ImGui.InputInt("Position X", ref effectsRendererPositionX))
+        {
+            configuration.EffectsRendererPositionX = effectsRendererPositionX;
+            configuration.Save();
+        }
+
+        if (ImGui.InputInt("Position Y", ref effectsRendererPositionY))
+        {
+            configuration.EffectsRendererPositionY = effectsRendererPositionY;
+            configuration.Save();
+        }
+
+        var encounterText = new StringBuilder("Active Encounter: ");
+        if (encounterManager.ActiveEncounter == null)
+        {
+            encounterText.Append("None");
+            ImGui.Text(encounterText.ToString());
+        }
+        else
+        {
+            encounterText.Append(encounterManager.ActiveEncounter.Name);
+            ImGui.Text(encounterText.ToString());
+
+            using (ImRaii.PushIndent())
+            {
+                encounterManager.ActiveEncounter.DrawConfig();
+            }
+        }
+    }
+
+    private void DrawDebugTab()
+    {
+        using var debugTab = ImRaii.TabItem("Debug");
+        if (!debugTab) return;
 
         if (ImGui.Button("Clear All Attacks"))
         {
@@ -176,11 +248,25 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                 {
                     circle.Set(new Position(player.Position));
                     circle.Set(new Rotation(player.Rotation));
-                    circle.Set(new Scale(0.9f * Vector3.One));
+                    circle.Set(new Scale(Vector3.One));
                 }
             }
         }
         ImGui.SameLine();
+        if (ImGui.Button("Spawn Fan Omen"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<FanOmen>(out var fan))
+                {
+                    fan.Set(new Position(player.Position));
+                    fan.Set(new Rotation(player.Rotation));
+                    fan.Set(new Scale(Vector3.One));
+                }
+            }
+        }
+
         if (ImGui.Button("Spawn Twister"))
         {
             var player = this.dalamud.ClientState.LocalPlayer;
@@ -203,25 +289,22 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             }
         }
 
-        if (ImGui.Button("Add status"))
+        if (ImGui.Button("Give bound status"))
+        {
+            var world = ecsContainer.World;
+            world.Query<Player.Component>().Each((Entity e, ref Player.Component pc) =>
+            {
+                Bound.ApplyToPlayer(e, 2.0f);
+            });
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Give test status"))
         {
             var world = ecsContainer.World;
             world.Query<Player.Component>().Each((Entity e, ref Player.Component pc) =>
             {
                 e.CsWorld().Entity().Set(new Scripts.Conditions.Condition.Component("test", 5f));
             });
-        }
-
-        if (ImGui.InputInt("Position X", ref effectsRendererPositionX))
-        {
-            configuration.EffectsRendererPositionX = effectsRendererPositionX;
-            configuration.Save();
-        }
-
-        if (ImGui.InputInt("Position Y", ref effectsRendererPositionY))
-        {
-            configuration.EffectsRendererPositionY = effectsRendererPositionY;
-            configuration.Save();
         }
     }
 

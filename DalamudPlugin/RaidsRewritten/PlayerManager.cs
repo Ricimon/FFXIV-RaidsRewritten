@@ -14,9 +14,15 @@ public class PlayerManager
         get => this.movementOverride.OverrideMovement || 
             this.cameraOverride.Enabled ||
             this.keybindManager.InterceptMovementKeys;
-        set => this.movementOverride.OverrideMovement =
-            this.cameraOverride.Enabled =
-            this.keybindManager.InterceptMovementKeys = value;
+        set
+        {
+            this.movementOverride.OverrideMovement =
+                this.keybindManager.InterceptMovementKeys = value;
+
+            this.cameraOverride.Enabled = 
+                this.movementOverride.OverrideMovement &&
+                this.movementOverride.OverrideMovementDirection != Vector3.Zero;
+        }
     }
 
     public Vector3 OverrideMovementDirection
@@ -25,6 +31,10 @@ public class PlayerManager
         set
         {
             this.movementOverride.OverrideMovementDirection = value;
+
+            this.cameraOverride.Enabled = 
+                this.movementOverride.OverrideMovement &&
+                this.movementOverride.OverrideMovementDirection != Vector3.Zero;
             this.cameraOverride.DesiredAzimuth = Angle.FromDirectionXZ(value) + 180.Degrees();
         }
     }

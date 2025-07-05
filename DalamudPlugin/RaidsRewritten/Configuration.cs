@@ -2,6 +2,7 @@
 using Dalamud.Plugin;
 using NLog;
 using System;
+using System.Collections.Generic;
 
 namespace RaidsRewritten
 {
@@ -9,6 +10,10 @@ namespace RaidsRewritten
     public class Configuration : IPluginConfiguration
     {
         public int Version { get; set; } = 0;
+
+        public bool EverythingDisabled = false;
+
+        public Dictionary<string, int> EncounterSettings = [];
 
         // Saved UI inputs
         public bool PublicRoom { get; set; }

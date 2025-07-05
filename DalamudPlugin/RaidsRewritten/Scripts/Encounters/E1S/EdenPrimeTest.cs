@@ -6,6 +6,8 @@ public class EdenPrimeTest : IEncounter
 {
     public ushort TerritoryId => 853;
 
+    public string Name => "Eden Prime Test";
+
     private readonly List<Mechanic> mechanics;
 
     public EdenPrimeTest(Mechanic.Factory mechanicFactory)
@@ -16,5 +18,10 @@ public class EdenPrimeTest : IEncounter
     public IEnumerable<Mechanic> GetMechanics()
     {
         return this.mechanics;
+    }
+
+    public void DrawConfig()
+    {
+
     }
 }

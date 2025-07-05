@@ -19,6 +19,18 @@ public sealed class KnockedBack(DalamudServices dalamud, EcsContainer ecsContain
 
     public static void ApplyToPlayer(Entity playerEntity, Vector3 knockbackDirection, float duration)
     {
+        // Don't apply if player is bound
+        var apply = true;
+        playerEntity.Scope(() =>
+        {
+            if (playerEntity.CsWorld().Query<Bound.Component>().IsTrue())
+            {
+                apply = false;
+            }
+        });
+
+        if (!apply) { return; }
+
         // Remove existing knockback conditions
         playerEntity.Scope(() =>
         {

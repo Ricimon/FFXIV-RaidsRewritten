@@ -12,6 +12,7 @@ public sealed class AttackManager : IDalamudHook
 {
     private readonly DalamudServices dalamud;
     private readonly World world;
+    private readonly Configuration configuration;
     private readonly ILogger logger;
 
     private readonly Dictionary<Type, Func<World, Entity>> entityCreationFunctions = [];
@@ -19,15 +20,17 @@ public sealed class AttackManager : IDalamudHook
     public AttackManager(
         DalamudServices dalamud,
         EcsContainer container,
+        Configuration configuration,
         IAttack[] attacks,
         ILogger logger)
     {
         this.dalamud = dalamud;
         this.world = container.World;
+        this.configuration = configuration;
         this.logger = logger;
 
         // Register all attacks
-        foreach(var attack in attacks)
+        foreach (var attack in attacks)
         {
             entityCreationFunctions.Add(attack.GetType(), attack.Create);
         }
@@ -45,6 +48,8 @@ public sealed class AttackManager : IDalamudHook
 
     public bool TryCreateAttackEntity<T>(out Entity entity)
     {
+        if (this.configuration.EverythingDisabled) { entity = default; return false; }
+
         if (this.entityCreationFunctions.TryGetValue(typeof(T), out var createFunc))
         {
             entity = createFunc.Invoke(this.world);

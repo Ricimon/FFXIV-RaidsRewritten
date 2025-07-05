@@ -81,11 +81,19 @@ public unsafe sealed class PlayerMovementOverride : IDisposable
         IsMovementAllowedByGame = bAdditiveUnk == 0 && rmiWalkIsInputEnabled1(self) && rmiWalkIsInputEnabled2(self); //&& !Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.BeingMoved];
         //UserInput = *sumLeft != 0 || *sumForward != 0;
         if (OverrideMovement && IsMovementAllowedByGame &&
-            GetDirectionAngles(false) is var relDir && relDir != null)
+            GetDirectionAngles(false) is var relDir)
         {
-            var dir = relDir.Value.h.ToDirection();
-            *sumLeft = dir.X;
-            *sumForward = dir.Y;
+            if (relDir != null)
+            {
+                var dir = relDir.Value.h.ToDirection();
+                *sumLeft = dir.X;
+                *sumForward = dir.Y;
+            }
+            else
+            {
+                *sumLeft = 0;
+                *sumForward = 0;
+            }
         }
     }
 

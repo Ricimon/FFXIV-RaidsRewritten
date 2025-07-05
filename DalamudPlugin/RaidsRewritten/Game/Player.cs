@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Numerics;
 using Flecs.NET.Core;
 using RaidsRewritten.Extensions;
 using RaidsRewritten.Log;
@@ -8,15 +9,15 @@ namespace RaidsRewritten.Game;
 
 public class Player(DalamudServices dalamud, PlayerManager playerManager, ILogger logger) : ISystem
 {
-    public record struct Component(object _);
+    public record struct Component(bool IsLocalPlayer);
 
     private readonly DalamudServices dalamud = dalamud;
     private readonly PlayerManager playerManager = playerManager;
     private readonly ILogger logger = logger;
 
-    public static Entity Create(World world)
+    public static Entity Create(World world, bool isLocalPlayer)
     {
-        return world.Entity().Add<Component>();
+        return world.Entity().Set(new Component(isLocalPlayer));
     }
 
     public static Query<Component> Query(World world)
@@ -27,12 +28,15 @@ public class Player(DalamudServices dalamud, PlayerManager playerManager, ILogge
     public void Register(World world)
     {
         var knockbackQuery = world.QueryBuilder<Condition.Component, KnockedBack.Component>().Cached().Build();
+        var boundQuery = world.QueryBuilder<Condition.Component, Bound.Component>().Cached().Build();
 
         world.System<Component>()
             .Each((Iter it, int i, ref Component component) =>
             {
                 try
                 {
+                    if (!component.IsLocalPlayer) { return; }
+
                     var playerEntity = it.Entity(i);
 
                     var player = this.dalamud.ClientState.LocalPlayer;
@@ -67,7 +71,15 @@ public class Player(DalamudServices dalamud, PlayerManager playerManager, ILogge
                     }
                     else
                     {
-                        this.playerManager.OverrideMovement = false;
+                        if (boundQuery.IsTrue())
+                        {
+                            this.playerManager.OverrideMovement = true;
+                            this.playerManager.OverrideMovementDirection = Vector3.Zero;
+                        }
+                        else
+                        {
+                            this.playerManager.OverrideMovement = false;
+                        }
                     }
                 }
                 catch (Exception e)
