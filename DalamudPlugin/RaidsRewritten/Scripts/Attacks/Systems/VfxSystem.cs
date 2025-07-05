@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using Flecs.NET.Core;
+﻿using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks.Components;
@@ -19,7 +18,7 @@ public unsafe class VfxSystem(VfxSpawn vfxSpawn, ILogger logger) : ISystem
         world.System<Vfx, Position, Rotation, Scale>()
             .Each((Iter it, int i, ref Vfx vfx, ref Position position, ref Rotation rotation, ref Scale scale) =>
             {
-                if (vfx.TimeAlive > 5.0f)
+                if (vfx.TimeAlive > 2.5f)
                 {
                     vfx.VfxPtr?.Remove();
                     vfx.VfxPtr = null;
