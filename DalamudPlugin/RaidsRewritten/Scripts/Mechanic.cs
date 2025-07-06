@@ -1,5 +1,6 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
 using ECommons.Hooks;
+using ECommons.Hooks.ActionEffectTypes;
 using RaidsRewritten.Log;
 
 namespace RaidsRewritten.Scripts;
@@ -25,6 +26,8 @@ public abstract class Mechanic()
     public virtual void OnDirectorUpdate(DirectorUpdateCategory a3) { }
 
     public virtual void OnObjectCreation(nint newObjectPointer, IGameObject? newObject) { }
+
+    public virtual void OnActionEffectEvent(ActionEffectSet set) { }
 
     public class Factory(DalamudServices dalamud, AttackManager attackManager, ILogger logger)
     {

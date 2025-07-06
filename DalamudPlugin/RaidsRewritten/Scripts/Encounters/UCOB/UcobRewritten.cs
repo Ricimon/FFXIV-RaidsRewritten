@@ -60,5 +60,6 @@ public sealed class UcobRewritten : IEncounter
         {
             this.mechanics.Add(mechanicFactory.Create<PermanentTwister>());
         }
+        this.mechanics.Add(mechanicFactory.Create<TankbusterAftershock>());
     }
 }
