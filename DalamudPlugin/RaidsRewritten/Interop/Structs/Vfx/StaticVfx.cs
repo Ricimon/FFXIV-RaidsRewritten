@@ -28,5 +28,6 @@ public unsafe class StaticVfx : BaseVfx
     {
         if (Vfx == null) { return; }
         this.resourceLoader.StaticVfxRemove((IntPtr)Vfx);
+        Vfx = null;
     }
 }

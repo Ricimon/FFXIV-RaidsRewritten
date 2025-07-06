@@ -306,6 +306,19 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             }
         }
 
+        if (ImGui.Button("Spawn Ball"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<RollingBall>(out var ball))
+                {
+                    ball.Set(new Position(player.Position));
+                    ball.Set(new Rotation(player.Rotation));
+                }
+            }
+        }
+
         if (ImGui.Button("Print Player Position"))
         {
             var player = this.dalamud.ClientState.LocalPlayer;

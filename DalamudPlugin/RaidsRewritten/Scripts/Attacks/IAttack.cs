@@ -1,5 +1,4 @@
-﻿using System;
-using Flecs.NET.Core;
+﻿using Flecs.NET.Core;
 
 namespace RaidsRewritten.Scripts.Attacks;
 

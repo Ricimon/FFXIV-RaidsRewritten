@@ -7,12 +7,13 @@ using RaidsRewritten.Scripts.Conditions;
 
 namespace RaidsRewritten.Game;
 
-public class Player(DalamudServices dalamud, PlayerManager playerManager, ILogger logger) : ISystem
+public class Player(DalamudServices dalamud, PlayerManager playerManager, Configuration configuration, ILogger logger) : ISystem
 {
     public record struct Component(bool IsLocalPlayer);
 
     private readonly DalamudServices dalamud = dalamud;
     private readonly PlayerManager playerManager = playerManager;
+    private readonly Configuration configuration = configuration;
     private readonly ILogger logger = logger;
 
     public static Entity Create(World world, bool isLocalPlayer)
@@ -40,7 +41,7 @@ public class Player(DalamudServices dalamud, PlayerManager playerManager, ILogge
                     var playerEntity = it.Entity(i);
 
                     var player = this.dalamud.ClientState.LocalPlayer;
-                    if (player == null || player.IsDead)
+                    if (this.configuration.EverythingDisabled || player == null || player.IsDead)
                     {
                         playerEntity.Children(c =>
                         {
