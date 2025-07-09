@@ -1,4 +1,5 @@
 ﻿using System;
+using Dalamud.Hooking;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Flecs.NET.Core;
@@ -8,14 +9,31 @@ using RaidsRewritten.Scripts.Attacks.Components;
 
 namespace RaidsRewritten.Scripts.Attacks.Systems;
 
-public unsafe sealed class ModelSystem(DalamudServices dalamud, Lazy<EcsContainer> ecsContainer, ILogger logger) : ISystem, IDisposable
+public unsafe sealed class ModelSystem : ISystem, IDisposable
 {
-    private readonly DalamudServices dalamud = dalamud;
-    private readonly Lazy<EcsContainer> ecsContainer = ecsContainer;
-    private readonly ILogger logger = logger;
+    private readonly DalamudServices dalamud;
+    private readonly Lazy<EcsContainer> ecsContainer;
+    private readonly ILogger logger;
+
+    private const string CalculateAndApplyOverallSpeedSig = "E8 ?? ?? ?? ?? 48 8D 8B ?? ?? ?? ?? 48 8B 01 FF 50 ?? 48 8D 8B ?? ?? ?? ?? 48 8B 01 FF 50 ?? F6 83";
+    private delegate bool CalculateAndApplyOverallSpeedDelegate(TimelineContainer* a1);
+    private readonly Hook<CalculateAndApplyOverallSpeedDelegate> calculateAndApplyOverallSpeedHook = null!;
+
+    public ModelSystem(DalamudServices dalamud, Lazy<EcsContainer> ecsContainer, ILogger logger)
+    {
+        this.dalamud = dalamud;
+        this.ecsContainer = ecsContainer;
+        this.logger = logger;
+
+        var calculateAndApplyAddress = dalamud.SigScanner.ScanText(CalculateAndApplyOverallSpeedSig);
+        calculateAndApplyOverallSpeedHook = dalamud.GameInteropProvider.HookFromAddress<CalculateAndApplyOverallSpeedDelegate>(calculateAndApplyAddress, CalculateAndApplyOverallSpeedDetour);
+        calculateAndApplyOverallSpeedHook.Enable();
+    }
 
     public void Dispose()
     {
+        calculateAndApplyOverallSpeedHook.Dispose();
+
         this.ecsContainer.Value.World.Query<Model>()
             .Each((Iter it, int i, ref Model model) =>
             {
@@ -73,6 +91,12 @@ public unsafe sealed class ModelSystem(DalamudServices dalamud, Lazy<EcsContaine
                     obj->RenderFlags = 0;
 
                     model.GameObject = this.dalamud.ObjectTable.CreateObjectReference((nint)obj);
+
+                    if (model.GameObject != null)
+                    {
+                        // This is needed to get idle/movement sounds working
+                        chara->CharacterSetup.CopyFromCharacter((Character*)model.GameObject.Address, CharacterSetupContainer.CopyFlags.None);
+                    }
                 }
                 else
                 {
@@ -126,6 +150,23 @@ public unsafe sealed class ModelSystem(DalamudServices dalamud, Lazy<EcsContaine
                     it.Entity(i).Destruct();
                 }
             });
+    }
+
+    private bool CalculateAndApplyOverallSpeedDetour(TimelineContainer* a1)
+    {
+        bool result = calculateAndApplyOverallSpeedHook.Original(a1);
+        // Convert this to a dictionary lookup if needed
+        this.ecsContainer.Value.World.Query<Model, ModelTimelineSpeed>()
+            .Each((ref Model model, ref ModelTimelineSpeed speed) =>
+            {
+                if (model.GameObject != null &&
+                    model.GameObject.Address == (nint)a1->OwnerObject)
+                {
+                    a1->OverallSpeed = speed.Value;
+                    result |= true;
+                }
+            });
+        return result;
     }
 
     private void DeleteModel(uint gameObjectId)

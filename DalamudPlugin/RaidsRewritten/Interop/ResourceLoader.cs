@@ -65,29 +65,29 @@ public unsafe sealed partial class ResourceLoader : IDisposable
 
         // Sound
 
-        var playSpecificSoundAddress = sigScanner.ScanText(PlaySpecificSoundSig);
-        var loadSoundFileAddress = sigScanner.ScanText(LoadSoundFileSig);
-        var apricotListenerSoundPlayAddress = sigScanner.ScanText(ApricotListenerSoundPlaySig);
+        //var playSpecificSoundAddress = sigScanner.ScanText(PlaySpecificSoundSig);
+        //var loadSoundFileAddress = sigScanner.ScanText(LoadSoundFileSig);
+        //var apricotListenerSoundPlayAddress = sigScanner.ScanText(ApricotListenerSoundPlaySig);
 
-        PlaySpecificSound = Marshal.GetDelegateForFunctionPointer<PlaySpecificSoundDelegate>(playSpecificSoundAddress);
-        LoadSoundFile = Marshal.GetDelegateForFunctionPointer<LoadSoundFileDelegate>(loadSoundFileAddress);
-        ApricotListenerSoundPlay = Marshal.GetDelegateForFunctionPointer<ApricotListenerSoundPlayDelegate>(apricotListenerSoundPlayAddress);
+        //PlaySpecificSound = Marshal.GetDelegateForFunctionPointer<PlaySpecificSoundDelegate>(playSpecificSoundAddress);
+        //LoadSoundFile = Marshal.GetDelegateForFunctionPointer<LoadSoundFileDelegate>(loadSoundFileAddress);
+        //ApricotListenerSoundPlay = Marshal.GetDelegateForFunctionPointer<ApricotListenerSoundPlayDelegate>(apricotListenerSoundPlayAddress);
 
-        PlaySpecificSoundHook = hooks.HookFromAddress<PlaySpecificSoundDelegate>(playSpecificSoundAddress, PlaySpecificSoundDetour);
-        GetResourceSyncHook = hooks.HookFromSignature<GetResourceSyncPrototype>(GetResourceSyncSig, GetResourceSyncDetour);
-        GetResourceAsyncHook = hooks.HookFromSignature<GetResourceAsyncPrototype>(GetResourceAsyncSig, GetResourceAsyncDetour);
-        LoadSoundFileHook = hooks.HookFromAddress<LoadSoundFileDelegate>(loadSoundFileAddress, LoadSoundFileDetour);
+        //PlaySpecificSoundHook = hooks.HookFromAddress<PlaySpecificSoundDelegate>(playSpecificSoundAddress, PlaySpecificSoundDetour);
+        //GetResourceSyncHook = hooks.HookFromSignature<GetResourceSyncPrototype>(GetResourceSyncSig, GetResourceSyncDetour);
+        //GetResourceAsyncHook = hooks.HookFromSignature<GetResourceAsyncPrototype>(GetResourceAsyncSig, GetResourceAsyncDetour);
+        //LoadSoundFileHook = hooks.HookFromAddress<LoadSoundFileDelegate>(loadSoundFileAddress, LoadSoundFileDetour);
         //ApricotListenerSoundPlayHook = hooks.HookFromAddress<ApricotListenerSoundPlayDelegate>(apricotListenerSoundPlayAddress, ApricotListenerSoundPlayDetour);
         //ApricotListenerSoundPlayCallerHook = hooks.HookFromSignature<ApricotListenerSoundPlayCallerDelegate>(ApricotListenerSoundPlayCallerSig, ApricotListenerSoundPlayCallerDetour);
-        PlaySoundHook = hooks.HookFromSignature<PlaySoundDelegate>(PlaySoundSig, PlaySoundDetour);
+        //PlaySoundHook = hooks.HookFromSignature<PlaySoundDelegate>(PlaySoundSig, PlaySoundDetour);
 
-        PlaySpecificSoundHook.Enable();
-        GetResourceSyncHook.Enable();
-        GetResourceAsyncHook.Enable();
-        LoadSoundFileHook.Enable();
+        //PlaySpecificSoundHook.Enable();
+        //GetResourceSyncHook.Enable();
+        //GetResourceAsyncHook.Enable();
+        //LoadSoundFileHook.Enable();
         //ApricotListenerSoundPlayHook.Enable();
         //ApricotListenerSoundPlayCallerHook.Enable();
-        PlaySoundHook.Enable();
+        //PlaySoundHook.Enable();
     }
 
     public void Dispose()
@@ -97,12 +97,12 @@ public unsafe sealed partial class ResourceLoader : IDisposable
         ActorVfxCreateHook.Dispose();
         ActorVfxRemoveHook.Dispose();
 
-        PlaySpecificSoundHook.Dispose();
-        GetResourceSyncHook.Dispose();
-        GetResourceAsyncHook.Dispose();
-        LoadSoundFileHook.Dispose();
+        //PlaySpecificSoundHook.Dispose();
+        //GetResourceSyncHook.Dispose();
+        //GetResourceAsyncHook.Dispose();
+        //LoadSoundFileHook.Dispose();
         //ApricotListenerSoundPlayHook.Dispose();
         //ApricotListenerSoundPlayCallerHook.Dispose();
-        PlaySoundHook.Dispose();
+        //PlaySoundHook.Dispose();
     }
 }

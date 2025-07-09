@@ -10,3 +10,5 @@ public record struct Model(
     IGameObject? GameObject = null);
 
 public record struct ModelFadeOut(uint GameObjectIndex, float Duration, float TimeRemaining);
+
+public record struct ModelTimelineSpeed(float Value);

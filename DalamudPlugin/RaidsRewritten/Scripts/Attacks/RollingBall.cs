@@ -13,11 +13,13 @@ namespace RaidsRewritten.Scripts.Attacks;
 
 public unsafe class RollingBall(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogger logger) : IAttack, ISystem
 {
-    public record struct Component(float TimeUntilRolling, bool EntryAnimationPlayed = false);
+    public record struct Component(float TimeUntilRolling, bool EntryAnimationPlayed = false, float TargetYPosition = default, float Speed = 0);
 
     private readonly DalamudServices dalamud = dalamud;
     private readonly VfxSpawn vfxSpawn = vfxSpawn;
     private readonly ILogger logger = logger;
+
+    private const float AnimationSpeed = 1.75f;
 
     public Entity Create(World world)
     {
@@ -26,7 +28,7 @@ public unsafe class RollingBall(DalamudServices dalamud, VfxSpawn vfxSpawn, ILog
             .Set(new Position())
             .Set(new Rotation())
             .Set(new UniformScale(0.6f))
-            .Set(new Component(2.0f))
+            .Set(new Component(2.25f))
             .Add<Attack>();
     }
 
@@ -41,10 +43,31 @@ public unsafe class RollingBall(DalamudServices dalamud, VfxSpawn vfxSpawn, ILog
                 if (!component.EntryAnimationPlayed)
                 {
                     component.EntryAnimationPlayed = true;
-                    if (model.GameObject != null)
+
+                    component.TargetYPosition = position.Value.Y;
+
+                    // Spawn the ball high up
+                    var p = position.Value;
+                    p.Y += 5.0f;
+                    position.Value = p;
+                }
+
+                if (position.Value.Y != component.TargetYPosition)
+                {
+                    // Bring the ball down
+                    var p = position.Value;
+                    p.Y -= 50.0f * it.DeltaTime();
+                    if (p.Y <= component.TargetYPosition)
                     {
-                        this.vfxSpawn.SpawnActorVfx("vfx/pop/m0318/eff/m0318_pop01h.avfx", model.GameObject, model.GameObject);
+                        p.Y = component.TargetYPosition;
+
+                        if (model.GameObject != null)
+                        {
+                            this.vfxSpawn.SpawnActorVfx("vfx/pop/m0318/eff/m0318_pop01h.avfx", model.GameObject, model.GameObject);
+                        }
                     }
+                    position.Value = p;
+                    return;
                 }
 
                 if (component.TimeUntilRolling > 0)
@@ -53,7 +76,7 @@ public unsafe class RollingBall(DalamudServices dalamud, VfxSpawn vfxSpawn, ILog
                 }
 
                 // The rolling animation takes a little time to startup
-                if (component.TimeUntilRolling < 0.1f)
+                if (component.TimeUntilRolling < 0.07f)
                 {
                     var obj = ClientObjectManager.Instance()->GetObjectByIndex((ushort)model.GameObjectIndex);
                     var chara = (Character*)obj;
@@ -61,11 +84,20 @@ public unsafe class RollingBall(DalamudServices dalamud, VfxSpawn vfxSpawn, ILog
                     {
                         chara->Timeline.BaseOverride = 41;
                     }
+                    //it.Entity(i).Set(new ModelTimelineSpeed(AnimationSpeed));
                 }
 
                 if (component.TimeUntilRolling > 0) { return; }
 
-                position.Value += MathUtilities.RotationToUnitVector(rotation.Value).ToVector3(0) * 5 * it.DeltaTime();
+                // Accelerate
+                var acceleration = 25.0f;
+                var maxSpeed = 8.75f;
+                var speed = component.Speed;
+                speed = Math.Clamp(speed + acceleration * it.DeltaTime(), 0, maxSpeed);
+                position.Value += MathUtilities.RotationToUnitVector(rotation.Value).ToVector3(0) * speed * it.DeltaTime();
+
+                component.Speed = speed;
+                it.Entity(i).Set(new ModelTimelineSpeed(speed / maxSpeed * AnimationSpeed));
             });
     }
 }

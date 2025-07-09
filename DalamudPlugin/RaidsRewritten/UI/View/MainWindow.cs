@@ -170,7 +170,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                     this.configuration.Save();
                     // Delete everything
                     this.attackManager.ClearAllAttacks();
-                    this.ecsContainer.World.RemoveAll<Condition.Component>();
+                    this.ecsContainer.World.DeleteWith<Condition.Component>();
                     this.vfxSpawn.Clear();
                 }
             }

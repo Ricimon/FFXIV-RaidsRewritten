@@ -97,7 +97,7 @@ public class PluginModule : NinjectModule
         Bind<IAttack, ISystem>().To<RollingBall>();
         Bind<ISystem>().To<Player>();
         Bind<ISystem>().To<VfxSystem>();
-        Bind<ISystem>().To<ModelSystem>().InSingletonScope(); // Because it's disposable
+        Bind<ISystem>().To<ModelSystem>();
         // Conditions
         Bind<ISystem>().To<Condition>();
         Bind<IDalamudHook>().To<KnockedBack>();

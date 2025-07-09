@@ -50,7 +50,6 @@ public class Player(DalamudServices dalamud, PlayerManager playerManager, Config
                                 c.Mut(ref it).Destruct();
                             }
                         });
-                        return;
                     }
 
                     it.World().SetScope(playerEntity);
