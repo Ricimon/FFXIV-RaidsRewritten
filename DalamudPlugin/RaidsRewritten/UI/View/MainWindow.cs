@@ -85,6 +85,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
     private readonly VfxSpawn vfxSpawn;
     private readonly ILogger logger;
 
+    private readonly string windowName;
     private readonly string[] xivChatSendLocations;
     private readonly string[] falloffTypes;
     private readonly string[] allLoggingLevels;
@@ -120,6 +121,18 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         this.ecsContainer = ecsContainer;
         this.vfxSpawn = vfxSpawn;
         this.logger = logger;
+
+        var version = GetType().Assembly.GetName().Version?.ToString() ?? string.Empty;
+        this.windowName = PluginInitializer.Name;
+        if (version.Length > 0)
+        {
+            var versionArray = version.Split(".");
+            version = string.Join(".", versionArray.Take(3));
+            this.windowName += $" v{version}";
+        }
+#if DEBUG
+        this.windowName += " (DEBUG)";
+#endif
         this.xivChatSendLocations = Enum.GetNames<XivChatSendLocation>();
         this.falloffTypes = Enum.GetNames<AudioFalloffModel.FalloffType>();
         this.allLoggingLevels = [.. LogLevel.AllLoggingLevels.Select(l => l.Name)];
@@ -144,7 +157,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         var width = 350;
         ImGui.SetNextWindowSize(new Vector2(width, 400), ImGuiCond.FirstUseEver);
         ImGui.SetNextWindowSizeConstraints(new Vector2(width, 250), new Vector2(float.MaxValue, float.MaxValue));
-        if (ImGui.Begin(PluginInitializer.Name, ref this.visible))
+        if (ImGui.Begin(this.windowName, ref this.visible))
         {
             DrawContents();
         }
