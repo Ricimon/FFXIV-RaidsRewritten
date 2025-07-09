@@ -68,8 +68,13 @@ public unsafe class VfxSpawn : IDisposable
 
     public ActorVfx SpawnActorVfx(string path, IGameObject caster, IGameObject target)
     {
+        return SpawnActorVfx(path, caster.Address, target.Address);
+    }
+
+    public ActorVfx SpawnActorVfx(string path, nint casterAddress, nint targetAddress)
+    {
         var vfx = new ActorVfx(this.resourceLoader, path);
-        vfx.Create(caster, target);
+        vfx.Create(casterAddress, targetAddress);
         Vfxs.Add(vfx, new(path, SpawnType.Target, false));
         return vfx;
     }

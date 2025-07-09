@@ -1,4 +1,12 @@
-﻿namespace RaidsRewritten.Scripts.Attacks.Components;
+﻿using Dalamud.Game.ClientState.Objects.Types;
 
-public record struct Model(int ModelCharaId, bool Spawned = false, uint GameObjectIndex = default, bool DrawEnabled = false);
+namespace RaidsRewritten.Scripts.Attacks.Components;
+
+public record struct Model(
+    int ModelCharaId,
+    bool Spawned = false,
+    uint GameObjectIndex = default,
+    bool DrawEnabled = false,
+    IGameObject? GameObject = null);
+
 public record struct ModelFadeOut(uint GameObjectIndex, float Duration, float TimeRemaining);

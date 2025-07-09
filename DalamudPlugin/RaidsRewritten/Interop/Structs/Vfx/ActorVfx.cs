@@ -1,5 +1,4 @@
 ﻿using System;
-using Dalamud.Game.ClientState.Objects.Types;
 
 namespace RaidsRewritten.Interop.Structs.Vfx;
 
@@ -12,10 +11,10 @@ public unsafe class ActorVfx : BaseVfx
         this.resourceLoader = resourceLoader;
     }
 
-    public void Create(IGameObject caster, IGameObject target)
+    public void Create(nint casterAddress, nint targetAddress)
     {
         if (Vfx != null) { return; }
-        Vfx = (VfxStruct*)this.resourceLoader.ActorVfxCreate(this.Path, caster.Address, target.Address, -1, (char)0, 0, (char)0);
+        Vfx = (VfxStruct*)this.resourceLoader.ActorVfxCreate(this.Path, casterAddress, targetAddress, -1, (char)0, 0, (char)0);
     }
 
     public override void Remove()

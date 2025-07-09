@@ -319,12 +319,12 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             }
         }
 
-        if (ImGui.Button("Print Player Position"))
+        if (ImGui.Button("Print Player Data"))
         {
             var player = this.dalamud.ClientState.LocalPlayer;
             if (player != null)
             {
-                this.logger.Info("Player position: {0}", player.Position);
+                this.logger.Info($"Player position:{player.Position}, address:0x{player.Address:X}, entityId:0x{player.EntityId:X}, gameObjectId:0x{player.GameObjectId}");
             }
         }
 

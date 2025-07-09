@@ -37,7 +37,7 @@ public unsafe sealed class ModelSystem(DalamudServices dalamud, Lazy<EcsContaine
         world.System<Model, Position, Rotation, UniformScale>()
             .Each((ref Model model, ref Position position, ref Rotation rotation, ref UniformScale scale) =>
             {
-                BattleChara* obj = null;
+                BattleChara* chara = null;
 
                 if (!model.Spawned)
                 {
@@ -51,32 +51,43 @@ public unsafe sealed class ModelSystem(DalamudServices dalamud, Lazy<EcsContaine
                     model.GameObjectIndex = idx;
                     model.Spawned = true;
 
-                    obj = (BattleChara*)ClientObjectManager.Instance()->GetObjectByIndex((ushort)idx);
+                    var obj = ClientObjectManager.Instance()->GetObjectByIndex((ushort)idx);
+                    chara = (BattleChara*)obj;
 
-                    obj->ObjectKind = ObjectKind.BattleNpc;
-                    obj->TargetableStatus = 0;
-                    var modelData = &obj->ModelContainer;
+                    chara->ObjectKind = ObjectKind.BattleNpc;
+                    chara->TargetableStatus = 0;
+                    chara->Position = position.Value;
+                    chara->Rotation = rotation.Value;
+                    chara->Scale = scale.Value;
+                    var modelData = &chara->ModelContainer;
 
                     modelData->ModelCharaId = model.ModelCharaId;
+
+                    var name = $"FakeBattleNpc{model.ModelCharaId}";
+                    for (int x = 0; x < name.Length; x++)
+                    {
+                        obj->Name[x] = (byte)name[x];
+                    }
+                    obj->Name[name.Length] = 0;
+                    // Needed to get Actor VFX to play on GameObject
+                    obj->RenderFlags = 0;
+
+                    model.GameObject = this.dalamud.ObjectTable.CreateObjectReference((nint)obj);
                 }
                 else
                 {
-                    obj = (BattleChara*)ClientObjectManager.Instance()->GetObjectByIndex((ushort)model.GameObjectIndex);
+                    chara = (BattleChara*)ClientObjectManager.Instance()->GetObjectByIndex((ushort)model.GameObjectIndex);
+
+                    chara->SetPosition(position.Value.X, position.Value.Y, position.Value.Z);
+                    chara->SetRotation(rotation.Value);
+                    chara->Scale = scale.Value;
                 }
-
-                obj->SetPosition(position.Value.X, position.Value.Y, position.Value.Z);
-                obj->SetRotation(rotation.Value);
-                //obj->Position = position.Value;
-                //obj->Rotation = rotation.Value;
-                obj->Scale = scale.Value;
-
-                this.logger.Info(position.Value.ToString());
 
                 if (!model.DrawEnabled)
                 {
-                    if (obj->IsReadyToDraw())
+                    if (chara->IsReadyToDraw())
                     {
-                        obj->EnableDraw();
+                        chara->EnableDraw();
                         model.DrawEnabled = true;
                     }
                 }
