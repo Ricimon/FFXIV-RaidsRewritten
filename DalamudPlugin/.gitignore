@@ -3,5 +3,3 @@ obj/
 bin/
 build/
 *.user
-
-config.json
