@@ -7,13 +7,16 @@ using RaidsRewritten.Scripts.Conditions;
 
 namespace RaidsRewritten.Game;
 
-public class Player(DalamudServices dalamud, PlayerManager playerManager, ILogger logger) : ISystem
+public class Player(DalamudServices dalamud, PlayerManager playerManager, Configuration configuration, ILogger logger) : ISystem
 {
     public record struct Component(bool IsLocalPlayer);
 
     private readonly DalamudServices dalamud = dalamud;
     private readonly PlayerManager playerManager = playerManager;
+    private readonly Configuration configuration = configuration;
     private readonly ILogger logger = logger;
+
+    private readonly Query<Condition.Component, KnockedBack.Component> knockbackQuery;
 
     public static Entity Create(World world, bool isLocalPlayer)
     {
@@ -27,9 +30,6 @@ public class Player(DalamudServices dalamud, PlayerManager playerManager, ILogge
 
     public void Register(World world)
     {
-        var knockbackQuery = world.QueryBuilder<Condition.Component, KnockedBack.Component>().Cached().Build();
-        var boundQuery = world.QueryBuilder<Condition.Component, Bound.Component>().Cached().Build();
-
         world.System<Component>()
             .Each((Iter it, int i, ref Component component) =>
             {
@@ -40,7 +40,7 @@ public class Player(DalamudServices dalamud, PlayerManager playerManager, ILogge
                     var playerEntity = it.Entity(i);
 
                     var player = this.dalamud.ClientState.LocalPlayer;
-                    if (player == null || player.IsDead)
+                    if (this.configuration.EverythingDisabled || player == null || player.IsDead)
                     {
                         playerEntity.Children(c =>
                         {
@@ -49,7 +49,6 @@ public class Player(DalamudServices dalamud, PlayerManager playerManager, ILogge
                                 c.Mut(ref it).Destruct();
                             }
                         });
-                        return;
                     }
 
                     it.World().SetScope(playerEntity);
@@ -59,6 +58,7 @@ public class Player(DalamudServices dalamud, PlayerManager playerManager, ILogge
                     //}
 
                     // Handle each condition
+                    using var knockbackQuery = world.Query<Condition.Component, KnockedBack.Component>();
                     if (knockbackQuery.IsTrue())
                     {
                         var knockbackEntity = knockbackQuery.First();
@@ -71,6 +71,7 @@ public class Player(DalamudServices dalamud, PlayerManager playerManager, ILogge
                     }
                     else
                     {
+                        using var boundQuery = world.Query<Condition.Component, Bound.Component>();
                         if (boundQuery.IsTrue())
                         {
                             this.playerManager.OverrideMovement = true;

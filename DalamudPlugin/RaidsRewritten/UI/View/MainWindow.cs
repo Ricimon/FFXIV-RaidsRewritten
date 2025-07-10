@@ -9,6 +9,7 @@ using System.Text;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
+using ECommons.MathHelpers;
 using Flecs.NET.Core;
 using ImGuiNET;
 using RaidsRewritten.Audio;
@@ -23,6 +24,7 @@ using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Spawn;
 using RaidsRewritten.UI.Util;
+using RaidsRewritten.Utility;
 using Reactive.Bindings;
 
 namespace RaidsRewritten.UI.View;
@@ -85,6 +87,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
     private readonly VfxSpawn vfxSpawn;
     private readonly ILogger logger;
 
+    private readonly string windowName;
     private readonly string[] xivChatSendLocations;
     private readonly string[] falloffTypes;
     private readonly string[] allLoggingLevels;
@@ -120,6 +123,18 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         this.ecsContainer = ecsContainer;
         this.vfxSpawn = vfxSpawn;
         this.logger = logger;
+
+        var version = GetType().Assembly.GetName().Version?.ToString() ?? string.Empty;
+        this.windowName = PluginInitializer.Name;
+        if (version.Length > 0)
+        {
+            var versionArray = version.Split(".");
+            version = string.Join(".", versionArray.Take(3));
+            this.windowName += $" v{version}";
+        }
+#if DEBUG
+        this.windowName += " (DEBUG)";
+#endif
         this.xivChatSendLocations = Enum.GetNames<XivChatSendLocation>();
         this.falloffTypes = Enum.GetNames<AudioFalloffModel.FalloffType>();
         this.allLoggingLevels = [.. LogLevel.AllLoggingLevels.Select(l => l.Name)];
@@ -144,7 +159,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         var width = 350;
         ImGui.SetNextWindowSize(new Vector2(width, 400), ImGuiCond.FirstUseEver);
         ImGui.SetNextWindowSizeConstraints(new Vector2(width, 250), new Vector2(float.MaxValue, float.MaxValue));
-        if (ImGui.Begin(PluginInitializer.Name, ref this.visible))
+        if (ImGui.Begin(this.windowName, ref this.visible))
         {
             DrawContents();
         }
@@ -170,7 +185,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                     this.configuration.Save();
                     // Delete everything
                     this.attackManager.ClearAllAttacks();
-                    this.ecsContainer.World.RemoveAll<Condition.Component>();
+                    this.ecsContainer.World.DeleteWith<Condition.Component>();
                     this.vfxSpawn.Clear();
                 }
             }
@@ -306,19 +321,36 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             }
         }
 
-        if (ImGui.Button("Print Player Position"))
+        if (ImGui.Button("Spawn Ball"))
         {
             var player = this.dalamud.ClientState.LocalPlayer;
             if (player != null)
             {
-                this.logger.Info("Player position: {0}", player.Position);
+                if (this.attackManager.TryCreateAttackEntity<RollingBall>(out var ball))
+                {
+                    ball.Set(new Position(player.Position))
+                        .Set(new Rotation(player.Rotation))
+                        .Set(new RollingBall.MovementDirection(MathUtilities.RotationToUnitVector(player.Rotation)))
+                        .Set(new RollingBall.CircleArena(player.Position.ToVector2(), 10.0f));
+                        //.Set(new RollingBall.ShowOmen());
+                }
+            }
+        }
+
+        if (ImGui.Button("Print Player Data"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                this.logger.Info($"Player position:{player.Position}, address:0x{player.Address:X}, entityId:0x{player.EntityId:X}, gameObjectId:0x{player.GameObjectId}");
             }
         }
 
         if (ImGui.Button("Give bound status"))
         {
             var world = ecsContainer.World;
-            world.Query<Player.Component>().Each((Entity e, ref Player.Component pc) =>
+            using var q = world.Query<Player.Component>();
+            q.Each((Entity e, ref Player.Component pc) =>
             {
                 Bound.ApplyToPlayer(e, 2.0f);
             });
@@ -327,7 +359,8 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         if (ImGui.Button("Give knockback status"))
         {
             var world = ecsContainer.World;
-            world.Query<Player.Component>().Each((Entity e, ref Player.Component pc) =>
+            using var q = world.Query<Player.Component>();
+            q.Each((Entity e, ref Player.Component pc) =>
             {
                 KnockedBack.ApplyToPlayer(e, new Vector3(1, 0, 0), 2.0f);
             });
@@ -336,7 +369,8 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         if (ImGui.Button("Give test status"))
         {
             var world = ecsContainer.World;
-            world.Query<Player.Component>().Each((Entity e, ref Player.Component pc) =>
+            using var q = world.Query<Player.Component>();
+            q.Each((Entity e, ref Player.Component pc) =>
             {
                 e.CsWorld().Entity().Set(new Scripts.Conditions.Condition.Component("test", 5f));
             });

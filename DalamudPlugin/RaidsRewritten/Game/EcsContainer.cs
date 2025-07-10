@@ -11,11 +11,13 @@ public sealed class EcsContainer : IDisposable
     public World World { get; init; }
 
     private readonly DalamudServices dalamud;
+    private readonly ISystem[] systems;
     private readonly ILogger logger;
 
     public EcsContainer(DalamudServices dalamud, ISystem[] systems, ILogger logger)
     {
         this.dalamud = dalamud;
+        this.systems = systems;
         this.logger = logger;
 
         this.World = World.Create();
@@ -35,6 +37,14 @@ public sealed class EcsContainer : IDisposable
     public void Dispose()
     {
         this.dalamud.Framework.Update -= OnFrameworkUpdate;
+        foreach(var system in this.systems)
+        {
+            if (system is IDisposable d)
+            {
+                d.Dispose();
+            }
+        }
+        this.World.Dispose();
     }
 
     private void OnFrameworkUpdate(IFramework framework)

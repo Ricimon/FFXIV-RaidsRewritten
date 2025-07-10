@@ -1,4 +1,5 @@
-﻿using Dalamud.Game;
+﻿using System;
+using Dalamud.Game;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
@@ -93,8 +94,10 @@ public class PluginModule : NinjectModule
         Bind<IAttack>().To<CircleOmen>();
         Bind<IAttack>().To<FanOmen>();
         Bind<IAttack, ISystem>().To<Twister>();
+        Bind<IAttack, ISystem>().To<RollingBall>();
         Bind<ISystem>().To<Player>();
         Bind<ISystem>().To<VfxSystem>();
+        Bind<ISystem>().To<ModelSystem>();
         Bind<IAttack, ISystem>().To<Fan>();
 
         // Conditions

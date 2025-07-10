@@ -221,6 +221,7 @@ public sealed class EncounterManager : IDalamudHook
             text.Append($"(0x{newObjectPointer:X}|{obj.Position})");
             text.Append($" Kind {obj.ObjectKind}");
             text.Append($" DataId 0x{obj.DataId:X}");
+            text.Append($" EntityId 0x{obj.EntityId:X}");
             this.logger.Debug(text.ToString());
 
             if (this.configuration.EverythingDisabled) { return; }

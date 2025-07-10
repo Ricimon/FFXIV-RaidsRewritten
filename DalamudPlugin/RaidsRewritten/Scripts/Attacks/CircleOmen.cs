@@ -5,7 +5,7 @@ namespace RaidsRewritten.Scripts.Attacks;
 
 public class CircleOmen : IAttack
 {
-    public Entity Create(World world)
+    public static Entity CreateEntity(World world)
     {
         return world.Entity()
             .Set(new Vfx("vfx/omen/eff/general_1bf.avfx"))
@@ -14,5 +14,10 @@ public class CircleOmen : IAttack
             .Set(new Scale())
             .Add<Attack>()
             .Add<Omen>();
+    }
+
+    public Entity Create(World world)
+    {
+        return CreateEntity(world);
     }
 }

@@ -88,6 +88,7 @@ public unsafe sealed class PlayerMovementOverride : IDisposable
                 var dir = relDir.Value.h.ToDirection();
                 *sumLeft = dir.X;
                 *sumForward = dir.Y;
+                *haveBackwardOrStrafe = 0;
             }
             else
             {
