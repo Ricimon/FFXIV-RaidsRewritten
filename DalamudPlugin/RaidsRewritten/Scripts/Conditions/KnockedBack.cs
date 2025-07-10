@@ -23,7 +23,8 @@ public sealed class KnockedBack(DalamudServices dalamud, EcsContainer ecsContain
         var apply = true;
         playerEntity.Scope(() =>
         {
-            if (playerEntity.CsWorld().Query<Bound.Component>().IsTrue())
+            using var q = playerEntity.CsWorld().Query<Bound.Component>();
+            if (q.IsTrue())
             {
                 apply = false;
             }
@@ -66,7 +67,8 @@ public sealed class KnockedBack(DalamudServices dalamud, EcsContainer ecsContain
                     targetEffects.GetSpecificTypeEffect(ActionEffectType.Knockback2, out _)))
                 {
                     // Remove any fake knockback conditions if a real knockback occurs
-                    Player.Query(this.world).Each((Entity e, ref Player.Component _) =>
+                    using var q = Player.Query(this.world);
+                    q.Each((Entity e, ref Player.Component _) =>
                     {
                         e.Scope(() =>
                         {

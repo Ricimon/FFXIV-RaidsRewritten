@@ -1,4 +1,5 @@
-﻿using Flecs.NET.Core;
+﻿using System.Numerics;
+using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks.Components;
@@ -33,6 +34,15 @@ public unsafe class VfxSystem(VfxSpawn vfxSpawn, ILogger logger) : ISystem
                 if (vfx.VfxPtr.Vfx == null)
                 {
                     it.Entity(i).Destruct();
+                    return;
+                }
+
+                if (it.Changed())
+                {
+                    vfx.VfxPtr.UpdatePosition(position.Value);
+                    vfx.VfxPtr.UpdateRotation(new Vector3(0, 0, rotation.Value));
+                    vfx.VfxPtr.UpdateScale(scale.Value);
+                    vfx.VfxPtr.Update();
                 }
             });
 

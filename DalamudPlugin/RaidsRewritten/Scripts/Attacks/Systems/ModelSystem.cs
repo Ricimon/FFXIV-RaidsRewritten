@@ -34,20 +34,20 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
     {
         calculateAndApplyOverallSpeedHook.Dispose();
 
-        this.ecsContainer.Value.World.Query<Model>()
-            .Each((Iter it, int i, ref Model model) =>
-            {
-                if (model.Spawned)
-                {
-                    DeleteModel(model.GameObjectIndex);
-                }
-            });
-
-        this.ecsContainer.Value.World.Query<ModelFadeOut>()
-            .Each((Iter it, int i, ref ModelFadeOut model) =>
+        using var q1 = this.ecsContainer.Value.World.Query<Model>();
+        q1.Each((Iter it, int i, ref Model model) =>
+        {
+            if (model.Spawned)
             {
                 DeleteModel(model.GameObjectIndex);
-            });
+            }
+        });
+
+        using var q2 = this.ecsContainer.Value.World.Query<ModelFadeOut>();
+        q2.Each((Iter it, int i, ref ModelFadeOut model) =>
+        {
+            DeleteModel(model.GameObjectIndex);
+        });
     }
 
     public void Register(World world)
@@ -156,16 +156,16 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
     {
         bool result = calculateAndApplyOverallSpeedHook.Original(a1);
         // Convert this to a dictionary lookup if needed
-        this.ecsContainer.Value.World.Query<Model, ModelTimelineSpeed>()
-            .Each((ref Model model, ref ModelTimelineSpeed speed) =>
+        using var q = this.ecsContainer.Value.World.Query<Model, ModelTimelineSpeed>();
+        q.Each((ref Model model, ref ModelTimelineSpeed speed) =>
+        {
+            if (model.GameObject != null &&
+                model.GameObject.Address == (nint)a1->OwnerObject)
             {
-                if (model.GameObject != null &&
-                    model.GameObject.Address == (nint)a1->OwnerObject)
-                {
-                    a1->OverallSpeed = speed.Value;
-                    result |= true;
-                }
-            });
+                a1->OverallSpeed = speed.Value;
+                result |= true;
+            }
+        });
         return result;
     }
 

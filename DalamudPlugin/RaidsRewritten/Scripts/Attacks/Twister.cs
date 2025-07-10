@@ -15,10 +15,6 @@ public class Twister(DalamudServices dalamud, VfxSpawn vfxSpawn, Random random, 
 {
     public record struct Component(float Cooldown);
 
-    private readonly DalamudServices dalamud = dalamud;
-    private readonly VfxSpawn vfxSpawn = vfxSpawn;
-    private readonly ILogger logger = logger;
-
     private const float Radius = 0.9f;
     private const float KnockbackDuration = 5.0f;
 
@@ -35,8 +31,6 @@ public class Twister(DalamudServices dalamud, VfxSpawn vfxSpawn, Random random, 
 
     public void Register(World world)
     {
-        var playerQuery = world.QueryBuilder<Player.Component>().Cached().Build();
-
         world.System<Component, Position>()
             .Each((Iter it, int i, ref Component component, ref Position position) =>
             {
@@ -46,17 +40,16 @@ public class Twister(DalamudServices dalamud, VfxSpawn vfxSpawn, Random random, 
 
                     if (component.Cooldown > 0) { return; }
 
-                    var player = this.dalamud.ClientState.LocalPlayer;
+                    var player = dalamud.ClientState.LocalPlayer;
                     if (player == null || player.IsDead) { return; }
 
-                    if (Vector2.Distance(position.Value.ToVector2(), player.Position.ToVector2()) < Radius)
+                    if (Vector2.Distance(position.Value.ToVector2(), player.Position.ToVector2()) <= Radius)
                     {
-                        this.logger.Info("Knocking back");
                         component.Cooldown = 3.0f;
 
-                        this.vfxSpawn.SpawnActorVfx("vfx/monster/gimmick/eff/bahamut_wyvn_uchiage_c0m.avfx", player, player);
-                        this.vfxSpawn.SpawnActorVfx("vfx/monster/gimmick/eff/bahamut_wyvn_uchiage_c1m.avfx", player, player);
-                        this.vfxSpawn.SpawnActorVfx("vfx/monster/gimmick/eff/bahamut_wyvn_uchiage_c2m.avfx", player, player);
+                        vfxSpawn.SpawnActorVfx("vfx/monster/gimmick/eff/bahamut_wyvn_uchiage_c0m.avfx", player, player);
+                        vfxSpawn.SpawnActorVfx("vfx/monster/gimmick/eff/bahamut_wyvn_uchiage_c1m.avfx", player, player);
+                        vfxSpawn.SpawnActorVfx("vfx/monster/gimmick/eff/bahamut_wyvn_uchiage_c2m.avfx", player, player);
 
                         var knockbackDirection = player.Position - position.Value;
                         knockbackDirection.Y = 0;
@@ -65,7 +58,8 @@ public class Twister(DalamudServices dalamud, VfxSpawn vfxSpawn, Random random, 
                             var randomAngle = (float)(random.NextDouble() * 2 * Math.PI);
                             knockbackDirection = new Vector3(MathF.Cos(randomAngle), 0, MathF.Sin(randomAngle));
                         }
-                        Player.Query(it.World()).Each((Entity e, ref Player.Component pc) =>
+                        using var q = Player.Query(it.World());
+                        q.Each((Entity e, ref Player.Component pc) =>
                         {
                             KnockedBack.ApplyToPlayer(e, knockbackDirection, KnockbackDuration);
                         });
@@ -73,7 +67,7 @@ public class Twister(DalamudServices dalamud, VfxSpawn vfxSpawn, Random random, 
                 }
                 catch (Exception e)
                 {
-                    this.logger.Error(e.ToStringFull());
+                    logger.Error(e.ToStringFull());
                 }
             });
     }

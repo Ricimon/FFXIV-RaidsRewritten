@@ -6,6 +6,7 @@ using Dalamud.Interface.Utility;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using ImGuiNET;
+using Pictomancy;
 using RaidsRewritten.Extensions;
 using RaidsRewritten.Game;
 using RaidsRewritten.Input;
@@ -15,7 +16,7 @@ using RaidsRewritten.UI.View;
 
 namespace RaidsRewritten;
 
-public class EffectsRenderer : IPluginUIView, IDisposable
+public sealed class EffectsRenderer : IPluginUIView, IDisposable
 {
     private class EffectTextEntry
     {
@@ -101,7 +102,6 @@ public class EffectsRenderer : IPluginUIView, IDisposable
     public void Dispose()
     {
         font.Dispose();
-        GC.SuppressFinalize(this);
     }
 
     public void Draw()
@@ -119,7 +119,8 @@ public class EffectsRenderer : IPluginUIView, IDisposable
         using (font.Push())
         {
             // matches all conditions that exist in the world
-            world.QueryBuilder<Scripts.Conditions.Condition.Component>().Build().Each((ref Scripts.Conditions.Condition.Component status) =>
+            using var q = world.QueryBuilder<Scripts.Conditions.Condition.Component>().Build();
+            q.Each((ref Scripts.Conditions.Condition.Component status) =>
             {
                 AddStatus(toDraw, status.Name, Math.Round(status.TimeRemaining), ref offsetY, ref maxWidth);
             });

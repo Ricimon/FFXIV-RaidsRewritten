@@ -16,6 +16,8 @@ public class Player(DalamudServices dalamud, PlayerManager playerManager, Config
     private readonly Configuration configuration = configuration;
     private readonly ILogger logger = logger;
 
+    private readonly Query<Condition.Component, KnockedBack.Component> knockbackQuery;
+
     public static Entity Create(World world, bool isLocalPlayer)
     {
         return world.Entity().Set(new Component(isLocalPlayer));
@@ -28,9 +30,6 @@ public class Player(DalamudServices dalamud, PlayerManager playerManager, Config
 
     public void Register(World world)
     {
-        var knockbackQuery = world.QueryBuilder<Condition.Component, KnockedBack.Component>().Cached().Build();
-        var boundQuery = world.QueryBuilder<Condition.Component, Bound.Component>().Cached().Build();
-
         world.System<Component>()
             .Each((Iter it, int i, ref Component component) =>
             {
@@ -59,6 +58,7 @@ public class Player(DalamudServices dalamud, PlayerManager playerManager, Config
                     //}
 
                     // Handle each condition
+                    using var knockbackQuery = world.Query<Condition.Component, KnockedBack.Component>();
                     if (knockbackQuery.IsTrue())
                     {
                         var knockbackEntity = knockbackQuery.First();
@@ -71,6 +71,7 @@ public class Player(DalamudServices dalamud, PlayerManager playerManager, Config
                     }
                     else
                     {
+                        using var boundQuery = world.Query<Condition.Component, Bound.Component>();
                         if (boundQuery.IsTrue())
                         {
                             this.playerManager.OverrideMovement = true;

@@ -9,6 +9,7 @@ using System.Text;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
+using ECommons.MathHelpers;
 using Flecs.NET.Core;
 using ImGuiNET;
 using RaidsRewritten.Audio;
@@ -23,6 +24,7 @@ using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Spawn;
 using RaidsRewritten.UI.Util;
+using RaidsRewritten.Utility;
 using Reactive.Bindings;
 
 namespace RaidsRewritten.UI.View;
@@ -326,8 +328,11 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             {
                 if (this.attackManager.TryCreateAttackEntity<RollingBall>(out var ball))
                 {
-                    ball.Set(new Position(player.Position));
-                    ball.Set(new Rotation(player.Rotation));
+                    ball.Set(new Position(player.Position))
+                        .Set(new Rotation(player.Rotation))
+                        .Set(new RollingBall.MovementDirection(MathUtilities.RotationToUnitVector(player.Rotation)))
+                        .Set(new RollingBall.CircleArena(player.Position.ToVector2(), 10.0f));
+                        //.Set(new RollingBall.ShowOmen());
                 }
             }
         }
@@ -344,7 +349,8 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         if (ImGui.Button("Give bound status"))
         {
             var world = ecsContainer.World;
-            world.Query<Player.Component>().Each((Entity e, ref Player.Component pc) =>
+            using var q = world.Query<Player.Component>();
+            q.Each((Entity e, ref Player.Component pc) =>
             {
                 Bound.ApplyToPlayer(e, 2.0f);
             });
@@ -353,7 +359,8 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         if (ImGui.Button("Give knockback status"))
         {
             var world = ecsContainer.World;
-            world.Query<Player.Component>().Each((Entity e, ref Player.Component pc) =>
+            using var q = world.Query<Player.Component>();
+            q.Each((Entity e, ref Player.Component pc) =>
             {
                 KnockedBack.ApplyToPlayer(e, new Vector3(1, 0, 0), 2.0f);
             });
@@ -362,7 +369,8 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         if (ImGui.Button("Give test status"))
         {
             var world = ecsContainer.World;
-            world.Query<Player.Component>().Each((Entity e, ref Player.Component pc) =>
+            using var q = world.Query<Player.Component>();
+            q.Each((Entity e, ref Player.Component pc) =>
             {
                 e.CsWorld().Entity().Set(new Scripts.Conditions.Condition.Component("test", 5f));
             });

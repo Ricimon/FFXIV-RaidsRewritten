@@ -13,7 +13,7 @@ namespace RaidsRewritten
 
         public bool EverythingDisabled = false;
 
-        public Dictionary<string, int> EncounterSettings = [];
+        public Dictionary<string, string> EncounterSettings = [];
 
         // Saved UI inputs
         public bool PublicRoom { get; set; }
@@ -45,6 +45,33 @@ namespace RaidsRewritten
         public void Save()
         {
             this.pluginInterface!.SavePluginConfig(this);
+        }
+
+        public bool GetEncounterSetting(string key, bool defaultValue)
+        {
+            if (EncounterSettings.TryGetValue(key, out var s) && bool.TryParse(s, out var b))
+            {
+                return b;
+            }
+            return defaultValue;
+        }
+
+        public int GetEncounterSetting(string key, int defaultValue)
+        {
+            if (EncounterSettings.TryGetValue(key, out var s) && int.TryParse(s, out var i))
+            {
+                return i;
+            }
+            return defaultValue;
+        }
+
+        public string GetEncounterSetting(string key, string defaultValue)
+        {
+            if (EncounterSettings.TryGetValue(key, out var s))
+            {
+                return s;
+            }
+            return defaultValue;
         }
     }
 }
