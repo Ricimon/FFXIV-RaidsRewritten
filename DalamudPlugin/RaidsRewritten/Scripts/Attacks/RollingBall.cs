@@ -35,6 +35,7 @@ public unsafe class RollingBall(DalamudServices dalamud, VfxSpawn vfxSpawn, Rand
             .Set(new Position())
             .Set(new Rotation())
             .Set(new UniformScale(0.6f))
+            .Set(new Alpha(1f))
             .Set(new Component(2.25f))
             .Set(new MovementDirection(Vector2.Zero))
             .Set(new SeededRandom(new Random()))
