@@ -46,6 +46,22 @@ public unsafe class VfxSystem(VfxSpawn vfxSpawn, ILogger logger) : ISystem
                 }
             });
 
+        world.System<Model, ActorVfx>().Each((Iter it, int i, ref Model model, ref ActorVfx vfx) =>
+        {
+            if (vfx.VfxPtr == null && model.GameObject != null)
+            {
+                vfx.VfxPtr = vfxSpawn.SpawnActorVfx(vfx.Path, model.GameObject, model.GameObject);
+            }
+
+            // Vfx self-destructed, because it finished playing or wasn't created
+            if (vfx.VfxPtr == null || vfx.VfxPtr.Vfx == null)
+            {
+                it.Entity(i).Destruct();
+                return;
+            }
+
+        });
+
         world.Observer<Vfx>()
             .Event(Ecs.OnRemove)
             .Each((Entity e, ref Vfx _) =>
