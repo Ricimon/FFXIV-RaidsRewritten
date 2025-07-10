@@ -18,15 +18,18 @@ namespace RaidsRewritten.Scripts.Encounters.UCOB;
 internal class TankbusterAftershock : Mechanic
 {
     private const uint PlummetId = 9896;
-    // vfx/monster/m0389/eff/m389sp_05c0n.avfx
+    private const string PlummetAftershockVfxPath = "vfx/monster/m0389/eff/m389sp_05c0n.avfx";
 
     private const uint FlareBreathId = 9940;  //7381;
-    // vfx/monster/m0117/eff/baha_earth_90c0s.avfx
+    private const string FlareBreathAftershockVfxPath = "vfx/monster/m0117/eff/baha_earth_90c0s.avfx";
     // vfx/monster/gimmick2/eff/z3oe_b3_g05c0i.avfx
     // vfx/monster/gimmick2/eff/z3oe_b3_g06c0i.avfx
 
-    private const int AnimationDelayMs = 500;
-    private const int SpawnDelayMs = 600;
+    private const int InitialDelayMs = 1000;
+    private const int OmenVisibleMs = 500;
+    private const int VfxDelayMs = 600;
+
+    private List<Entity> ToDestruct = new();
     private CancellationTokenSource cts = new();
 
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
@@ -44,65 +47,99 @@ internal class TankbusterAftershock : Mechanic
         if (set.Source == null) { return; }
         if (set.Action.Value.RowId != FlareBreathId && set.Action.Value.RowId != PlummetId) { return; }
 
+        // make sure this has a valid value always
+        string vfxPath = PlummetAftershockVfxPath;
+        if (set.Action.Value.RowId == FlareBreathId)
+        {
+            vfxPath = FlareBreathAftershockVfxPath;
+        }
+
         var ct = this.cts.Token;
 
         var originalPosition = set.Source.Position;
         var originalRotation = set.Source.Rotation;
 
-        Entity? FanOmenVfx = null;
+        if (this.AttackManager.TryCreateAttackEntity<FakeActor>(out var fakeActor))
+        {
+            fakeActor.Set(new Position(originalPosition));
+            fakeActor.Set(new Rotation(originalRotation));  
+            ToDestruct.Add(fakeActor);
+        } else
+        {
+            Reset();
+            return;
+        }
+
+        try
+        {
+            await Task.Delay(InitialDelayMs, ct).ConfigureAwait(true);
+        } catch (OperationCanceledException)
+        {
+            Reset();
+            return;
+        }
 
         if (this.AttackManager.TryCreateAttackEntity<FanOmen>(out var tempFanOmen))
         {
             tempFanOmen.Set(new Position(originalPosition));
             tempFanOmen.Set(new Rotation(originalRotation));
             tempFanOmen.Set(new Scale(new Vector3(30f)));
-            FanOmenVfx = tempFanOmen;
+            ToDestruct.Add(tempFanOmen);
+        } else
+        {
+            Reset();
+            return;
         }
 
         try
         {
-            await Task.Delay(SpawnDelayMs, ct).ConfigureAwait(true);
-        } catch (OperationCanceledException) {
-            if (FanOmenVfx != null) { FanOmenVfx.Value.Destruct(); }
+            await Task.Delay(OmenVisibleMs, ct).ConfigureAwait(true);
+        } catch (OperationCanceledException)
+        {
+            Reset();
             return;
         }
 
+        ToDestruct.Remove(tempFanOmen);
+        tempFanOmen.Destruct();
 
         if (this.AttackManager.TryCreateAttackEntity<Fan>(out var Aftershock))
         {
             Aftershock.Set(new Position(originalPosition));
             Aftershock.Set(new Rotation(originalRotation));
             Aftershock.Set(new Scale(new Vector3(30f)));
-
-            if (FanOmenVfx != null) { FanOmenVfx.Value.Destruct(); }
-
-            try
-            {
-                await Task.Delay(SpawnDelayMs, ct).ConfigureAwait(true);
-            } catch (OperationCanceledException)
-            {
-                Aftershock.Destruct();
-                return;
-            }
-
-            var vfx = Aftershock.CsWorld().Entity()
-                .Set(new Position(originalPosition))
-                .Set(new Rotation(originalRotation))
-                .Set(new Scale(Vector3.One))
-                .Set(new Vfx("vfx/omen/eff/general_1bf.avfx"));  // TODO: change this to earthshaker when actor spawning is hooked up
+            ToDestruct.Add(Aftershock);
 
             try
             {
-                await Task.Delay(SpawnDelayMs, ct).ConfigureAwait(true);
+                await Task.Delay(VfxDelayMs, ct).ConfigureAwait(true);
             } catch (OperationCanceledException)
             {
-                Aftershock.Destruct();
-                vfx.Destruct();
+                Reset();
                 return;
             }
 
-            Aftershock.Destruct();
-            vfx.Destruct();
+            fakeActor.Set(new ActorVfx(vfxPath));
+
+            try
+            {
+                await Task.Delay(VfxDelayMs, ct).ConfigureAwait(true);
+            } catch (OperationCanceledException)
+            {
+                Reset();
+                return;
+            }
+
+            Reset();
         }
+    }
+
+    private void Reset()
+    {
+        foreach (var e in ToDestruct)
+        {
+            e.Destruct();
+        }
+        ToDestruct.Clear();
     }
 }
