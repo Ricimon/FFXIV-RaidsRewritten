@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using ImGuiNET;
 
 namespace RaidsRewritten.Scripts.Encounters.E1S;
@@ -60,7 +61,7 @@ public class EdenPrimeTest : IEncounter
         {
             var rollingBall = mechanicFactory.Create<RollingBallOnViceOfApathy>();
             var seed = this.configuration.GetEncounterSetting(RollingBallRngSeedKey, string.Empty);
-            rollingBall.RngSeed = seed.GetHashCode();
+            rollingBall.RngSeed = seed.ToCharArray().Select(c => (int)c).Sum();
             this.mechanics.Add(rollingBall);
         }
     }

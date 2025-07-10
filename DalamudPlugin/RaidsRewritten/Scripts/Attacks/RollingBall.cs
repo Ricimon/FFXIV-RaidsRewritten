@@ -26,7 +26,7 @@ public unsafe class RollingBall(DalamudServices dalamud, VfxSpawn vfxSpawn, Rand
     private const float HitboxRadius = 4.0f;
     private const float HitCooldown = 0.25f;
     private const float KnockbackDuration = 1.0f;
-    private const float ReflectAngleVariance = 15.0f; // degrees
+    private const float ReflectAngleVariance = 25.0f; // degrees
 
     public Entity Create(World world)
     {
