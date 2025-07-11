@@ -4,8 +4,6 @@ using RaidsRewritten.Extensions;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks.Components;
-using RaidsRewritten.Scripts.Conditions;
-using RaidsRewritten.Spawn;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,19 +13,15 @@ using System.Threading.Tasks;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public class Fan(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogger logger) : IAttack, ISystem
+public class Fan(DalamudServices dalamud, ILogger logger) : IAttack, ISystem
 {
-    public record struct Component(object _);
+    public record struct Component(Action<Entity> OnHit, int Degrees);
 
     private readonly DalamudServices dalamud = dalamud;
-    private readonly VfxSpawn vfxSpawn = vfxSpawn;
     private readonly ILogger logger = logger;
 
-    private const int Degrees = 90;
-    private const float StunDuration = 10.0f;
     public Entity Create(World world)
     {
-        //logger.Debug("Hello");
         return world.Entity()
             .Set(new Position())
             .Set(new Rotation())
@@ -54,12 +48,14 @@ public class Fan(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogger logger) : I
                     //logger.Debug($"Omen angle: {MathHelper.RadToDeg(rotation.Value)}");
                     //logger.Debug($"Angle between player and facing: {MathHelper.RadToDeg(angle)}");
 
-                    if (distanceToBoss < scale.Value.Z && (angle <= MathHelper.DegToRad(Degrees / 2) || float.IsNaN(angle)))
+                    // C# doesn't like refs in anonymous functions
+                    var onHit = component.OnHit;
+
+                    if (distanceToBoss < scale.Value.Z && (angle <= MathHelper.DegToRad(component.Degrees / 2) || float.IsNaN(angle)))
                     {
-                        Player.Query(it.World()).Each((Entity e, ref Player.Component pc) =>
+                        Player.Query(it.World()).Each((Entity e, ref Player.Component _) =>
                         {
-                            // TODO: add delay component
-                            DelayedAction.Create(world, () => Bound.ApplyToPlayer(e, 2), 0.5f);
+                            onHit(e);
                         });
                     }
 

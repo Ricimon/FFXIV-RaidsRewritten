@@ -1,36 +1,42 @@
-﻿using Castle.DynamicProxy.Contributors;
-using ECommons.Hooks;
+﻿using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
-using RaidsRewritten.Scripts.Attacks.Components;
+using Flecs.NET.Core;
 using RaidsRewritten.Scripts.Attacks;
+using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Scripts.Conditions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Flecs.NET.Core;
-using System.Numerics;
 using System.Xml.Linq;
 
 namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
 internal class TankbusterAftershock : Mechanic
 {
-    private const uint PlummetId = 9896;
-    private const float PlummetScale = 10f;
-    private const string PlummetAftershockVfxPath = "vfx/monster/m0389/eff/m389sp_05c0n.avfx";
 
     private const uint FlareBreathId = 9940;
     private const float FlareBreathScale = 30f;
+    private const int FlareBreathConeDeg = 90;
     private const string FlareBreathAftershockVfxPath = "vfx/monster/m0117/eff/baha_earth_90c0s.avfx";
     // vfx/monster/gimmick2/eff/z3oe_b3_g05c0i.avfx
     // vfx/monster/gimmick2/eff/z3oe_b3_g06c0i.avfx
 
+    private const uint PlummetId = 9896;
+    private const float PlummetScale = 10f;
+    private const int PlummetConeDeg = 120;
+    private const string PlummetOmenPath = "vfx/omen/eff/gl_fan120_1bf.avfx";
+    private const string PlummetAftershockVfxPath = "vfx/monster/m0389/eff/m389sp_05c0n.avfx";
+
+    private const float StunDurationSeconds = 10f;
+
     private const float InitialDelaySeconds = 1;
     private const float OmenVisibleSeconds = 0.4f;
     private const float VfxDelaySeconds = 0.4f;
-
+    private const float StatusDelaySeconds = 0.5f;
 
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
     {
@@ -47,12 +53,17 @@ internal class TankbusterAftershock : Mechanic
         if (set.Action.Value.RowId != FlareBreathId && set.Action.Value.RowId != PlummetId) { return; }
 
         // make sure this has a valid value always
-        string vfxPath = PlummetAftershockVfxPath;
-        float aoeScale = PlummetScale;
-        if (set.Action.Value.RowId == FlareBreathId)
+        var omenPath = "";
+        var vfxPath = FlareBreathAftershockVfxPath;
+        var aoeScale = FlareBreathScale;
+        var coneDeg = FlareBreathConeDeg;
+
+        if (set.Action.Value.RowId == PlummetId)
         {
-            vfxPath = FlareBreathAftershockVfxPath;
-            aoeScale = FlareBreathScale;
+            omenPath = PlummetOmenPath;
+            vfxPath = PlummetAftershockVfxPath;
+            aoeScale = PlummetScale;
+            coneDeg = PlummetConeDeg;
         }
 
         var originalPosition = set.Source.Position;
@@ -61,12 +72,13 @@ internal class TankbusterAftershock : Mechanic
         List<Entity> ToDestruct = new();
 
         // create fake actor to keep vfxes in place if boss turns/moves
-        if (this.AttackManager.TryCreateAttackEntity<FakeActor>(out var fakeActor))
+        if (this.AttackManager.TryCreateAttackEntity<FakeActor>(out var FakeActor))
         {
-            fakeActor.Set(new Position(originalPosition));
-            fakeActor.Set(new Rotation(originalRotation));
-            fakeActor.Set(new Scale(new Vector3(1f)));
-            ToDestruct.Add(fakeActor);
+            FakeActor.Set(new Position(originalPosition))
+                     .Set(new Rotation(originalRotation))
+                     .Set(new Scale(new Vector3(1f)));
+
+            ToDestruct.Add(FakeActor);
         } else
         {
             Reset(ToDestruct);
@@ -76,12 +88,18 @@ internal class TankbusterAftershock : Mechanic
         // show a quick telegraph
         void Telegraph()
         {
-            if (this.AttackManager.TryCreateAttackEntity<FanOmen>(out var tempFanOmen))
+            if (this.AttackManager.TryCreateAttackEntity<FanOmen>(out var FanOmen))
             {
-                tempFanOmen.Set(new Position(originalPosition));
-                tempFanOmen.Set(new Rotation(originalRotation));
-                tempFanOmen.Set(new Scale(new Vector3(aoeScale)));
-                ToDestruct.Add(tempFanOmen);
+                FanOmen.Set(new Position(originalPosition))
+                       .Set(new Rotation(originalRotation))
+                       .Set(new Scale(new Vector3(aoeScale)));
+
+                if (!String.IsNullOrEmpty(omenPath))
+                {
+                    FanOmen.Set(new Vfx("vfx/omen/eff/gl_fan120_1bf.avfx"));
+                }
+
+                ToDestruct.Add(FanOmen);
             } else
             {
                 Reset(ToDestruct);
@@ -90,8 +108,8 @@ internal class TankbusterAftershock : Mechanic
 
             void DestroyTelegraph()
             {
-                ToDestruct.Remove(tempFanOmen);
-                tempFanOmen.Destruct();
+                ToDestruct.Remove(FanOmen);
+                FanOmen.Destruct();
             }
 
             var delayedAction = DelayedAction.Create(this.World, DestroyTelegraph, OmenVisibleSeconds);
@@ -106,12 +124,19 @@ internal class TankbusterAftershock : Mechanic
         {
             if (this.AttackManager.TryCreateAttackEntity<Fan>(out var Aftershock))
             {
-                Aftershock.Set(new Position(originalPosition));
-                Aftershock.Set(new Rotation(originalRotation));
-                Aftershock.Set(new Scale(new Vector3(aoeScale)));
+                void OnHit(Entity e)
+                {
+                    DelayedAction.Create(e.CsWorld(), () => Bound.ApplyToPlayer(e, StunDurationSeconds), StatusDelaySeconds);
+                }
+
+                Aftershock.Set(new Position(originalPosition))
+                          .Set(new Rotation(originalRotation))
+                          .Set(new Scale(new Vector3(aoeScale)))
+                          .Set(new Fan.Component(OnHit, coneDeg));
+
                 ToDestruct.Add(Aftershock);
 
-                var delayedAction = DelayedAction.Create(this.World, () => fakeActor.Set(new ActorVfx(vfxPath)), VfxDelaySeconds);
+                var delayedAction = DelayedAction.Create(this.World, () => FakeActor.Set(new ActorVfx(vfxPath)), VfxDelaySeconds);
                 ToDestruct.Add(delayedAction);
             }
         }
