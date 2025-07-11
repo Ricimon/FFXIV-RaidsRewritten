@@ -15,7 +15,8 @@ public class PermanentTwister : Mechanic
 
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
     {
-        if (a3 == DirectorUpdateCategory.Wipe)
+        if (a3 == DirectorUpdateCategory.Wipe ||
+            a3 == DirectorUpdateCategory.Recommence)
         {
             Reset();
         }
@@ -40,9 +41,10 @@ public class PermanentTwister : Mechanic
 
     private void Reset()
     {
-        foreach(var attack in attacks)
+        foreach(var attack in this.attacks)
         {
             attack.Destruct();
         }
+        this.attacks.Clear();
     }
 }

@@ -33,7 +33,8 @@ public class RollingBallOnViceOfApathy : Mechanic
 
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
     {
-        if (a3 == DirectorUpdateCategory.Wipe)
+        if (a3 == DirectorUpdateCategory.Wipe ||
+            a3 == DirectorUpdateCategory.Recommence)
         {
             Reset();
         }
@@ -67,11 +68,12 @@ public class RollingBallOnViceOfApathy : Mechanic
 
     private void Reset()
     {
-        foreach (var attack in attacks)
+        foreach (var attack in this.attacks)
         {
             attack.Destruct();
         }
-        ballSpawned = false;
-        random = new Random(RngSeed);
+        this.attacks.Clear();
+        this.ballSpawned = false;
+        this.random = new Random(RngSeed);
     }
 }

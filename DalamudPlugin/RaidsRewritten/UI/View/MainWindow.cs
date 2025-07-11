@@ -19,6 +19,7 @@ using RaidsRewritten.Game;
 using RaidsRewritten.Input;
 using RaidsRewritten.Log;
 using RaidsRewritten.Network;
+using RaidsRewritten.Scripts;
 using RaidsRewritten.Scripts.Attacks;
 using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Scripts.Conditions;
@@ -186,6 +187,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                     // Delete everything
                     this.attackManager.ClearAllAttacks();
                     this.ecsContainer.World.DeleteWith<Condition.Component>();
+                    this.ecsContainer.World.DeleteWith<DelayedAction.Component>();
                     this.vfxSpawn.Clear();
                 }
             }
