@@ -56,7 +56,7 @@ public class RollingBallOnViceOfApathy : Mechanic
         {
             ball.Set(new Position(new Vector3(X, arenaCenter.Y, Z)))
                 .Set(new Rotation(r))
-                .Set(new RollingBall.MovementDirection(MathUtilities.RotationToUnitVector(r)))
+                .Set(new RollingBall.Movement(MathUtilities.RotationToUnitVector(r)))
                 .Set(new RollingBall.SquareArena(arenaCenter.ToVector2(), arenaWidth))
                 .Set(new RollingBall.SeededRandom(random));
             this.attacks.Add(ball);

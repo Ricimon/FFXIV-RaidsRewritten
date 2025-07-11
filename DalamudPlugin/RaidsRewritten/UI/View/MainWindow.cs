@@ -330,7 +330,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                 {
                     ball.Set(new Position(player.Position))
                         .Set(new Rotation(player.Rotation))
-                        .Set(new RollingBall.MovementDirection(MathUtilities.RotationToUnitVector(player.Rotation)))
+                        .Set(new RollingBall.Movement(MathUtilities.RotationToUnitVector(player.Rotation)))
                         .Set(new RollingBall.CircleArena(player.Position.ToVector2(), 10.0f));
                         //.Set(new RollingBall.ShowOmen());
                 }
@@ -346,7 +346,8 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             }
         }
 
-        if (ImGui.Button("Give bound status"))
+        ImGui.Text("Fake statuses");
+        if (ImGui.Button("Bind"))
         {
             var world = ecsContainer.World;
             using var q = world.Query<Player.Component>();
@@ -356,7 +357,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             });
         }
         ImGui.SameLine();
-        if (ImGui.Button("Give knockback status"))
+        if (ImGui.Button("Knockback"))
         {
             var world = ecsContainer.World;
             using var q = world.Query<Player.Component>();
@@ -366,7 +367,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             });
         }
         ImGui.SameLine();
-        if (ImGui.Button("Give test status"))
+        if (ImGui.Button("Test status"))
         {
             var world = ecsContainer.World;
             using var q = world.Query<Player.Component>();

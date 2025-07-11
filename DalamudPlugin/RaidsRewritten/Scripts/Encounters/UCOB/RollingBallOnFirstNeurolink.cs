@@ -57,7 +57,7 @@ public class RollingBallOnFirstNeurolink : Mechanic
         {
             ball.Set(new Position(new Vector3(v.X, arenaCenter.Y, v.Y)))
                 .Set(new Rotation(r))
-                .Set(new RollingBall.MovementDirection(MathUtilities.RotationToUnitVector(r)))
+                .Set(new RollingBall.Movement(MathUtilities.RotationToUnitVector(r)))
                 .Set(new RollingBall.CircleArena(arenaCenter.ToVector2(), arenaRadius))
                 .Set(new RollingBall.SeededRandom(random));
             this.attacks.Add(ball);
