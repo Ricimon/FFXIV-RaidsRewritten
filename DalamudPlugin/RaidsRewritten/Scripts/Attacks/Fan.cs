@@ -38,7 +38,6 @@ public class Fan(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogger logger) : I
 
     public void Register(World world)
     {
-        //logger.Debug("Hello2");
         world.System<Component, Position, Rotation, Scale>()
             .Each((Iter it, int i, ref Component component, ref Position position, ref Rotation rotation, ref Scale scale) =>
             {
@@ -59,8 +58,8 @@ public class Fan(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogger logger) : I
                     {
                         Player.Query(it.World()).Each((Entity e, ref Player.Component pc) =>
                         {
-                            // TODO: add delay for stun
-                            Bound.ApplyToPlayer(e, StunDuration);
+                            // TODO: add delay component
+                            DelayedAction.Create(world, () => Bound.ApplyToPlayer(e, 2), 0.5f);
                         });
                     }
 
@@ -71,5 +70,5 @@ public class Fan(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogger logger) : I
                     this.logger.Error(e.ToStringFull());
                 }
             });
-        }
+    }
 }

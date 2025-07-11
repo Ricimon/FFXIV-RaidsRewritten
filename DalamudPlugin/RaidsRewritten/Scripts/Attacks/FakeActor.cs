@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-internal class FakeActor(DalamudServices dalamud, VfxSpawn vfxSpawn, Random random, ILogger logger) : IAttack
+internal class FakeActor : IAttack
 {
     public record struct Component(object _);
     public Entity Create(World world)
@@ -21,7 +21,7 @@ internal class FakeActor(DalamudServices dalamud, VfxSpawn vfxSpawn, Random rand
             .Set(new Model(0))
             .Set(new Position())
             .Set(new Rotation())
-            .Set(new Scale(Vector3.One))
+            .Set(new Scale())
             .Set(new UniformScale(1f))
             .Set(new Alpha(0f))
             .Set(new Component())

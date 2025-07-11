@@ -1,9 +1,9 @@
-﻿using System.Numerics;
-using Flecs.NET.Core;
+﻿using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Spawn;
+using System.Numerics;
 
 namespace RaidsRewritten.Scripts.Attacks.Systems;
 
@@ -48,6 +48,8 @@ public unsafe class VfxSystem(VfxSpawn vfxSpawn, ILogger logger) : ISystem
 
         world.System<Model, ActorVfx>().Each((Iter it, int i, ref Model model, ref ActorVfx vfx) =>
         {
+            // UpdateScale doesn't seem to work for actor vfxes from a quick test. Should be looked into
+            // Position/Rotation should be based on source actor
             if (vfx.VfxPtr == null && model.GameObject != null)
             {
                 vfx.VfxPtr = vfxSpawn.SpawnActorVfx(vfx.Path, model.GameObject, model.GameObject);
@@ -59,7 +61,6 @@ public unsafe class VfxSystem(VfxSpawn vfxSpawn, ILogger logger) : ISystem
                 it.Entity(i).Destruct();
                 return;
             }
-
         });
 
         world.Observer<Vfx>()
@@ -82,6 +83,19 @@ public unsafe class VfxSystem(VfxSpawn vfxSpawn, ILogger logger) : ISystem
                             .Set(new VfxFadeOut(vfx.VfxPtr, 1.0f, 1.0f));
                     }
                 }
+            });
+
+        world.Observer<ActorVfx>()
+            .Event(Ecs.OnRemove)
+            .Each((Entity e, ref ActorVfx vfx) =>
+            {
+                // UpdateAlpha doesn't seem to work for actor vfxes either.
+                // Just removing it for now
+                if (vfx.VfxPtr != null)
+                {
+                    vfx.VfxPtr.Remove();
+                }
+                e.Destruct();
             });
 
         world.System<VfxFadeOut>()
