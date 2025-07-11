@@ -4,6 +4,7 @@ using RaidsRewritten.Extensions;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,8 +45,9 @@ public class Fan(DalamudServices dalamud, ILogger logger) : IAttack, ISystem
                     var bossPosition = position.Value.ToVector2();
                     var playerPosition = player.Position.ToVector2();
                     var rotationAngle = new Vector2(bossPosition.X + MathF.Sin(rotation.Value), bossPosition.Y + MathF.Cos(rotation.Value));
-                    var angle = MathHelper.GetAngleBetweenLines(bossPosition, playerPosition, bossPosition, rotationAngle);  // TODO: figure out why this is NaN sometimes
+                    var angle = MathUtilities.GetAngleBetweenLines(bossPosition, playerPosition, bossPosition, rotationAngle);
                     //logger.Debug($"Omen angle: {MathHelper.RadToDeg(rotation.Value)}");
+                    //logger.Debug($"Boss: {bossPosition}\nPlayer: {playerPosition}\nFacing: {rotationAngle}");
                     //logger.Debug($"Angle between player and facing: {MathHelper.RadToDeg(angle)}");
 
                     // C# doesn't like refs in anonymous functions
