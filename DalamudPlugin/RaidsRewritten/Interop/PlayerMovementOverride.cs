@@ -76,31 +76,15 @@ public unsafe sealed class PlayerMovementOverride : IDisposable
 
     private void RMIWalkDetour(void* self, float* sumLeft, float* sumForward, float* sumTurnLeft, byte* haveBackwardOrStrafe, byte* a6, byte bAdditiveUnk)
     {
-        float fakeLeft = 2;
-        float fakeForward = 1;
-        float fakeSumTurnLeft = 0;
-        byte fakeHaveBackwardOrStrafe = 0;
-        rmiWalkHook.Original(self, &fakeLeft, &fakeForward, &fakeSumTurnLeft, &fakeHaveBackwardOrStrafe, a6, bAdditiveUnk);
-        this.logger.Info($"FakeWalkDetour: left:{fakeLeft} forward:{fakeForward}");
-
-
         rmiWalkHook.Original(self, sumLeft, sumForward, sumTurnLeft, haveBackwardOrStrafe, a6, bAdditiveUnk);
         // TODO: we really need to introduce some extra checks that PlayerMoveController::readInput does - sometimes it skips reading input, and returning something non-zero breaks stuff...
-        var a = *(byte*)((IntPtr)self + 148);
-        var b = *(byte*)((IntPtr)self + 298);
-        var c = *(uint*)((IntPtr)self + 272);
-        var d = *(ulong*)((IntPtr)self + 32);
-        var e = *(byte*)((IntPtr)self + 62);
-        var f = *(byte*)((IntPtr)self + 63);
-        var g = *(byte*)((IntPtr)self + 291);
-        var h = *(byte*)((IntPtr)self + 260);
-        this.logger.Info($"WalkDetour: bAdd:{bAdditiveUnk}, rmi1: {rmiWalkIsInputEnabled1(self)}, rmi2: {rmiWalkIsInputEnabled2(self)}, a6: {*a6}, sumLeft:{*sumLeft}, sumForward:{*sumForward}, backOrStrafe:{*haveBackwardOrStrafe}");
-        this.logger.Info($"a{a}, b{b}, c{c}, d{d}, e{e}, f{f}, g{g}, h{h}");
+        //this.logger.Info($"WalkDetour rmi1:{rmiWalkIsInputEnabled1(self)}, rmi2: {rmiWalkIsInputEnabled2(self)}, a6: {*a6}, sumLeft:{*sumLeft}, sumForward:{*sumForward}, backOrStrafe:{*haveBackwardOrStrafe}, bAdd:{bAdditiveUnk}");
 
         // Found through testing, this value is more reliable to determine if movement is locked due to being knocked back
         var isBeingKnockedBack = *(byte*)((IntPtr)self + 62) != 0;
         IsMovementAllowedByGame = bAdditiveUnk == 0 && rmiWalkIsInputEnabled1(self) && rmiWalkIsInputEnabled2(self) && !isBeingKnockedBack;
         //UserInput = *sumLeft != 0 || *sumForward != 0;
+
         if (OverrideMovement && IsMovementAllowedByGame &&
             GetDirectionAngles(false) is var relDir)
         {
