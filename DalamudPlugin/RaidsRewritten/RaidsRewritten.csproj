@@ -64,10 +64,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ffxiv_pictomancy\Pictomancy\Pictomancy.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Folder Include="Resources\" />
   </ItemGroup>
 </Project>

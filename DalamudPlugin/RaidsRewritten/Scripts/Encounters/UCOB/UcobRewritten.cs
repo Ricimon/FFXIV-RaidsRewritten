@@ -54,6 +54,7 @@ public sealed class UcobRewritten : IEncounter
         }
 
         string rollingBallRngSeed = this.configuration.GetEncounterSetting(RollingBallRngSeedKey, string.Empty);
+        ImGui.PushItemWidth(150);
         if (ImGui.InputText("Rolling Ball RNG Seed", ref rollingBallRngSeed, 100))
         {
             this.configuration.EncounterSettings[RollingBallRngSeedKey] = rollingBallRngSeed;
@@ -69,6 +70,8 @@ public sealed class UcobRewritten : IEncounter
             this.configuration.Save();
             RefreshMechanics();
         }
+        
+        ImGui.PopItemWidth();
     }
 
     private void RefreshMechanics()

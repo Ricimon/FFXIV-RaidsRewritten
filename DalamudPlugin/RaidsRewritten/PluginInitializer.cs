@@ -7,7 +7,6 @@ using Dalamud.Plugin.Services;
 using ECommons.DalamudServices;
 using Ninject;
 using Ninject.Extensions.Factory;
-using Pictomancy;
 using RaidsRewritten.Log;
 using RaidsRewritten.Ninject;
 
@@ -46,7 +45,6 @@ public sealed class PluginInitializer : IDalamudPlugin
         this.kernel = new StandardKernel(new PluginModule(), new FuncModule());
 
         //Services
-        PictoService.Initialize(PluginInterface);
         Svc.Init(PluginInterface, this.kernel.Get<ILogger>());
 
         // Logging
@@ -58,7 +56,6 @@ public sealed class PluginInitializer : IDalamudPlugin
 
     public void Dispose()
     {
-        PictoService.Dispose();
         TaskScheduler.UnobservedTaskException -= OnUnobservedTaskException;
         this.kernel.Dispose();
     }

@@ -15,18 +15,20 @@ namespace RaidsRewritten.Scripts.Attacks;
 
 public unsafe class RollingBall(DalamudServices dalamud, VfxSpawn vfxSpawn, Random random, ILogger logger) : IAttack, ISystem
 {
-    public record struct Component(float TimeUntilRolling, bool EntryAnimationPlayed = false, float TargetYPosition = default, float Speed = default, float Cooldown = default);
-    public record struct MovementDirection(Vector2 Value);
+    public record struct Component(float TimeUntilRolling, bool EntryAnimationPlayed = false, float TargetYPosition = default, float Cooldown = default);
+    public record struct Movement(Vector2 Direction, float Speed = 0, float SimulationBufferTime = 0);
     public record struct SeededRandom(Random Random);
     public record struct CircleArena(Vector2 Center, float Radius);
     public record struct SquareArena(Vector2 Center, float Width);
     public record struct ShowOmen(Entity Omen);
 
+    private const float MaxSpeed = 8.75f;
     private const float AnimationSpeed = 1.75f;
     private const float HitboxRadius = 4.0f;
     private const float HitCooldown = 0.25f;
     private const float KnockbackDuration = 1.0f;
     private const float ReflectAngleVariance = 25.0f; // degrees
+    private const float FixedDeltaTime = 0.01f;
 
     public Entity Create(World world)
     {
@@ -37,7 +39,7 @@ public unsafe class RollingBall(DalamudServices dalamud, VfxSpawn vfxSpawn, Rand
             .Set(new UniformScale(0.6f))
             .Set(new Alpha(1f))
             .Set(new Component(2.25f))
-            .Set(new MovementDirection(Vector2.Zero))
+            .Set(new Movement(Vector2.Zero))
             .Set(new SeededRandom(new Random()))
             .Add<Attack>();
     }
@@ -45,8 +47,8 @@ public unsafe class RollingBall(DalamudServices dalamud, VfxSpawn vfxSpawn, Rand
     public void Register(World world)
     {
         // Make the ball roll around
-        world.System<Model, Component, MovementDirection, Position, Rotation>()
-            .Each((Iter it, int i, ref Model model, ref Component component, ref MovementDirection direction, ref Position position, ref Rotation rotation) =>
+        world.System<Model, Component, Movement, Position, Rotation>()
+            .Each((Iter it, int i, ref Model model, ref Component component, ref Movement movement, ref Position position, ref Rotation rotation) =>
             {
                 if (!model.Spawned) { return; }
 
@@ -99,20 +101,15 @@ public unsafe class RollingBall(DalamudServices dalamud, VfxSpawn vfxSpawn, Rand
 
                 if (component.TimeUntilRolling > 0) { return; }
 
-                // Accelerate
-                var acceleration = 25.0f;
-                var maxSpeed = 8.75f;
-                var speed = component.Speed;
-                speed = Math.Clamp(speed + acceleration * it.DeltaTime(), 0, maxSpeed);
-                var velocity = speed * Vector3.Normalize(direction.Value.ToVector3(0));
-                position.Value += velocity * it.DeltaTime();
+                var entity = it.Entity(i);
+                movement.SimulationBufferTime += it.DeltaTime();
+                FixedUpdate(entity, ref movement, ref position);
 
-                component.Speed = speed;
-                it.Entity(i).Set(new ModelTimelineSpeed(speed / maxSpeed * AnimationSpeed));
+                entity.Set(new ModelTimelineSpeed(movement.Speed / MaxSpeed * AnimationSpeed));
 
                 // Rotate
                 var rotationSpeed = 4.0f;
-                var targetRotation = MathUtilities.VectorToRotation(direction.Value);
+                var targetRotation = MathUtilities.VectorToRotation(movement.Direction);
                 var r = MathUtilities.ClampRadians(targetRotation - rotation.Value);
                 var rd1 = MathF.Abs(r);
                 var rd2 = 2 * MathF.PI - rd1;
@@ -166,64 +163,6 @@ public unsafe class RollingBall(DalamudServices dalamud, VfxSpawn vfxSpawn, Rand
                 }
             });
 
-        world.System<Component, MovementDirection, CircleArena, Position, Rotation, SeededRandom>()
-            .Each((ref Component component, ref MovementDirection direction, ref CircleArena circleArena, ref Position position, ref Rotation rotation, ref SeededRandom sRandom) =>
-            {
-                var p = position.Value.ToVector2();
-                var normal = Vector2.Normalize(circleArena.Center - p);
-                if (Vector2.Distance(circleArena.Center, p) > circleArena.Radius &&
-                    Vector2.Dot(direction.Value, normal) < 0)
-                {
-                    // Ball outside arena, reflect it back in
-                    var newDirection = Vector2.Reflect(direction.Value, normal);
-                    var angleVariance = sRandom.Random.NextSingle() * float.DegreesToRadians(ReflectAngleVariance / 2f);
-                    angleVariance *= sRandom.Random.Next(2) == 0 ? 1 : -1;
-                    newDirection = MathUtilities.Rotate(newDirection, angleVariance);
-                    direction.Value = newDirection;
-                    component.Speed = 0;
-                }
-            });
-
-        world.System<Component, MovementDirection, SquareArena, Position, Rotation, SeededRandom>()
-            .Each((ref Component component, ref MovementDirection direction, ref SquareArena squareArena, ref Position position, ref Rotation rotation, ref SeededRandom sRandom) =>
-            {
-                var p = position.Value.ToVector2();
-                Vector2? normal = null;
-                // -X
-                if (p.X < squareArena.Center.X - squareArena.Width / 2f)
-                {
-                    normal = new Vector2(1, 0);
-                }
-                // +X
-                else if (p.X > squareArena.Center.X + squareArena.Width / 2f)
-                {
-                    normal = new Vector2(-1, 0);
-                }
-                // -Y
-                else if (p.Y < squareArena.Center.Y - squareArena.Width / 2f)
-                {
-                    normal = new Vector2(0, 1);
-                }
-                // +Y
-                else if (p.Y > squareArena.Center.Y + squareArena.Width / 2f)
-                {
-                    normal = new Vector2(0, -1);
-                }
-
-                if (!normal.HasValue) { return; }
-
-                if (Vector2.Dot(direction.Value, normal.Value) < 0)
-                {
-                    // Ball outside arena, reflect it back in
-                    var newDirection = Vector2.Reflect(direction.Value, normal.Value);
-                    var angleVariance = sRandom.Random.NextSingle() * float.DegreesToRadians(ReflectAngleVariance / 2f);
-                    angleVariance *= sRandom.Random.Next(2) == 0 ? 1 : -1;
-                    newDirection = MathUtilities.Rotate(newDirection, angleVariance);
-                    direction.Value = newDirection;
-                    component.Speed = 0;
-                }
-            });
-
         world.System<Component, ShowOmen, Position>()
             .Each((Iter it, int i, ref Component component, ref ShowOmen omen, ref Position position) =>
             {
@@ -239,5 +178,73 @@ public unsafe class RollingBall(DalamudServices dalamud, VfxSpawn vfxSpawn, Rand
                     .Set(new Position(position.Value))
                     .Set(new Scale(HitboxRadius * Vector3.One));
             });
+    }
+
+    private void FixedUpdate(Entity entity, ref Movement movement, ref Position position)
+    {
+        // Movement must be simulated in fixed update steps to maintain consistency across different client FPS values
+        while (movement.SimulationBufferTime >= FixedDeltaTime)
+        {
+            movement.SimulationBufferTime -= FixedDeltaTime;
+
+            var acceleration = 25.0f;
+            var speed = movement.Speed;
+            speed = Math.Clamp(speed + acceleration * FixedDeltaTime, 0, MaxSpeed);
+            var velocity = speed * Vector3.Normalize(movement.Direction.ToVector3(0));
+            position.Value += velocity * FixedDeltaTime;
+
+            movement.Speed = speed;
+
+            // Collision
+            Vector2? reflectionNormal = null;
+            if (entity.Has<CircleArena>())
+            {
+                var circleArena = entity.Get<CircleArena>();
+                var p = position.Value.ToVector2();
+                var normal = Vector2.Normalize(circleArena.Center - p);
+                if (Vector2.Distance(circleArena.Center, p) > circleArena.Radius)
+                {
+                    reflectionNormal = normal;
+                }
+            }
+            else if (entity.Has<SquareArena>())
+            {
+                var squareArena = entity.Get<SquareArena>();
+                var p = position.Value.ToVector2();
+                // -X
+                if (p.X < squareArena.Center.X - squareArena.Width / 2f)
+                {
+                    reflectionNormal = new Vector2(1, 0);
+                }
+                // +X
+                else if (p.X > squareArena.Center.X + squareArena.Width / 2f)
+                {
+                    reflectionNormal = new Vector2(-1, 0);
+                }
+                // -Y
+                else if (p.Y < squareArena.Center.Y - squareArena.Width / 2f)
+                {
+                    reflectionNormal = new Vector2(0, 1);
+                }
+                // +Y
+                else if (p.Y > squareArena.Center.Y + squareArena.Width / 2f)
+                {
+                    reflectionNormal = new Vector2(0, -1);
+                }
+            }
+
+            if (reflectionNormal.HasValue &&
+                Vector2.Dot(movement.Direction, reflectionNormal.Value) < 0)
+            {
+                // Ball outside arena, reflect it back in
+                Random rand = entity.Has<SeededRandom>() ? entity.Get<SeededRandom>().Random : random;
+                var newDirection = Vector2.Reflect(movement.Direction, reflectionNormal.Value);
+                var angleVariance = rand.NextSingle() * float.DegreesToRadians(ReflectAngleVariance / 2f);
+                angleVariance *= rand.Next(2) == 0 ? 1 : -1;
+                newDirection = MathUtilities.Rotate(newDirection, angleVariance);
+                movement.Direction = newDirection;
+                movement.Speed = 0;
+            }
+        }
     }
 }

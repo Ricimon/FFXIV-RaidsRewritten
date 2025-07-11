@@ -78,8 +78,13 @@ public unsafe sealed class PlayerMovementOverride : IDisposable
     {
         rmiWalkHook.Original(self, sumLeft, sumForward, sumTurnLeft, haveBackwardOrStrafe, a6, bAdditiveUnk);
         // TODO: we really need to introduce some extra checks that PlayerMoveController::readInput does - sometimes it skips reading input, and returning something non-zero breaks stuff...
-        IsMovementAllowedByGame = bAdditiveUnk == 0 && rmiWalkIsInputEnabled1(self) && rmiWalkIsInputEnabled2(self); //&& !Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.BeingMoved];
+        //this.logger.Info($"WalkDetour rmi1:{rmiWalkIsInputEnabled1(self)}, rmi2: {rmiWalkIsInputEnabled2(self)}, a6: {*a6}, sumLeft:{*sumLeft}, sumForward:{*sumForward}, backOrStrafe:{*haveBackwardOrStrafe}, bAdd:{bAdditiveUnk}");
+
+        // Found through testing, this value is more reliable to determine if movement is locked due to being knocked back
+        var isBeingKnockedBack = *(byte*)((IntPtr)self + 62) != 0;
+        IsMovementAllowedByGame = bAdditiveUnk == 0 && rmiWalkIsInputEnabled1(self) && rmiWalkIsInputEnabled2(self) && !isBeingKnockedBack;
         //UserInput = *sumLeft != 0 || *sumForward != 0;
+
         if (OverrideMovement && IsMovementAllowedByGame &&
             GetDirectionAngles(false) is var relDir)
         {

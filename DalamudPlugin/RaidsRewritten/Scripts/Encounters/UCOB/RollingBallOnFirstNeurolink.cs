@@ -33,7 +33,8 @@ public class RollingBallOnFirstNeurolink : Mechanic
 
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
     {
-        if (a3 == DirectorUpdateCategory.Wipe)
+        if (a3 == DirectorUpdateCategory.Wipe ||
+            a3 == DirectorUpdateCategory.Recommence)
         {
             Reset();
         }
@@ -57,7 +58,7 @@ public class RollingBallOnFirstNeurolink : Mechanic
         {
             ball.Set(new Position(new Vector3(v.X, arenaCenter.Y, v.Y)))
                 .Set(new Rotation(r))
-                .Set(new RollingBall.MovementDirection(MathUtilities.RotationToUnitVector(r)))
+                .Set(new RollingBall.Movement(MathUtilities.RotationToUnitVector(r)))
                 .Set(new RollingBall.CircleArena(arenaCenter.ToVector2(), arenaRadius))
                 .Set(new RollingBall.SeededRandom(random));
             this.attacks.Add(ball);
@@ -68,11 +69,12 @@ public class RollingBallOnFirstNeurolink : Mechanic
 
     private void Reset()
     {
-        foreach(var attack in attacks)
+        foreach(var attack in this.attacks)
         {
             attack.Destruct();
         }
-        ballSpawned = false;
-        random = new Random(RngSeed);
+        this.attacks.Clear();
+        this.ballSpawned = false;
+        this.random = new Random(RngSeed);
     }
 }

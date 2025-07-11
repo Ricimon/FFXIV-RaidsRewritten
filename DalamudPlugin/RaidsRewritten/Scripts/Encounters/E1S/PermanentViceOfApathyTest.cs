@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons.Hooks;
 using Flecs.NET.Core;
@@ -13,51 +10,48 @@ namespace RaidsRewritten.Scripts.Encounters.E1S;
 public class PermanentViceOfApathyTest : Mechanic
 {
     private const uint ViceOfApathyDataId = 0x1EAE20;
-    private const int SpawnDelayMs = 1000;
+    private const float SpawnDelay = 1.0f;
 
-    private readonly List<Entity> attacks = [];
-
-    private CancellationTokenSource cts = new();
+    private readonly List<Entity> entities = [];
 
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
     {
-        if (a3 == DirectorUpdateCategory.Wipe)
+        if (a3 == DirectorUpdateCategory.Wipe ||
+            a3 == DirectorUpdateCategory.Recommence)
         {
             Reset();
-            cts.Cancel();
-            cts = new();
         }
     }
 
-    public override async void OnObjectCreation(nint newObjectPointer, IGameObject? newObject)
+    public override void OnObjectCreation(nint newObjectPointer, IGameObject? newObject)
     {
         if (newObject == null) { return; }
         if (newObject.DataId != ViceOfApathyDataId) { return; }
 
-        var ct = this.cts.Token;
-        try
+        void CreateTwister()
         {
-            await Task.Delay(SpawnDelayMs, ct).ConfigureAwait(true);
-        }
-        catch (OperationCanceledException) { }
-
-        var player = this.Dalamud.ClientState.LocalPlayer;
-        if (player != null)
-        {
-            if (this.AttackManager.TryCreateAttackEntity<Twister>(out var twister))
+            var player = this.Dalamud.ClientState.LocalPlayer;
+            if (player != null)
             {
-                twister.Set(new Position(newObject.Position));
-                twister.Set(new Rotation(newObject.Rotation));
-                attacks.Add(twister);
+                if (this.AttackManager.TryCreateAttackEntity<Twister>(out var twister))
+                {
+                    twister.Set(new Position(newObject.Position));
+                    twister.Set(new Rotation(newObject.Rotation));
+                    entities.Add(twister);
+                }
             }
         }
+
+        var delayedAction = DelayedAction.Create(this.World, CreateTwister, SpawnDelay);
+        entities.Add(delayedAction);
     }
 
     private void Reset()
     {
-        foreach (var attack in attacks)
+        foreach (var e in entities)
         {
-            attack.Destruct();
+            e.Destruct();
         }
+        entities.Clear();
     }
 }
