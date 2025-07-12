@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Numerics;
+using Dalamud.Game.ClientState.Objects.SubKinds;
 using Flecs.NET.Core;
 using RaidsRewritten.Extensions;
 using RaidsRewritten.Log;
@@ -9,18 +10,11 @@ namespace RaidsRewritten.Game;
 
 public class Player(DalamudServices dalamud, PlayerManager playerManager, Configuration configuration, ILogger logger) : ISystem
 {
-    public record struct Component(bool IsLocalPlayer);
-
-    private readonly DalamudServices dalamud = dalamud;
-    private readonly PlayerManager playerManager = playerManager;
-    private readonly Configuration configuration = configuration;
-    private readonly ILogger logger = logger;
-
-    private readonly Query<Condition.Component, KnockedBack.Component> knockbackQuery;
+    public record struct Component(bool IsLocalPlayer, IPlayerCharacter? PlayerCharacter);
 
     public static Entity Create(World world, bool isLocalPlayer)
     {
-        return world.Entity().Set(new Component(isLocalPlayer));
+        return world.Entity().Set(new Component(isLocalPlayer, null));
     }
 
     public static Query<Component> Query(World world)
@@ -39,8 +33,9 @@ public class Player(DalamudServices dalamud, PlayerManager playerManager, Config
 
                     var playerEntity = it.Entity(i);
 
-                    var player = this.dalamud.ClientState.LocalPlayer;
-                    if (this.configuration.EverythingDisabled || player == null || player.IsDead)
+                    var player = dalamud.ClientState.LocalPlayer;
+                    component.PlayerCharacter = dalamud.ClientState.LocalPlayer;
+                    if (configuration.EverythingDisabled || player == null || player.IsDead)
                     {
                         playerEntity.Children(c =>
                         {
@@ -66,26 +61,26 @@ public class Player(DalamudServices dalamud, PlayerManager playerManager, Config
                         var knockback = knockbackEntity.Get<KnockedBack.Component>();
                         //this.logger.Info("Player has knockback, direction {0}, time left {1}", knockback.KnockbackDirection, condition.TimeRemaining);
 
-                        this.playerManager.OverrideMovement = true;
-                        this.playerManager.OverrideMovementDirection = knockback.KnockbackDirection;
+                        playerManager.OverrideMovement = true;
+                        playerManager.OverrideMovementDirection = knockback.KnockbackDirection;
                     }
                     else
                     {
                         using var boundQuery = world.Query<Condition.Component, Bound.Component>();
                         if (boundQuery.IsTrue())
                         {
-                            this.playerManager.OverrideMovement = true;
-                            this.playerManager.OverrideMovementDirection = Vector3.Zero;
+                            playerManager.OverrideMovement = true;
+                            playerManager.OverrideMovementDirection = Vector3.Zero;
                         }
                         else
                         {
-                            this.playerManager.OverrideMovement = false;
+                            playerManager.OverrideMovement = false;
                         }
                     }
                 }
                 catch (Exception e)
                 {
-                    this.logger.Error(e.ToStringFull());
+                    logger.Error(e.ToStringFull());
                 }
             });
     }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
@@ -6,6 +7,7 @@ using Flecs.NET.Core;
 using RaidsRewritten.Extensions;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
+using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Conditions;
 
@@ -13,22 +15,49 @@ public sealed class KnockedBack(DalamudServices dalamud, EcsContainer ecsContain
 {
     public record struct Component(Vector3 KnockbackDirection);
 
-    private readonly DalamudServices dalamud = dalamud;
-    private readonly World world = ecsContainer.World;
-    private readonly ILogger logger = logger;
+    private static readonly List<uint> KnockbackNullificationStatuses = [
+        160,    // Surecast
+        1209,   // Arm's Length
+        1984,   // Arm's Length (another version)
+        2663,   // Inner Strength
+        2345,   // Lost Manawall (from Bozja)
+        4235,   // Rage (from Occult Crescent)
+        75,     // Tempered Will
+        712,    // Tempered Will (another version)
+        //2702,   // Radiant Aegis (testing)
+        ];
 
-    public static void ApplyToPlayer(Entity playerEntity, Vector3 knockbackDirection, float duration)
+    private readonly World world = ecsContainer.World;
+
+    public static void ApplyToPlayer(Entity playerEntity, Vector3 knockbackDirection, float duration, bool canResist)
     {
-        // Don't apply if player is bound
         var apply = true;
         playerEntity.Scope(() =>
         {
+            // Don't apply if player is bound
             using var q = playerEntity.CsWorld().Query<Bound.Component>();
             if (q.IsTrue())
             {
                 apply = false;
+                return;
             }
         });
+
+        if (apply && canResist)
+        {
+            var player = playerEntity.TryGet<Player.Component>(out var pc) ? pc.PlayerCharacter : null;
+            if (player != null)
+            {
+                foreach (var status in player.StatusList)
+                {
+                    if (KnockbackNullificationStatuses.Contains(status.StatusId))
+                    {
+                        apply = false;
+                        return;
+                    }
+                }
+            }
+        }
 
         if (!apply) { return; }
 
@@ -58,7 +87,7 @@ public sealed class KnockedBack(DalamudServices dalamud, EcsContainer ecsContain
     {
         try
         {
-            var localPlayer = this.dalamud.ClientState.LocalPlayer;
+            var localPlayer = dalamud.ClientState.LocalPlayer;
             if (localPlayer == null) { return; }
             foreach (var targetEffects in set.TargetEffects)
             {
@@ -86,7 +115,7 @@ public sealed class KnockedBack(DalamudServices dalamud, EcsContainer ecsContain
         }
         catch (Exception e)
         {
-            this.logger.Error(e.ToStringFull());
+            logger.Error(e.ToStringFull());
         }
     }
 }

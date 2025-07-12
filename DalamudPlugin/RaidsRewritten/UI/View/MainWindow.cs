@@ -266,7 +266,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             this.ecsContainer.World.RemoveAll<Condition.Component>();
         }
 
-        if (ImGui.Button("Spawn Circle Omen"))
+        if (ImGui.Button("Circle Omen"))
         {
             var player = this.dalamud.ClientState.LocalPlayer;
             if (player != null)
@@ -280,7 +280,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             }
         }
         ImGui.SameLine();
-        if (ImGui.Button("Spawn Fan Omen"))
+        if (ImGui.Button("Fan Omen"))
         {
             var player = this.dalamud.ClientState.LocalPlayer;
             if (player != null)
@@ -290,6 +290,20 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                     fan.Set(new Position(player.Position));
                     fan.Set(new Rotation(player.Rotation));
                     fan.Set(new Scale(Vector3.One));
+                }
+            }
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Rect Omen"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<RectangleOmen>(out var rect))
+                {
+                    rect.Set(new Position(player.Position));
+                    rect.Set(new Rotation(player.Rotation));
+                    rect.Set(new Scale(Vector3.One));
                 }
             }
         }
@@ -322,7 +336,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                 }
             }
         }
-
+        ImGui.SameLine();
         if (ImGui.Button("Spawn Ball"))
         {
             var player = this.dalamud.ClientState.LocalPlayer;
@@ -365,7 +379,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             using var q = world.Query<Player.Component>();
             q.Each((Entity e, ref Player.Component pc) =>
             {
-                KnockedBack.ApplyToPlayer(e, new Vector3(1, 0, 0), 2.0f);
+                KnockedBack.ApplyToPlayer(e, new Vector3(1, 0, 0), 2.0f, true);
             });
         }
         ImGui.SameLine();
