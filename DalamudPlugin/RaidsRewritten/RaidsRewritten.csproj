@@ -23,6 +23,10 @@
 		<DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
 	</PropertyGroup>
 
+	<PropertyGroup>
+		<GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+	</PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="AsyncAwaitBestPractices" Version="9.0.0" />
     <PackageReference Include="Flecs.NET.Debug" Version="4.0.3" Condition="'$(Configuration)' == 'Debug'" />
@@ -61,6 +65,7 @@
     <Content Include="RaidsRewritten.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="runtimeconfig.template.json" />
   </ItemGroup>
 
   <ItemGroup>
