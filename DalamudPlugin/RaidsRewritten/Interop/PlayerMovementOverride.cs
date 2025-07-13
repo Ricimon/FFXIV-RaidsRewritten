@@ -48,6 +48,8 @@ public unsafe sealed class PlayerMovementOverride : IDisposable
     private Hook<CheckStrafeKeybindDelegate> checkStrafeKeybindHook = null!;
 
     private bool legacyMode;
+    private bool overrideMovementStateLastFrame;
+    private bool wasWalking;
 
     public PlayerMovementOverride(DalamudServices dalamud, ILogger logger)
     {
@@ -80,6 +82,20 @@ public unsafe sealed class PlayerMovementOverride : IDisposable
         // TODO: we really need to introduce some extra checks that PlayerMoveController::readInput does - sometimes it skips reading input, and returning something non-zero breaks stuff...
         //this.logger.Info($"WalkDetour rmi1:{rmiWalkIsInputEnabled1(self)}, rmi2: {rmiWalkIsInputEnabled2(self)}, a6: {*a6}, sumLeft:{*sumLeft}, sumForward:{*sumForward}, backOrStrafe:{*haveBackwardOrStrafe}, bAdd:{bAdditiveUnk}");
 
+        // Walk save & restoration
+        if (OverrideMovement != overrideMovementStateLastFrame)
+        {
+            if (OverrideMovement)
+            {
+                wasWalking = Control.Instance()->IsWalking;
+            }
+            else
+            {
+                Control.Instance()->IsWalking = wasWalking;
+            }
+        }
+        overrideMovementStateLastFrame = OverrideMovement;
+
         // Found through testing, this value is more reliable to determine if movement is locked due to being knocked back
         var isBeingKnockedBack = *(byte*)((IntPtr)self + 62) != 0;
         IsMovementAllowedByGame = bAdditiveUnk == 0 && rmiWalkIsInputEnabled1(self) && rmiWalkIsInputEnabled2(self) && !isBeingKnockedBack;
@@ -94,6 +110,7 @@ public unsafe sealed class PlayerMovementOverride : IDisposable
                 *sumLeft = dir.X;
                 *sumForward = dir.Y;
                 *haveBackwardOrStrafe = 0;
+                Control.Instance()->IsWalking = false;
             }
             else
             {

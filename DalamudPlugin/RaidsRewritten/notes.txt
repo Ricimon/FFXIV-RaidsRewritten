@@ -3,3 +3,8 @@ Twister: DataId 0x1E8910
 
 E1S
 Vice of Apathy: DataId 0x1EAE20
+
+E6S
+Raktapaska Hands of Flame Ground AOE: vfx/monster/gimmick3/eff/n4g6_b_g06c0k1.avfx (actor)
+
+Rectangle Omen: vfx/omen/eff/general02f.avfx (static)

@@ -1,4 +1,7 @@
-﻿using Dalamud.Interface.Windowing;
+﻿using System;
+using Dalamud.Interface.Windowing;
+using RaidsRewritten.Extensions;
+using RaidsRewritten.Log;
 using RaidsRewritten.UI.Presenter;
 
 namespace RaidsRewritten.UI;
@@ -11,17 +14,20 @@ public sealed class PluginUIContainer : IDalamudHook
     private readonly MainWindowPresenter mainWindowPresenter;
     private readonly DalamudServices dalamud;
     private readonly WindowSystem windowSystem;
+    private readonly ILogger logger;
 
     public PluginUIContainer(
         IPluginUIPresenter[] pluginUIPresenters,
         MainWindowPresenter mainWindowPresenter,
         DalamudServices dalamud,
-        WindowSystem windowSystem)
+        WindowSystem windowSystem,
+        ILogger logger)
     {
         this.pluginUIPresenters = pluginUIPresenters;
         this.mainWindowPresenter = mainWindowPresenter;
         this.dalamud = dalamud;
         this.windowSystem = windowSystem;
+        this.logger = logger;
 
         foreach (var pluginUIPresenter in this.pluginUIPresenters)
         {
@@ -50,9 +56,16 @@ public sealed class PluginUIContainer : IDalamudHook
         // There are other ways to do this, but it is generally best to keep the number of
         // draw delegates as low as possible.
 
-        foreach (var pluginUIPresenter in this.pluginUIPresenters)
+        try
         {
-            pluginUIPresenter.View.Draw();
+            foreach (var pluginUIPresenter in this.pluginUIPresenters)
+            {
+                pluginUIPresenter.View.Draw();
+            }
+        }
+        catch (Exception e)
+        {
+            this.logger.Error(e.ToStringFull());
         }
     }
 
