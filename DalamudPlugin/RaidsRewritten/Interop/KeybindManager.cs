@@ -29,7 +29,7 @@ public unsafe sealed class KeybindManager : IDisposable
         //"MOVE_STRIFE_L",
         //"MOVE_STRIFE_R",
         "JUMP",
-        "WALK",
+        //"WALK",
         ];
 
     //private static string AutorunKeybind = "AUTORUN_KEY";
