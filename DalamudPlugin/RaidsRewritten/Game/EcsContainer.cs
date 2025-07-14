@@ -1,6 +1,5 @@
 ﻿using System;
 using Dalamud.Plugin.Services;
-using Flecs.NET.Bindings;
 using Flecs.NET.Core;
 using RaidsRewritten.Extensions;
 using RaidsRewritten.Log;
@@ -22,9 +21,6 @@ public sealed class EcsContainer : IDisposable
         this.logger = logger;
 
         this.World = World.Create();
-#if DEBUG
-        this.World.Set<flecs.EcsRest>(default);
-#endif
 
         // Register all systems
         foreach(var system in systems)
