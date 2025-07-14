@@ -15,7 +15,7 @@ using System.Xml.Linq;
 
 namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
-internal class TankbusterAftershock : Mechanic
+public class TankbusterAftershock : Mechanic
 {
 
     private const uint FlareBreathId = 9940;
@@ -52,13 +52,18 @@ internal class TankbusterAftershock : Mechanic
         if (set.Source == null) { return; }
         if (set.Action.Value.RowId != FlareBreathId && set.Action.Value.RowId != PlummetId) { return; }
 
+        ExecuteAttack(set.Action.Value.RowId == PlummetId, set.Source.Position, set.Source.Rotation);
+    }
+
+    public void ExecuteAttack(bool isPlummet, Vector3 position, float rotation)
+    {
         // make sure this has a valid value always
         var omenPath = "";
         var vfxPath = FlareBreathAftershockVfxPath;
         var aoeScale = FlareBreathScale;
         var coneDeg = FlareBreathConeDeg;
 
-        if (set.Action.Value.RowId == PlummetId)
+        if (isPlummet)
         {
             omenPath = PlummetOmenPath;
             vfxPath = PlummetAftershockVfxPath;
@@ -66,8 +71,8 @@ internal class TankbusterAftershock : Mechanic
             coneDeg = PlummetConeDeg;
         }
 
-        var originalPosition = set.Source.Position;
-        var originalRotation = set.Source.Rotation;
+        var originalPosition = position;
+        var originalRotation = rotation;
 
         List<Entity> ToDestruct = new();
 
@@ -96,7 +101,7 @@ internal class TankbusterAftershock : Mechanic
 
                 if (!String.IsNullOrEmpty(omenPath))
                 {
-                    FanOmen.Set(new Vfx("vfx/omen/eff/gl_fan120_1bf.avfx"));
+                    FanOmen.Set(new StaticVfx("vfx/omen/eff/gl_fan120_1bf.avfx"));
                 }
 
                 ToDestruct.Add(FanOmen);
@@ -144,7 +149,7 @@ internal class TankbusterAftershock : Mechanic
         delayedAction = DelayedAction.Create(this.World, Aftershock, InitialDelaySeconds + OmenVisibleSeconds - 0.1f);
         ToDestruct.Add(delayedAction);
 
-        delayedAction = DelayedAction.Create(this.World, () => Reset(ToDestruct), 3);
+        delayedAction = DelayedAction.Create(this.World, () => Reset(ToDestruct), 5);
         ToDestruct.Add(delayedAction);
     }
 

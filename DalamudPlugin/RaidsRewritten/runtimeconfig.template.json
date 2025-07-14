@@ -1,6 +1,0 @@
-{
-  "configProperties": {
-    // https://github.com/BeanCheeseBurrito/Flecs.NET/issues/92
-    "System.Runtime.LegacyExceptionHandling": true
-  }
-}

@@ -8,7 +8,7 @@ public class FanOmen : IAttack
     public Entity Create(World world)
     {
         return world.Entity()
-            .Set(new Vfx("vfx/omen/eff/gl_fan090_1bf.avfx"))
+            .Set(new StaticVfx("vfx/omen/eff/gl_fan090_1bf.avfx"))
             .Set(new Position())
             .Set(new Rotation())
             .Set(new Scale())

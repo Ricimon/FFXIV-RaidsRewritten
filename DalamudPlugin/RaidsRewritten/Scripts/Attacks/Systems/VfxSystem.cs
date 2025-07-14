@@ -14,8 +14,8 @@ public unsafe class VfxSystem(VfxSpawn vfxSpawn, ILogger logger) : ISystem
 
     public void Register(World world)
     {
-        world.System<Vfx, Position, Rotation, Scale>()
-            .Each((Iter it, int i, ref Vfx vfx, ref Position position, ref Rotation rotation, ref Scale scale) =>
+        world.System<StaticVfx, Position, Rotation, Scale>()
+            .Each((Iter it, int i, ref StaticVfx vfx, ref Position position, ref Rotation rotation, ref Scale scale) =>
             {
                 if (vfx.VfxPtr == null)
                 {
@@ -63,13 +63,13 @@ public unsafe class VfxSystem(VfxSpawn vfxSpawn, ILogger logger) : ISystem
             }
         });
 
-        world.Observer<Vfx>()
+        world.Observer<StaticVfx>()
             .Event(Ecs.OnRemove)
-            .Each((Entity e, ref Vfx _) =>
+            .Each((Entity e, ref StaticVfx _) =>
             {
                 // For whatever reason the ref Vfx variable does not match that of the entity variable
                 // Probably some quirk of the Observer binding
-                var vfx = e.Get<Vfx>();
+                var vfx = e.Get<StaticVfx>();
                 if (vfx.VfxPtr != null && vfx.VfxPtr.Vfx != null)
                 {
                     if (e.Has<Omen>())
@@ -87,15 +87,15 @@ public unsafe class VfxSystem(VfxSpawn vfxSpawn, ILogger logger) : ISystem
 
         world.Observer<ActorVfx>()
             .Event(Ecs.OnRemove)
-            .Each((Entity e, ref ActorVfx vfx) =>
+            .Each((Entity e, ref ActorVfx _) =>
             {
+                var vfx = e.Get<ActorVfx>();
                 // UpdateAlpha doesn't seem to work for actor vfxes either.
                 // Just removing it for now
-                if (vfx.VfxPtr != null)
+                if (vfx.VfxPtr != null && vfx.VfxPtr.Vfx != null)
                 {
                     vfx.VfxPtr.Remove();
                 }
-                e.Destruct();
             });
 
         world.System<VfxFadeOut>()

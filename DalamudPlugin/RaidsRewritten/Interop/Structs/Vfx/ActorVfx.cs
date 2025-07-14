@@ -21,5 +21,6 @@ public unsafe class ActorVfx : BaseVfx
     {
         if (Vfx == null) { return; }
         this.resourceLoader.ActorVfxRemove((IntPtr)Vfx, (char)1);
+        Vfx = null;
     }
 }
