@@ -11,7 +11,7 @@ using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
-public class RollingBallOnFirstNeurolink : Mechanic
+public class RollingBallOnNeurolink : Mechanic
 {
     public int RngSeed
     {
@@ -23,13 +23,26 @@ public class RollingBallOnFirstNeurolink : Mechanic
         }
     }
 
+    public int MaxBalls { get; set; } = 1;
+
     private const uint NeurolinkDataId = 0x1E88FF;
 
     private readonly List<Entity> attacks = [];
 
     private int rngSeed;
-    private bool ballSpawned;
+    private int ballsSpawned;
     private Random random = new();
+
+    public override void Reset()
+    {
+        foreach(var attack in this.attacks)
+        {
+            attack.Destruct();
+        }
+        this.attacks.Clear();
+        this.ballsSpawned = 0;
+        this.random = new Random(RngSeed);
+    }
 
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
     {
@@ -44,7 +57,7 @@ public class RollingBallOnFirstNeurolink : Mechanic
     {
         if (newObject == null) { return; }
         if (newObject.DataId != NeurolinkDataId) { return; }
-        if (ballSpawned) { return; }
+        if (ballsSpawned >= MaxBalls) { return; }
 
         var arenaCenter = new Vector3(0, 0, 0);
         float arenaRadius = 21.5f;
@@ -63,18 +76,7 @@ public class RollingBallOnFirstNeurolink : Mechanic
                 .Set(new RollingBall.SeededRandom(random));
             this.attacks.Add(ball);
 
-            ballSpawned = true;
+            ballsSpawned++;
         }
-    }
-
-    private void Reset()
-    {
-        foreach(var attack in this.attacks)
-        {
-            attack.Destruct();
-        }
-        this.attacks.Clear();
-        this.ballSpawned = false;
-        this.random = new Random(RngSeed);
     }
 }

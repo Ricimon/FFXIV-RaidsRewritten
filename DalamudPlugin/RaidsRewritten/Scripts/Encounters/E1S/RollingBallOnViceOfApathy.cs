@@ -31,6 +31,17 @@ public class RollingBallOnViceOfApathy : Mechanic
     private bool ballSpawned;
     private Random random = new();
 
+    public override void Reset()
+    {
+        foreach (var attack in this.attacks)
+        {
+            attack.Destruct();
+        }
+        this.attacks.Clear();
+        this.ballSpawned = false;
+        this.random = new Random(RngSeed);
+    }
+
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
     {
         if (a3 == DirectorUpdateCategory.Wipe ||
@@ -64,16 +75,5 @@ public class RollingBallOnViceOfApathy : Mechanic
 
             ballSpawned = true;
         }
-    }
-
-    private void Reset()
-    {
-        foreach (var attack in this.attacks)
-        {
-            attack.Destruct();
-        }
-        this.attacks.Clear();
-        this.ballSpawned = false;
-        this.random = new Random(RngSeed);
     }
 }

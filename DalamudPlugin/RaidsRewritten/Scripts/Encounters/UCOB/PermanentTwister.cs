@@ -13,6 +13,15 @@ public class PermanentTwister : Mechanic
 
     private readonly List<Entity> attacks = [];
 
+    public override void Reset()
+    {
+        foreach(var attack in this.attacks)
+        {
+            attack.Destruct();
+        }
+        this.attacks.Clear();
+    }
+
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
     {
         if (a3 == DirectorUpdateCategory.Wipe ||
@@ -37,14 +46,5 @@ public class PermanentTwister : Mechanic
                 attacks.Add(twister);
             }
         }
-    }
-
-    private void Reset()
-    {
-        foreach(var attack in this.attacks)
-        {
-            attack.Destruct();
-        }
-        this.attacks.Clear();
     }
 }

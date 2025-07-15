@@ -28,6 +28,8 @@ public abstract class Mechanic()
         this.Logger = logger;
     }
 
+    public virtual void Reset() { }
+
     public virtual void OnDirectorUpdate(DirectorUpdateCategory a3) { }
 
     public virtual void OnObjectCreation(nint newObjectPointer, IGameObject? newObject) { }

@@ -14,6 +14,15 @@ public class PermanentViceOfApathyTest : Mechanic
 
     private readonly List<Entity> entities = [];
 
+    public override void Reset()
+    {
+        foreach (var e in entities)
+        {
+            e.Destruct();
+        }
+        entities.Clear();
+    }
+
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
     {
         if (a3 == DirectorUpdateCategory.Wipe ||
@@ -44,14 +53,5 @@ public class PermanentViceOfApathyTest : Mechanic
 
         var delayedAction = DelayedAction.Create(this.World, CreateTwister, SpawnDelay);
         entities.Add(delayedAction);
-    }
-
-    private void Reset()
-    {
-        foreach (var e in entities)
-        {
-            e.Destruct();
-        }
-        entities.Clear();
     }
 }

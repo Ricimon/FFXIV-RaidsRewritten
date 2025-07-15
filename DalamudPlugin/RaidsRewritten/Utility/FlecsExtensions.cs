@@ -15,4 +15,16 @@ public static class FlecsExtensions
         component = default;
         return false;
     }
+
+    public static bool TryGet<T>(this World world, out T component) where T : struct
+    {
+        if (world.Has<T>())
+        {
+            component = world.Get<T>();
+            return true;
+        }
+
+        component = default;
+        return false;
+    }
 }

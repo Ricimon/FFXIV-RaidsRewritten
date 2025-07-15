@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using ImGuiNET;
+using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
@@ -13,6 +14,7 @@ public sealed class UcobRewritten : IEncounter
     // Config
     private string PermanentTwistersKey => $"{Name}.PermanentTwisters";
     private string RollingBallKey => $"{Name}.RollingBall";
+    private string RollingBallMaxBallsKey => $"{Name}.RollingBallMaxBalls";
     private string RollingBallRngSeedKey => $"{Name}.RollingBallRngSeed";
     private string TankbusterAftershockKey => $"{Name}.TankbusterAftershock";
 
@@ -53,6 +55,14 @@ public sealed class UcobRewritten : IEncounter
             RefreshMechanics();
         }
 
+        int maxBalls = this.configuration.GetEncounterSetting(RollingBallMaxBallsKey, 1);
+        if (ImGui.InputInt("Rolling Ball Max Balls", ref maxBalls))
+        {
+            this.configuration.EncounterSettings[RollingBallMaxBallsKey] = maxBalls.ToString();
+            this.configuration.Save();
+            RefreshMechanics();
+        }
+
         string rollingBallRngSeed = this.configuration.GetEncounterSetting(RollingBallRngSeedKey, string.Empty);
         ImGui.PushItemWidth(150);
         if (ImGui.InputText("Rolling Ball RNG Seed", ref rollingBallRngSeed, 100))
@@ -85,9 +95,13 @@ public sealed class UcobRewritten : IEncounter
 
         if (this.configuration.GetEncounterSetting(RollingBallKey, true))
         {
-            var rollingBall = mechanicFactory.Create<RollingBallOnFirstNeurolink>();
+            var rollingBall = mechanicFactory.Create<RollingBallOnNeurolink>();
+
+            rollingBall.MaxBalls = this.configuration.GetEncounterSetting(RollingBallMaxBallsKey, 1);
+
             var seed = this.configuration.GetEncounterSetting(RollingBallRngSeedKey, string.Empty);
-            rollingBall.RngSeed = seed.ToCharArray().Select(c => (int)c).Sum();
+            rollingBall.RngSeed = RandomUtilities.HashToRngSeed(seed);
+
             this.mechanics.Add(rollingBall);
         }
 

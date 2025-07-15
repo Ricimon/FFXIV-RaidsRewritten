@@ -205,6 +205,14 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                 {
                     this.configuration.EverythingDisabled = false;
                     this.configuration.Save();
+                    var mechanics = this.encounterManager.ActiveEncounter?.GetMechanics();
+                    if (mechanics != null)
+                    {
+                        foreach(var mechanic in mechanics)
+                        {
+                            mechanic.Reset();
+                        }
+                    }
                 }
             }
         }

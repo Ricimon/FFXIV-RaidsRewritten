@@ -51,7 +51,9 @@ public sealed class EcsContainer : IDisposable
     {
         try
         {
-            this.World.Progress((float)framework.UpdateDelta.TotalSeconds);
+            var deltaTime = framework.UpdateDelta.TotalSeconds;
+            this.World.Set(new DeltaTime(deltaTime));
+            this.World.Progress((float)deltaTime);
         }
         catch(Exception e)
         {

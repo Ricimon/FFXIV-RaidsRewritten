@@ -4,6 +4,7 @@ using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Flecs.NET.Core;
+using RaidsRewritten.Extensions;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks.Components;
@@ -16,7 +17,7 @@ namespace RaidsRewritten.Scripts.Attacks;
 public unsafe class RollingBall(DalamudServices dalamud, VfxSpawn vfxSpawn, Random random, ILogger logger) : IAttack, ISystem
 {
     public record struct Component(float TimeUntilRolling, bool EntryAnimationPlayed = false, float TargetYPosition = default, float Cooldown = default);
-    public record struct Movement(Vector2 Direction, float Speed = 0, float SimulationBufferTime = 0);
+    public record struct Movement(Vector2 Direction, float Speed = 0, double SimulationBufferTime = 0);
     public record struct SeededRandom(Random Random);
     public record struct CircleArena(Vector2 Center, float Radius);
     public record struct SquareArena(Vector2 Center, float Width);
@@ -28,7 +29,7 @@ public unsafe class RollingBall(DalamudServices dalamud, VfxSpawn vfxSpawn, Rand
     private const float HitCooldown = 0.25f;
     private const float KnockbackDuration = 1.0f;
     private const float ReflectAngleVariance = 25.0f; // degrees
-    private const float FixedDeltaTime = 0.01f;
+    private const double FixedDeltaTime = 0.01f;
 
     public Entity Create(World world)
     {
@@ -40,7 +41,6 @@ public unsafe class RollingBall(DalamudServices dalamud, VfxSpawn vfxSpawn, Rand
             .Set(new Alpha(1f))
             .Set(new Component(2.25f))
             .Set(new Movement(Vector2.Zero))
-            .Set(new SeededRandom(new Random()))
             .Add<Attack>();
     }
 
@@ -50,116 +50,128 @@ public unsafe class RollingBall(DalamudServices dalamud, VfxSpawn vfxSpawn, Rand
         world.System<Model, Component, Movement, Position, Rotation>()
             .Each((Iter it, int i, ref Model model, ref Component component, ref Movement movement, ref Position position, ref Rotation rotation) =>
             {
-                if (!model.Spawned) { return; }
-
-                if (!component.EntryAnimationPlayed)
+                try
                 {
-                    component.EntryAnimationPlayed = true;
+                    if (!model.Spawned) { return; }
 
-                    component.TargetYPosition = position.Value.Y;
-
-                    // Spawn the ball high up
-                    var p = position.Value;
-                    p.Y += 5.0f;
-                    position.Value = p;
-                }
-
-                if (position.Value.Y != component.TargetYPosition)
-                {
-                    // Bring the ball down
-                    var p = position.Value;
-                    p.Y -= 50.0f * it.DeltaTime();
-                    if (p.Y <= component.TargetYPosition)
+                    if (!component.EntryAnimationPlayed)
                     {
-                        p.Y = component.TargetYPosition;
+                        component.EntryAnimationPlayed = true;
 
-                        if (model.GameObject != null)
+                        component.TargetYPosition = position.Value.Y;
+
+                        // Spawn the ball high up
+                        var p = position.Value;
+                        p.Y += 5.0f;
+                        position.Value = p;
+                    }
+
+                    if (position.Value.Y != component.TargetYPosition)
+                    {
+                        // Bring the ball down
+                        var p = position.Value;
+                        p.Y -= 50.0f * it.DeltaTime();
+                        if (p.Y <= component.TargetYPosition)
                         {
-                            vfxSpawn.SpawnActorVfx("vfx/pop/m0318/eff/m0318_pop01h.avfx", model.GameObject, model.GameObject);
+                            p.Y = component.TargetYPosition;
+
+                            if (model.GameObject != null)
+                            {
+                                vfxSpawn.SpawnActorVfx("vfx/pop/m0318/eff/m0318_pop01h.avfx", model.GameObject, model.GameObject);
+                            }
+                        }
+                        position.Value = p;
+                        return;
+                    }
+
+                    if (component.TimeUntilRolling > 0)
+                    {
+                        component.TimeUntilRolling = Math.Max(component.TimeUntilRolling - it.DeltaTime(), 0);
+                    }
+
+                    // The rolling animation takes a little time to startup
+                    if (component.TimeUntilRolling < 0.07f)
+                    {
+                        var obj = ClientObjectManager.Instance()->GetObjectByIndex((ushort)model.GameObjectIndex);
+                        var chara = (Character*)obj;
+                        if (chara != null)
+                        {
+                            chara->Timeline.BaseOverride = 41;
+                        }
+                        //it.Entity(i).Set(new ModelTimelineSpeed(AnimationSpeed));
+                    }
+
+                    if (component.TimeUntilRolling > 0) { return; }
+
+                    var entity = it.Entity(i);
+                    // Fixed timestep simulation
+                    // This delta time needs to be more accurate
+                    if (it.World().TryGet<DeltaTime>(out var accurateDeltaTime))
+                    {
+                        movement.SimulationBufferTime += accurateDeltaTime.Value;
+                    }
+                    FixedUpdate(entity, ref movement, ref position);
+
+                    entity.Set(new ModelTimelineSpeed(movement.Speed / MaxSpeed * AnimationSpeed));
+
+                    // Rotate
+                    var rotationSpeed = 4.0f;
+                    var targetRotation = MathUtilities.VectorToRotation(movement.Direction);
+                    var r = MathUtilities.ClampRadians(targetRotation - rotation.Value);
+                    var rd1 = MathF.Abs(r);
+                    var rd2 = 2 * MathF.PI - rd1;
+                    var delta = rotationSpeed * it.DeltaTime();
+                    if (rd1 < rd2)
+                    {
+                        if (rd1 < delta)
+                        {
+                            rotation.Value = targetRotation;
+                        }
+                        else
+                        {
+                            rotation.Value = MathUtilities.ClampRadians(rotation.Value + Math.Sign(r) * delta);
                         }
                     }
-                    position.Value = p;
-                    return;
-                }
-
-                if (component.TimeUntilRolling > 0)
-                {
-                    component.TimeUntilRolling = Math.Max(component.TimeUntilRolling - it.DeltaTime(), 0);
-                }
-
-                // The rolling animation takes a little time to startup
-                if (component.TimeUntilRolling < 0.07f)
-                {
-                    var obj = ClientObjectManager.Instance()->GetObjectByIndex((ushort)model.GameObjectIndex);
-                    var chara = (Character*)obj;
-                    if (chara != null)
-                    {
-                        chara->Timeline.BaseOverride = 41;
-                    }
-                    //it.Entity(i).Set(new ModelTimelineSpeed(AnimationSpeed));
-                }
-
-                if (component.TimeUntilRolling > 0) { return; }
-
-                var entity = it.Entity(i);
-                movement.SimulationBufferTime += it.DeltaTime();
-                FixedUpdate(entity, ref movement, ref position);
-
-                entity.Set(new ModelTimelineSpeed(movement.Speed / MaxSpeed * AnimationSpeed));
-
-                // Rotate
-                var rotationSpeed = 4.0f;
-                var targetRotation = MathUtilities.VectorToRotation(movement.Direction);
-                var r = MathUtilities.ClampRadians(targetRotation - rotation.Value);
-                var rd1 = MathF.Abs(r);
-                var rd2 = 2 * MathF.PI - rd1;
-                var delta = rotationSpeed * it.DeltaTime();
-                if (rd1 < rd2)
-                {
-                    if (rd1 < delta)
-                    {
-                        rotation.Value = targetRotation;
-                    }
                     else
                     {
-                        rotation.Value = MathUtilities.ClampRadians(rotation.Value + Math.Sign(r) * delta);
+                        if (rd2 < delta)
+                        {
+                            rotation.Value = targetRotation;
+                        }
+                        else
+                        {
+                            rotation.Value = MathUtilities.ClampRadians(rotation.Value - Math.Sign(r) * delta);
+                        }
+                    }
+
+                    // Hit detection
+                    component.Cooldown = Math.Max(component.Cooldown - it.DeltaTime(), 0);
+
+                    var player = dalamud.ClientState.LocalPlayer;
+                    if (player == null || player.IsDead) { return; }
+                    if (component.Cooldown > 0) { return; }
+                    if (Vector2.Distance(position.Value.ToVector2(), player.Position.ToVector2()) <= HitboxRadius)
+                    {
+                        component.Cooldown = HitCooldown;
+
+                        var knockbackDirection = player.Position - position.Value;
+                        knockbackDirection.Y = 0;
+                        if (knockbackDirection.LengthSquared() == 0)
+                        {
+                            var randomAngle = (float)(random.NextDouble() * 2 * Math.PI);
+                            knockbackDirection = new Vector3(MathF.Cos(randomAngle), 0, MathF.Sin(randomAngle));
+                        }
+
+                        using var q = Player.Query(it.World());
+                        q.Each((Entity e, ref Player.Component pc) =>
+                        {
+                            KnockedBack.ApplyToPlayer(e, knockbackDirection, KnockbackDuration, true);
+                        });
                     }
                 }
-                else
+                catch (Exception e)
                 {
-                    if (rd2 < delta)
-                    {
-                        rotation.Value = targetRotation;
-                    }
-                    else
-                    {
-                        rotation.Value = MathUtilities.ClampRadians(rotation.Value - Math.Sign(r) * delta);
-                    }
-                }
-
-                // Hit detection
-                component.Cooldown = Math.Max(component.Cooldown - it.DeltaTime(), 0);
-
-                var player = dalamud.ClientState.LocalPlayer;
-                if (player == null || player.IsDead) { return; }
-                if (component.Cooldown > 0) { return; }
-                if (Vector2.Distance(position.Value.ToVector2(), player.Position.ToVector2()) <= HitboxRadius)
-                {
-                    component.Cooldown = HitCooldown;
-
-                    var knockbackDirection = player.Position - position.Value;
-                    knockbackDirection.Y = 0;
-                    if (knockbackDirection.LengthSquared() == 0)
-                    {
-                        var randomAngle = (float)(random.NextDouble() * 2 * Math.PI);
-                        knockbackDirection = new Vector3(MathF.Cos(randomAngle), 0, MathF.Sin(randomAngle));
-                    }
-
-                    using var q = Player.Query(it.World());
-                    q.Each((Entity e, ref Player.Component pc) =>
-                    {
-                        KnockedBack.ApplyToPlayer(e, knockbackDirection, KnockbackDuration, true);
-                    });
+                    logger.Error(e.ToStringFull());
                 }
             });
 
@@ -189,9 +201,9 @@ public unsafe class RollingBall(DalamudServices dalamud, VfxSpawn vfxSpawn, Rand
 
             var acceleration = 25.0f;
             var speed = movement.Speed;
-            speed = Math.Clamp(speed + acceleration * FixedDeltaTime, 0, MaxSpeed);
+            speed = Math.Clamp(speed + acceleration * (float)FixedDeltaTime, 0, MaxSpeed);
             var velocity = speed * Vector3.Normalize(movement.Direction.ToVector3(0));
-            position.Value += velocity * FixedDeltaTime;
+            position.Value += velocity * (float)FixedDeltaTime;
 
             movement.Speed = speed;
 
