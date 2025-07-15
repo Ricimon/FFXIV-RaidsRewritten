@@ -88,9 +88,12 @@ public sealed class EncounterManager : IDalamudHook
 
     private void OnTerritoryChanged(ushort obj)
     {
+        ActiveEncounter?.Unload();
+
         if (this.encounters.TryGetValue(obj, out var encounter))
         {
             ActiveEncounter = encounter;
+            encounter.RefreshMechanics();
             this.logger.Info("Active encounter set to {0}", encounter.Name);
         }
         else

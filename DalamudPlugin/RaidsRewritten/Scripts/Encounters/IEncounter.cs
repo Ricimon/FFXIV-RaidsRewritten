@@ -10,5 +10,9 @@ public interface IEncounter
 
     IEnumerable<Mechanic> GetMechanics();
 
+    void RefreshMechanics();
+
+    void Unload();
+
     void DrawConfig();
 }
