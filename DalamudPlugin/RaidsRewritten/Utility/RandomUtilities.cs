@@ -6,14 +6,14 @@ public static class RandomUtilities
 {
     public static int HashToRngSeed(string s)
     {
+        int seed = 0;
         unchecked
         {
-            int seed = 0;
-            for(var i = 0; i < s.Length; i++)
+            for (var i = 0; i < s.Length; i++)
             {
-                s += BitOperations.RotateLeft(s[i], i);
+                seed += (int)BitOperations.RotateLeft(s[i], i);
             }
-            return seed;
         }
+        return seed;
     }
 }
