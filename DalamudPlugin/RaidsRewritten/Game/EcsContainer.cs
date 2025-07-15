@@ -51,9 +51,9 @@ public sealed class EcsContainer : IDisposable
     {
         try
         {
-            var deltaTime = framework.UpdateDelta.TotalSeconds;
-            this.World.Set(new DeltaTime(deltaTime));
-            //this.World.Progress((float)deltaTime);
+            // This value isn't always accurate, but is here in case something needs it
+            this.World.Set(new FrameworkDeltaTime(framework.UpdateDelta));
+            // Use Flecs self-calculated delta time as this is more accurate than the one reported by IFramework
             this.World.Progress();
         }
         catch(Exception e)

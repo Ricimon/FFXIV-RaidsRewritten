@@ -105,11 +105,6 @@ public unsafe class RollingBall(DalamudServices dalamud, VfxSpawn vfxSpawn, Rand
 
                     var entity = it.Entity(i);
                     // Fixed timestep simulation
-                    // This delta time needs to be more accurate
-                    //if (it.World().TryGet<DeltaTime>(out var accurateDeltaTime))
-                    //{
-                    //    movement.SimulationBufferTime += accurateDeltaTime.Value;
-                    //}
                     movement.SimulationBufferTime += it.DeltaTime();
                     FixedUpdate(entity, ref movement, ref position);
 
