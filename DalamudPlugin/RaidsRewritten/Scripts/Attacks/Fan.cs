@@ -55,7 +55,8 @@ public class Fan(DalamudServices dalamud, ILogger logger) : IAttack, ISystem
 
                     if (distanceToBoss < scale.Value.Z && (angle <= MathHelper.DegToRad(component.Degrees / 2) || float.IsNaN(angle)))
                     {
-                        Player.Query(it.World()).Each((Entity e, ref Player.Component _) =>
+                        using var q = Player.Query(it.World());
+                        q.Each((Entity e, ref Player.Component _) =>
                         {
                             onHit(e);
                         });

@@ -1,4 +1,6 @@
-﻿using ECommons.Hooks;
+﻿using Dalamud.Game.ClientState.Objects.Types;
+using ECommons;
+using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using Flecs.NET.Core;
 using RaidsRewritten.Scripts.Attacks;
@@ -18,32 +20,59 @@ namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
 public class TankbusterAftershock : Mechanic
 {
+    private struct AftershockData
+    {
+        public float TelegraphScale;
+        public int TelegraphDegrees;
+        public string OmenPath;
+        public string VfxPath;
 
-    private const uint FlareBreathId = 9940;
-    private const float FlareBreathScale = 30f;
-    private const int FlareBreathConeDeg = 90;
-    private const string FlareBreathAftershockVfxPath = "vfx/monster/m0117/eff/baha_earth_90c0s.avfx";
-    // vfx/monster/gimmick2/eff/z3oe_b3_g05c0i.avfx
-    // vfx/monster/gimmick2/eff/z3oe_b3_g06c0i.avfx
+        public float DelaySeconds;
+        public float VfxDelaySeconds;
+    }
 
-    private const uint PlummetId = 9896;
-    private const float PlummetScale = 10f;
-    private const int PlummetConeDeg = 120;
-    private const string PlummetOmenPath = "vfx/omen/eff/gl_fan120_1bf.avfx";
-    private const string PlummetAftershockVfxPath = "vfx/monster/m0389/eff/m389sp_05c0n.avfx";
+    private readonly Dictionary<uint, AftershockData> AftershockDict = new Dictionary<uint, AftershockData>
+    {
+        {
+            9940, new AftershockData
+            {
+                TelegraphDegrees = 90,
+                TelegraphScale = 30f,
+                OmenPath = "",
+                VfxPath = "vfx/monster/m0117/eff/baha_earth_90c0s.avfx",
+                DelaySeconds = 0.8f,
+                VfxDelaySeconds = 0.4f
+            }
+        },
+        {
+            9896, new AftershockData
+            {
+                TelegraphDegrees = 120,
+                TelegraphScale = 10f,
+                OmenPath = "vfx/omen/eff/gl_fan120_1bf.avfx",
+                VfxPath = "vfx/monster/m0389/eff/m389sp_05c0n.avfx",
+                DelaySeconds = 0.5f,
+                VfxDelaySeconds = 0.5f
+            }
+        }
+    };
 
+    private const float TurnDelaySeconds = 0.5f;
     private const float StunDurationSeconds = 10f;
-
-    private const float InitialDelaySeconds = 1;
     private const float OmenVisibleSeconds = 0.4f;
-    private const float VfxDelaySeconds = 0.4f;
     private const float StatusDelaySeconds = 0.5f;
+
+    private readonly List<List<Entity>> attacks = [];
 
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
     {
         if (a3 == DirectorUpdateCategory.Wipe)
         {
-            // TODO: Cancel on wipe
+            foreach (var ToDestruct in attacks)
+            {
+                Reset(ToDestruct);
+            }
+            attacks.Clear();
         }
     }
 
@@ -51,31 +80,20 @@ public class TankbusterAftershock : Mechanic
     {
         if (set.Action == null) { return; }
         if (set.Source == null) { return; }
-        if (set.Action.Value.RowId != FlareBreathId && set.Action.Value.RowId != PlummetId) { return; }
+        if (!AftershockDict.TryGetValue(set.Action.Value.RowId, out var Aftershock)) { return; }
 
-        ExecuteAttack(set.Action.Value.RowId == PlummetId, set.Source.Position, set.Source.Rotation);
+
+        List<Entity> ToDestruct = [];
+        void execAttack() => ExecuteAttack(Aftershock, set.Source, ToDestruct);
+        var delayedAction = DelayedAction.Create(this.World, execAttack, TurnDelaySeconds);
+        ToDestruct.Add(delayedAction);
+        attacks.Add(ToDestruct);
     }
 
-    public void ExecuteAttack(bool isPlummet, Vector3 position, float rotation)
+    private void ExecuteAttack(AftershockData aftershockData, IGameObject source, List<Entity> ToDestruct)
     {
-        // make sure this has a valid value always
-        var omenPath = "";
-        var vfxPath = FlareBreathAftershockVfxPath;
-        var aoeScale = FlareBreathScale;
-        var coneDeg = FlareBreathConeDeg;
-
-        if (isPlummet)
-        {
-            omenPath = PlummetOmenPath;
-            vfxPath = PlummetAftershockVfxPath;
-            aoeScale = PlummetScale;
-            coneDeg = PlummetConeDeg;
-        }
-
-        var originalPosition = position;
-        var originalRotation = rotation;
-
-        List<Entity> ToDestruct = new();
+        var originalPosition = source.Position;
+        var originalRotation = source.Rotation;
 
         // create fake actor to keep vfxes in place if boss turns/moves
         var FakeActor = Attacks.Components.FakeActor.Create(this.World)
@@ -91,11 +109,11 @@ public class TankbusterAftershock : Mechanic
             {
                 FanOmen.Set(new Position(originalPosition))
                        .Set(new Rotation(originalRotation))
-                       .Set(new Scale(new Vector3(aoeScale)));
+                       .Set(new Scale(new Vector3(aftershockData.TelegraphScale)));
 
-                if (!String.IsNullOrEmpty(omenPath))
+                if (!String.IsNullOrEmpty(aftershockData.OmenPath))
                 {
-                    FanOmen.Set(new StaticVfx("vfx/omen/eff/gl_fan120_1bf.avfx"));
+                    FanOmen.Set(new StaticVfx(aftershockData.OmenPath));
                 }
 
                 ToDestruct.Add(FanOmen);
@@ -114,33 +132,33 @@ public class TankbusterAftershock : Mechanic
             var delayedAction = DelayedAction.Create(this.World, DestroyTelegraph, OmenVisibleSeconds);
         }
 
-        var delayedAction = DelayedAction.Create(this.World, Telegraph, InitialDelaySeconds);
+        var delayedAction = DelayedAction.Create(this.World, Telegraph, aftershockData.DelaySeconds);
         ToDestruct.Add(delayedAction);
 
 
         // check if player is in telegraph
         void Aftershock()
         {
-            if (this.AttackManager.TryCreateAttackEntity<Fan>(out var Aftershock))
+            if (this.AttackManager.TryCreateAttackEntity<Fan>(out var AftershockAoE))
             {
                 void OnHit(Entity e)
                 {
                     DelayedAction.Create(e.CsWorld(), () => Bound.ApplyToPlayer(e, StunDurationSeconds), StatusDelaySeconds);
                 }
 
-                Aftershock.Set(new Position(originalPosition))
+                AftershockAoE.Set(new Position(originalPosition))
                           .Set(new Rotation(originalRotation))
-                          .Set(new Scale(new Vector3(aoeScale)))
-                          .Set(new Fan.Component(OnHit, coneDeg));
+                          .Set(new Scale(new Vector3(aftershockData.TelegraphScale)))
+                          .Set(new Fan.Component(OnHit, aftershockData.TelegraphDegrees));
 
-                ToDestruct.Add(Aftershock);
+                ToDestruct.Add(AftershockAoE);
 
-                var delayedAction = DelayedAction.Create(this.World, () => FakeActor.Set(new ActorVfx(vfxPath)), VfxDelaySeconds);
+                var delayedAction = DelayedAction.Create(this.World, () => FakeActor.Set(new ActorVfx(aftershockData.VfxPath)), aftershockData.VfxDelaySeconds);
                 ToDestruct.Add(delayedAction);
             }
         }
 
-        delayedAction = DelayedAction.Create(this.World, Aftershock, InitialDelaySeconds + OmenVisibleSeconds - 0.1f);
+        delayedAction = DelayedAction.Create(this.World, Aftershock, aftershockData.DelaySeconds + OmenVisibleSeconds - 0.1f);
         ToDestruct.Add(delayedAction);
 
         delayedAction = DelayedAction.Create(this.World, () => Reset(ToDestruct), 5);
@@ -154,5 +172,6 @@ public class TankbusterAftershock : Mechanic
             e.Destruct();
         }
         ToDestruct.Clear();
+        attacks.Remove(ToDestruct);
     }
 }
