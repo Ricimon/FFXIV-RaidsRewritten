@@ -1,7 +1,7 @@
 ﻿using Flecs.NET.Core;
 using RaidsRewritten.Scripts.Attacks.Components;
 
-namespace RaidsRewritten.Scripts.Attacks;
+namespace RaidsRewritten.Scripts.Attacks.Omens;
 
 public class RectangleOmen : IAttack
 {

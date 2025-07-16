@@ -14,6 +14,8 @@ using RaidsRewritten.Memory;
 using RaidsRewritten.Network;
 using RaidsRewritten.Scripts;
 using RaidsRewritten.Scripts.Attacks;
+using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Scripts.Attacks.Omens;
 using RaidsRewritten.Scripts.Attacks.Systems;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Scripts.Encounters;
@@ -96,12 +98,12 @@ public class PluginModule : NinjectModule
         Bind<IAttack>().To<RectangleOmen>();
         Bind<IAttack, ISystem>().To<Twister>();
         Bind<IAttack, ISystem>().To<RollingBall>();
+        Bind<IAttack, ISystem>().To<Fan>();
+        Bind<IAttack, ISystem>().To<LightningCorridor>();
         Bind<ISystem>().To<Player>();
         Bind<ISystem>().To<DelayedAction>();
         Bind<ISystem>().To<VfxSystem>();
         Bind<ISystem>().To<ModelSystem>();
-        Bind<IAttack, ISystem>().To<Fan>();
-        Bind<IAttack>().To<FakeActor>();
 
         // Conditions
         Bind<ISystem>().To<Condition>();

@@ -8,6 +8,7 @@ using RaidsRewritten.Extensions;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Scripts.Attacks.Omens;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Spawn;
 using RaidsRewritten.Utility;
@@ -38,7 +39,6 @@ public unsafe class RollingBall(DalamudServices dalamud, VfxSpawn vfxSpawn, Rand
             .Set(new Position())
             .Set(new Rotation())
             .Set(new UniformScale(0.6f))
-            .Set(new Alpha(1f))
             .Set(new Component(2.25f))
             .Set(new Movement(Vector2.Zero))
             .Add<Attack>();

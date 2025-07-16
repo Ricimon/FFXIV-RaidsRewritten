@@ -22,6 +22,7 @@ using RaidsRewritten.Network;
 using RaidsRewritten.Scripts;
 using RaidsRewritten.Scripts.Attacks;
 using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Scripts.Attacks.Omens;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Scripts.Encounters.UCOB;
 using RaidsRewritten.Spawn;
@@ -381,6 +382,19 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             {
                 var mechanic = mechanicFactory.Create<TankbusterAftershock>();
                 mechanic.ExecuteAttack(true, player.Position, player.Rotation);
+            }
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("LightningCorridor"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<LightningCorridor>(out var attack))
+                {
+                    attack.Set(new Position(player.Position))
+                        .Set(new Rotation(player.Rotation));
+                }
             }
         }
 

@@ -9,8 +9,6 @@ public record struct Model(
     bool DrawEnabled = false,
     IGameObject? GameObject = null);
 
-public record struct Alpha(float Value);
-
 public record struct ModelFadeOut(uint GameObjectIndex, float Duration, float TimeRemaining, float Alpha = 1f);
 
 public record struct ModelTimelineSpeed(float Value);

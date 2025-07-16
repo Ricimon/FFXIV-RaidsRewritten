@@ -1,10 +1,21 @@
 T5/UCOB
 Twister: DataId 0x1E8910
 
+T9
+Chain Lightning: vfx/monster/gimmick/eff/crystal2_chein_kakusan_c0c.avfx (actor), 5y radius
+
 E1S
 Vice of Apathy: DataId 0x1EAE20
 
 E6S
 Raktapaska Hands of Flame Ground AOE: vfx/monster/gimmick3/eff/n4g6_b_g06c0k1.avfx (actor)
+
+E11S
+Lightning cleave: vfx/monster/m0683/eff/m0683_sp002_c0a1.avfx (actor)
+
+M4S
+Half room cleave: vfx/monster/m0888/eff/m0888sp_015c0t1.avfx (actor)
+Electrical Condenser (2x2): vfx/monster/gimmick5/eff/x6r4_b_g015_c0t1.avfx (actor)
+Electrical Condenser (3x3): vfx/monster/gimmick5/eff/x6r4_b_g016_c0t1.avfx (actor)
 
 Rectangle Omen: vfx/omen/eff/general02f.avfx (static)

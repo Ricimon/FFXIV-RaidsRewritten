@@ -46,22 +46,23 @@ public unsafe class VfxSystem(VfxSpawn vfxSpawn, ILogger logger) : ISystem
                 }
             });
 
-        world.System<Model, ActorVfx>().Each((Iter it, int i, ref Model model, ref ActorVfx vfx) =>
-        {
-            // UpdateScale doesn't seem to work for actor vfxes from a quick test. Should be looked into
-            // Position/Rotation should be based on source actor
-            if (vfx.VfxPtr == null && model.GameObject != null)
+        world.System<Model, ActorVfx>()
+            .Each((Iter it, int i, ref Model model, ref ActorVfx vfx) =>
             {
-                vfx.VfxPtr = vfxSpawn.SpawnActorVfx(vfx.Path, model.GameObject, model.GameObject);
-            }
+                // UpdateScale doesn't seem to work for actor vfxes from a quick test. Should be looked into
+                // Position/Rotation should be based on source actor
+                if (vfx.VfxPtr == null && model.GameObject != null)
+                {
+                    vfx.VfxPtr = vfxSpawn.SpawnActorVfx(vfx.Path, model.GameObject, model.GameObject);
+                }
 
-            // Vfx self-destructed, because it finished playing or wasn't created
-            if (vfx.VfxPtr == null || vfx.VfxPtr.Vfx == null)
-            {
-                it.Entity(i).Destruct();
-                return;
-            }
-        });
+                // Vfx self-destructed, because it finished playing
+                if (vfx.VfxPtr != null && vfx.VfxPtr.Vfx == null)
+                {
+                    it.Entity(i).Destruct();
+                    return;
+                }
+            });
 
         world.Observer<StaticVfx>()
             .Event(Ecs.OnRemove)

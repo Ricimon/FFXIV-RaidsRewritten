@@ -52,8 +52,8 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
 
     public void Register(World world)
     {
-        world.System<Model, Position, Rotation, UniformScale, Alpha>()
-            .Each((ref Model model, ref Position position, ref Rotation rotation, ref UniformScale scale, ref Alpha alpha) =>
+        world.System<Model, Position, Rotation, UniformScale>()
+            .Each((ref Model model, ref Position position, ref Rotation rotation, ref UniformScale scale) =>
             {
                 BattleChara* chara = null;
 
@@ -77,10 +77,12 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
                     chara->Position = position.Value;
                     chara->Rotation = rotation.Value;
                     chara->Scale = scale.Value;
-                    chara->Alpha = alpha.Value;
                     var modelData = &chara->ModelContainer;
 
-                    modelData->ModelCharaId = model.ModelCharaId;
+                    if (model.ModelCharaId >= 0)
+                    {
+                        modelData->ModelCharaId = model.ModelCharaId;
+                    }
 
                     var name = $"FakeBattleNpc{model.ModelCharaId}";
                     for (int x = 0; x < name.Length; x++)
@@ -108,7 +110,7 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
                     chara->Scale = scale.Value;
                 }
 
-                if (!model.DrawEnabled)
+                if (model.ModelCharaId >= 0 && !model.DrawEnabled)
                 {
                     if (chara->IsReadyToDraw())
                     {
@@ -118,16 +120,15 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
                 }
             });
 
-        world.Observer<Model, Alpha>()
+        world.Observer<Model>()
             .Event(Ecs.OnRemove)
-            .Each((Entity e, ref Model _, ref Alpha _) =>
+            .Each((Entity e, ref Model _) =>
             {
                 var model = e.Get<Model>();
-                var alpha = e.Get<Alpha>();
                 if (model.Spawned)
                 {
                     e.CsWorld().Entity()
-                        .Set(new ModelFadeOut(model.GameObjectIndex, 1.0f, 1.0f, alpha.Value));
+                        .Set(new ModelFadeOut(model.GameObjectIndex, 1.0f, 1.0f));
                 }
             });
 
@@ -143,7 +144,7 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
                         it.Entity(i).Destruct();
                         return;
                     }
-                    obj->Alpha = modelFade.Alpha * modelFade.TimeRemaining / modelFade.Duration;
+                    obj->Alpha = modelFade.TimeRemaining / modelFade.Duration;
                 }
                 else
                 {

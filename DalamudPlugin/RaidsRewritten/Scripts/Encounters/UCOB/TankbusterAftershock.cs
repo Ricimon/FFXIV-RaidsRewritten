@@ -3,6 +3,7 @@ using ECommons.Hooks.ActionEffectTypes;
 using Flecs.NET.Core;
 using RaidsRewritten.Scripts.Attacks;
 using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Scripts.Attacks.Omens;
 using RaidsRewritten.Scripts.Conditions;
 using System;
 using System.Collections.Generic;
@@ -77,18 +78,11 @@ public class TankbusterAftershock : Mechanic
         List<Entity> ToDestruct = new();
 
         // create fake actor to keep vfxes in place if boss turns/moves
-        if (this.AttackManager.TryCreateAttackEntity<FakeActor>(out var FakeActor))
-        {
-            FakeActor.Set(new Position(originalPosition))
-                     .Set(new Rotation(originalRotation))
-                     .Set(new Scale(new Vector3(1f)));
-
-            ToDestruct.Add(FakeActor);
-        } else
-        {
-            Reset(ToDestruct);
-            return;
-        }
+        var FakeActor = Attacks.Components.FakeActor.Create(this.World)
+            .Set(new Position(originalPosition))
+            .Set(new Rotation(originalRotation))
+            .Set(new Scale(new Vector3(1f)));
+        ToDestruct.Add(FakeActor);
 
         // show a quick telegraph
         void Telegraph()
