@@ -100,6 +100,9 @@ public unsafe class VfxSpawn : IDisposable
         var item = Vfxs[vfx];
 
         Vfxs.Remove(vfx);
+        // When a VFX pointer is auto removed by this interop (because it finished playing),
+        // doing anything else with its pointer value will crash the game.
+        vfx.Vfx = null;
     }
 
     public bool GetVfx(IntPtr data, out BaseVfx vfx)

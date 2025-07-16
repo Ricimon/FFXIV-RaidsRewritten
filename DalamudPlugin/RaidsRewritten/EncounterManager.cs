@@ -258,6 +258,14 @@ public sealed class EncounterManager : IDalamudHook
         this.logger.Debug(text.ToString());
 
         if (this.configuration.EverythingDisabled) { return; }
+
+        if (ActiveEncounter != null)
+        {
+            foreach (var mechanic in ActiveEncounter.GetMechanics())
+            {
+                mechanic.OnActionEffectEvent(set);
+            }
+        }
     }
 
     private void OnActorControl(uint sourceId, uint command, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, ulong targetId, byte replaying)

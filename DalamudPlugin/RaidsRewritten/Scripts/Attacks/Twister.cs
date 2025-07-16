@@ -21,7 +21,7 @@ public class Twister(DalamudServices dalamud, VfxSpawn vfxSpawn, Random random, 
     public Entity Create(World world)
     {
         return world.Entity()
-            .Set(new Vfx("bgcommon/world/common/vfx_for_btl/b0222/eff/b0222_twis_y.avfx"))
+            .Set(new StaticVfx("bgcommon/world/common/vfx_for_btl/b0222/eff/b0222_twis_y.avfx"))
             .Set(new Position())
             .Set(new Rotation())
             .Set(new Scale())

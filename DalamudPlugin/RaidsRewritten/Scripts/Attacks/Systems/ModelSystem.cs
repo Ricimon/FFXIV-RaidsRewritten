@@ -52,8 +52,8 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
 
     public void Register(World world)
     {
-        world.System<Model, Position, Rotation, UniformScale>()
-            .Each((ref Model model, ref Position position, ref Rotation rotation, ref UniformScale scale) =>
+        world.System<Model, Position, Rotation, UniformScale, Alpha>()
+            .Each((ref Model model, ref Position position, ref Rotation rotation, ref UniformScale scale, ref Alpha alpha) =>
             {
                 BattleChara* chara = null;
 
@@ -77,6 +77,7 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
                     chara->Position = position.Value;
                     chara->Rotation = rotation.Value;
                     chara->Scale = scale.Value;
+                    chara->Alpha = alpha.Value;
                     var modelData = &chara->ModelContainer;
 
                     modelData->ModelCharaId = model.ModelCharaId;
@@ -117,16 +118,16 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
                 }
             });
 
-        world.Observer<Model>()
+        world.Observer<Model, Alpha>()
             .Event(Ecs.OnRemove)
-            .Each((Entity e, ref Model _) =>
+            .Each((Entity e, ref Model _, ref Alpha _) =>
             {
                 var model = e.Get<Model>();
-
+                var alpha = e.Get<Alpha>();
                 if (model.Spawned)
                 {
                     e.CsWorld().Entity()
-                        .Set(new ModelFadeOut(model.GameObjectIndex, 1.0f, 1.0f));
+                        .Set(new ModelFadeOut(model.GameObjectIndex, 1.0f, 1.0f, alpha.Value));
                 }
             });
 
@@ -142,7 +143,7 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
                         it.Entity(i).Destruct();
                         return;
                     }
-                    obj->Alpha = modelFade.TimeRemaining / modelFade.Duration;
+                    obj->Alpha = modelFade.Alpha * modelFade.TimeRemaining / modelFade.Duration;
                 }
                 else
                 {

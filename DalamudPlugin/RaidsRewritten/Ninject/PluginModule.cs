@@ -100,6 +100,9 @@ public class PluginModule : NinjectModule
         Bind<ISystem>().To<DelayedAction>();
         Bind<ISystem>().To<VfxSystem>();
         Bind<ISystem>().To<ModelSystem>();
+        Bind<IAttack, ISystem>().To<Fan>();
+        Bind<IAttack>().To<FakeActor>();
+
         // Conditions
         Bind<ISystem>().To<Condition>();
         Bind<IDalamudHook>().To<KnockedBack>();

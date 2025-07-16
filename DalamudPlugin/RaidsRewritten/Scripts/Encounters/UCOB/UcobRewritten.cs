@@ -14,6 +14,7 @@ public sealed class UcobRewritten : IEncounter
     private string PermanentTwistersKey => $"{Name}.PermanentTwisters";
     private string RollingBallKey => $"{Name}.RollingBall";
     private string RollingBallRngSeedKey => $"{Name}.RollingBallRngSeed";
+    private string TankbusterAftershockKey => $"{Name}.TankbusterAftershock";
 
     private readonly Mechanic.Factory mechanicFactory;
     private readonly Configuration configuration;
@@ -60,6 +61,16 @@ public sealed class UcobRewritten : IEncounter
             this.configuration.Save();
             RefreshMechanics();
         }
+
+        bool tankbusterAftershock = this.configuration.GetEncounterSetting(TankbusterAftershockKey, true);
+        if (ImGui.Checkbox("Tankbuster Aftershocks", ref tankbusterAftershock))
+        {
+            this.configuration.EncounterSettings[TankbusterAftershockKey] =
+                tankbusterAftershock ? bool.TrueString : bool.FalseString;
+            this.configuration.Save();
+            RefreshMechanics();
+        }
+        
         ImGui.PopItemWidth();
     }
 
@@ -78,6 +89,11 @@ public sealed class UcobRewritten : IEncounter
             var seed = this.configuration.GetEncounterSetting(RollingBallRngSeedKey, string.Empty);
             rollingBall.RngSeed = seed.ToCharArray().Select(c => (int)c).Sum();
             this.mechanics.Add(rollingBall);
+        }
+
+        if (this.configuration.GetEncounterSetting(TankbusterAftershockKey, true))
+        {
+            this.mechanics.Add(mechanicFactory.Create<TankbusterAftershock>());
         }
     }
 }

@@ -23,6 +23,7 @@ using RaidsRewritten.Scripts;
 using RaidsRewritten.Scripts.Attacks;
 using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Scripts.Conditions;
+using RaidsRewritten.Scripts.Encounters.UCOB;
 using RaidsRewritten.Spawn;
 using RaidsRewritten.UI.Util;
 using RaidsRewritten.Utility;
@@ -83,6 +84,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
     private readonly MapManager mapChangeHandler;
     private readonly EncounterManager encounterManager;
     private readonly AttackManager attackManager;
+    private readonly Mechanic.Factory mechanicFactory;
     private readonly Configuration configuration;
     private readonly EcsContainer ecsContainer;
     private readonly VfxSpawn vfxSpawn;
@@ -108,6 +110,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         MapManager mapChangeHandler,
         EncounterManager encounterManager,
         AttackManager attackManager,
+        Mechanic.Factory mechanicFactory,
         Configuration configuration,
         EcsContainer ecsContainer,
         VfxSpawn vfxSpawn,
@@ -120,6 +123,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         this.mapChangeHandler = mapChangeHandler;
         this.encounterManager = encounterManager;
         this.attackManager = attackManager;
+        this.mechanicFactory = mechanicFactory;
         this.configuration = configuration;
         this.ecsContainer = ecsContainer;
         this.vfxSpawn = vfxSpawn;

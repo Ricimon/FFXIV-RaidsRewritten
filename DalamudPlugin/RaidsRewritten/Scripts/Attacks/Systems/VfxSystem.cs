@@ -1,9 +1,9 @@
-﻿using System.Numerics;
-using Flecs.NET.Core;
+﻿using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Spawn;
+using System.Numerics;
 
 namespace RaidsRewritten.Scripts.Attacks.Systems;
 
@@ -14,8 +14,8 @@ public unsafe class VfxSystem(VfxSpawn vfxSpawn, ILogger logger) : ISystem
 
     public void Register(World world)
     {
-        world.System<Vfx, Position, Rotation, Scale>()
-            .Each((Iter it, int i, ref Vfx vfx, ref Position position, ref Rotation rotation, ref Scale scale) =>
+        world.System<StaticVfx, Position, Rotation, Scale>()
+            .Each((Iter it, int i, ref StaticVfx vfx, ref Position position, ref Rotation rotation, ref Scale scale) =>
             {
                 if (vfx.VfxPtr == null)
                 {
@@ -46,13 +46,30 @@ public unsafe class VfxSystem(VfxSpawn vfxSpawn, ILogger logger) : ISystem
                 }
             });
 
-        world.Observer<Vfx>()
+        world.System<Model, ActorVfx>().Each((Iter it, int i, ref Model model, ref ActorVfx vfx) =>
+        {
+            // UpdateScale doesn't seem to work for actor vfxes from a quick test. Should be looked into
+            // Position/Rotation should be based on source actor
+            if (vfx.VfxPtr == null && model.GameObject != null)
+            {
+                vfx.VfxPtr = vfxSpawn.SpawnActorVfx(vfx.Path, model.GameObject, model.GameObject);
+            }
+
+            // Vfx self-destructed, because it finished playing or wasn't created
+            if (vfx.VfxPtr == null || vfx.VfxPtr.Vfx == null)
+            {
+                it.Entity(i).Destruct();
+                return;
+            }
+        });
+
+        world.Observer<StaticVfx>()
             .Event(Ecs.OnRemove)
-            .Each((Entity e, ref Vfx _) =>
+            .Each((Entity e, ref StaticVfx _) =>
             {
                 // For whatever reason the ref Vfx variable does not match that of the entity variable
                 // Probably some quirk of the Observer binding
-                var vfx = e.Get<Vfx>();
+                var vfx = e.Get<StaticVfx>();
                 if (vfx.VfxPtr != null && vfx.VfxPtr.Vfx != null)
                 {
                     if (e.Has<Omen>())
@@ -65,6 +82,19 @@ public unsafe class VfxSystem(VfxSpawn vfxSpawn, ILogger logger) : ISystem
                         e.CsWorld().Entity()
                             .Set(new VfxFadeOut(vfx.VfxPtr, 1.0f, 1.0f));
                     }
+                }
+            });
+
+        world.Observer<ActorVfx>()
+            .Event(Ecs.OnRemove)
+            .Each((Entity e, ref ActorVfx _) =>
+            {
+                var vfx = e.Get<ActorVfx>();
+                // UpdateAlpha doesn't seem to work for actor vfxes either.
+                // Just removing it for now
+                if (vfx.VfxPtr != null && vfx.VfxPtr.Vfx != null)
+                {
+                    vfx.VfxPtr.Remove();
                 }
             });
 

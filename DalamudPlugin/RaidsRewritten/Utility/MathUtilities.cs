@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ECommons.MathHelpers;
+using System;
 using System.Numerics;
 
 namespace RaidsRewritten.Utility;
@@ -39,5 +40,12 @@ public static class MathUtilities
         var c = MathF.Cos(radians);
         var s = MathF.Sin(radians);
         return new Vector2(c * v.X - s * v.Y, s * v.X + c * v.Y);
+    }
+
+    public static float GetAngleBetweenLines(Vector2 a1, Vector2 a2, Vector2 b1, Vector2 b2)
+    {
+        var cosVal = ((a2.X - a1.X) * (b2.X - b1.X) + (a2.Y - a1.Y) * (b2.Y - b1.Y)) /
+                (MathF.Sqrt(MathHelper.Square(a2.X - a1.X) + MathHelper.Square(a2.Y - a1.Y)) * MathF.Sqrt(MathHelper.Square(b2.X - b1.X) + MathHelper.Square(b2.Y - b1.Y)));
+        return MathF.Acos(MathF.Round(cosVal * 10000) / 10000);
     }
 }
