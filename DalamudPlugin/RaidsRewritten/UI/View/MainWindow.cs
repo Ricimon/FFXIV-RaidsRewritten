@@ -366,16 +366,6 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             }
         }
 
-        if (ImGui.Button("TankbusterAftershock"))
-        {
-            var player = this.dalamud.ClientState.LocalPlayer;
-            if (player != null)
-            {
-                var mechanic = mechanicFactory.Create<TankbusterAftershock>();
-                mechanic.ExecuteAttack(true, player.Position, player.Rotation);
-            }
-        }
-
         ImGui.Text("Fake statuses");
         if (ImGui.Button("Bind"))
         {
