@@ -84,9 +84,9 @@ public class LightningCorridor(Lazy<AttackManager> attackManager, ILogger logger
                         {
                             component.Phase = Phase.Snapshot;
 
-                            entity.Scope(() =>
+                            entity.Scope(world =>
                             {
-                                it.World().DeleteWith<Omen>();
+                                world.DeleteWith<Omen>();
                             });
 
                             // Snapshot
@@ -148,7 +148,6 @@ public class LightningCorridor(Lazy<AttackManager> attackManager, ILogger logger
                             entity.Destruct();
                         }
                         break;
-
                 }
             });
     }
