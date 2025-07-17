@@ -11,7 +11,7 @@ using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Conditions;
 
-public sealed class KnockedBack(DalamudServices dalamud, EcsContainer ecsContainer, ILogger logger) : IDalamudHook
+public sealed class Knockback(DalamudServices dalamud, EcsContainer ecsContainer, ILogger logger) : IDalamudHook
 {
     public record struct Component(Vector3 KnockbackDirection);
 
@@ -35,7 +35,7 @@ public sealed class KnockedBack(DalamudServices dalamud, EcsContainer ecsContain
         playerEntity.Scope(() =>
         {
             // Don't apply if player is bound
-            using var q = playerEntity.CsWorld().Query<Bound.Component>();
+            using var q = playerEntity.CsWorld().Query<Bind.Component>();
             if (q.IsTrue())
             {
                 apply = false;
@@ -96,18 +96,21 @@ public sealed class KnockedBack(DalamudServices dalamud, EcsContainer ecsContain
                     targetEffects.GetSpecificTypeEffect(ActionEffectType.Knockback2, out _)))
                 {
                     // Remove any fake knockback conditions if a real knockback occurs
-                    using var q = Player.Query(this.world);
-                    q.Each((Entity e, ref Player.Component _) =>
-                    {
-                        e.Scope(() =>
-                        {
-                            this.world.DeleteWith<Component>();
-                        });
-                    });
+                    // (!) This deletes ALL knockback components, which is fine if the local player
+                    // is the only player entity.
+                    this.world.DeleteWith<Component>();
+                    //using var q = Player.Query(this.world);
+                    //q.Each((Entity e, ref Player.Component _) =>
+                    //{
+                    //    // Unfortunately, this Scope does not actually work
+                    //    e.Scope(() =>
+                    //    {
+                    //        this.world.DeleteWith<Component>();
+                    //    });
+                    //});
                     return;
 
                     // Do not Destruct entities outside of a system or else this will cause a crash.
-                    // Instead, use scopes and World.DeleteWith()
                 }
             }
 

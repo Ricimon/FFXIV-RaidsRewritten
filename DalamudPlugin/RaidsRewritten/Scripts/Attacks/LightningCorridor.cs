@@ -12,7 +12,7 @@ using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public class LightningCorridor(DalamudServices dalamud, Lazy<AttackManager> attackManager, ILogger logger) : IAttack, ISystem
+public class LightningCorridor(DalamudServices dalamud, ILogger logger) : IAttack, ISystem
 {
     public enum Phase
     {
@@ -62,7 +62,7 @@ public class LightningCorridor(DalamudServices dalamud, Lazy<AttackManager> atta
                         {
                             component.Phase = Phase.Omen;
 
-                            if (attackManager.Value.TryCreateAttackEntity<RectangleOmen>(out var omen1))
+                            var omen1 = RectangleOmen.CreateEntity(it.World());
                             {
                                 var r = MathUtilities.ClampRadians(rotation.Value + 0.5f * MathF.PI);
                                 var p = position.Value + (0.5f * Width * MathUtilities.RotationToUnitVector(r)).ToVector3(0);
@@ -71,7 +71,7 @@ public class LightningCorridor(DalamudServices dalamud, Lazy<AttackManager> atta
                                     .Set(new Scale(40.0f * Vector3.One))
                                     .ChildOf(entity);
                             }
-                            if (attackManager.Value.TryCreateAttackEntity<RectangleOmen>(out var omen2))
+                            var omen2 = RectangleOmen.CreateEntity(it.World());
                             {
                                 var r = MathUtilities.ClampRadians(rotation.Value - 0.5f * MathF.PI);
                                 var p = position.Value + (0.5f * Width * MathUtilities.RotationToUnitVector(r)).ToVector3(0);
@@ -92,14 +92,13 @@ public class LightningCorridor(DalamudServices dalamud, Lazy<AttackManager> atta
                             var hitLocalPlayer = component.HitLocalPlayer;
                             entity.Children(child =>
                             {
+                                if (!child.Has<Omen>()) { return; }
+
                                 var localPlayer = dalamud.ClientState.LocalPlayer;
-                                if (!hitLocalPlayer && localPlayer != null)
+                                if (!hitLocalPlayer && localPlayer != null &&
+                                    RectangleOmen.IsInOmen(child, localPlayer.Position))
                                 {
-                                    if (child.Has<Omen>() &&
-                                        RectangleOmen.IsInOmen(child, localPlayer.Position))
-                                    {
-                                        hitLocalPlayer = true;
-                                    }
+                                    hitLocalPlayer = true;
                                 }
 
                                 child.Destruct();
@@ -147,7 +146,7 @@ public class LightningCorridor(DalamudServices dalamud, Lazy<AttackManager> atta
                                 using var q = Player.Query(it.World());
                                 q.Each((Entity e, ref Player.Component _) =>
                                 {
-                                    Bound.ApplyToPlayer(e, 2.0f);
+                                    Bind.ApplyToPlayer(e, 2.0f);
                                 });
                             }
                         }

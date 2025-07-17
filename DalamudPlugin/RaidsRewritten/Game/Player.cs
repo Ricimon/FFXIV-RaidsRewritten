@@ -53,12 +53,12 @@ public class Player(DalamudServices dalamud, PlayerManager playerManager, Config
                     //}
 
                     // Handle each condition
-                    using var knockbackQuery = world.Query<Condition.Component, KnockedBack.Component>();
+                    using var knockbackQuery = world.Query<Condition.Component, Knockback.Component>();
                     if (knockbackQuery.IsTrue())
                     {
                         var knockbackEntity = knockbackQuery.First();
                         var condition = knockbackEntity.Get<Condition.Component>();
-                        var knockback = knockbackEntity.Get<KnockedBack.Component>();
+                        var knockback = knockbackEntity.Get<Knockback.Component>();
                         //this.logger.Info("Player has knockback, direction {0}, time left {1}", knockback.KnockbackDirection, condition.TimeRemaining);
 
                         playerManager.OverrideMovement = true;
@@ -66,8 +66,8 @@ public class Player(DalamudServices dalamud, PlayerManager playerManager, Config
                     }
                     else
                     {
-                        using var boundQuery = world.Query<Condition.Component, Bound.Component>();
-                        if (boundQuery.IsTrue())
+                        using var bindQuery = world.Query<Condition.Component, Bind.Component>();
+                        if (bindQuery.IsTrue())
                         {
                             playerManager.OverrideMovement = true;
                             playerManager.OverrideMovementDirection = Vector3.Zero;

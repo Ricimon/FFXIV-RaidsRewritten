@@ -3,11 +3,9 @@ using RaidsRewritten.Log;
 
 namespace RaidsRewritten.Scripts.Conditions;
 
-public class Stunned(ILogger logger)
+public class Stun(ILogger logger)
 {
     public record struct Component(object _);
-
-    private readonly ILogger logger = logger;
 
     public static void ApplyToPlayer(Entity playerEntity, float duration)
     {

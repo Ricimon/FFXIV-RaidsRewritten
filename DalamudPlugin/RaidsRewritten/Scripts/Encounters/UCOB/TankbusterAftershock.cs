@@ -143,7 +143,7 @@ public class TankbusterAftershock : Mechanic
             {
                 void OnHit(Entity e)
                 {
-                    DelayedAction.Create(e.CsWorld(), () => Bound.ApplyToPlayer(e, StunDurationSeconds), StatusDelaySeconds);
+                    DelayedAction.Create(e.CsWorld(), () => Bind.ApplyToPlayer(e, StunDurationSeconds), StatusDelaySeconds);
                 }
 
                 AftershockAoE.Set(new Position(originalPosition))

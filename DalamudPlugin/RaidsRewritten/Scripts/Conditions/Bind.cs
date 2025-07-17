@@ -6,13 +6,9 @@ using RaidsRewritten.Spawn;
 
 namespace RaidsRewritten.Scripts.Conditions;
 
-public class Bound(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogger logger) : ISystem
+public class Bind(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogger logger) : ISystem
 {
     public record struct Component(BaseVfx? Vfx = null);
-
-    private readonly DalamudServices dalamud = dalamud;
-    private readonly VfxSpawn vfxSpawn = vfxSpawn;
-    private readonly ILogger logger = logger;
 
     public static void ApplyToPlayer(Entity playerEntity, float duration)
     {
@@ -31,7 +27,7 @@ public class Bound(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogger logger) :
                 if (!e.Parent().Has<Player.Component>()) { return; }
                 if (!e.Parent().Get<Player.Component>().IsLocalPlayer) { return; }
 
-                var localPlayer = this.dalamud.ClientState.LocalPlayer;
+                var localPlayer = dalamud.ClientState.LocalPlayer;
                 //if (bound.Vfx == null && localPlayer != null)
                 //{
                 //    bound.Vfx = this.vfxSpawn.SpawnActorVfx("vfx/common/eff/dk05ht_bind0t.avfx", localPlayer, localPlayer);

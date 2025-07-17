@@ -391,31 +391,37 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         ImGui.Text("Fake statuses");
         if (ImGui.Button("Bind"))
         {
-            var world = ecsContainer.World;
-            using var q = world.Query<Player.Component>();
+            using var q = ecsContainer.World.Query<Player.Component>();
             q.Each((Entity e, ref Player.Component pc) =>
             {
-                Bound.ApplyToPlayer(e, 2.0f);
+                Bind.ApplyToPlayer(e, 2.0f);
             });
         }
         ImGui.SameLine();
         if (ImGui.Button("Knockback"))
         {
-            var world = ecsContainer.World;
-            using var q = world.Query<Player.Component>();
+            using var q = ecsContainer.World.Query<Player.Component>();
             q.Each((Entity e, ref Player.Component pc) =>
             {
-                KnockedBack.ApplyToPlayer(e, new Vector3(1, 0, 0), 2.0f, true);
+                Knockback.ApplyToPlayer(e, new Vector3(1, 0, 0), 2.0f, true);
             });
         }
         ImGui.SameLine();
-        if (ImGui.Button("Test status"))
+        if (ImGui.Button("Stun"))
         {
-            var world = ecsContainer.World;
-            using var q = world.Query<Player.Component>();
+            using var q = ecsContainer.World.Query<Player.Component>();
             q.Each((Entity e, ref Player.Component pc) =>
             {
-                e.CsWorld().Entity().Set(new Scripts.Conditions.Condition.Component("test", 5f));
+                Stun.ApplyToPlayer(e, 2.0f);
+            });
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Paralysis"))
+        {
+            using var q = ecsContainer.World.Query<Player.Component>();
+            q.Each((Entity e, ref Player.Component pc) =>
+            {
+                Paralysis.ApplyToPlayer(e, 5.0f);
             });
         }
     }

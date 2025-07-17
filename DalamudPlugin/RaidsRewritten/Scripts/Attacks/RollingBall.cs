@@ -161,7 +161,7 @@ public unsafe class RollingBall(DalamudServices dalamud, VfxSpawn vfxSpawn, Rand
                         using var q = Player.Query(it.World());
                         q.Each((Entity e, ref Player.Component pc) =>
                         {
-                            KnockedBack.ApplyToPlayer(e, knockbackDirection, KnockbackDuration, true);
+                            Knockback.ApplyToPlayer(e, knockbackDirection, KnockbackDuration, true);
                         });
                     }
                 }

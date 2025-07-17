@@ -33,7 +33,7 @@ public class RectangleOmen : IAttack
         return true;
     }
 
-    public Entity Create(World world)
+    public static Entity CreateEntity(World world)
     {
         return world.Entity()
             .Set(new StaticVfx("vfx/omen/eff/general02f.avfx"))
@@ -42,5 +42,10 @@ public class RectangleOmen : IAttack
             .Set(new Scale())
             .Add<Attack>()
             .Add<Omen>();
+    }
+
+    public Entity Create(World world)
+    {
+        return CreateEntity(world);
     }
 }
