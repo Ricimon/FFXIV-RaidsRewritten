@@ -7,11 +7,12 @@ using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Scripts.Attacks.Omens;
+using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public class LightningCorridor(Lazy<AttackManager> attackManager, ILogger logger) : IAttack, ISystem
+public class LightningCorridor(DalamudServices dalamud, Lazy<AttackManager> attackManager, ILogger logger) : IAttack, ISystem
 {
     public enum Phase
     {
@@ -21,13 +22,16 @@ public class LightningCorridor(Lazy<AttackManager> attackManager, ILogger logger
         Attack,
     }
 
-    public record struct Component(float ElapsedTime, Phase Phase = Phase.Start, bool HitLocalPlayer = false);
+    public record struct Component(
+        float ElapsedTime,
+        Phase Phase = Phase.Start,
+        bool HitLocalPlayer = false);
 
     private const float Width = 10.0f;
     private readonly Dictionary<Phase, float> phaseTimings = new()
     {
         { Phase.Start, 0.5f },
-        { Phase.Omen, 1.0f },
+        { Phase.Omen, 0.5f },
         { Phase.Snapshot, 0.2f },
         { Phase.Attack, 5.0f },
     };
@@ -84,12 +88,24 @@ public class LightningCorridor(Lazy<AttackManager> attackManager, ILogger logger
                         {
                             component.Phase = Phase.Snapshot;
 
-                            entity.Scope(world =>
+                            // Snapshot
+                            var hitLocalPlayer = component.HitLocalPlayer;
+                            entity.Children(child =>
                             {
-                                world.DeleteWith<Omen>();
+                                var localPlayer = dalamud.ClientState.LocalPlayer;
+                                if (!hitLocalPlayer && localPlayer != null)
+                                {
+                                    if (child.Has<Omen>() &&
+                                        RectangleOmen.IsInOmen(child, localPlayer.Position))
+                                    {
+                                        hitLocalPlayer = true;
+                                    }
+                                }
+
+                                child.Destruct();
                             });
 
-                            // Snapshot
+                            component.HitLocalPlayer = hitLocalPlayer;
                         }
                         break;
 
@@ -128,7 +144,11 @@ public class LightningCorridor(Lazy<AttackManager> attackManager, ILogger logger
                             // Affect player
                             if (component.HitLocalPlayer)
                             {
-
+                                using var q = Player.Query(it.World());
+                                q.Each((Entity e, ref Player.Component _) =>
+                                {
+                                    Bound.ApplyToPlayer(e, 2.0f);
+                                });
                             }
                         }
                         break;
