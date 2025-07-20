@@ -18,6 +18,7 @@ public class ExaflareRow(DalamudServices dalamud, ILogger logger) : IAttack, ISy
 
     private readonly DalamudServices dalamud = dalamud;
     private readonly ILogger logger = logger;
+    private static readonly Random random = new();
 
     private const float ExaflareInterval = 3f;
     private const int ExaflarePairLimit = 2;
@@ -56,7 +57,6 @@ public class ExaflareRow(DalamudServices dalamud, ILogger logger) : IAttack, ISy
                     var list = Enumerable.Range(0, 6).ToList();
 
                     // shuffle list
-                    Random random = new Random();
                     for (int num = list.Count - 1; num > 1; num--)
                     {
                         int rnd = random.Next(num + 1);

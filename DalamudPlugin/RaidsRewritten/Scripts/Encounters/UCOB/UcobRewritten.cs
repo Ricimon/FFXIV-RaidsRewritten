@@ -49,6 +49,11 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
         {
             this.mechanics.Add(mechanicFactory.Create<TankbusterAftershock>());
         }
+
+        if (configuration.GetEncounterSetting(MoreExaflaresKey, true))
+        {
+            this.mechanics.Add(mechanicFactory.Create<MoreExaflares>());
+        }
     }
 
     public void Unload()
@@ -105,6 +110,16 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             configuration.Save();
             RefreshMechanics();
         }
+
+        bool moreExaflares = configuration.GetEncounterSetting(MoreExaflaresKey, true);
+        if (ImGui.Checkbox("More Exaflares", ref moreExaflares))
+        {
+            configuration.EncounterSettings[MoreExaflaresKey] =
+                moreExaflares ? bool.TrueString : bool.FalseString;
+            configuration.Save();
+            RefreshMechanics();
+        }
+        
         
         ImGui.PopItemWidth();
     }
