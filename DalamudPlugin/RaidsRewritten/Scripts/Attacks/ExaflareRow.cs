@@ -1,5 +1,5 @@
-﻿using Flecs.NET.Core;
-using RaidsRewritten.Extensions;
+﻿using Flecs.NET.Bindings;
+using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks.Components;
@@ -14,10 +14,14 @@ namespace RaidsRewritten.Scripts.Attacks;
 
 public class ExaflareRow(DalamudServices dalamud, ILogger logger) : IAttack, ISystem
 {
-    public record struct Component(bool Played = false);
+    public record struct Component(float ElapsedTime, List<int>? ExaflarePositions = null, int ExaflarePair = 0);
 
     private readonly DalamudServices dalamud = dalamud;
     private readonly ILogger logger = logger;
+
+    private const float ExaflareInterval = 3f;
+    private const int ExaflarePairLimit = 2;
+    private const float ExaflareOffsetYalms = 8;
 
     public Entity Create(World world)
     {
@@ -33,11 +37,22 @@ public class ExaflareRow(DalamudServices dalamud, ILogger logger) : IAttack, ISy
         world.System<Component, Position, Rotation>()
             .Each((Iter it, int i, ref Component component, ref Position position, ref Rotation rotation) =>
             {
-                try
-                {
-                    if (component.Played) { return; }
-                    component.Played = true;
+                component.ElapsedTime += it.DeltaTime();
+                var entity = it.Entity(i);
 
+                if (ShouldDestruct(world, component, entity))
+                {
+                    it.Entity(i).Destruct();
+                    return;
+                }
+
+                if (component.ExaflarePair > ExaflarePairLimit) { return; }
+                if (component.ElapsedTime < component.ExaflarePair * ExaflareInterval) { return; }
+
+                if (component.ExaflarePositions == null)
+                {
+                    // index = spawn order
+                    // value = position of exa in line
                     var list = Enumerable.Range(0, 6).ToList();
 
                     // shuffle list
@@ -48,57 +63,46 @@ public class ExaflareRow(DalamudServices dalamud, ILogger logger) : IAttack, ISy
 
                         (list[num], list[rnd]) = (list[rnd], list[num]);
                     }
-
-                    // c# doesn't like refs in anonymous functions
-                    var originalPosition = position.Value;
-                    var originalRotation = rotation.Value;
-
-                    // calculate exa positions
-                    for (var num = 0; num < list.Count; num += 2)
-                    {
-                        var exa1 = list[num];
-                        var exa2 = list[num + 1];
-
-                        DelayedAction.Create(world, () => CreateExaflare(exa1, world, originalPosition, originalRotation), num * 1.5f);
-                        DelayedAction.Create(world, () => CreateExaflare(exa2, world, originalPosition, originalRotation), num * 1.5f);
-                    }
-                } catch (Exception e)
-                {
-                    this.logger.Error(e.ToStringFull());
+                    component.ExaflarePositions = list;
                 }
 
-                it.Entity(i).Destruct();
+                // c# doesn't like refs in anonymous functions
+                var originalPosition = position.Value;
+                var originalRotation = rotation.Value;
+
+                // calculate exa positions
+                var idx = component.ExaflarePair * 2;
+                component.ExaflarePair++;
+
+                var exaPos1 = CalculateExaflarePosition(component.ExaflarePositions[idx], originalPosition, originalRotation);
+                var exaPos2 = CalculateExaflarePosition(component.ExaflarePositions[idx + 1], originalPosition, originalRotation);
+
+                entity.Scope(() =>
+                {
+                    Exaflare.CreateEntity(world)
+                        .Set(new Position(exaPos1))
+                        .Set(new Rotation(originalRotation));
+
+                    Exaflare.CreateEntity(world)
+                        .Set(new Position(exaPos2))
+                        .Set(new Rotation(originalRotation));
+                });
             });
     }
 
-    private void CreateExaflare(int exaflarePosition, World world, Vector3 originalPosition, float originalRotation)
+    private static bool ShouldDestruct(World world, Component component, Entity e) => component.ElapsedTime > 20 || (component.ExaflarePair > 0 && !HasChild(world, e));
+
+    private static bool HasChild(World world, Entity e)
     {
-        Exaflare.CreateEntity(world)
-            .Set(new Position(CalculateExaflarePosition(exaflarePosition, originalPosition, originalRotation)))
-            .Set(new Rotation(originalRotation));
+        using var q = world.QueryBuilder().With(flecs.EcsChildOf, e).Build();
+        return q.Count() > 0;
     }
 
-    private Vector3 CalculateExaflarePosition(int exa, Vector3 originalPosition, float originalRotation)
+    private static Vector3 CalculateExaflarePosition(int exaflarePosition, Vector3 position, float rotation)
     {
-        // TODO: understand geometry behind this
-        // negative vs positive deg value on 45 deg
-        var xUnit = 8 * MathF.Cos(-originalRotation);
-        var zUnit = 8 * MathF.Sin(-originalRotation);
-        var newPos = originalPosition;
+        position.X -= ExaflareOffsetYalms * MathF.Cos(rotation) * (exaflarePosition - 2.5f);
+        position.Z += ExaflareOffsetYalms * MathF.Sin(rotation) * (exaflarePosition - 2.5f);
 
-        if (exa <= 2)
-        {
-            var xOffset = xUnit * (3 - exa - 0.5f);
-            var zOffset = zUnit * (3 - exa - 0.5f);
-            newPos.X += xOffset;
-            newPos.Z += zOffset;
-        } else
-        {
-            var xOffset = xUnit * (exa - 2 - 0.5f);
-            var zOffset = zUnit * (exa - 2 - 0.5f);
-            newPos.X -= xOffset;
-            newPos.Z -= zOffset;
-        }
-        return newPos;
+        return position;
     }
 }
