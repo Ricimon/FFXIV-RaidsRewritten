@@ -14,7 +14,6 @@ namespace RaidsRewritten.Scripts.Attacks;
 
 public class ExaflareRow(DalamudServices dalamud, ILogger logger) : IAttack, ISystem
 {
-    // WIP refactor: current implementation is in MainWindow.cs for now
     public record struct Component(bool Played = false);
 
     private readonly DalamudServices dalamud = dalamud;
@@ -36,24 +35,13 @@ public class ExaflareRow(DalamudServices dalamud, ILogger logger) : IAttack, ISy
             {
                 try
                 {
-                    // TODO: see if there's a better way to do this
-                    if (component.Played == true) { return; }
-
-                    var player = this.dalamud.ClientState.LocalPlayer;
-                    if (player == null) { return; }
-
+                    if (component.Played) { return; }
                     component.Played = true;
 
-                    var originalPosition = player.Position;
-                    var originalRotation = player.Rotation;
-
-                    // index: order to spawn exas in
-                    // value: position of exa in line
                     var list = Enumerable.Range(0, 6).ToList();
 
                     // shuffle list
                     Random random = new Random();
-                    int n = list.Count;
                     for (int num = list.Count - 1; num > 1; num--)
                     {
                         int rnd = random.Next(num + 1);
@@ -61,21 +49,25 @@ public class ExaflareRow(DalamudServices dalamud, ILogger logger) : IAttack, ISy
                         (list[num], list[rnd]) = (list[rnd], list[num]);
                     }
 
+                    // c# doesn't like refs in anonymous functions
+                    var originalPosition = position.Value;
+                    var originalRotation = rotation.Value;
+
                     // calculate exa positions
                     for (var num = 0; num < list.Count; num += 2)
                     {
-                        var ExaflarePosition1 = list[num];
-                        var ExaflarePosition2 = list[num + 1];
+                        var exa1 = list[num];
+                        var exa2 = list[num + 1];
 
-                        DelayedAction.Create(world, () => CreateExaflare(ExaflarePosition1, world, originalPosition, originalRotation), i * 1.5f);
-                        DelayedAction.Create(world, () => CreateExaflare(ExaflarePosition1, world, originalPosition, originalRotation), i * 1.5f);
+                        DelayedAction.Create(world, () => CreateExaflare(exa1, world, originalPosition, originalRotation), num * 1.5f);
+                        DelayedAction.Create(world, () => CreateExaflare(exa2, world, originalPosition, originalRotation), num * 1.5f);
                     }
-
-                    DelayedAction.Create(world, () => it.Entity(i).Destruct(), 25f);
                 } catch (Exception e)
                 {
                     this.logger.Error(e.ToStringFull());
                 }
+
+                it.Entity(i).Destruct();
             });
     }
 
@@ -98,14 +90,12 @@ public class ExaflareRow(DalamudServices dalamud, ILogger logger) : IAttack, ISy
         {
             var xOffset = xUnit * (3 - exa - 0.5f);
             var zOffset = zUnit * (3 - exa - 0.5f);
-            logger.Debug($"test\nx: {xOffset} z:{zOffset}");
             newPos.X += xOffset;
             newPos.Z += zOffset;
         } else
         {
             var xOffset = xUnit * (exa - 2 - 0.5f);
             var zOffset = zUnit * (exa - 2 - 0.5f);
-            logger.Debug($"test\nx: {xOffset} z:{zOffset}");
             newPos.X -= xOffset;
             newPos.Z -= zOffset;
         }

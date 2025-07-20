@@ -406,67 +406,13 @@ public class MainWindow : Window, IPluginUIView, IDisposable
 
         if (ImGui.Button("Spawn row of Exaflares"))
         {
-            // temporary implementation of exaflare rows
             var player = this.dalamud.ClientState.LocalPlayer;
             if (player != null)
             {
-                var originalPosition = player.Position;
-                var originalRotation = player.Rotation;
-
-                // TODO: look into geometry behind this
-                // negative vs positive deg value on 45 deg
-                var xUnit = 8 * MathF.Cos(-originalRotation);
-                var zUnit = 8 * MathF.Sin(-originalRotation);
-
-                var list = Enumerable.Range(0, 6).ToList();
-
-                // shuffle list
-                Random random = new Random();
-                int n = list.Count;
-                for (int i = list.Count - 1; i > 1; i--)
+                if (this.attackManager.TryCreateAttackEntity<ExaflareRow>(out var exaflare))
                 {
-                    int rnd = random.Next(i + 1);
-
-                    (list[i], list[rnd]) = (list[rnd], list[i]);
-                }
-
-                // calculate exa positions
-                for (var i = 0; i < list.Count; i += 2)
-                {
-                    var exa1 = list[i];
-                    var exa2 = list[i + 1];
-
-                    Vector3 calcExaPosition(int exa)
-                    {
-                        var newPos = originalPosition;
-
-                        if (exa <= 2)
-                        {
-                            var xOffset = xUnit * (3 - exa - 0.5f);
-                            var zOffset = zUnit * (3 - exa - 0.5f);
-                            newPos.X += xOffset;
-                            newPos.Z += zOffset;
-                        } else
-                        {
-                            var xOffset = xUnit * (exa - 2 - 0.5f);
-                            var zOffset = zUnit * (exa - 2 - 0.5f);
-                            newPos.X -= xOffset;
-                            newPos.Z -= zOffset;
-                        }
-                        return newPos;
-                    }
-
-                    void createExa(int exa)
-                    {
-                        if (this.attackManager.TryCreateAttackEntity<Exaflare>(out var exaflare))
-                        {
-                            exaflare.Set(new Position(calcExaPosition(exa)))
-                                .Set(new Rotation(originalRotation));
-                        }
-                    }
-
-                    DelayedAction.Create(ecsContainer.World, () => createExa(exa1), i * 1.5f);
-                    DelayedAction.Create(ecsContainer.World, () => createExa(exa2), i * 1.5f);
+                    exaflare.Set(new Position(player.Position))
+                        .Set(new Rotation(player.Rotation));
                 }
             }
         }
