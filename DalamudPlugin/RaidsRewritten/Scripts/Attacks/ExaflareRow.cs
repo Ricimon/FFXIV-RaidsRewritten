@@ -42,7 +42,7 @@ public class ExaflareRow(DalamudServices dalamud, ILogger logger) : IAttack, ISy
 
                 if (ShouldDestruct(world, component, entity))
                 {
-                    it.Entity(i).Destruct();
+                    entity.Destruct();
                     return;
                 }
 
@@ -100,6 +100,7 @@ public class ExaflareRow(DalamudServices dalamud, ILogger logger) : IAttack, ISy
 
     private static Vector3 CalculateExaflarePosition(int exaflarePosition, Vector3 position, float rotation)
     {
+        // 2.5 is the middlepoint of starting exaflare positions
         position.X -= ExaflareOffsetYalms * MathF.Cos(rotation) * (exaflarePosition - 2.5f);
         position.Z += ExaflareOffsetYalms * MathF.Sin(rotation) * (exaflarePosition - 2.5f);
 
