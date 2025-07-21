@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
 using RaidsRewritten.Utility;
 
@@ -80,21 +81,28 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             RefreshMechanics();
         }
 
-        int maxBalls = configuration.GetEncounterSetting(RollingBallMaxBallsKey, 1);
-        if (ImGui.InputInt("Rolling Ball Max Balls", ref maxBalls))
+        using (ImRaii.PushIndent())
+        using (ImRaii.Disabled(!rollingBall))
         {
-            configuration.EncounterSettings[RollingBallMaxBallsKey] = maxBalls.ToString();
-            configuration.Save();
-            RefreshMechanics();
-        }
+            ImGui.PushItemWidth(120);
+            int maxBalls = configuration.GetEncounterSetting(RollingBallMaxBallsKey, 1);
+            if (ImGui.InputInt("Rolling Ball Max Balls", ref maxBalls))
+            {
+                configuration.EncounterSettings[RollingBallMaxBallsKey] = maxBalls.ToString();
+                configuration.Save();
+                RefreshMechanics();
+            }
+            ImGui.PopItemWidth();
 
-        string rollingBallRngSeed = configuration.GetEncounterSetting(RollingBallRngSeedKey, string.Empty);
-        ImGui.PushItemWidth(150);
-        if (ImGui.InputText("Rolling Ball RNG Seed", ref rollingBallRngSeed, 100))
-        {
-            configuration.EncounterSettings[RollingBallRngSeedKey] = rollingBallRngSeed;
-            configuration.Save();
-            RefreshMechanics();
+            ImGui.PushItemWidth(120);
+            string rollingBallRngSeed = configuration.GetEncounterSetting(RollingBallRngSeedKey, string.Empty);
+            if (ImGui.InputText("Rolling Ball RNG Seed", ref rollingBallRngSeed, 100))
+            {
+                configuration.EncounterSettings[RollingBallRngSeedKey] = rollingBallRngSeed;
+                configuration.Save();
+                RefreshMechanics();
+            }
+            ImGui.PopItemWidth();
         }
 
         bool tankbusterAftershock = configuration.GetEncounterSetting(TankbusterAftershockKey, true);
@@ -105,7 +113,5 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             configuration.Save();
             RefreshMechanics();
         }
-        
-        ImGui.PopItemWidth();
     }
 }
