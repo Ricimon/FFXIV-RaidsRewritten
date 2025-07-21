@@ -11,13 +11,22 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using static Flecs.NET.Core.Ecs.Units.Forces;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public class Exaflare(DalamudServices dalamud,ILogger logger) : IAttack, ISystem
+public class Exaflare(DalamudServices dalamud, ILogger logger) : IAttack, ISystem
 {
-    public record struct Component(float ElapsedTime, int CurrentExaNum = 0, Entity? FakeActor = null, bool OmenVisible = false);
-    
+    public enum Phase
+    {
+        Omen,
+        Snapshot,
+        Vfx,
+        Destruct
+    }
+
+    public record struct Component(float ElapsedTime, int CurrentExaNum = 0, Phase Phase = Phase.Omen);
+
     public static Entity CreateEntity(World world)
     {
         return world.Entity()
@@ -33,8 +42,8 @@ public class Exaflare(DalamudServices dalamud,ILogger logger) : IAttack, ISystem
         return CreateEntity(world);
     }
 
-    private const float OmenVisibleSeconds = 2.65f;
-    private const float InitVfxDelay = 0.35f;
+    private const float OmenVisible = 2.65f;
+    private const float SnapshotOffset = 0.25f;
     private const float ExaflareInterval = 1.5f;
     private const float ExaflareSize = 6.5f;  // thanks tom
     private const string ExaflareVfxPath = "vfx/monster/gimmick2/eff/f1bz_b0_g02c0i.avfx";
@@ -48,63 +57,86 @@ public class Exaflare(DalamudServices dalamud,ILogger logger) : IAttack, ISystem
             .Each((Iter it, int i, ref Component component, ref Position position, ref Rotation rotation, ref Scale scale) =>
             {
                 component.ElapsedTime += it.DeltaTime();
-                var exaflareThreshold = OmenVisibleSeconds + InitVfxDelay + (component.CurrentExaNum - 1) * ExaflareInterval;
 
+                Entity fakeActor;
                 var entity = it.Entity(i);
 
-                if (component.CurrentExaNum <= 0)
                 {
-                    component.CurrentExaNum = 1;
-                    var p = position.Value;
+                    using var childQuery = world.QueryBuilder().With(flecs.EcsChildOf, entity).With<FakeActor.Component>().Build();
 
-                    var omen = ExaflareOmen.CreateEntity(world);
-                    omen.Set(new Position(position.Value))
-                        .Set(new Rotation(rotation.Value))
-                        .Set(new Scale(new Vector3(ExaflareSize)))
-                        .ChildOf(entity);
-                    component.OmenVisible = true;
-                } else if (component.CurrentExaNum < 7)
-                {
-                    if (component.OmenVisible && component.ElapsedTime > OmenVisibleSeconds)
+                    if (!childQuery.IsTrue())
                     {
-                        entity.Children((Entity child) => { child.Destruct(); });
-                        component.OmenVisible = false;
-                    }
-
-                    if (component.ElapsedTime < exaflareThreshold) { return; }
-
-                    Vector3 newPos;
-
-                    if (!component.FakeActor.HasValue)
-                    {
-                        component.FakeActor = FakeActor.Create(it.World())
-                            .Set(new Rotation(rotation.Value));
-                        newPos = position.Value;
+                        fakeActor = FakeActor.Create(it.World())
+                            .Set(new Position(position.Value))
+                            .Set(new Rotation(rotation.Value))
+                            .ChildOf(entity);
                     } else
                     {
-                        newPos = new Vector3(
-                            position.Value.X + (component.CurrentExaNum - 1) * 8 * MathF.Sin(rotation.Value),
-                            position.Value.Y,
-                            position.Value.Z + (component.CurrentExaNum - 1) * 8 * MathF.Cos(rotation.Value));
+                        fakeActor = childQuery.First();
                     }
+                }
 
-                    Circle.CreateEntity(world)
-                        .Set(new Position(newPos))
-                        .Set(new Rotation(rotation.Value))
-                        .Set(new Scale(new Vector3(ExaflareSize)))
-                        .Set(new Circle.Component(OnHit))
-                        .ChildOf(entity);
-
-                    var fakeActor = component.FakeActor.Value;
-                    fakeActor.Set(new Position(newPos))
-                        .Set(new ActorVfx(ExaflareVfxPath))
-                        .ChildOf(entity);
-
-                    component.CurrentExaNum++;
-                } else
+                switch (component.Phase)
                 {
-                    if (component.ElapsedTime < exaflareThreshold) { return; }
-                    entity.Destruct();
+                    case Phase.Omen:
+                        component.Phase = Phase.Snapshot;
+
+                        var omen = ExaflareOmen.CreateEntity(world);
+                        omen.Set(new Position(position.Value))
+                            .Set(new Rotation(rotation.Value))
+                            .Set(new Scale(new Vector3(ExaflareSize)))
+                            .ChildOf(entity);
+                        break;
+                    case Phase.Snapshot:
+                        if (ShouldReturn(component)) { return; }
+                        component.Phase = Phase.Vfx;
+
+                        // destroy omen if exists
+                        {
+                            using var q = world.QueryBuilder().With(flecs.EcsChildOf, entity).With<Omen>().Build();
+                            q.Each((Entity e) =>
+                            {
+                                e.Destruct();
+                            });
+                        }
+
+                        Vector3 newPos;
+                        if (component.CurrentExaNum > 0)
+                        {
+                            newPos = new Vector3(
+                                position.Value.X + (component.CurrentExaNum) * 8 * MathF.Sin(rotation.Value),
+                                position.Value.Y,
+                                position.Value.Z + (component.CurrentExaNum) * 8 * MathF.Cos(rotation.Value));
+                            fakeActor.Set(new Position(newPos));
+                        } else
+                        {
+                            newPos = position.Value;
+                        }
+
+                        Circle.CreateEntity(world)
+                            .Set(new Position(newPos))
+                            .Set(new Rotation(rotation.Value))
+                            .Set(new Scale(new Vector3(ExaflareSize)))
+                            .Set(new Circle.Component(OnHit))
+                            .ChildOf(entity);
+
+                        break;
+                    case Phase.Vfx:
+                        if (ShouldReturn(component)) { return; }
+                        component.Phase = Phase.Snapshot;
+                        component.CurrentExaNum++;
+
+                        fakeActor.Set(new ActorVfx(ExaflareVfxPath));
+
+                        if (component.CurrentExaNum > 5) {
+                            component.Phase = Phase.Destruct;
+                            component.ElapsedTime = 0;
+                        }
+                        break;
+                    case Phase.Destruct:
+                        if (ShouldReturn(component)) { return; }
+                        entity.Destruct();
+                        break;
                 }
             });
     }
@@ -114,5 +146,16 @@ public class Exaflare(DalamudServices dalamud,ILogger logger) : IAttack, ISystem
         using var bindQuery = e.CsWorld().Query<Condition.Component, Bind.Component>();
         if (!bindQuery.IsTrue())
             DelayedAction.Create(e.CsWorld(), () => Bind.ApplyToPlayer(e, StunDuration), StunDelay);
+    }
+
+    private bool ShouldReturn(Component component) {
+        if (component.Phase == Phase.Destruct)
+        {
+            return component.ElapsedTime < 3;
+        }
+
+        if (component.ElapsedTime < OmenVisible) return true;
+        var ret = (component.ElapsedTime - OmenVisible) % ExaflareInterval < SnapshotOffset;
+        return component.Phase == Phase.Vfx == ret;
     }
 }
