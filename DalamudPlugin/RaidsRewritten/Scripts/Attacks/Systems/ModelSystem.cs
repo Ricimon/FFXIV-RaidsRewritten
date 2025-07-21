@@ -6,6 +6,7 @@ using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Attacks.Systems;
 
@@ -18,6 +19,8 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
     private const string CalculateAndApplyOverallSpeedSig = "E8 ?? ?? ?? ?? 48 8D 8B ?? ?? ?? ?? 48 8B 01 FF 50 ?? 48 8D 8B ?? ?? ?? ?? 48 8B 01 FF 50 ?? F6 83";
     private delegate bool CalculateAndApplyOverallSpeedDelegate(TimelineContainer* a1);
     private readonly Hook<CalculateAndApplyOverallSpeedDelegate> calculateAndApplyOverallSpeedHook = null!;
+
+    private Query<Model, ModelTimelineSpeed> modelTimelineSpeedQuery;
 
     public ModelSystem(DalamudServices dalamud, Lazy<EcsContainer> ecsContainer, ILogger logger)
     {
@@ -34,20 +37,26 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
     {
         calculateAndApplyOverallSpeedHook.Dispose();
 
-        using var q1 = this.ecsContainer.Value.World.Query<Model>();
-        q1.Each((Iter it, int i, ref Model model) =>
+        this.modelTimelineSpeedQuery.Dispose();
+
+        using (var q = this.ecsContainer.Value.World.Query<Model>())
         {
-            if (model.Spawned)
+            q.Each((Iter it, int i, ref Model model) =>
+            {
+                if (model.Spawned)
+                {
+                    DeleteModel(model.GameObjectIndex);
+                }
+            });
+        }
+
+        using (var q = this.ecsContainer.Value.World.Query<ModelFadeOut>())
+        {
+            q.Each((Iter it, int i, ref ModelFadeOut model) =>
             {
                 DeleteModel(model.GameObjectIndex);
-            }
-        });
-
-        using var q2 = this.ecsContainer.Value.World.Query<ModelFadeOut>();
-        q2.Each((Iter it, int i, ref ModelFadeOut model) =>
-        {
-            DeleteModel(model.GameObjectIndex);
-        });
+            });
+        }
     }
 
     public void Register(World world)
@@ -156,10 +165,15 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
 
     private bool CalculateAndApplyOverallSpeedDetour(TimelineContainer* a1)
     {
+        if (!this.modelTimelineSpeedQuery.IsValid())
+        {
+            // This can't be constructed in the constructor because it would cause a circular dependency reference
+            this.modelTimelineSpeedQuery = this.ecsContainer.Value.World.Query<Model, ModelTimelineSpeed>();
+        }
+
         bool result = calculateAndApplyOverallSpeedHook.Original(a1);
         // Convert this to a dictionary lookup if needed
-        using var q = this.ecsContainer.Value.World.Query<Model, ModelTimelineSpeed>();
-        q.Each((ref Model model, ref ModelTimelineSpeed speed) =>
+        this.modelTimelineSpeedQuery.Each((ref Model model, ref ModelTimelineSpeed speed) =>
         {
             if (model.GameObject != null &&
                 model.GameObject.Address == (nint)a1->OwnerObject)

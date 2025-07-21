@@ -400,11 +400,13 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         ImGui.SameLine();
         if (ImGui.Button("Knockback"))
         {
+            ecsContainer.World.DeferBegin();
             using var q = ecsContainer.World.Query<Player.Component>();
             q.Each((Entity e, ref Player.Component pc) =>
             {
                 Knockback.ApplyToPlayer(e, new Vector3(1, 0, 0), 2.0f, true);
             });
+            ecsContainer.World.DeferEnd();
         }
         ImGui.SameLine();
         if (ImGui.Button("Stun"))

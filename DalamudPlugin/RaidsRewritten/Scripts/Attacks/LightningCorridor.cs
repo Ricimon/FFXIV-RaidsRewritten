@@ -12,7 +12,7 @@ using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public class LightningCorridor(DalamudServices dalamud, ILogger logger) : IAttack, ISystem
+public sealed class LightningCorridor(DalamudServices dalamud, ILogger logger) : IAttack, ISystem, IDisposable
 {
     public enum Phase
     {
@@ -36,6 +36,8 @@ public class LightningCorridor(DalamudServices dalamud, ILogger logger) : IAttac
         { Phase.Attack, 5.0f },
     };
 
+    private Query<Player.Component> playerQuery;
+
     public Entity Create(World world)
     {
         return world.Entity()
@@ -46,8 +48,15 @@ public class LightningCorridor(DalamudServices dalamud, ILogger logger) : IAttac
             .Add<Attack>();
     }
 
+    public void Dispose()
+    {
+        this.playerQuery.Dispose();
+    }
+
     public void Register(World world)
     {
+        this.playerQuery = Player.Query(world);
+
         world.System<Component, Position, Rotation, Scale>()
             .Each((Iter it, int i, ref Component component, ref Position position, ref Rotation rotation, ref Scale scale) =>
             {
@@ -143,8 +152,7 @@ public class LightningCorridor(DalamudServices dalamud, ILogger logger) : IAttac
                             // Affect player
                             if (component.HitLocalPlayer)
                             {
-                                using var q = Player.Query(it.World());
-                                q.Each((Entity e, ref Player.Component _) =>
+                                this.playerQuery.Each((Entity e, ref Player.Component _) =>
                                 {
                                     Bind.ApplyToPlayer(e, 2.0f);
                                 });
@@ -153,13 +161,12 @@ public class LightningCorridor(DalamudServices dalamud, ILogger logger) : IAttac
                         break;
 
                     case Phase.Attack:
-                        entity.Scope(() =>
+                        var childCount = 0;
+                        entity.Children(_ => childCount++);
+                        if (childCount == 0)
                         {
-                            if (!it.World().Query<ActorVfx>().IsTrue())
-                            {
-                                entity.Destruct();
-                            }
-                        });
+                            entity.Destruct();
+                        }
 
                         // Failsafe
                         if (component.ElapsedTime >= totalPhaseDuration)

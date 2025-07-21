@@ -27,4 +27,28 @@ public static class FlecsExtensions
         component = default;
         return false;
     }
+
+    public static bool IsValid<T>(this Query<T> query)
+    {
+        unsafe
+        {
+            return query.CPtr() != null;
+        }
+    }
+
+    public static bool IsValid<T0, T1>(this Query<T0, T1> query)
+    {
+        unsafe
+        {
+            return query.CPtr() != null;
+        }
+    }
+
+    public static bool IsValid<T0, T1, T2>(this Query<T0, T1, T2> query)
+    {
+        unsafe
+        {
+            return query.CPtr() != null;
+        }
+    }
 }

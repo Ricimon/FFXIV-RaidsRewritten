@@ -5,11 +5,13 @@ using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.Utility;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
+using Flecs.NET.Core;
 using ImGuiNET;
 using RaidsRewritten.Extensions;
 using RaidsRewritten.Game;
 using RaidsRewritten.Input;
 using RaidsRewritten.Log;
+using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.UI.Util;
 using RaidsRewritten.UI.View;
 
@@ -53,6 +55,7 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
     private readonly EcsContainer ecsContainer;
 
     private readonly IFontHandle font;
+    private readonly Query<Condition.Component> componentsQuery;
 
     private const float PADDING_X = 10f;
 
@@ -96,11 +99,14 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
                 });
             });
         });
+
+        this.componentsQuery = ecsContainer.World.QueryBuilder<Condition.Component>().Cached().Build();
     }
 
     public void Dispose()
     {
-        font.Dispose();
+        this.font.Dispose();
+        this.componentsQuery.Dispose();
     }
 
     public void Draw()
@@ -118,8 +124,7 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
         using (font.Push())
         {
             // matches all conditions that exist in the world
-            using var q = world.QueryBuilder<Scripts.Conditions.Condition.Component>().Build();
-            q.Each((ref Scripts.Conditions.Condition.Component status) =>
+            this.componentsQuery.Each((ref Condition.Component status) =>
             {
                 AddStatus(toDraw, status.Name, Math.Round(status.TimeRemaining), ref offsetY, ref maxWidth);
             });

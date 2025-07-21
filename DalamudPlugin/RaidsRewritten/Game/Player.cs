@@ -5,16 +5,26 @@ using Flecs.NET.Core;
 using RaidsRewritten.Extensions;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Conditions;
+using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Game;
 
-public class Player(DalamudServices dalamud, PlayerManager playerManager, Configuration configuration, ILogger logger) : ISystem
+public sealed class Player(DalamudServices dalamud, PlayerManager playerManager, Configuration configuration, ILogger logger) : ISystem, IDisposable
 {
     public record struct Component(bool IsLocalPlayer, IPlayerCharacter? PlayerCharacter);
+
+    private Query<Component, Condition.Component, Knockback.Component> knockbackQuery;
+    private Query<Component, Condition.Component, Bind.Component> bindQuery;
 
     public static Entity Create(World world, bool isLocalPlayer)
     {
         return world.Entity().Set(new Component(isLocalPlayer, null));
+    }
+
+    public void Dispose()
+    {
+        this.knockbackQuery.Dispose();
+        this.bindQuery.Dispose();
     }
 
     public static Query<Component> Query(World world)
@@ -24,6 +34,11 @@ public class Player(DalamudServices dalamud, PlayerManager playerManager, Config
 
     public void Register(World world)
     {
+        this.knockbackQuery = world.QueryBuilder<Component, Condition.Component, Knockback.Component>()
+            .TermAt(0).Up().Cached().Build();
+        this.bindQuery = world.QueryBuilder<Component, Condition.Component, Bind.Component>()
+            .TermAt(0).Up().Cached().Build();
+
         world.System<Component>()
             .Each((Iter it, int i, ref Component component) =>
             {
@@ -46,17 +61,12 @@ public class Player(DalamudServices dalamud, PlayerManager playerManager, Config
                         });
                     }
 
-                    it.World().SetScope(playerEntity);
-                    //if (!it.World().Query<Condition>().IsTrue())
-                    //{
-                    //    this.logger.Info("Player has no conditions");
-                    //}
-
                     // Handle each condition
-                    using var knockbackQuery = world.Query<Condition.Component, Knockback.Component>();
-                    if (knockbackQuery.IsTrue())
+                    Entity knockbackEntity = GetFirstConditionEntityOnLocalPlayer(this.knockbackQuery);
+                    Entity bindEntity = GetFirstConditionEntityOnLocalPlayer(this.bindQuery);
+
+                    if (knockbackEntity.IsValid())
                     {
-                        var knockbackEntity = knockbackQuery.First();
                         var condition = knockbackEntity.Get<Condition.Component>();
                         var knockback = knockbackEntity.Get<Knockback.Component>();
                         //this.logger.Info("Player has knockback, direction {0}, time left {1}", knockback.KnockbackDirection, condition.TimeRemaining);
@@ -66,8 +76,7 @@ public class Player(DalamudServices dalamud, PlayerManager playerManager, Config
                     }
                     else
                     {
-                        using var bindQuery = world.Query<Condition.Component, Bind.Component>();
-                        if (bindQuery.IsTrue())
+                        if (bindEntity.IsValid())
                         {
                             playerManager.OverrideMovement = true;
                             playerManager.OverrideMovementDirection = Vector3.Zero;
@@ -83,5 +92,17 @@ public class Player(DalamudServices dalamud, PlayerManager playerManager, Config
                     logger.Error(e.ToStringFull());
                 }
             });
+    }
+
+    private static Entity GetFirstConditionEntityOnLocalPlayer<T>(Query<Component, Condition.Component, T> query)
+    {
+        Entity entity = default;
+        query.Each((Entity e, ref Component pc, ref Condition.Component _, ref T _) =>
+        {
+            if (!pc.IsLocalPlayer) { return; }
+            if (entity.IsValid()) { return; }
+            entity = e;
+        });
+        return entity;
     }
 }
