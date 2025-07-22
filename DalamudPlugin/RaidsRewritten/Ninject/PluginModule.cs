@@ -1,5 +1,4 @@
-﻿using System;
-using Dalamud.Game;
+﻿using Dalamud.Game;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
@@ -14,7 +13,6 @@ using RaidsRewritten.Memory;
 using RaidsRewritten.Network;
 using RaidsRewritten.Scripts;
 using RaidsRewritten.Scripts.Attacks;
-using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Scripts.Attacks.Omens;
 using RaidsRewritten.Scripts.Attacks.Systems;
 using RaidsRewritten.Scripts.Conditions;
@@ -71,12 +69,14 @@ public class PluginModule : NinjectModule
         Bind<ServerConnection>().ToSelf().InSingletonScope();
         Bind<Spatializer>().ToSelf().InSingletonScope();
         Bind<MapManager>().ToSelf().InSingletonScope();
+        Bind<Mechanic.Factory>().ToSelf();
+        Bind<EcsContainer>().ToSelf().InSingletonScope();
+        // Native control overrides
         Bind<PlayerManager>().ToSelf().InSingletonScope();
         Bind<PlayerMovementOverride>().ToSelf().WhenInjectedInto<PlayerManager>().InSingletonScope();
         Bind<PlayerCameraOverride>().ToSelf().WhenInjectedInto<PlayerManager>().InSingletonScope();
         Bind<KeybindManager>().ToSelf().WhenInjectedInto<PlayerManager>().InSingletonScope();
-        Bind<Mechanic.Factory>().ToSelf();
-        Bind<EcsContainer>().ToSelf().InSingletonScope();
+        Bind<ActionManagerEx>().ToSelf().WhenInjectedInto<PlayerManager>().InSingletonScope();
 
         // Views and Presenters
         Bind<WindowSystem>().ToMethod(_ => new(PluginInitializer.Name)).InSingletonScope();
