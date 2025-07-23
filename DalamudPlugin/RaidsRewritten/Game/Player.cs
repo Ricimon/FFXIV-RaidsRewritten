@@ -104,14 +104,7 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
                     }
 
                     // Action override
-                    if (stun)
-                    {
-                        playerManager.DisableAllActions = true;
-                    }
-                    else
-                    {
-                        playerManager.DisableAllActions = false;
-                    }
+                    playerManager.DisableAllActions = stun;
                 }
                 catch (Exception e)
                 {
