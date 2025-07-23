@@ -426,6 +426,42 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                 Paralysis.ApplyToPlayer(e, 5.0f);
             });
         }
+        ImGui.Text("Heat Stuff");
+        if (ImGui.Button("Apply Temperature"))
+        {
+            var world = ecsContainer.World;
+            using var q = world.Query<Player.Component>();
+            q.Each((Entity playerEntity, ref Player.Component pc) =>
+            {
+                using Query<Temperature.Component> q = playerEntity.CsWorld().Query<Temperature.Component>();
+                if (!q.IsTrue())
+                {
+                    playerEntity.CsWorld().Entity("Temp")
+                        .Set(new Temperature.Component())
+                        .ChildOf(playerEntity);
+                }
+            });
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Incr Heat"))
+        {
+            var world = ecsContainer.World;
+            using var q = world.Query<Player.Component>();
+            q.Each((Entity e, ref Player.Component pc) =>
+            {
+                Temperature.HeatChangedEvent(e, 50);
+            });
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Decr Heat"))
+        {
+            var world = ecsContainer.World;
+            using var q = world.Query<Player.Component>();
+            q.Each((Entity e, ref Player.Component pc) =>
+            {
+                Temperature.HeatChangedEvent(e, -50);
+            });
+        }
     }
 
     #region Rooms

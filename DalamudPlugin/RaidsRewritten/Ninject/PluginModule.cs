@@ -108,6 +108,7 @@ public class PluginModule : NinjectModule
         // Conditions
         Bind<ISystem>().To<Condition>();
         Bind<IDalamudHook>().To<Knockback>();
+        Bind<ISystem>().To<Temperature>();
 
         Bind<ILogger>().To<DalamudLogger>();
         Bind<DalamudLoggerFactory>().ToSelf();
