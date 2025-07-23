@@ -100,6 +100,7 @@ public class PluginModule : NinjectModule
         Bind<IAttack, ISystem>().To<RollingBall>();
         Bind<IAttack, ISystem>().To<Fan>();
         Bind<IAttack, ISystem>().To<LightningCorridor>();
+        Bind<IAttack, ISystem>().To<LiquidHeaven>();
         Bind<ISystem>().To<Player>();
         Bind<ISystem>().To<DelayedAction>();
         Bind<ISystem>().To<VfxSystem>();

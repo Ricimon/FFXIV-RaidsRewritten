@@ -388,6 +388,19 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             }
         }
 
+        if (ImGui.Button("Spawn Liquid Heaven"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<LiquidHeaven>(out var LiquidHeaven))
+                {
+                    LiquidHeaven.Set(new Position(player.Position))
+                                .Set(new Rotation(player.Rotation));
+                }
+            }
+        }
+
         ImGui.Text("Fake statuses");
         if (ImGui.Button("Bind"))
         {
