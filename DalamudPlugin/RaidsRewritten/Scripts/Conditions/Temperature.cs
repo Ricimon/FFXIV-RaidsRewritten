@@ -20,7 +20,7 @@ public class Temperature(ILogger logger) : ISystem
     public record struct TempUI;
     public static void HeatChangedEvent(Entity playerEntity, float delta)
     {
-        Entity t = playerEntity.Lookup("Temp");
+        Entity t = playerEntity.Lookup("TemperatureEntity");
         if (t == 0) { return; }
         t.Set(new HeatChange(delta));
     }
@@ -39,22 +39,8 @@ public class Temperature(ILogger logger) : ISystem
                 e.Remove<HeatChange>();
                 //logger.Info($"{component.CurrentTemperature}");
 
-                //This hurts my eyes
-                e.Children(c =>
-                {
-                    if (c.Has<TempUI>())
-                    {
-                        c.Destruct();
-                    }
-                });
-                e.CsWorld().Entity("UI")
-                    .Set(new Condition.Component(component.CurrentTemperature.ToString(), 999))
-                    .Set(new Component())
-                    .Add<TempUI>()
-                    .ChildOf(e);
-                // :(
-
-
+                e.Set(new Condition.Component(component.CurrentTemperature.ToString(), 9999.0f));
+               
                 if (component.CurrentTemperature <= component.MinTemp)
                 {
                     //logger.Info("Deepfreeze");

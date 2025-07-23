@@ -449,8 +449,9 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                 using Query<Temperature.Component> q = playerEntity.CsWorld().Query<Temperature.Component>();
                 if (!q.IsTrue())
                 {
-                    playerEntity.CsWorld().Entity("Temp")
+                    playerEntity.CsWorld().Entity("TemperatureEntity")
                         .Set(new Temperature.Component())
+                        .Set(new Condition.Component("0", 9999.0f))
                         .ChildOf(playerEntity);
                 }
             });
