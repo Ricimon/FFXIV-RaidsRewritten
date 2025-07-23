@@ -17,6 +17,8 @@ public class LiquidHeaven(DalamudServices dalamud, ILogger logger) : IAttack, IS
     private const float HitBoxRadius = 5f;
     private const float HeatValue = -25.0f;
     private const float HitCooldown = 1.0f;
+    private Query<Player.Component> playerQuery;
+
     public Entity Create(World world)
     {
         return world.Entity()
@@ -28,23 +30,32 @@ public class LiquidHeaven(DalamudServices dalamud, ILogger logger) : IAttack, IS
             .Add<Attack>();
     }
 
+    public void Dispose()
+    { 
+        this.playerQuery.Dispose();
+    }
+
     public void Register(World world)
     {
+        this.playerQuery = Player.Query(world);
+
         world.System<Component, Position>()
             .Each((Iter it, int i, ref Component component, ref Position position) =>
             {
                 try
                 {
                     component.Cooldown = Math.Max(component.Cooldown - it.DeltaTime(), 0);
+
+                    if (component.Cooldown > 0) { return; }
+
                     var player = dalamud.ClientState.LocalPlayer;
                     if (player == null || player.IsDead) { return; }
-                    if (component.Cooldown > 0) { return; }
 
                     if (Vector2.Distance(position.Value.ToVector2(), player.Position.ToVector2()) <= HitBoxRadius)
                     {
                         component.Cooldown = HitCooldown;
-                        using var q = Player.Query(it.World());
-                        q.Each((Entity e, ref Player.Component pc) =>
+
+                        this.playerQuery.Each((Entity e, ref Player.Component pc) =>
                         {
                             Temperature.HeatChangedEvent(e, HeatValue);
                         });
