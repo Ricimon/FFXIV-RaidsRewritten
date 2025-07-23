@@ -440,6 +440,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             });
         }
         ImGui.Text("Heat Stuff");
+        /*
         if (ImGui.Button("Apply Temperature"))
         {
             var world = ecsContainer.World;
@@ -456,7 +457,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                 }
             });
         }
-        ImGui.SameLine();
+        ImGui.SameLine();*/
         if (ImGui.Button("Incr Heat"))
         {
             var world = ecsContainer.World;

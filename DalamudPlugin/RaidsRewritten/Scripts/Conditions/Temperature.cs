@@ -17,12 +17,24 @@ public class Temperature(ILogger logger) : ISystem
         public readonly float OverHeatTemp = 100.0f;
     }
     public record struct HeatChange(float Delta);
-    public record struct TempUI;
+
     public static void HeatChangedEvent(Entity playerEntity, float delta)
     {
-        Entity t = playerEntity.Lookup("TemperatureEntity");
-        if (t == 0) { return; }
-        t.Set(new HeatChange(delta));
+        using Query<Temperature.Component, Player.Component> q = playerEntity.CsWorld().QueryBuilder<Temperature.Component, Player.Component>().With(Ecs.ChildOf, playerEntity).Build();
+        
+        if (!q.IsTrue())
+        {
+            playerEntity.CsWorld().Entity("TemperatureEntity")
+                .Set(new Temperature.Component())
+                .Set(new Condition.Component("0", 9999.0f))
+                .Set(new HeatChange(delta))
+                .ChildOf(playerEntity);
+        }
+        else
+        {
+            playerEntity.Lookup("TemperatureEntity")
+                .Set(new HeatChange(delta));
+        }
     }
 
     public void Register(World world)
