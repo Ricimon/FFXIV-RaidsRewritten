@@ -1,5 +1,6 @@
 ﻿using System;
 using Dalamud.Hooking;
+using ECommons.GameFunctions;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Flecs.NET.Core;
@@ -86,14 +87,8 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
                     chara->Position = position.Value;
                     chara->Rotation = rotation.Value;
                     chara->Scale = scale.Value;
-                    var modelData = &chara->ModelContainer;
 
-                    if (model.ModelCharaId >= 0)
-                    {
-                        modelData->ModelCharaId = model.ModelCharaId;
-                    }
-
-                    var name = $"FakeBattleNpc{model.ModelCharaId}";
+                    var name = $"FakeBattleNpc[{model.ModelCharaId}]";
                     for (int x = 0; x < name.Length; x++)
                     {
                         obj->Name[x] = (byte)name[x];
@@ -106,9 +101,19 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
 
                     if (model.GameObject != null)
                     {
+                        // This line is in Brio, and is needed to get animations working on a human model,
+                        // but this does not play action VFX outside of gpose.
+                        //var localPlayer = dalamud.ClientState.LocalPlayer;
+                        //if (localPlayer != null)
+                        //{
+                        //    chara->CharacterSetup.CopyFromCharacter(localPlayer.Character(), CharacterSetupContainer.CopyFlags.WeaponHiding);
+                        //}
                         // This is needed to get idle/movement sounds working
                         chara->CharacterSetup.CopyFromCharacter((Character*)model.GameObject.Address, CharacterSetupContainer.CopyFlags.None);
                     }
+
+                    var modelData = &chara->ModelContainer;
+                    modelData->ModelCharaId = model.ModelCharaId;
                 }
                 else
                 {
@@ -119,12 +124,37 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
                     chara->Scale = scale.Value;
                 }
 
-                if (model.ModelCharaId >= 0 && !model.DrawEnabled)
+                if (!model.DrawEnabled)
                 {
                     if (chara->IsReadyToDraw())
                     {
+                        // This is needed to play action sounds, so this is called even for invalid models
                         chara->EnableDraw();
                         model.DrawEnabled = true;
+                    }
+                }
+            });
+
+        world.System<Model, OneTimeModelTimeline>()
+            .Each((Iter it, int i, ref Model model, ref OneTimeModelTimeline timeline) =>
+            {
+                if (model.GameObject != null && model.DrawEnabled)
+                {
+                    var obj = ClientObjectManager.Instance()->GetObjectByIndex((ushort)model.GameObjectIndex);
+                    var chara = (Character*)obj;
+                    if (chara != null)
+                    {
+                        if (!timeline.Played)
+                        {
+                            //chara->SetMode(CharacterModes.AnimLock, 0);
+                            chara->Timeline.BaseOverride = timeline.Id;
+                            timeline.Played = true;
+                        }
+                        else
+                        {
+                            chara->Timeline.BaseOverride = 0;
+                            it.Entity(i).Remove<OneTimeModelTimeline>();
+                        }
                     }
                 }
             });

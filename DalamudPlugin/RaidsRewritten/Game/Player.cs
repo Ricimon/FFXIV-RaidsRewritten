@@ -15,6 +15,7 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
     private Query<Component, Condition.Component, Knockback.Component> knockbackQuery;
     private Query<Component, Condition.Component, Bind.Component> bindQuery;
     private Query<Component, Condition.Component, Stun.Component> stunQuery;
+    private Query<Component, Condition.Component, Paralysis.Component> paralysisQuery;
 
     public static Entity Create(World world, bool isLocalPlayer)
     {
@@ -26,6 +27,7 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
         this.knockbackQuery.Dispose();
         this.bindQuery.Dispose();
         this.stunQuery.Dispose();
+        this.paralysisQuery.Dispose();
     }
 
     public static Query<Component> Query(World world)
@@ -40,6 +42,8 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
         this.bindQuery = world.QueryBuilder<Component, Condition.Component, Bind.Component>()
             .TermAt(0).Up().Cached().Build();
         this.stunQuery = world.QueryBuilder<Component, Condition.Component, Stun.Component>()
+            .TermAt(0).Up().Cached().Build();
+        this.paralysisQuery = world.QueryBuilder<Component, Condition.Component, Paralysis.Component>()
             .TermAt(0).Up().Cached().Build();
 
         world.System<Component>()
@@ -65,9 +69,16 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
                     }
 
                     // Handle each condition
+                    bool stun = false;
                     Entity knockbackEntity = GetFirstConditionEntityOnLocalPlayer(this.knockbackQuery);
                     Entity bindEntity = GetFirstConditionEntityOnLocalPlayer(this.bindQuery);
                     Entity stunEntity = GetFirstConditionEntityOnLocalPlayer(this.stunQuery);
+                    stun |= stunEntity.IsValid();
+                    this.paralysisQuery.Each((Entity e, ref Component pc, ref Condition.Component _, ref Paralysis.Component paralysis) =>
+                    {
+                        if (!pc.IsLocalPlayer) { return; }
+                        stun |= paralysis.StunActive;
+                    });
 
                     // Movement override
                     if (knockbackEntity.IsValid())
@@ -81,7 +92,7 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
                     }
                     else
                     {
-                        if (bindEntity.IsValid() || stunEntity.IsValid())
+                        if (bindEntity.IsValid() || stun)
                         {
                             playerManager.OverrideMovement = true;
                             playerManager.OverrideMovementDirection = Vector3.Zero;
@@ -93,14 +104,7 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
                     }
 
                     // Action override
-                    if (stunEntity.IsValid())
-                    {
-                        playerManager.DisableAllActions = true;
-                    }
-                    else
-                    {
-                        playerManager.DisableAllActions = false;
-                    }
+                    playerManager.DisableAllActions = stun;
                 }
                 catch (Exception e)
                 {

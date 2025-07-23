@@ -28,9 +28,10 @@ public sealed class LightningCorridor(DalamudServices dalamud, ILogger logger) :
         bool HitLocalPlayer = false);
 
     private const float Width = 10.0f;
+    private const int ParalysisId = 6401601;
     private readonly Dictionary<Phase, float> phaseTimings = new()
     {
-        { Phase.Start, 0.5f },
+        { Phase.Start, 0.0f },
         { Phase.Omen, 0.5f },
         { Phase.Snapshot, 0.2f },
         { Phase.Attack, 5.0f },
@@ -127,26 +128,52 @@ public sealed class LightningCorridor(DalamudServices dalamud, ILogger logger) :
                             var r1 = MathUtilities.ClampRadians(rotation.Value + 0.5f * MathF.PI);
                             for (var j = 0; j < 2; j++)
                             {
-                                var p1 = position.Value + ((0.5f * Width + 20.0f) * MathUtilities.RotationToUnitVector(r1)).ToVector3(0);
-                                p1 += (-20.0f + j * 40.0f) * MathUtilities.RotationToUnitVector(rotation.Value).ToVector3(0);
-                                var fakeActor1 = FakeActor.Create(it.World())
-                                    .Set(new Position(p1))
+                                var p = position.Value + ((0.5f * Width + 20.0f) * MathUtilities.RotationToUnitVector(r1)).ToVector3(0);
+                                var pVfx = p + (-20.0f + j * 40.0f) * MathUtilities.RotationToUnitVector(rotation.Value).ToVector3(0);
+                                var fakeActor = FakeActor.Create(it.World())
+                                    .Set(new Position(pVfx))
                                     .Set(new Rotation(rotation.Value))
                                     .Set(new ActorVfx("vfx/monster/gimmick5/eff/x6r4_b_g016_c0t1.avfx"))
                                     .ChildOf(entity);
+
+                                // SFX
+                                if (j == 0)
+                                {
+                                    var fakeSfxActor = FakeActor.Create(it.World())
+                                        .Set(new Position(position.Value))
+                                        .Set(new Rotation(rotation.Value))
+                                        //.Set(new OneTimeModelTimeline(11179))
+                                        .Set(new OneTimeModelTimeline(11180))
+                                        .ChildOf(fakeActor);
+                                }
+
+                                // SFX played from an actor animation only plays at most 1 instance of a specific SFX,
+                                // so multiple SFX types need to be played to get surround sound.
+                                // But it was hard to find two different audios that sounded similar enough
+                                // for this, so I'm opting to just put one audio source in the middle.
                             }
 
                             // right
                             var r2 = MathUtilities.ClampRadians(rotation.Value - 0.5f * MathF.PI);
                             for (var j = 0; j < 2; j++)
                             {
-                                var p2 = position.Value + ((0.5f * Width + 20.0f) * MathUtilities.RotationToUnitVector(r2)).ToVector3(0);
-                                p2 += (-20.0f + j * 40.0f) * MathUtilities.RotationToUnitVector(rotation.Value).ToVector3(0);
-                                var fakeActor2 = FakeActor.Create(it.World())
-                                    .Set(new Position(p2))
+                                var p = position.Value + ((0.5f * Width + 20.0f) * MathUtilities.RotationToUnitVector(r2)).ToVector3(0);
+                                var pVfx = p + (-20.0f + j * 40.0f) * MathUtilities.RotationToUnitVector(rotation.Value).ToVector3(0);
+                                var fakeActor = FakeActor.Create(it.World())
+                                    .Set(new Position(pVfx))
                                     .Set(new Rotation(rotation.Value))
                                     .Set(new ActorVfx("vfx/monster/gimmick5/eff/x6r4_b_g016_c0t1.avfx"))
                                     .ChildOf(entity);
+
+                                // SFX
+                                //if (j == 0)
+                                //{
+                                //    var fakeSfxActor = FakeActor.Create(it.World())
+                                //        .Set(new Position(p))
+                                //        .Set(new Rotation(rotation.Value))
+                                //        .Set(new OneTimeModelTimeline(11180))
+                                //        .ChildOf(fakeActor);
+                                //}
                             }
 
                             // Affect player
@@ -154,7 +181,7 @@ public sealed class LightningCorridor(DalamudServices dalamud, ILogger logger) :
                             {
                                 this.playerQuery.Each((Entity e, ref Player.Component _) =>
                                 {
-                                    Bind.ApplyToPlayer(e, 2.0f);
+                                    Paralysis.ApplyToPlayer(e, 30.0f, 3.0f, 1.0f, ParalysisId);
                                 });
                             }
                         }

@@ -11,4 +11,6 @@ public record struct Model(
 
 public record struct ModelFadeOut(uint GameObjectIndex, float Duration, float TimeRemaining, float Alpha = 1f);
 
+public record struct OneTimeModelTimeline(ushort Id, bool Played = false);
+
 public record struct ModelTimelineSpeed(float Value);
