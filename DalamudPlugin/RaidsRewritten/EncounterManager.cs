@@ -202,6 +202,11 @@ public sealed class EncounterManager : IDalamudHook
         if (this.configuration.EverythingDisabled) { return; }
         if (ActiveEncounter != null)
         {
+            if (a3 == DirectorUpdateCategory.Commence ||
+                a3 == DirectorUpdateCategory.Recommence)
+            {
+                ActiveEncounter.IncrementRngSeed();
+            }
             foreach (var mechanic in ActiveEncounter.GetMechanics())
             {
                 mechanic.OnDirectorUpdate(a3);

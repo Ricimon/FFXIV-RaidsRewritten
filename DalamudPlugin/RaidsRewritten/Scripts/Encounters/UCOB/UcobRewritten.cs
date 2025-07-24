@@ -12,10 +12,10 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
     public string Name => "UCOB Rewritten";
 
     // Config
+    private string RngSeedKey => $"{Name}.RngSeed";
     private string PermanentTwistersKey => $"{Name}.PermanentTwisters";
     private string RollingBallKey => $"{Name}.RollingBall";
     private string RollingBallMaxBallsKey => $"{Name}.RollingBallMaxBalls";
-    private string RollingBallRngSeedKey => $"{Name}.RollingBallRngSeed";
     private string TankbusterAftershockKey => $"{Name}.TankbusterAftershock";
     private string LightningCorridorKey => $"{Name}.LightningCorridor";
 
@@ -41,7 +41,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
 
             rollingBall.MaxBalls = configuration.GetEncounterSetting(RollingBallMaxBallsKey, 1);
 
-            var seed = configuration.GetEncounterSetting(RollingBallRngSeedKey, string.Empty);
+            var seed = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
             rollingBall.RngSeed = RandomUtilities.HashToRngSeed(seed);
 
             this.mechanics.Add(rollingBall);
@@ -67,8 +67,27 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
         this.mechanics.Clear();
     }
 
+    public void IncrementRngSeed()
+    {
+        string rngSeed = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
+        rngSeed = EncounterUtilities.IncrementRngSeed(rngSeed);
+        configuration.EncounterSettings[RngSeedKey] = rngSeed;
+        configuration.Save();
+        RefreshMechanics();
+    }
+
     public void DrawConfig()
     {
+        ImGui.PushItemWidth(140);
+        string rngSeed = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
+        if (ImGui.InputText("RNG Seed", ref rngSeed, 100))
+        {
+            configuration.EncounterSettings[RngSeedKey] = rngSeed;
+            configuration.Save();
+            RefreshMechanics();
+        }
+        ImGui.PopItemWidth();
+
         bool permanentTwisters = configuration.GetEncounterSetting(PermanentTwistersKey, true);
         if (ImGui.Checkbox("Permanent Twisters", ref permanentTwisters))
         {
@@ -95,16 +114,6 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             if (ImGui.InputInt("Rolling Ball Max Balls", ref maxBalls))
             {
                 configuration.EncounterSettings[RollingBallMaxBallsKey] = maxBalls.ToString();
-                configuration.Save();
-                RefreshMechanics();
-            }
-            ImGui.PopItemWidth();
-
-            ImGui.PushItemWidth(120);
-            string rollingBallRngSeed = configuration.GetEncounterSetting(RollingBallRngSeedKey, string.Empty);
-            if (ImGui.InputText("Rolling Ball RNG Seed", ref rollingBallRngSeed, 100))
-            {
-                configuration.EncounterSettings[RollingBallRngSeedKey] = rollingBallRngSeed;
                 configuration.Save();
                 RefreshMechanics();
             }
