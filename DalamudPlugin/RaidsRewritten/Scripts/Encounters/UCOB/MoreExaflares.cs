@@ -118,7 +118,7 @@ public class MoreExaflares : Mechanic
 
     private void RandomExaflareRow(int excludeAngle = -1)
     {
-        if (ActiveAttackCount() > 1) { return; }
+        if (ActiveAttackCount() > 0) { return; }
         var seed = RngSeed;
         unchecked
         {
