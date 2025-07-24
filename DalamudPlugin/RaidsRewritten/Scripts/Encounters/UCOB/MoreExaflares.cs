@@ -132,7 +132,8 @@ public class MoreExaflares : Mechanic
         if (this.AttackManager.TryCreateAttackEntity<ExaflareRow>(out var exaflareRow))
         {
             exaflareRow.Set(new Position(new Vector3(X, Center.Y, Z)))
-                .Set(new Rotation(MathHelper.DegToRad(deg)));
+                .Set(new Rotation(MathHelper.DegToRad(deg)))
+                .Set(new ExaflareRow.SeededRandom(random));
             attacks.Add(exaflareRow);
         }
 
