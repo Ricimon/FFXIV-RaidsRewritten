@@ -48,6 +48,16 @@ public class MoreExaflares : Mechanic
         ExaflaresSpawned = 0;
     }
 
+    private int ActiveAttackCount()
+    {
+        var num = 0;
+        foreach (var attack in this.attacks)
+        {
+            if (attack.IsValid()) { num++; }
+        }
+        return num;
+    }
+
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
     {
         if (a3 == DirectorUpdateCategory.Wipe ||
@@ -108,6 +118,7 @@ public class MoreExaflares : Mechanic
 
     private void RandomExaflareRow(int excludeAngle = -1)
     {
+        if (ActiveAttackCount() > 1) { return; }
         var seed = RngSeed;
         unchecked
         {
