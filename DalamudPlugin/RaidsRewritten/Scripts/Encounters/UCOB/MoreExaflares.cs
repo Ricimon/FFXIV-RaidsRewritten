@@ -25,16 +25,11 @@ public class MoreExaflares : Mechanic
         9914, // adds megaflare
         9925, // fireball (firehorn)
         9942, // gigaflare
-        // TODO: spawn based on real exaflares appear, different direction
-        //9968  // exaflare
-    ];
-
-    private readonly List<uint> CastStartIds = [
-        9941, // flatten
     ];
 
     private const uint NeurolinkDataId = 0x1E88FF;
     private int LiquidHellCounter = 0;
+    private bool GoldenCanSpawnExa = false;
 
     private readonly List<Entity> attacks = [];
 
@@ -80,9 +75,23 @@ public class MoreExaflares : Mechanic
 
     public override void OnStartingCast(Lumina.Excel.Sheets.Action action, IBattleChara source)
     {
-        if (!CastStartIds.Contains(action.RowId)) { return; }
-
-        RandomExaflareRow();
+        switch(action.RowId)
+        {
+            case 9941:
+                RandomExaflareRow();
+                break;
+            case 9967:
+                GoldenCanSpawnExa = true;
+                break;
+            case 9968:
+                if (!GoldenCanSpawnExa) { return; }
+                GoldenCanSpawnExa = false;
+                var angleNumber = MathF.Round(MathHelper.RadToDeg(source.Rotation)) / 45;
+                RandomExaflareRow(Convert.ToInt32(angleNumber));
+                break;
+            default:
+                return;
+        }
     }
 
     public override void OnObjectCreation(nint newObjectPointer, IGameObject? newObject)
@@ -93,9 +102,18 @@ public class MoreExaflares : Mechanic
         RandomExaflareRow();
     }
 
-    private void RandomExaflareRow()
+    private void RandomExaflareRow(int excludeAngle = -1)
     {
-        int randVal = random.Next(8);
+        int randVal;
+        if (excludeAngle == -1)
+        {
+            randVal = random.Next(8);
+        } else
+        {
+            randVal = random.Next(7);
+            if (randVal >= excludeAngle) { randVal++; }
+        }
+
         int deg = randVal * 45;
         var X = Center.X - Radius * MathF.Sin(MathHelper.DegToRad(deg));
         var Z = Center.Z - Radius * MathF.Cos(MathHelper.DegToRad(deg));

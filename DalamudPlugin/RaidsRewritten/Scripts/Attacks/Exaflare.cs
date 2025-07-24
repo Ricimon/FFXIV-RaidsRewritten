@@ -10,8 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Text;
-using System.Threading.Tasks;
-using static Flecs.NET.Core.Ecs.Units.Forces;
+using System.Threading.Tasks; 
 
 namespace RaidsRewritten.Scripts.Attacks;
 
@@ -42,7 +41,7 @@ public class Exaflare(DalamudServices dalamud, ILogger logger) : IAttack, ISyste
         return CreateEntity(world);
     }
 
-    private const float OmenVisible = 2.65f;
+    private const float OmenVisible = 3.8f;
     private const float SnapshotOffset = 0.25f;
     private const float ExaflareInterval = 1.5f;
     private const float ExaflareSize = 6.5f;  // thanks tom
