@@ -389,7 +389,6 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                 }
             }
         }
-
         ImGui.SameLine();
 
         if (ImGui.Button("Exaflare"))
@@ -410,6 +409,10 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             var player = this.dalamud.ClientState.LocalPlayer;
             if (player != null)
             {
+                if (this.attackManager.TryCreateAttackEntity<LiquidHeaven>(out var LiquidHeaven))
+                {
+                    LiquidHeaven.Set(new Position(player.Position))
+                                .Set(new Rotation(player.Rotation));
                 if (this.attackManager.TryCreateAttackEntity<ExaflareRow>(out var exaflare))
                 {
                     exaflare.Set(new Position(player.Position))
@@ -430,7 +433,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                 }
             }
         }
-        
+
         ImGui.Text("Fake statuses");
         if (ImGui.Button("Bind"))
         {
