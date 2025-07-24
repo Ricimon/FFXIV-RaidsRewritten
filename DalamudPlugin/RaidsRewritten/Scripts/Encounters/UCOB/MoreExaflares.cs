@@ -17,6 +17,16 @@ namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
 public class MoreExaflares : Mechanic
 {
+    public int RngSeed
+    {
+        get => rngSeed;
+        set
+        {
+            rngSeed = value;
+            random = new Random(value);
+        }
+    }
+
     private static readonly Vector3 Center = new(0, 0, 0);
     private const float Radius = 20f;
     private readonly List<uint> ActionEffectIds = [
@@ -33,7 +43,8 @@ public class MoreExaflares : Mechanic
 
     private readonly List<Entity> attacks = [];
 
-    private static readonly Random random = new();
+    private int rngSeed;
+    private Random random = new();
 
     public override void Reset()
     {
@@ -42,6 +53,7 @@ public class MoreExaflares : Mechanic
             attack.Destruct();
         }
         this.attacks.Clear();
+        this.random = new Random(RngSeed);
     }
 
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
