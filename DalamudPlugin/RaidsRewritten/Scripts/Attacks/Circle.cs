@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public class Circle(DalamudServices dalamud, ILogger logger) : IAttack, ISystem
+public class Circle(DalamudServices dalamud, ILogger logger) : IAttack, ISystem, IDisposable
 {
     public record struct Component(Action<Entity> OnHit);
 
@@ -35,6 +35,11 @@ public class Circle(DalamudServices dalamud, ILogger logger) : IAttack, ISystem
     public Entity Create(World world)
     {
         return CreateEntity(world);
+    }
+
+    public void Dispose()
+    {
+        this.playerQuery.Dispose();
     }
 
     public void Register(World world)
