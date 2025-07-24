@@ -49,6 +49,7 @@ public class Exaflare(DalamudServices dalamud, ILogger logger) : IAttack, ISyste
 
     private const float StunDuration = 10f;
     private const float StunDelay = 0.2f;
+    private const int StunId = 213152;
 
     public void Register(World world)
     {
@@ -143,7 +144,7 @@ public class Exaflare(DalamudServices dalamud, ILogger logger) : IAttack, ISyste
     private void OnHit(Entity e)
     {
         DelayedAction.Create(e.CsWorld(), () => {
-            Stun.ApplyToPlayer(e, StunDuration, 1);
+            Stun.ApplyToPlayer(e, StunDuration, StunId);
         }, StunDelay);
     }
 
