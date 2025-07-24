@@ -158,8 +158,5 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             configuration.Save();
             RefreshMechanics();
         }
-        
-        
-        ImGui.PopItemWidth();
     }
 }
