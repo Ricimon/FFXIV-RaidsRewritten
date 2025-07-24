@@ -13,6 +13,7 @@ using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ObjectLifeTracker;
 using RaidsRewritten.Log;
 using RaidsRewritten.Memory;
+using RaidsRewritten.Scripts;
 using RaidsRewritten.Scripts.Encounters;
 using RaidsRewritten.Utility;
 
@@ -142,6 +143,14 @@ public sealed class EncounterManager : IDalamudHook
         this.logger.Debug(text);
 
         if (this.configuration.EverythingDisabled) { return; }
+
+        if (ActiveEncounter != null)
+        {
+            foreach (var mechanic in ActiveEncounter.GetMechanics())
+            {
+                mechanic.OnStartingCast(action, battleChara);
+            }
+        }
     }
 
     private void OnVFXSpawn(uint target, string vfxPath)

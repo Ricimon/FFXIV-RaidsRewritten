@@ -7,24 +7,27 @@ public class Stun
 {
     public record struct Component(object _);
 
-    public static void ApplyToPlayer(Entity playerEntity, float duration)
+    public static Entity ApplyToPlayer(Entity playerEntity, float duration, int id = 0)
     {
         var world = playerEntity.CsWorld();
-        var e = world.Entity()
-            .Set(new Condition.Component("Stunned", duration))
-            .Set(new Component())
-            .ChildOf(playerEntity);
+        var entity = Condition.ApplyToPlayer(playerEntity, "Stunned", duration, id);
+        if (!entity.Has<Component>())
+        {
+            entity.Set(new Component());
+        }
 
         world.Entity()
             .Set(new ActorVfx("vfx/common/eff/dk05ht_sta0h.avfx"))
-            .ChildOf(e);
+            .ChildOf(entity);
         DelayedAction.Create(world,
             () =>
             {
                 world.Entity()
                     .Set(new ActorVfx("vfx/common/eff/dk10ht_sta0f.avfx"))
-                    .ChildOf(e);
+                    .ChildOf(entity);
             },
-            0.6f).ChildOf(e);
+            0.6f).ChildOf(entity);
+
+        return entity;
     }
 }

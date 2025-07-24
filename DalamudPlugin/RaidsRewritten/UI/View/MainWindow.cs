@@ -1,12 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.Linq;
-using System.Numerics;
-using System.Reactive;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
-using System.Text;
-using Dalamud.Game.ClientState.Keys;
+﻿using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using ECommons.MathHelpers;
@@ -28,6 +20,15 @@ using RaidsRewritten.Spawn;
 using RaidsRewritten.UI.Util;
 using RaidsRewritten.Utility;
 using Reactive.Bindings;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Numerics;
+using System.Reactive;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
+using System.Text;
 
 namespace RaidsRewritten.UI.View;
 
@@ -389,6 +390,34 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             }
         }
 
+        ImGui.SameLine();
+
+        if (ImGui.Button("Exaflare"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<Exaflare>(out var exaflare))
+                {
+                    exaflare.Set(new Position(player.Position))
+                        .Set(new Rotation(player.Rotation));
+                }
+            }
+        }
+
+        if (ImGui.Button("Spawn row of Exaflares"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<ExaflareRow>(out var exaflare))
+                {
+                    exaflare.Set(new Position(player.Position))
+                        .Set(new Rotation(player.Rotation));
+                }
+            }
+        }
+
         if (ImGui.Button("Spawn Liquid Heaven"))
         {
             var player = this.dalamud.ClientState.LocalPlayer;
@@ -401,7 +430,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                 }
             }
         }
-
+        
         ImGui.Text("Fake statuses");
         if (ImGui.Button("Bind"))
         {

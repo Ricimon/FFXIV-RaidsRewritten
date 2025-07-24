@@ -96,11 +96,15 @@ public class PluginModule : NinjectModule
         Bind<IAttack>().To<CircleOmen>();
         Bind<IAttack>().To<FanOmen>();
         Bind<IAttack>().To<RectangleOmen>();
+        Bind<IAttack>().To<ExaflareOmen>();
         Bind<IAttack, ISystem>().To<Twister>();
         Bind<IAttack, ISystem>().To<RollingBall>();
         Bind<IAttack, ISystem>().To<Fan>();
         Bind<IAttack, ISystem>().To<LiquidHeaven>();
+        Bind<IAttack, ISystem>().To<Circle>();
         Bind<IAttack, ISystem>().To<Scripts.Attacks.LightningCorridor>();
+        Bind<IAttack, ISystem>().To<Exaflare>();
+        Bind<IAttack, ISystem>().To<ExaflareRow>();
         Bind<ISystem>().To<Player>();
         Bind<ISystem>().To<DelayedAction>();
         Bind<ISystem>().To<VfxSystem>();
