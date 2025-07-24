@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
 using RaidsRewritten.Utility;
@@ -18,6 +18,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
     private string RollingBallMaxBallsKey => $"{Name}.RollingBallMaxBalls";
     private string TankbusterAftershockKey => $"{Name}.TankbusterAftershock";
     private string LightningCorridorKey => $"{Name}.LightningCorridor";
+    private string MoreExaflaresKey => $"{Name}.MoreExaflares";
 
     private readonly List<Mechanic> mechanics = [];
 
@@ -55,6 +56,11 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
         if (configuration.GetEncounterSetting(LightningCorridorKey, true))
         {
             this.mechanics.Add(mechanicFactory.Create<LightningCorridor>());
+        }
+
+        if (configuration.GetEncounterSetting(MoreExaflaresKey, true))
+        {
+            this.mechanics.Add(mechanicFactory.Create<MoreExaflares>());
         }
     }
 
@@ -134,6 +140,15 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
         {
             configuration.EncounterSettings[LightningCorridorKey] =
                 lightningCorridor ? bool.TrueString : bool.FalseString;
+            configuration.Save();
+            RefreshMechanics();
+        }
+
+        bool moreExaflares = configuration.GetEncounterSetting(MoreExaflaresKey, true);
+        if (ImGui.Checkbox("More Exaflares", ref moreExaflares))
+        {
+            configuration.EncounterSettings[MoreExaflaresKey] =
+                moreExaflares ? bool.TrueString : bool.FalseString;
             configuration.Save();
             RefreshMechanics();
         }
