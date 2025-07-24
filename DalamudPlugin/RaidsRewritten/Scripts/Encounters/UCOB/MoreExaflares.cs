@@ -31,11 +31,10 @@ public class MoreExaflares : Mechanic
     private int LiquidHellCounter = 0;
     private bool GoldenCanSpawnExa = false;
 
-    private int ExaflaresSpawned = 0;
+    private int ExaflareRowsSpawned = 0;
     private readonly List<Entity> attacks = [];
     public int RngSeed { get; set; }
     
-
     public override void Reset()
     {
         foreach (var attack in this.attacks)
@@ -45,7 +44,23 @@ public class MoreExaflares : Mechanic
         this.attacks.Clear();
         LiquidHellCounter = 0;
         GoldenCanSpawnExa = false;
-        ExaflaresSpawned = 0;
+        ExaflareRowsSpawned = 0;
+    }
+
+    private int CountActiveAttacks()
+    {
+        var numAttacks = 0;
+        for (int i = attacks.Count - 1; i >= 0; i--)
+        {
+            if (attacks[i].IsValid())
+            {
+                numAttacks++;
+            } else
+            {
+                attacks.RemoveAt(i);
+            }
+        }
+        return numAttacks;
     }
 
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
@@ -108,10 +123,12 @@ public class MoreExaflares : Mechanic
 
     private void RandomExaflareRow(int excludeAngle = -1)
     {
+        if (CountActiveAttacks() > 0) { return; }
+
         var seed = RngSeed;
         unchecked
         {
-            seed += ExaflaresSpawned * 69420;
+            seed += ExaflareRowsSpawned * 69420;
         }
         var random = new Random(seed);
 
@@ -132,10 +149,11 @@ public class MoreExaflares : Mechanic
         if (this.AttackManager.TryCreateAttackEntity<ExaflareRow>(out var exaflareRow))
         {
             exaflareRow.Set(new Position(new Vector3(X, Center.Y, Z)))
-                .Set(new Rotation(MathHelper.DegToRad(deg)));
+                .Set(new Rotation(MathHelper.DegToRad(deg)))
+                .Set(new ExaflareRow.SeededRandom(random));
             attacks.Add(exaflareRow);
         }
 
-        ExaflaresSpawned++;
+        ExaflareRowsSpawned++;
     }
 }
