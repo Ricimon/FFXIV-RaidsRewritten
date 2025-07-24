@@ -17,6 +17,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
     private string RollingBallMaxBallsKey => $"{Name}.RollingBallMaxBalls";
     private string RollingBallRngSeedKey => $"{Name}.RollingBallRngSeed";
     private string TankbusterAftershockKey => $"{Name}.TankbusterAftershock";
+    private string LightningCorridorKey => $"{Name}.LightningCorridor";
 
     private readonly List<Mechanic> mechanics = [];
 
@@ -49,6 +50,11 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
         if (configuration.GetEncounterSetting(TankbusterAftershockKey, true))
         {
             this.mechanics.Add(mechanicFactory.Create<TankbusterAftershock>());
+        }
+
+        if (configuration.GetEncounterSetting(LightningCorridorKey, true))
+        {
+            this.mechanics.Add(mechanicFactory.Create<LightningCorridor>());
         }
     }
 
@@ -110,6 +116,15 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
         {
             configuration.EncounterSettings[TankbusterAftershockKey] =
                 tankbusterAftershock ? bool.TrueString : bool.FalseString;
+            configuration.Save();
+            RefreshMechanics();
+        }
+
+        bool lightningCorridor = configuration.GetEncounterSetting(LightningCorridorKey, true);
+        if (ImGui.Checkbox("Lightning Corridor", ref lightningCorridor))
+        {
+            configuration.EncounterSettings[LightningCorridorKey] =
+                lightningCorridor ? bool.TrueString : bool.FalseString;
             configuration.Save();
             RefreshMechanics();
         }

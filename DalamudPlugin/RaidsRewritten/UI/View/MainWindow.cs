@@ -24,7 +24,6 @@ using RaidsRewritten.Scripts.Attacks;
 using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Scripts.Attacks.Omens;
 using RaidsRewritten.Scripts.Conditions;
-using RaidsRewritten.Scripts.Encounters.UCOB;
 using RaidsRewritten.Spawn;
 using RaidsRewritten.UI.Util;
 using RaidsRewritten.Utility;
