@@ -14,5 +14,7 @@ public interface IEncounter
 
     void Unload();
 
+    void IncrementRngSeed();
+
     void DrawConfig();
 }
