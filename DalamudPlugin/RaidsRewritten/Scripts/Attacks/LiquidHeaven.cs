@@ -2,6 +2,7 @@
 using System.Numerics;
 using ECommons.MathHelpers;
 using Flecs.NET.Core;
+using RaidsRewritten.Extensions;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks.Components;
@@ -56,7 +57,7 @@ public class LiquidHeaven(DalamudServices dalamud, ILogger logger) : IAttack, IS
                 }
                 catch (Exception e)
                 {
-
+                    logger.Error(e.ToStringFull());
                 }
             });
     }

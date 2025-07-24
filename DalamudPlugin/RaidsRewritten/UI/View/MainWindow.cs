@@ -413,10 +413,11 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                 {
                     LiquidHeaven.Set(new Position(player.Position))
                                 .Set(new Rotation(player.Rotation));
-                if (this.attackManager.TryCreateAttackEntity<ExaflareRow>(out var exaflare))
-                {
-                    exaflare.Set(new Position(player.Position))
-                        .Set(new Rotation(player.Rotation));
+                    if (this.attackManager.TryCreateAttackEntity<ExaflareRow>(out var exaflare))
+                    {
+                        exaflare.Set(new Position(player.Position))
+                            .Set(new Rotation(player.Rotation));
+                    }
                 }
             }
         }
@@ -471,24 +472,6 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             });
         }
         ImGui.Text("Heat Stuff");
-        /*
-        if (ImGui.Button("Apply Temperature"))
-        {
-            var world = ecsContainer.World;
-            using var q = world.Query<Player.Component>();
-            q.Each((Entity playerEntity, ref Player.Component pc) =>
-            {
-                using Query<Temperature.Component> q = playerEntity.CsWorld().Query<Temperature.Component>();
-                if (!q.IsTrue())
-                {
-                    playerEntity.CsWorld().Entity("TemperatureEntity")
-                        .Set(new Temperature.Component())
-                        .Set(new Condition.Component("0", 9999.0f))
-                        .ChildOf(playerEntity);
-                }
-            });
-        }
-        ImGui.SameLine();*/
         if (ImGui.Button("Incr Heat"))
         {
             var world = ecsContainer.World;
