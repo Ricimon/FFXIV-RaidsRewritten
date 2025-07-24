@@ -17,16 +17,6 @@ namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
 public class MoreExaflares : Mechanic
 {
-    public int RngSeed
-    {
-        get => rngSeed;
-        set
-        {
-            rngSeed = value;
-            random = new Random(value);
-        }
-    }
-
     private static readonly Vector3 Center = new(0, 0, 0);
     private const float Radius = 20f;
     private readonly List<uint> ActionEffectIds = [
@@ -41,10 +31,10 @@ public class MoreExaflares : Mechanic
     private int LiquidHellCounter = 0;
     private bool GoldenCanSpawnExa = false;
 
+    private int ExaflaresSpawned = 0;
     private readonly List<Entity> attacks = [];
-
-    private int rngSeed;
-    private Random random = new();
+    public int RngSeed { get; set; }
+    
 
     public override void Reset()
     {
@@ -53,7 +43,9 @@ public class MoreExaflares : Mechanic
             attack.Destruct();
         }
         this.attacks.Clear();
-        this.random = new Random(RngSeed);
+        LiquidHellCounter = 0;
+        GoldenCanSpawnExa = false;
+        ExaflaresSpawned = 0;
     }
 
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
@@ -116,6 +108,13 @@ public class MoreExaflares : Mechanic
 
     private void RandomExaflareRow(int excludeAngle = -1)
     {
+        var seed = RngSeed;
+        unchecked
+        {
+            seed += ExaflaresSpawned * 69420;
+        }
+        var random = new Random(seed);
+
         int randVal;
         if (excludeAngle == -1)
         {
@@ -136,5 +135,7 @@ public class MoreExaflares : Mechanic
                 .Set(new Rotation(MathHelper.DegToRad(deg)));
             attacks.Add(exaflareRow);
         }
+
+        ExaflaresSpawned++;
     }
 }

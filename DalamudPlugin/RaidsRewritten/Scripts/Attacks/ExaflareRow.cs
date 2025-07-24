@@ -9,16 +9,17 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using static RaidsRewritten.Scripts.Attacks.RollingBall;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public class ExaflareRow(DalamudServices dalamud, ILogger logger) : IAttack, ISystem
+public class ExaflareRow(DalamudServices dalamud, Random random, ILogger logger) : IAttack, ISystem
 {
     public record struct Component(float ElapsedTime, List<int>? ExaflarePositions = null, int ExaflarePair = 0);
 
     private readonly DalamudServices dalamud = dalamud;
     private readonly ILogger logger = logger;
-    private static readonly Random random = new();
+    public record struct SeededRandom(Random Random);
 
     private const float ExaflareInterval = 3f;
     private const int ExaflarePairLimit = 2;
@@ -55,11 +56,12 @@ public class ExaflareRow(DalamudServices dalamud, ILogger logger) : IAttack, ISy
                     // index = spawn order
                     // value = position of exa in line
                     var list = Enumerable.Range(0, 6).ToList();
+                    Random rand = entity.Has<SeededRandom>() ? entity.Get<SeededRandom>().Random : random;
 
                     // shuffle list
                     for (int num = list.Count - 1; num > 1; num--)
                     {
-                        int rnd = random.Next(num + 1);
+                        int rnd = rand.Next(num + 1);
 
                         (list[num], list[rnd]) = (list[rnd], list[num]);
                     }
