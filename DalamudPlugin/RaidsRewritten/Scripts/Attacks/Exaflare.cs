@@ -142,9 +142,7 @@ public class Exaflare(DalamudServices dalamud, ILogger logger) : IAttack, ISyste
 
     private void OnHit(Entity e)
     {
-        using var bindQuery = e.CsWorld().Query<Condition.Component, Bind.Component>();
-        if (!bindQuery.IsTrue())
-            DelayedAction.Create(e.CsWorld(), () => Bind.ApplyToPlayer(e, StunDuration), StunDelay);
+        DelayedAction.Create(e.CsWorld(), () => Stun.ApplyToPlayer(e, StunDuration), StunDelay);
     }
 
     private bool ShouldReturn(Component component) {

@@ -60,7 +60,13 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
 
         if (configuration.GetEncounterSetting(MoreExaflaresKey, true))
         {
-            this.mechanics.Add(mechanicFactory.Create<MoreExaflares>());
+            var moreExaflares = mechanicFactory.Create<MoreExaflares>();
+
+            var seed = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
+            moreExaflares.RngSeed = RandomUtilities.HashToRngSeed(seed);
+
+            this.mechanics.Add(moreExaflares);
+            
         }
     }
 

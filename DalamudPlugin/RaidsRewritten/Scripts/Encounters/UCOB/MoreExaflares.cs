@@ -31,9 +31,10 @@ public class MoreExaflares : Mechanic
     private int LiquidHellCounter = 0;
     private bool GoldenCanSpawnExa = false;
 
+    private int ExaflaresSpawned = 0;
     private readonly List<Entity> attacks = [];
-
-    private static readonly Random random = new();
+    public int RngSeed { get; set; }
+    
 
     public override void Reset()
     {
@@ -42,6 +43,9 @@ public class MoreExaflares : Mechanic
             attack.Destruct();
         }
         this.attacks.Clear();
+        LiquidHellCounter = 0;
+        GoldenCanSpawnExa = false;
+        ExaflaresSpawned = 0;
     }
 
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
@@ -104,6 +108,13 @@ public class MoreExaflares : Mechanic
 
     private void RandomExaflareRow(int excludeAngle = -1)
     {
+        var seed = RngSeed;
+        unchecked
+        {
+            seed += ExaflaresSpawned * 69420;
+        }
+        var random = new Random(seed);
+
         int randVal;
         if (excludeAngle == -1)
         {
@@ -124,5 +135,7 @@ public class MoreExaflares : Mechanic
                 .Set(new Rotation(MathHelper.DegToRad(deg)));
             attacks.Add(exaflareRow);
         }
+
+        ExaflaresSpawned++;
     }
 }
