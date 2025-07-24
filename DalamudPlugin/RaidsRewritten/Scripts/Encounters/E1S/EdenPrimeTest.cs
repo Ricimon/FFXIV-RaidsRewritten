@@ -11,8 +11,8 @@ public class EdenPrimeTest(Mechanic.Factory mechanicFactory, Configuration confi
     public string Name => "Eden Prime Test";
 
     // Config
+    private string RngSeedKey => $"{Name}.RngSeed";
     private string RollingBallKey => $"{Name}.RollingBall";
-    private string RollingBallRngSeedKey => $"{Name}.RollingBallRngSeed";
 
     private readonly List<Mechanic> mechanics = [];
 
@@ -30,7 +30,7 @@ public class EdenPrimeTest(Mechanic.Factory mechanicFactory, Configuration confi
         if (configuration.GetEncounterSetting(RollingBallKey, true))
         {
             var rollingBall = mechanicFactory.Create<RollingBallOnViceOfApathy>();
-            var seed = configuration.GetEncounterSetting(RollingBallRngSeedKey, string.Empty);
+            var seed = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
             rollingBall.RngSeed = RandomUtilities.HashToRngSeed(seed);
             this.mechanics.Add(rollingBall);
         }
@@ -45,8 +45,27 @@ public class EdenPrimeTest(Mechanic.Factory mechanicFactory, Configuration confi
         this.mechanics.Clear();
     }
 
+    public void IncrementRngSeed()
+    {
+        string rngSeed = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
+        rngSeed = EncounterUtilities.IncrementRngSeed(rngSeed);
+        configuration.EncounterSettings[RngSeedKey] = rngSeed;
+        configuration.Save();
+        RefreshMechanics();
+    }
+
     public void DrawConfig()
     {
+        ImGui.PushItemWidth(120);
+        string rngSeed = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
+        if (ImGui.InputText("RNG Seed", ref rngSeed, 100))
+        {
+            configuration.EncounterSettings[RngSeedKey] = rngSeed;
+            configuration.Save();
+            RefreshMechanics();
+        }
+        ImGui.PopItemWidth();
+
         bool rollingBall = configuration.GetEncounterSetting(RollingBallKey, true);
         if (ImGui.Checkbox("Rolling Ball", ref rollingBall))
         {
@@ -55,15 +74,5 @@ public class EdenPrimeTest(Mechanic.Factory mechanicFactory, Configuration confi
             configuration.Save();
             RefreshMechanics();
         }
-
-        string rollingBallRngSeed = configuration.GetEncounterSetting(RollingBallRngSeedKey, string.Empty);
-        ImGui.PushItemWidth(150);
-        if (ImGui.InputText("Rolling Ball RNG Seed", ref rollingBallRngSeed, 100))
-        {
-            configuration.EncounterSettings[RollingBallRngSeedKey] = rollingBallRngSeed;
-            configuration.Save();
-            RefreshMechanics();
-        }
-        ImGui.PopItemWidth();
     }
 }

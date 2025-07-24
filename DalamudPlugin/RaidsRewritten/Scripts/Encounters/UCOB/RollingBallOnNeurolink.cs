@@ -13,15 +13,7 @@ namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
 public class RollingBallOnNeurolink : Mechanic
 {
-    public int RngSeed
-    {
-        get => rngSeed;
-        set
-        {
-            rngSeed = value;
-            random = new Random(value);
-        }
-    }
+    public int RngSeed { get; set; }
 
     public int MaxBalls { get; set; } = 1;
 
@@ -29,9 +21,7 @@ public class RollingBallOnNeurolink : Mechanic
 
     private readonly List<Entity> attacks = [];
 
-    private int rngSeed;
     private int ballsSpawned;
-    private Random random = new();
 
     public override void Reset()
     {
@@ -41,7 +31,6 @@ public class RollingBallOnNeurolink : Mechanic
         }
         this.attacks.Clear();
         this.ballsSpawned = 0;
-        this.random = new Random(RngSeed);
     }
 
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
@@ -61,6 +50,13 @@ public class RollingBallOnNeurolink : Mechanic
 
         var arenaCenter = new Vector3(0, 0, 0);
         float arenaRadius = 21.5f;
+
+        var seed = RngSeed;
+        unchecked
+        {
+            seed += ballsSpawned * 69420;
+        }
+        var random = new Random(seed);
 
         var polarAngle = MathUtilities.ClampRadians(random.NextSingle() * 2 * MathF.PI);
         var polarDist = (1 - MathF.Pow(random.NextSingle(), 2)) * arenaRadius;
