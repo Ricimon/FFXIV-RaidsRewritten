@@ -20,6 +20,8 @@ public class Circle(DalamudServices dalamud, ILogger logger) : IAttack, ISystem
     public readonly DalamudServices dalamud = dalamud;
     public readonly ILogger logger = logger;
 
+    private Query<Player.Component> playerQuery;
+
     public static Entity CreateEntity(World world)
     {
         return world.Entity()
@@ -37,6 +39,8 @@ public class Circle(DalamudServices dalamud, ILogger logger) : IAttack, ISystem
 
     public void Register(World world)
     {
+        this.playerQuery = Player.Query(world);
+
         world.System<Component, Position, Rotation, Scale>()
             .Each((Iter it, int i, ref Component component, ref Position position, ref Rotation rotation, ref Scale scale) =>
             {
@@ -48,10 +52,9 @@ public class Circle(DalamudServices dalamud, ILogger logger) : IAttack, ISystem
                     var distanceToCenter = Vector2.Distance(position.Value.ToVector2(), player.Position.ToVector2());
                     var onHit = component.OnHit;
 
-                    if (distanceToCenter < scale.Value.Z)
+                    if (distanceToCenter <= scale.Value.Z)
                     {
-                        using var q = Player.Query(it.World());
-                        q.Each((Entity e, ref Player.Component _) =>
+                        this.playerQuery.Each((Entity e, ref Player.Component _) =>
                         {
                             onHit(e);
                         });
