@@ -2,7 +2,6 @@
 using System.Numerics;
 using ECommons.MathHelpers;
 using Flecs.NET.Core;
-using RaidsRewritten.Extensions;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks.Components;
@@ -10,13 +9,13 @@ using RaidsRewritten.Scripts.Conditions;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public class LiquidHeaven(DalamudServices dalamud, ILogger logger) : IAttack, ISystem
+public class LiquidHeaven(DalamudServices dalamud, ILogger logger) : IAttack, ISystem, IDisposable
 {
     public record struct Component(float Cooldown);
 
     private const float HitBoxRadius = 5f;
-    private const float HeatValue = -25.0f;
-    private const float HitCooldown = 1.0f;
+    private const float HeatValue = -1.0f;
+    private const float HitCooldown = 0.1f;
     private const int HeavenID = 1234; //Sample numbers, could also use the entity id maybe
     private Query<Player.Component> playerQuery;
 

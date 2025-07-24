@@ -19,11 +19,10 @@ public class Temperature(ILogger logger) : ISystem
         public readonly float OverheatTemp = 100.0f;
         public readonly float DeepfreezeTemp = -100.0f;
     }
-    public record struct HeatChange(float Delta);
     public record struct Overheat();
     public record struct Deepfreeze();
     public record struct Id(int Value);
-    public record struct TemperatureDelta(float Value, float TimeRemaining, bool SelfDestructable = false, bool Applied = false);
+    public record struct TemperatureDelta(float Value, float ReapplicationCooldownTime, bool SelfDestructable = false, bool Applied = false);
 
     public static void HeatChangedEvent(Entity playerEntity, float delta, float duration = 0, int id = 0)
     {
@@ -33,6 +32,8 @@ public class Temperature(ILogger logger) : ISystem
         if (!q.IsTrue()) {
             te = playerEntity.CsWorld().Entity()
                 .Set(new Temperature.Component())
+                .Set(new Condition.Component("", 9999.0f))
+                .Add<Condition.Hidden>()
                 .ChildOf(playerEntity);
         }
         else
@@ -51,9 +52,9 @@ public class Temperature(ILogger logger) : ISystem
                 {
                     existingDelta = e;
                     //Refresh Logic
-                    if (td.TimeRemaining <= 0)
+                    if (td.ReapplicationCooldownTime <= 0)
                     {
-                        td.TimeRemaining = duration;
+                        td.ReapplicationCooldownTime += duration;
                         td.Applied = false;
                         td.SelfDestructable = false;
                     }
@@ -97,7 +98,7 @@ public class Temperature(ILogger logger) : ISystem
                         delta.Applied = true;
                         temperature.CurrentTemperature += delta.Value;
                         temperature.CurrentTemperature = Math.Clamp(temperature.CurrentTemperature, temperature.MinTemp, temperature.MaxTemp); ;
-                        logger.Info(temperature.CurrentTemperature.ToString());
+                        //logger.Info(temperature.CurrentTemperature.ToString());
                     }
 
                     if (delta.SelfDestructable)
@@ -106,8 +107,9 @@ public class Temperature(ILogger logger) : ISystem
                         e.Destruct();
                     }
 
-                    delta.TimeRemaining = Math.Max(delta.TimeRemaining - it.DeltaTime(), 0);
-                    if (delta.TimeRemaining < 0)
+                    delta.ReapplicationCooldownTime -= it.DeltaTime();
+
+                    if (delta.ReapplicationCooldownTime <= 0)
                     {
                         delta.SelfDestructable = true;
                     }
@@ -128,7 +130,7 @@ public class Temperature(ILogger logger) : ISystem
                 try
                 {
                     //This is constantly refreshing and creating new components, gonna work on handling the UI part to fix this in a bit
-                    e.Set(new Condition.Component(Temperature.CurrentTemperature.ToString(), 9999.0f));
+                    //e.Set(new Condition.Component(Temperature.CurrentTemperature.ToString(), 9999.0f));
 
                     if (Temperature.CurrentTemperature <= Temperature.DeepfreezeTemp)
                     {
