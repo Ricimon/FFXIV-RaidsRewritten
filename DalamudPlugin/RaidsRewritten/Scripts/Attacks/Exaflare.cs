@@ -44,7 +44,7 @@ public class Exaflare(DalamudServices dalamud, ILogger logger) : IAttack, ISyste
     private const float OmenVisible = 3.8f;
     private const float SnapshotOffset = 0.25f;
     private const float ExaflareInterval = 1.5f;
-    private const float ExaflareSize = 6.5f;  // thanks tom
+    private const float ExaflareSize = 6f;  // thanks tom
     private const string ExaflareVfxPath = "vfx/monster/gimmick2/eff/f1bz_b0_g02c0i.avfx";
 
     private const float StunDuration = 10f;
