@@ -39,35 +39,6 @@ public class LiquidHeaven(DalamudServices dalamud, ILogger logger) : IAttack, IS
     public void Register(World world)
     {
         this.playerQuery = Player.Query(world);
-        /*
-        world.System<Component, Position>()
-            .Each((Iter it, int i, ref Component component, ref Position position) =>
-            {
-                try
-                {
-                    component.Cooldown = Math.Max(component.Cooldown - it.DeltaTime(), 0);
-
-                    if (component.Cooldown > 0) { return; }
-
-                    var player = dalamud.ClientState.LocalPlayer;
-                    if (player == null || player.IsDead) { return; }
-
-                    if (Vector2.Distance(position.Value.ToVector2(), player.Position.ToVector2()) <= HitBoxRadius)
-                    {
-                        component.Cooldown = HitCooldown;
-
-                        this.playerQuery.Each((Entity e, ref Player.Component pc) =>
-                        {
-                            Temperature.HeatChangedEvent(e, HeatValue);
-                        });
-                    }
-                }
-                catch (Exception e)
-                {
-                    logger.Error(e.ToStringFull());
-                }
-            });
-        */
         world.System<Component, Position>()
             .Each((Iter it, int i, ref Component component, ref Position position) =>
             {
