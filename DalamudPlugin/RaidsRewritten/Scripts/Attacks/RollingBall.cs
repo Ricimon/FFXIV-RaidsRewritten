@@ -15,7 +15,7 @@ using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public unsafe class RollingBall(DalamudServices dalamud, VfxSpawn vfxSpawn, Random random, ILogger logger) : IAttack, ISystem
+public unsafe sealed class RollingBall(DalamudServices dalamud, VfxSpawn vfxSpawn, Random random, ILogger logger) : IAttack, ISystem, IDisposable
 {
     public record struct Component(float TimeUntilRolling, bool EntryAnimationPlayed = false, float TargetYPosition = default, float Cooldown = default);
     public record struct Movement(Vector2 Direction, float Speed = 0, double SimulationBufferTime = 0);
@@ -32,6 +32,8 @@ public unsafe class RollingBall(DalamudServices dalamud, VfxSpawn vfxSpawn, Rand
     private const float ReflectAngleVariance = 25.0f; // degrees
     private const double FixedDeltaTime = 0.01f;
 
+    private Query<Player.Component> playerQuery;
+
     public Entity Create(World world)
     {
         return world.Entity()
@@ -44,8 +46,15 @@ public unsafe class RollingBall(DalamudServices dalamud, VfxSpawn vfxSpawn, Rand
             .Add<Attack>();
     }
 
+    public void Dispose()
+    {
+        this.playerQuery.Dispose();
+    }
+
     public void Register(World world)
     {
+        this.playerQuery = Player.Query(world);
+
         // Make the ball roll around
         world.System<Model, Component, Movement, Position, Rotation>()
             .Each((Iter it, int i, ref Model model, ref Component component, ref Movement movement, ref Position position, ref Rotation rotation) =>
@@ -158,8 +167,7 @@ public unsafe class RollingBall(DalamudServices dalamud, VfxSpawn vfxSpawn, Rand
                             knockbackDirection = new Vector3(MathF.Cos(randomAngle), 0, MathF.Sin(randomAngle));
                         }
 
-                        using var q = Player.Query(it.World());
-                        q.Each((Entity e, ref Player.Component pc) =>
+                        this.playerQuery.Each((Entity e, ref Player.Component pc) =>
                         {
                             Knockback.ApplyToPlayer(e, knockbackDirection, KnockbackDuration, true);
                         });

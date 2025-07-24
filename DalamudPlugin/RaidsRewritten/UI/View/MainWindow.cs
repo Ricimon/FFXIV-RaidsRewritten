@@ -16,7 +16,6 @@ using RaidsRewritten.Scripts.Attacks;
 using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Scripts.Attacks.Omens;
 using RaidsRewritten.Scripts.Conditions;
-using RaidsRewritten.Scripts.Encounters.UCOB;
 using RaidsRewritten.Spawn;
 using RaidsRewritten.UI.Util;
 using RaidsRewritten.Utility;
@@ -168,7 +167,9 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         ImGui.SetNextWindowSizeConstraints(new Vector2(width, 250), new Vector2(float.MaxValue, float.MaxValue));
         if (ImGui.Begin(this.windowName, ref this.visible))
         {
+            this.ecsContainer.World.DeferBegin();
             DrawContents();
+            this.ecsContainer.World.DeferEnd();
         }
         ImGui.End();
     }
@@ -277,7 +278,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         ImGui.SameLine();
         if (ImGui.Button("Clear All Statuses"))
         {
-            this.ecsContainer.World.RemoveAll<Condition.Component>();
+            this.ecsContainer.World.DeleteWith<Condition.Component>();
         }
 
         if (ImGui.Button("Circle Omen"))
@@ -450,7 +451,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             using var q = ecsContainer.World.Query<Player.Component>();
             q.Each((Entity e, ref Player.Component pc) =>
             {
-                Paralysis.ApplyToPlayer(e, 5.0f);
+                Paralysis.ApplyToPlayer(e, 5.0f, 3.0f, 1.0f, -100);
             });
         }
     }

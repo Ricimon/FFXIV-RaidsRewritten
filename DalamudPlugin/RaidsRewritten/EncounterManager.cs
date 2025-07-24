@@ -163,6 +163,15 @@ public sealed class EncounterManager : IDalamudHook
         if (obj == null)
         {
             this.logger.Debug(text.ToString());
+
+            if (this.configuration.EverythingDisabled) { return; }
+            if (ActiveEncounter != null)
+            {
+                foreach (var mechanic in ActiveEncounter.GetMechanics())
+                {
+                    mechanic.OnVFXSpawn(obj, vfxPath);
+                }
+            }
             return;
         }
 
@@ -185,6 +194,13 @@ public sealed class EncounterManager : IDalamudHook
         this.logger.Debug(text.ToString());
 
         if (this.configuration.EverythingDisabled) { return; }
+        if (ActiveEncounter != null)
+        {
+            foreach (var mechanic in ActiveEncounter.GetMechanics())
+            {
+                mechanic.OnVFXSpawn(obj, vfxPath);
+            }
+        }
     }
 
     private void OnDirectorUpdate(long a1, long a2, DirectorUpdateCategory a3, uint a4, uint a5, int a6, int a7)
@@ -193,9 +209,13 @@ public sealed class EncounterManager : IDalamudHook
         this.logger.Debug(text);
 
         if (this.configuration.EverythingDisabled) { return; }
-
         if (ActiveEncounter != null)
         {
+            if (a3 == DirectorUpdateCategory.Commence ||
+                a3 == DirectorUpdateCategory.Recommence)
+            {
+                ActiveEncounter.IncrementRngSeed();
+            }
             foreach (var mechanic in ActiveEncounter.GetMechanics())
             {
                 mechanic.OnDirectorUpdate(a3);
@@ -260,7 +280,7 @@ public sealed class EncounterManager : IDalamudHook
         // Ignore actions from other players
         var source = set.Source;
         var target = set.Target;
-        if (source != null && 
+        if (source != null &&
             source.ObjectKind == ObjectKind.Player &&
             source.EntityId != this.dalamud.ClientState.LocalPlayer?.EntityId)
         {

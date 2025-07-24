@@ -11,7 +11,7 @@ using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Conditions;
 
-public sealed class Knockback(DalamudServices dalamud, EcsContainer ecsContainer, ILogger logger) : IDalamudHook
+public sealed class Knockback : IDalamudHook
 {
     public record struct Component(Vector3 KnockbackDirection);
 
@@ -27,19 +27,29 @@ public sealed class Knockback(DalamudServices dalamud, EcsContainer ecsContainer
         //2702,   // Radiant Aegis (testing)
         ];
 
-    private readonly World world = ecsContainer.World;
+    private static ILogger? Logger;
+
+    private readonly DalamudServices dalamud;
+    private readonly World world;
+    private readonly ILogger logger;
+
+    private readonly Query<Player.Component> playerQuery;
 
     public static void ApplyToPlayer(Entity playerEntity, Vector3 knockbackDirection, float duration, bool canResist)
     {
+        if (!playerEntity.CsWorld().IsDeferred())
+        {
+            Logger?.Warn("Knockback application must be done in a Deferred context.");
+            return;
+        }
+
         var apply = true;
-        playerEntity.Scope(() =>
+        playerEntity.Children(child =>
         {
             // Don't apply if player is bound
-            using var q = playerEntity.CsWorld().Query<Bind.Component>();
-            if (q.IsTrue())
+            if (child.Has<Bind.Component>())
             {
                 apply = false;
-                return;
             }
         });
 
@@ -62,15 +72,27 @@ public sealed class Knockback(DalamudServices dalamud, EcsContainer ecsContainer
         if (!apply) { return; }
 
         // Remove existing knockback conditions
-        playerEntity.Scope(() =>
+        playerEntity.Children(child =>
         {
-            playerEntity.CsWorld().DeleteWith<Component>();
+            // This operation requires deferral
+            if (child.Has<Component>()) { child.Destruct(); }
         });
 
         playerEntity.CsWorld().Entity()
             .Set(new Condition.Component("Knocked Back", duration))
             .Set(new Component(knockbackDirection))
             .ChildOf(playerEntity);
+    }
+
+    public Knockback(DalamudServices dalamud, EcsContainer ecsContainer, ILogger logger)
+    {
+        Logger = logger;
+
+        this.dalamud = dalamud;
+        this.world = ecsContainer.World;
+        this.logger = logger;
+
+        this.playerQuery = Player.Query(ecsContainer.World);
     }
 
     public void HookToDalamud()
@@ -81,13 +103,15 @@ public sealed class Knockback(DalamudServices dalamud, EcsContainer ecsContainer
     public void Dispose()
     {
         ActionEffect.ActionEffectEvent -= OnActionEffectEvent;
+        this.playerQuery.Dispose();
     }
 
     private void OnActionEffectEvent(ActionEffectSet set)
     {
+        // Do not Destruct entities in an undeferred query or else this will cause a crash.
         try
         {
-            var localPlayer = dalamud.ClientState.LocalPlayer;
+            var localPlayer = this.dalamud.ClientState.LocalPlayer;
             if (localPlayer == null) { return; }
             foreach (var targetEffects in set.TargetEffects)
             {
@@ -96,21 +120,17 @@ public sealed class Knockback(DalamudServices dalamud, EcsContainer ecsContainer
                     targetEffects.GetSpecificTypeEffect(ActionEffectType.Knockback2, out _)))
                 {
                     // Remove any fake knockback conditions if a real knockback occurs
-                    // (!) This deletes ALL knockback components, which is fine if the local player
-                    // is the only player entity.
-                    this.world.DeleteWith<Component>();
-                    //using var q = Player.Query(this.world);
-                    //q.Each((Entity e, ref Player.Component _) =>
-                    //{
-                    //    // Unfortunately, this Scope does not actually work
-                    //    e.Scope(() =>
-                    //    {
-                    //        this.world.DeleteWith<Component>();
-                    //    });
-                    //});
+                    this.world.DeferBegin();
+                    this.playerQuery.Each((Entity e, ref Player.Component _) =>
+                    {
+                        e.Children(child =>
+                        {
+                            // This operation requires deferral
+                            if (child.Has<Component>()) { child.Destruct(); }
+                        });
+                    });
+                    this.world.DeferEnd();
                     return;
-
-                    // Do not Destruct entities outside of a system or else this will cause a crash.
                 }
             }
 

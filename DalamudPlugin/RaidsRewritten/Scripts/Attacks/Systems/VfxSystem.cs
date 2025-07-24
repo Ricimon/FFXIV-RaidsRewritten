@@ -7,7 +7,7 @@ using System.Numerics;
 
 namespace RaidsRewritten.Scripts.Attacks.Systems;
 
-public unsafe class VfxSystem(VfxSpawn vfxSpawn, ILogger logger) : ISystem
+public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogger logger) : ISystem
 {
     private readonly VfxSpawn vfxSpawn = vfxSpawn;
     private readonly ILogger logger = logger;
@@ -54,6 +54,26 @@ public unsafe class VfxSystem(VfxSpawn vfxSpawn, ILogger logger) : ISystem
                 if (vfx.VfxPtr == null && model.GameObject != null)
                 {
                     vfx.VfxPtr = vfxSpawn.SpawnActorVfx(vfx.Path, model.GameObject, model.GameObject);
+                }
+
+                // Vfx self-destructed, because it finished playing
+                if (vfx.VfxPtr != null && vfx.VfxPtr.Vfx == null)
+                {
+                    it.Entity(i).Destruct();
+                    return;
+                }
+            });
+
+        world.System<Player.Component, ActorVfx>()
+            .TermAt(0).Up()
+            .Each((Iter it, int i, ref Player.Component pc, ref ActorVfx vfx) =>
+            {
+                if (!pc.IsLocalPlayer) { return; }
+
+                var localPlayer = dalamud.ClientState.LocalPlayer;
+                if (vfx.VfxPtr == null && localPlayer != null)
+                {
+                    vfx.VfxPtr = vfxSpawn.SpawnActorVfx(vfx.Path, localPlayer, localPlayer);
                 }
 
                 // Vfx self-destructed, because it finished playing

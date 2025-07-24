@@ -8,15 +8,18 @@ using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Spawn;
+using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public class Twister(DalamudServices dalamud, VfxSpawn vfxSpawn, Random random, ILogger logger) : IAttack, ISystem
+public sealed class Twister(DalamudServices dalamud, VfxSpawn vfxSpawn, Random random, ILogger logger) : IAttack, ISystem, IDisposable
 {
     public record struct Component(float Cooldown);
 
     private const float Radius = 0.9f;
     private const float KnockbackDuration = 5.0f;
+
+    private Query<Player.Component> playerQuery;
 
     public Entity Create(World world)
     {
@@ -29,8 +32,15 @@ public class Twister(DalamudServices dalamud, VfxSpawn vfxSpawn, Random random, 
             .Add<Attack>();
     }
 
+    public void Dispose()
+    {
+        this.playerQuery.Dispose();
+    }
+
     public void Register(World world)
     {
+        this.playerQuery = Player.Query(world);
+
         world.System<Component, Position>()
             .Each((Iter it, int i, ref Component component, ref Position position) =>
             {
@@ -58,8 +68,7 @@ public class Twister(DalamudServices dalamud, VfxSpawn vfxSpawn, Random random, 
                             var randomAngle = (float)(random.NextDouble() * 2 * Math.PI);
                             knockbackDirection = new Vector3(MathF.Cos(randomAngle), 0, MathF.Sin(randomAngle));
                         }
-                        using var q = Player.Query(it.World());
-                        q.Each((Entity e, ref Player.Component pc) =>
+                        this.playerQuery.Each((Entity e, ref Player.Component pc) =>
                         {
                             Knockback.ApplyToPlayer(e, knockbackDirection, KnockbackDuration, false);
                         });

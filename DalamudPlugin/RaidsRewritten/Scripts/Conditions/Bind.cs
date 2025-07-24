@@ -1,37 +1,30 @@
 ﻿using Flecs.NET.Core;
-using RaidsRewritten.Game;
-using RaidsRewritten.Interop.Structs.Vfx;
-using RaidsRewritten.Log;
-using RaidsRewritten.Spawn;
+using RaidsRewritten.Scripts.Attacks.Components;
 
 namespace RaidsRewritten.Scripts.Conditions;
 
-public class Bind(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogger logger) : ISystem
+public class Bind
 {
-    public record struct Component(BaseVfx? Vfx = null);
+    public record struct Component(object _);
 
     public static void ApplyToPlayer(Entity playerEntity, float duration)
     {
-        playerEntity.CsWorld().Entity()
+        var world = playerEntity.CsWorld();
+        var e = world.Entity()
             .Set(new Condition.Component("Bound", duration))
             .Set(new Component())
             .ChildOf(playerEntity);
-    }
 
-    public void Register(World world)
-    {
-        world.System<Condition.Component, Component>()
-            .Each((Iter it, int i, ref Condition.Component condition, ref Component bound) =>
+        world.Entity()
+            .Set(new ActorVfx("vfx/common/eff/dk05ht_bind0t.avfx"))
+            .ChildOf(e);
+        DelayedAction.Create(world,
+            () =>
             {
-                var e = it.Entity(i);
-                if (!e.Parent().Has<Player.Component>()) { return; }
-                if (!e.Parent().Get<Player.Component>().IsLocalPlayer) { return; }
-
-                var localPlayer = dalamud.ClientState.LocalPlayer;
-                //if (bound.Vfx == null && localPlayer != null)
-                //{
-                //    bound.Vfx = this.vfxSpawn.SpawnActorVfx("vfx/common/eff/dk05ht_bind0t.avfx", localPlayer, localPlayer);
-                //}
-            });
+                world.Entity()
+                    .Set(new ActorVfx("vfx/common/eff/dk10ht_bind0h.avfx"))
+                    .ChildOf(e);
+            },
+            0.6f).ChildOf(e);
     }
 }

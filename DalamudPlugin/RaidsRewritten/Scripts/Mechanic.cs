@@ -37,6 +37,8 @@ public abstract class Mechanic()
 
     public virtual void OnActionEffectEvent(ActionEffectSet set) { }
 
+    public virtual void OnVFXSpawn(IGameObject? target, string vfxPath) { }
+
     public virtual void OnStartingCast(Action action, IBattleChara source) { }
 
     public class Factory(DalamudServices dalamud, EcsContainer ecsContainer, AttackManager attackManager, ILogger logger)

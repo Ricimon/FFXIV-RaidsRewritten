@@ -12,11 +12,12 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
     public string Name => "UCOB Rewritten";
 
     // Config
+    private string RngSeedKey => $"{Name}.RngSeed";
     private string PermanentTwistersKey => $"{Name}.PermanentTwisters";
     private string RollingBallKey => $"{Name}.RollingBall";
     private string RollingBallMaxBallsKey => $"{Name}.RollingBallMaxBalls";
-    private string RollingBallRngSeedKey => $"{Name}.RollingBallRngSeed";
     private string TankbusterAftershockKey => $"{Name}.TankbusterAftershock";
+    private string LightningCorridorKey => $"{Name}.LightningCorridor";
     private string MoreExaflaresKey => $"{Name}.MoreExaflares";
 
     private readonly List<Mechanic> mechanics = [];
@@ -41,7 +42,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
 
             rollingBall.MaxBalls = configuration.GetEncounterSetting(RollingBallMaxBallsKey, 1);
 
-            var seed = configuration.GetEncounterSetting(RollingBallRngSeedKey, string.Empty);
+            var seed = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
             rollingBall.RngSeed = RandomUtilities.HashToRngSeed(seed);
 
             this.mechanics.Add(rollingBall);
@@ -50,6 +51,11 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
         if (configuration.GetEncounterSetting(TankbusterAftershockKey, true))
         {
             this.mechanics.Add(mechanicFactory.Create<TankbusterAftershock>());
+        }
+
+        if (configuration.GetEncounterSetting(LightningCorridorKey, true))
+        {
+            this.mechanics.Add(mechanicFactory.Create<LightningCorridor>());
         }
 
         if (configuration.GetEncounterSetting(MoreExaflaresKey, true))
@@ -67,8 +73,27 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
         this.mechanics.Clear();
     }
 
+    public void IncrementRngSeed()
+    {
+        string rngSeed = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
+        rngSeed = EncounterUtilities.IncrementRngSeed(rngSeed);
+        configuration.EncounterSettings[RngSeedKey] = rngSeed;
+        configuration.Save();
+        RefreshMechanics();
+    }
+
     public void DrawConfig()
     {
+        ImGui.PushItemWidth(140);
+        string rngSeed = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
+        if (ImGui.InputText("RNG Seed", ref rngSeed, 100))
+        {
+            configuration.EncounterSettings[RngSeedKey] = rngSeed;
+            configuration.Save();
+            RefreshMechanics();
+        }
+        ImGui.PopItemWidth();
+
         bool permanentTwisters = configuration.GetEncounterSetting(PermanentTwistersKey, true);
         if (ImGui.Checkbox("Permanent Twisters", ref permanentTwisters))
         {
@@ -99,16 +124,6 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
                 RefreshMechanics();
             }
             ImGui.PopItemWidth();
-
-            ImGui.PushItemWidth(120);
-            string rollingBallRngSeed = configuration.GetEncounterSetting(RollingBallRngSeedKey, string.Empty);
-            if (ImGui.InputText("Rolling Ball RNG Seed", ref rollingBallRngSeed, 100))
-            {
-                configuration.EncounterSettings[RollingBallRngSeedKey] = rollingBallRngSeed;
-                configuration.Save();
-                RefreshMechanics();
-            }
-            ImGui.PopItemWidth();
         }
 
         bool tankbusterAftershock = configuration.GetEncounterSetting(TankbusterAftershockKey, true);
@@ -116,6 +131,15 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
         {
             configuration.EncounterSettings[TankbusterAftershockKey] =
                 tankbusterAftershock ? bool.TrueString : bool.FalseString;
+            configuration.Save();
+            RefreshMechanics();
+        }
+
+        bool lightningCorridor = configuration.GetEncounterSetting(LightningCorridorKey, true);
+        if (ImGui.Checkbox("Lightning Corridor", ref lightningCorridor))
+        {
+            configuration.EncounterSettings[LightningCorridorKey] =
+                lightningCorridor ? bool.TrueString : bool.FalseString;
             configuration.Save();
             RefreshMechanics();
         }
