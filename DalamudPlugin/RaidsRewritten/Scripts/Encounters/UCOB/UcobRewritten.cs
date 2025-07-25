@@ -19,6 +19,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
     private string TankbusterAftershockKey => $"{Name}.TankbusterAftershock";
     private string LightningCorridorKey => $"{Name}.LightningCorridor";
     private string MoreExaflaresKey => $"{Name}.MoreExaflares";
+    private string LiquidHeavenKey => $"{Name}.LiquidHeaven";
 
     private readonly List<Mechanic> mechanics = [];
 
@@ -67,6 +68,11 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
 
             this.mechanics.Add(moreExaflares);
             
+        }
+
+        if (configuration.GetEncounterSetting(LiquidHeavenKey, true))
+        {
+            this.mechanics.Add(mechanicFactory.Create<LiquidHeaven>());
         }
     }
 
@@ -158,5 +164,15 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             configuration.Save();
             RefreshMechanics();
         }
+
+        bool liquidHeaven = configuration.GetEncounterSetting(LiquidHeavenKey, true);
+        if (ImGui.Checkbox("Liquid Heaven", ref liquidHeaven))
+        {
+            configuration.EncounterSettings[LiquidHeavenKey] =
+                liquidHeaven ? bool.TrueString : bool.FalseString;
+            configuration.Save();
+            RefreshMechanics();
+        }
+
     }
 }

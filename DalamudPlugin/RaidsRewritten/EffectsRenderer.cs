@@ -56,6 +56,7 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
 
     private readonly IFontHandle font;
     private readonly Query<Condition.Component> componentsQuery;
+    private readonly Query<Temperature.Component> temperatureQuery;
 
     private const float PADDING_X = 10f;
 
@@ -100,7 +101,8 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
             });
         });
 
-        this.componentsQuery = ecsContainer.World.QueryBuilder<Condition.Component>().Cached().Build();
+        this.componentsQuery = ecsContainer.World.QueryBuilder<Condition.Component>().Without<Condition.Hidden>().Cached().Build();
+        this.temperatureQuery = ecsContainer.World.QueryBuilder<Temperature.Component>().Cached().Build();
     }
 
     public void Dispose()
@@ -129,6 +131,10 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
                 AddStatus(toDraw, status.Name, Math.Round(status.TimeRemaining), ref offsetY, ref maxWidth);
             });
 
+            this.temperatureQuery.Each((ref Temperature.Component temperature) => { 
+                AddTemperature(toDraw, temperature, ref offsetY, ref maxWidth);
+            });
+
             if (offsetY > 0f)
             {
                 var min = new Vector2(configuration.EffectsRendererPositionX - maxWidth / 2 - PADDING_X, configuration.EffectsRendererPositionY);
@@ -150,6 +156,16 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
         var position = new Vector2(configuration.EffectsRendererPositionX - textSize.X / 2, configuration.EffectsRendererPositionY + offsetY);
         //drawList.AddText(ImGui.GetFont(), 50, position, Vector4Colors.Red.ToColorU32(), text);
         toDraw.Add(new EffectTextEntry(text, position));
+        offsetY += textSize.Y;
+        if (textSize.X > maxWidth) maxWidth = textSize.X;
+    }
+
+    private void AddTemperature(List<EffectTextEntry> toDraw, Temperature.Component tc, ref float offsetY, ref float maxWidth) 
+    {
+        var text = $"Temperature: {tc.CurrentTemperature}";
+        var textSize = ImGui.CalcTextSize(text);
+        var position = new Vector2(configuration.EffectsRendererPositionX - textSize.X / 2, configuration.EffectsRendererPositionY + offsetY);
+        toDraw.Add(new EffectTextEntry(text , position));
         offsetY += textSize.Y;
         if (textSize.X > maxWidth) maxWidth = textSize.X;
     }

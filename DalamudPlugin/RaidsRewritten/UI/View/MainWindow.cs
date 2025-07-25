@@ -389,7 +389,6 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                 }
             }
         }
-
         ImGui.SameLine();
 
         if (ImGui.Button("Exaflare"))
@@ -410,10 +409,28 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             var player = this.dalamud.ClientState.LocalPlayer;
             if (player != null)
             {
-                if (this.attackManager.TryCreateAttackEntity<ExaflareRow>(out var exaflare))
+                if (this.attackManager.TryCreateAttackEntity<LiquidHeaven>(out var LiquidHeaven))
                 {
-                    exaflare.Set(new Position(player.Position))
-                        .Set(new Rotation(player.Rotation));
+                    LiquidHeaven.Set(new Position(player.Position))
+                                .Set(new Rotation(player.Rotation));
+                    if (this.attackManager.TryCreateAttackEntity<ExaflareRow>(out var exaflare))
+                    {
+                        exaflare.Set(new Position(player.Position))
+                            .Set(new Rotation(player.Rotation));
+                    }
+                }
+            }
+        }
+
+        if (ImGui.Button("Spawn Liquid Heaven"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<LiquidHeaven>(out var LiquidHeaven))
+                {
+                    LiquidHeaven.Set(new Position(player.Position))
+                                .Set(new Rotation(player.Rotation));
                 }
             }
         }
@@ -452,6 +469,26 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             q.Each((Entity e, ref Player.Component pc) =>
             {
                 Paralysis.ApplyToPlayer(e, 5.0f, 3.0f, 1.0f, -100);
+            });
+        }
+        ImGui.Text("Heat Stuff");
+        if (ImGui.Button("Incr Heat"))
+        {
+            var world = ecsContainer.World;
+            using var q = world.Query<Player.Component>();
+            q.Each((Entity e, ref Player.Component pc) =>
+            {
+                Temperature.HeatChangedEvent(e, 50);
+            });
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Decr Heat"))
+        {
+            var world = ecsContainer.World;
+            using var q = world.Query<Player.Component>();
+            q.Each((Entity e, ref Player.Component pc) =>
+            {
+                Temperature.HeatChangedEvent(e, -50);
             });
         }
     }
