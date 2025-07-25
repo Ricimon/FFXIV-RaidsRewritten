@@ -99,8 +99,8 @@ public readonly unsafe record struct ActionEffectSet
 
     public override string ToString()
     {
-        var str = $"S:{Source?.Name}, T:{Target?.Name}, Lock:{Header.AnimationLockTime}, ";
-        str += $"Type: {Header.ActionType}, Name: {Action?.Name}({Action?.RowId})";
+        var str = $"S:{Source?.Name}, T:{Target?.Name}, Name: {Action?.Name}({Action?.RowId}) ";
+        str += $"Header.Type: {Header.ActionType}, Header.T: 0x{Header.AnimationTargetId:X}, Header.Lock:{Header.AnimationLockTime}";
         if(TargetEffects != null)
         {
             foreach(var effect in TargetEffects)
