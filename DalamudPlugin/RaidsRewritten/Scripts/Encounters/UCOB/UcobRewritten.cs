@@ -20,6 +20,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
     private string LightningCorridorKey => $"{Name}.LightningCorridor";
     private string MoreExaflaresKey => $"{Name}.MoreExaflares";
     private string LiquidHeavenKey => $"{Name}.LiquidHeaven";
+    private string TemperatureMeterKey => $"{Name}.TemperatureMeter";
 
     private readonly List<Mechanic> mechanics = [];
 
@@ -73,6 +74,11 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
         if (configuration.GetEncounterSetting(LiquidHeavenKey, true))
         {
             this.mechanics.Add(mechanicFactory.Create<LiquidHeaven>());
+        }
+
+        if (configuration.GetEncounterSetting(TemperatureMeterKey, true))
+        {
+            this.mechanics.Add(mechanicFactory.Create<TemperatureMeter>());
         }
     }
 
@@ -174,5 +180,13 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             RefreshMechanics();
         }
 
+        bool TemperatureMeter = configuration.GetEncounterSetting(TemperatureMeterKey, true);
+        if (ImGui.Checkbox("Temperature Meter", ref TemperatureMeter))
+        {
+            configuration.EncounterSettings[TemperatureMeterKey] =
+                TemperatureMeter ? bool.TrueString : bool.FalseString;
+            configuration.Save();
+            RefreshMechanics();
+        }
     }
 }
