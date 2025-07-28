@@ -9,7 +9,7 @@ using RaidsRewritten.Scripts.Conditions;
 
 namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
-internal class TemperatureMeter : Mechanic
+internal class TemperatureControl : Mechanic
 {
     private struct HeatData
     {

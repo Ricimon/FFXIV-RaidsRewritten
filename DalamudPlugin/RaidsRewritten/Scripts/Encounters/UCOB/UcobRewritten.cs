@@ -20,7 +20,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
     private string LightningCorridorKey => $"{Name}.LightningCorridor";
     private string MoreExaflaresKey => $"{Name}.MoreExaflares";
     private string LiquidHeavenKey => $"{Name}.LiquidHeaven";
-    private string TemperatureMeterKey => $"{Name}.TemperatureMeter";
+    private string TemperatureControlKey => $"{Name}.TemperatureControl";
     private string JumpableShockwavesKey => $"{Name}.JumpableShockwaves";
 
     private readonly List<Mechanic> mechanics = [];
@@ -81,9 +81,9 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             this.mechanics.Add(mechanicFactory.Create<LiquidHeaven>());
         }
 
-        if (configuration.GetEncounterSetting(TemperatureMeterKey, true))
+        if (configuration.GetEncounterSetting(TemperatureControlKey, true))
         {
-            this.mechanics.Add(mechanicFactory.Create<TemperatureMeter>());
+            this.mechanics.Add(mechanicFactory.Create<TemperatureControl>());
         }
     }
 
@@ -194,11 +194,11 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             RefreshMechanics();
         }
 
-        bool TemperatureMeter = configuration.GetEncounterSetting(TemperatureMeterKey, true);
-        if (ImGui.Checkbox("Temperature Meter", ref TemperatureMeter))
+        bool temperatureControl = configuration.GetEncounterSetting(TemperatureControlKey, true);
+        if (ImGui.Checkbox("Temperature Control", ref temperatureControl))
         {
-            configuration.EncounterSettings[TemperatureMeterKey] =
-                TemperatureMeter ? bool.TrueString : bool.FalseString;
+            configuration.EncounterSettings[TemperatureControlKey] =
+                temperatureControl ? bool.TrueString : bool.FalseString;
             configuration.Save();
             RefreshMechanics();
         }
