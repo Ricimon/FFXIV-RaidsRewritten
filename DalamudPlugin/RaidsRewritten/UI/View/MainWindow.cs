@@ -323,98 +323,12 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             }
         }
 
-        if (ImGui.Button("Spawn Twister"))
-        {
-            var player = this.dalamud.ClientState.LocalPlayer;
-            if (player != null)
-            {
-                if (this.attackManager.TryCreateAttackEntity<Twister>(out var twister))
-                {
-                    twister.Set(new Position(player.Position));
-                    twister.Set(new Rotation(player.Rotation));
-                }
-            }
-        }
-        ImGui.SameLine();
-        if (ImGui.Button("Spawn 3 Twisters"))
-        {
-            var player = this.dalamud.ClientState.LocalPlayer;
-            if (player != null)
-            {
-                for (var i = 0; i < 3; i++)
-                {
-                    if (this.attackManager.TryCreateAttackEntity<Twister>(out var twister))
-                    {
-                        twister.Set(new Position(player.Position + new Vector3(i, 0, 0)));
-                        twister.Set(new Rotation(player.Rotation));
-                    }
-                }
-            }
-        }
-        ImGui.SameLine();
-        if (ImGui.Button("Spawn Ball"))
-        {
-            var player = this.dalamud.ClientState.LocalPlayer;
-            if (player != null)
-            {
-                if (this.attackManager.TryCreateAttackEntity<RollingBall>(out var ball))
-                {
-                    ball.Set(new Position(player.Position))
-                        .Set(new Rotation(player.Rotation))
-                        .Set(new RollingBall.Movement(MathUtilities.RotationToUnitVector(player.Rotation)))
-                        .Set(new RollingBall.CircleArena(player.Position.ToVector2(), 10.0f));
-                        //.Set(new RollingBall.ShowOmen());
-                }
-            }
-        }
-
         if (ImGui.Button("Print Player Data"))
         {
             var player = this.dalamud.ClientState.LocalPlayer;
             if (player != null)
             {
                 this.logger.Info($"Player position:{player.Position}, address:0x{player.Address:X}, entityId:0x{player.EntityId:X}, gameObjectId:0x{player.GameObjectId}");
-            }
-        }
-
-        if (ImGui.Button("LightningCorridor"))
-        {
-            var player = this.dalamud.ClientState.LocalPlayer;
-            if (player != null)
-            {
-                if (this.attackManager.TryCreateAttackEntity<LightningCorridor>(out var attack))
-                {
-                    attack.Set(new Position(player.Position))
-                        .Set(new Rotation(player.Rotation));
-                }
-            }
-        }
-
-        ImGui.SameLine();
-
-        if (ImGui.Button("Exaflare"))
-        {
-            var player = this.dalamud.ClientState.LocalPlayer;
-            if (player != null)
-            {
-                if (this.attackManager.TryCreateAttackEntity<Exaflare>(out var exaflare))
-                {
-                    exaflare.Set(new Position(player.Position))
-                        .Set(new Rotation(player.Rotation));
-                }
-            }
-        }
-
-        if (ImGui.Button("Spawn row of Exaflares"))
-        {
-            var player = this.dalamud.ClientState.LocalPlayer;
-            if (player != null)
-            {
-                if (this.attackManager.TryCreateAttackEntity<ExaflareRow>(out var exaflare))
-                {
-                    exaflare.Set(new Position(player.Position))
-                        .Set(new Rotation(player.Rotation));
-                }
             }
         }
 
@@ -454,6 +368,90 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                 Paralysis.ApplyToPlayer(e, 5.0f, 3.0f, 1.0f, -100);
             });
         }
+
+        ImGui.Text("Attacks");
+
+        if (ImGui.Button("Spawn Twister"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<Twister>(out var twister))
+                {
+                    twister.Set(new Position(player.Position));
+                    twister.Set(new Rotation(player.Rotation));
+                }
+            }
+        }
+
+#if DEBUG
+        if (ImGui.Button("Spawn Ball"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<RollingBall>(out var ball))
+                {
+                    ball.Set(new Position(player.Position))
+                        .Set(new Rotation(player.Rotation))
+                        .Set(new RollingBall.Movement(MathUtilities.RotationToUnitVector(player.Rotation)))
+                        .Set(new RollingBall.CircleArena(player.Position.ToVector2(), 10.0f));
+                        //.Set(new RollingBall.ShowOmen());
+                }
+            }
+        }
+        if (ImGui.Button("LightningCorridor"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<LightningCorridor>(out var attack))
+                {
+                    attack.Set(new Position(player.Position))
+                        .Set(new Rotation(player.Rotation));
+                }
+            }
+        }
+
+        if (ImGui.Button("Exaflare"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<Exaflare>(out var exaflare))
+                {
+                    exaflare.Set(new Position(player.Position))
+                        .Set(new Rotation(player.Rotation));
+                }
+            }
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Row of Exaflares"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<ExaflareRow>(out var exaflare))
+                {
+                    exaflare.Set(new Position(player.Position))
+                        .Set(new Rotation(player.Rotation));
+                }
+            }
+        }
+
+        if (ImGui.Button("Jumpwave"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<JumpableShockwave>(out var jumpwave))
+                {
+                    jumpwave.Set(new Position(player.Position + 0.0f * Vector3.UnitX))
+                        .Set(new Rotation(player.Rotation));
+                }
+            }
+        }
+#endif
     }
 
     #region Rooms
