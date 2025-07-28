@@ -21,6 +21,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
     private string MoreExaflaresKey => $"{Name}.MoreExaflares";
     private string LiquidHeavenKey => $"{Name}.LiquidHeaven";
     private string TemperatureMeterKey => $"{Name}.TemperatureMeter";
+    private string JumpableShockwavesKey => $"{Name}.JumpableShockwaves";
 
     private readonly List<Mechanic> mechanics = [];
 
@@ -38,7 +39,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             this.mechanics.Add(mechanicFactory.Create<PermanentTwister>());
         }
 
-        if (configuration.GetEncounterSetting(RollingBallKey, true))
+        if (configuration.GetEncounterSetting(RollingBallKey, false))
         {
             var rollingBall = mechanicFactory.Create<RollingBallOnNeurolink>();
 
@@ -68,7 +69,11 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             moreExaflares.RngSeed = RandomUtilities.HashToRngSeed(seed);
 
             this.mechanics.Add(moreExaflares);
-            
+        }
+
+        if (configuration.GetEncounterSetting(JumpableShockwavesKey, true))
+        {
+            this.mechanics.Add(mechanicFactory.Create<JumpableShockwaves>());
         }
 
         if (configuration.GetEncounterSetting(LiquidHeavenKey, true))
@@ -121,7 +126,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             RefreshMechanics();
         }
 
-        bool rollingBall = configuration.GetEncounterSetting(RollingBallKey, true);
+        bool rollingBall = configuration.GetEncounterSetting(RollingBallKey, false);
         if (ImGui.Checkbox("Rolling Ball", ref rollingBall))
         {
             configuration.EncounterSettings[RollingBallKey] =
@@ -171,6 +176,15 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             RefreshMechanics();
         }
 
+        bool jumpableShockwaves = configuration.GetEncounterSetting(JumpableShockwavesKey, true);
+        if (ImGui.Checkbox("J.S.", ref jumpableShockwaves))
+        {
+            configuration.EncounterSettings[JumpableShockwavesKey] =
+                jumpableShockwaves ? bool.TrueString : bool.FalseString;
+            configuration.Save();
+            RefreshMechanics();
+        }
+        
         bool liquidHeaven = configuration.GetEncounterSetting(LiquidHeavenKey, true);
         if (ImGui.Checkbox("Liquid Heaven", ref liquidHeaven))
         {
