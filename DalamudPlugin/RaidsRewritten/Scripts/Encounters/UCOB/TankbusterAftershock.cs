@@ -7,6 +7,7 @@ using RaidsRewritten.Scripts.Attacks;
 using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Scripts.Attacks.Omens;
 using RaidsRewritten.Scripts.Conditions;
+using RaidsRewritten.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -94,7 +95,7 @@ public class TankbusterAftershock : Mechanic
     {
         var originalPosition = source.Position;
         var originalRotation = source.Rotation;
-        var backAngle = originalRotation + MathF.PI * (originalRotation > 0 ? 1 : -1);
+        var backAngle = MathUtilities.ClampRadians(originalRotation + MathF.PI);
 
         // create fake actors to keep vfxes in place if boss turns/moves
         var fakeActorFront = FakeActor.Create(this.World)
@@ -114,13 +115,15 @@ public class TankbusterAftershock : Mechanic
         var delayedAction = DelayedAction.Create(this.World, () => Telegraph(aftershockData, originalPosition, originalRotation, ToDestruct), aftershockData.DelaySeconds);
         ToDestruct.Add(delayedAction);
         delayedAction = DelayedAction.Create(this.World, () => Telegraph(aftershockData, originalPosition, backAngle, ToDestruct), aftershockData.DelaySeconds);
-
+        ToDestruct.Add(delayedAction);
 
         // check if player is in telegraph
         delayedAction = DelayedAction.Create(this.World, () => Aftershock(aftershockData, fakeActorFront, originalPosition, originalRotation, ToDestruct), aftershockData.DelaySeconds + OmenVisibleSeconds - 0.1f);
         ToDestruct.Add(delayedAction);
         delayedAction = DelayedAction.Create(this.World, () => Aftershock(aftershockData, fakeActorBack, originalPosition, backAngle, ToDestruct), aftershockData.DelaySeconds + OmenVisibleSeconds - 0.1f);
         ToDestruct.Add(delayedAction);
+
+        // cleanup
         delayedAction = DelayedAction.Create(this.World, () => Reset(ToDestruct), 5);
         ToDestruct.Add(delayedAction);
     }

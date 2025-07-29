@@ -17,8 +17,7 @@ public class MoreExaflares : Mechanic
     {
         Low,
         Medium,
-        High,
-        Extreme
+        High
     }
 
     private struct DifficultyData
