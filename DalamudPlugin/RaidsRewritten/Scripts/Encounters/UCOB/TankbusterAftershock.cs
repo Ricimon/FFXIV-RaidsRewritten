@@ -58,7 +58,7 @@ public class TankbusterAftershock : Mechanic
     };
 
     private const float TurnDelaySeconds = 0.5f;
-    private const float StunDurationSeconds = 10f;
+    private const float StunDurationSeconds = 6f;
     private const float OmenVisibleSeconds = 0.4f;
     private const float StatusDelaySeconds = 0.5f;
 
@@ -141,10 +141,6 @@ public class TankbusterAftershock : Mechanic
         {
             if (this.AttackManager.TryCreateAttackEntity<Fan>(out var AftershockAoE))
             {
-                void OnHit(Entity e)
-                {
-                    DelayedAction.Create(e.CsWorld(), () => Bind.ApplyToPlayer(e, StunDurationSeconds), StatusDelaySeconds);
-                }
 
                 AftershockAoE.Set(new Position(originalPosition))
                           .Set(new Rotation(originalRotation))
@@ -173,5 +169,9 @@ public class TankbusterAftershock : Mechanic
         }
         ToDestruct.Clear();
         attacks.Remove(ToDestruct);
+    }
+    private void OnHit(Entity e)
+    {
+        DelayedAction.Create(e.CsWorld(), () => Stun.ApplyToPlayer(e, StunDurationSeconds), StatusDelaySeconds);
     }
 }
