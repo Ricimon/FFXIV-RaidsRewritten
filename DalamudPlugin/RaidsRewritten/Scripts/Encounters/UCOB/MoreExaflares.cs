@@ -3,15 +3,11 @@ using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.MathHelpers;
 using Flecs.NET.Core;
-using Lumina.Excel.Sheets;
 using RaidsRewritten.Scripts.Attacks;
 using RaidsRewritten.Scripts.Attacks.Components;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
@@ -28,6 +24,7 @@ public class MoreExaflares : Mechanic
     private struct DifficultyData
     {
         public int MaxConcurrentExaflares;
+        public int RequiredNeuroNum;
         public List<uint> ActionEffectIds;
         public List<uint> ObjectIds;
         public List<uint> StartCastIds;
@@ -42,9 +39,9 @@ public class MoreExaflares : Mechanic
             Difficulties.Low, new DifficultyData
             {
                 MaxConcurrentExaflares = 1,
+                RequiredNeuroNum = 2,
                 ActionEffectIds = [
-                    9901,  // exaflare
-                    9937,  // seventh umbral era
+                    9939,  // calamitous blaze (seventh umbral era)
                     9950,  // megaflare stack
                 ],
                 ObjectIds = [NeurolinkDataId],
@@ -58,6 +55,7 @@ public class MoreExaflares : Mechanic
             Difficulties.Medium, new DifficultyData
             {
                 MaxConcurrentExaflares = 1,
+                RequiredNeuroNum = 0,
                 ActionEffectIds = [
                     9900, // fireball (twin)
                     9901, // liquid hell
@@ -77,35 +75,13 @@ public class MoreExaflares : Mechanic
             Difficulties.High, new DifficultyData
             {
                 MaxConcurrentExaflares = 2,
+                RequiredNeuroNum = 0,
                 ActionEffectIds = [
                     9900, // fireball (twin)
                     9901, // liquid hell
                     9914, // adds megaflare
                     9925, // fireball (firehorn)
                     9942, // gigaflare
-                ],
-                ObjectIds = [
-                    NeurolinkDataId
-                ],
-                StartCastIds = [
-                    9941,  // flatten
-                    9967,  // exaflare part 1
-                    9968,  // exaflare part 2
-                ],
-            }
-        },
-        {
-            // this is the same thing as medium/high, just isn't capped
-            Difficulties.Extreme, new DifficultyData
-            {
-                MaxConcurrentExaflares = 999,
-                ActionEffectIds = [
-                    9900, // fireball (twin)
-                    9901, // liquid hell
-                    9914, // adds megaflare
-                    9925, // fireball (firehorn)
-                    9942, // gigaflare
-
                 ],
                 ObjectIds = [
                     NeurolinkDataId
@@ -121,6 +97,7 @@ public class MoreExaflares : Mechanic
 
     private const uint NeurolinkDataId = 0x1E88FF;
     private int LiquidHellCounter = 0;
+    private int CurrentNeuroCounter = 0;
     private bool GoldenCanSpawnExa = false;
 
     private int ExaflareRowsSpawned = 0;
@@ -138,6 +115,7 @@ public class MoreExaflares : Mechanic
         LiquidHellCounter = 0;
         GoldenCanSpawnExa = false;
         ExaflareRowsSpawned = 0;
+        CurrentNeuroCounter = 0;
     }
 
     private int CountActiveAttacks()
@@ -216,7 +194,14 @@ public class MoreExaflares : Mechanic
         var allowedAttacks = DifficultyInfo[Difficulty].ObjectIds;
         if (!allowedAttacks.Contains(newObject.DataId)) { return; }
 
-        RandomExaflareRow();
+        if (DifficultyInfo[Difficulty].RequiredNeuroNum <= CurrentNeuroCounter)
+        {
+            RandomExaflareRow();
+        } else
+        {
+            CurrentNeuroCounter++;
+        }
+
     }
 
     private void RandomExaflareRow(int excludeAngle = -1)
