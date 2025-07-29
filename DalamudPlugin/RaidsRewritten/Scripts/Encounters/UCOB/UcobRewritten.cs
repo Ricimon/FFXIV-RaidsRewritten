@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
@@ -19,6 +20,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
     private string TankbusterAftershockKey => $"{Name}.TankbusterAftershock";
     private string LightningCorridorKey => $"{Name}.LightningCorridor";
     private string MoreExaflaresKey => $"{Name}.MoreExaflares";
+    private string MoreExaflaresDifficultyKey => $"{Name}.MoreExaflaresDifficulty";
     private string JumpableShockwavesKey => $"{Name}.JumpableShockwaves";
 
     private readonly List<Mechanic> mechanics = [];
@@ -65,6 +67,12 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
 
             var seed = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
             moreExaflares.RngSeed = RandomUtilities.HashToRngSeed(seed);
+
+            var difficultyString = configuration.GetEncounterSetting(MoreExaflaresDifficultyKey, MoreExaflares.Difficulties.Low.ToString());
+            if (Enum.TryParse(difficultyString, out MoreExaflares.Difficulties difficulty))
+            {
+                moreExaflares.Difficulty = difficulty;
+            }
 
             this.mechanics.Add(moreExaflares);
         }
@@ -164,6 +172,8 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             RefreshMechanics();
         }
 
+        DrawDifficultyCombo();
+
         bool jumpableShockwaves = configuration.GetEncounterSetting(JumpableShockwavesKey, true);
         if (ImGui.Checkbox("J.S.", ref jumpableShockwaves))
         {
@@ -172,5 +182,25 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             configuration.Save();
             RefreshMechanics();
         }
+    }
+
+    private void DrawDifficultyCombo()
+    {
+
+        var moreExaflaresDifficulty = configuration.GetEncounterSetting(MoreExaflaresDifficultyKey, MoreExaflares.Difficulties.Low.ToString());
+
+        using var moreExaflaresDifficultyCombo = ImRaii.Combo("ME Difficulty", moreExaflaresDifficulty);
+        if (!moreExaflaresDifficultyCombo) { return; }
+
+        foreach (var difficulty in Enum.GetNames<MoreExaflares.Difficulties>())
+        {
+            if (ImGui.Selectable(difficulty))
+            {
+                configuration.EncounterSettings[MoreExaflaresDifficultyKey] = difficulty;
+                configuration.Save();
+                RefreshMechanics();
+            }
+        }
+
     }
 }
