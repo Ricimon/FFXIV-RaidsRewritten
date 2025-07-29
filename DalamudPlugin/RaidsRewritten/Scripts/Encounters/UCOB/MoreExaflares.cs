@@ -17,15 +17,107 @@ namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
 public class MoreExaflares : Mechanic
 {
+    public enum Difficulties
+    {
+        Low,
+        Medium,
+        High,
+        Extreme
+    }
+
+    private struct DifficultyData
+    {
+        public int MaxConcurrentExaflares;
+        public List<uint> ActionEffectIds;
+        public List<uint> ObjectIds;
+        public List<uint> StartCastIds;
+    }
+
     private static readonly Vector3 Center = new(0, 0, 0);
     private const float Radius = 20f;
-    private readonly List<uint> ActionEffectIds = [
-        9900, // fireball (twin)
-        9901, // liquid hell
-        9914, // adds megaflare
-        9925, // fireball (firehorn)
-        9942, // gigaflare
-    ];
+
+    private readonly Dictionary<Difficulties, DifficultyData> DifficultyInfo = new()
+    {
+        {
+            Difficulties.Low, new DifficultyData
+            {
+                MaxConcurrentExaflares = 1,
+                ActionEffectIds = [
+                    9901,  // exaflare
+                    9937,  // seventh umbral era
+                    9950,  // megaflare stack
+                ],
+                ObjectIds = [NeurolinkDataId],
+                StartCastIds = [
+                    9967,  // exaflare part 1
+                    9968,  // exaflare part 2
+                ],
+            }
+        },
+        {
+            Difficulties.Medium, new DifficultyData
+            {
+                MaxConcurrentExaflares = 1,
+                ActionEffectIds = [
+                    9900, // fireball (twin)
+                    9901, // liquid hell
+                    9914, // adds megaflare
+                    9925, // fireball (firehorn)
+                    9942, // gigaflare
+                ],
+                ObjectIds = [NeurolinkDataId],
+                StartCastIds = [
+                    9941,  // flatten
+                    9967,  // exaflare part 1
+                    9968,  // exaflare part 2
+                ],
+            }
+        },
+        {
+            Difficulties.High, new DifficultyData
+            {
+                MaxConcurrentExaflares = 2,
+                ActionEffectIds = [
+                    9900, // fireball (twin)
+                    9901, // liquid hell
+                    9914, // adds megaflare
+                    9925, // fireball (firehorn)
+                    9942, // gigaflare
+                ],
+                ObjectIds = [
+                    NeurolinkDataId
+                ],
+                StartCastIds = [
+                    9941,  // flatten
+                    9967,  // exaflare part 1
+                    9968,  // exaflare part 2
+                ],
+            }
+        },
+        {
+            // this is the same thing as medium/high, just isn't capped
+            Difficulties.Extreme, new DifficultyData
+            {
+                MaxConcurrentExaflares = 999,
+                ActionEffectIds = [
+                    9900, // fireball (twin)
+                    9901, // liquid hell
+                    9914, // adds megaflare
+                    9925, // fireball (firehorn)
+                    9942, // gigaflare
+
+                ],
+                ObjectIds = [
+                    NeurolinkDataId
+                ],
+                StartCastIds = [
+                    9941,  // flatten
+                    9967,  // exaflare part 1
+                    9968,  // exaflare part 2
+                ],
+            }
+        }
+    };
 
     private const uint NeurolinkDataId = 0x1E88FF;
     private int LiquidHellCounter = 0;
@@ -34,7 +126,8 @@ public class MoreExaflares : Mechanic
     private int ExaflareRowsSpawned = 0;
     private readonly List<Entity> attacks = [];
     public int RngSeed { get; set; }
-    
+    public Difficulties Difficulty { get; set; } = Difficulties.Low;
+
     public override void Reset()
     {
         foreach (var attack in this.attacks)
@@ -75,7 +168,8 @@ public class MoreExaflares : Mechanic
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
         if (set.Action == null) { return; }
-        if (!ActionEffectIds.Contains(set.Action.Value.RowId)) { return; }
+        var allowedAttacks = DifficultyInfo[Difficulty].ActionEffectIds;
+        if (!allowedAttacks.Contains(set.Action.Value.RowId)) { return; }
 
         // only spawn every 5 liquid hells
         if (set.Action.Value.RowId == 9901)
@@ -94,7 +188,10 @@ public class MoreExaflares : Mechanic
 
     public override void OnStartingCast(Lumina.Excel.Sheets.Action action, IBattleChara source)
     {
-        switch(action.RowId)
+        var allowedAttacks = DifficultyInfo[Difficulty].StartCastIds;
+        if (!allowedAttacks.Contains(action.RowId)) { return; }
+
+        switch (action.RowId)
         {
             case 9941:
                 RandomExaflareRow();
@@ -116,14 +213,15 @@ public class MoreExaflares : Mechanic
     public override void OnObjectCreation(nint newObjectPointer, IGameObject? newObject)
     {
         if (newObject == null) { return; }
-        if (newObject.DataId != NeurolinkDataId) { return; }
+        var allowedAttacks = DifficultyInfo[Difficulty].ObjectIds;
+        if (!allowedAttacks.Contains(newObject.DataId)) { return; }
 
         RandomExaflareRow();
     }
 
     private void RandomExaflareRow(int excludeAngle = -1)
     {
-        if (CountActiveAttacks() > 0) { return; }
+        if (CountActiveAttacks() >= DifficultyInfo[Difficulty].MaxConcurrentExaflares) { return; }
 
         var seed = RngSeed;
         unchecked
