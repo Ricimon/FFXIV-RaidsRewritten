@@ -15,9 +15,9 @@ public class MoreExaflares : Mechanic
 {
     public enum Difficulties
     {
-        Low,
-        Medium,
-        High
+        Low = 0,
+        Medium = 1,
+        High = 2,
     }
 
     private struct DifficultyData

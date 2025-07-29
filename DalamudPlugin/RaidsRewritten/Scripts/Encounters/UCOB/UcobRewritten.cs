@@ -24,6 +24,11 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
     private string JumpableShockwavesKey => $"{Name}.JumpableShockwaves";
 
     private readonly List<Mechanic> mechanics = [];
+    private readonly string[] moreExaflaresDifficulties = [
+        MoreExaflares.Difficulties.Low.ToString(),
+        MoreExaflares.Difficulties.Medium.ToString(),
+        MoreExaflares.Difficulties.High.ToString(),
+    ];
 
     public IEnumerable<Mechanic> GetMechanics()
     {
@@ -68,11 +73,8 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             var seed = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
             moreExaflares.RngSeed = RandomUtilities.HashToRngSeed(seed);
 
-            var difficultyString = configuration.GetEncounterSetting(MoreExaflaresDifficultyKey, MoreExaflares.Difficulties.Low.ToString());
-            if (Enum.TryParse(difficultyString, out MoreExaflares.Difficulties difficulty))
-            {
-                moreExaflares.Difficulty = difficulty;
-            }
+            var difficulty = (MoreExaflares.Difficulties)configuration.GetEncounterSetting(MoreExaflaresDifficultyKey, (int)MoreExaflares.Difficulties.Low);
+            moreExaflares.Difficulty = difficulty;
 
             this.mechanics.Add(moreExaflares);
         }
@@ -103,7 +105,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
 
     public void DrawConfig()
     {
-        ImGui.PushItemWidth(140);
+        ImGui.SetNextItemWidth(140);
         string rngSeed = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
         if (ImGui.InputText("RNG Seed", ref rngSeed, 100))
         {
@@ -111,7 +113,6 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             configuration.Save();
             RefreshMechanics();
         }
-        ImGui.PopItemWidth();
 
         bool permanentTwisters = configuration.GetEncounterSetting(PermanentTwistersKey, true);
         if (ImGui.Checkbox("Permanent Twisters", ref permanentTwisters))
@@ -120,29 +121,6 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
                 permanentTwisters ? bool.TrueString : bool.FalseString;
             configuration.Save();
             RefreshMechanics();
-        }
-
-        bool rollingBall = configuration.GetEncounterSetting(RollingBallKey, false);
-        if (ImGui.Checkbox("Rolling Ball", ref rollingBall))
-        {
-            configuration.EncounterSettings[RollingBallKey] =
-                rollingBall ? bool.TrueString : bool.FalseString;
-            configuration.Save();
-            RefreshMechanics();
-        }
-
-        using (ImRaii.PushIndent())
-        using (ImRaii.Disabled(!rollingBall))
-        {
-            ImGui.PushItemWidth(120);
-            int maxBalls = configuration.GetEncounterSetting(RollingBallMaxBallsKey, 1);
-            if (ImGui.InputInt("Rolling Ball Max Balls", ref maxBalls))
-            {
-                configuration.EncounterSettings[RollingBallMaxBallsKey] = maxBalls.ToString();
-                configuration.Save();
-                RefreshMechanics();
-            }
-            ImGui.PopItemWidth();
         }
 
         bool tankbusterAftershock = configuration.GetEncounterSetting(TankbusterAftershockKey, true);
@@ -163,16 +141,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             RefreshMechanics();
         }
 
-        bool moreExaflares = configuration.GetEncounterSetting(MoreExaflaresKey, true);
-        if (ImGui.Checkbox("More Exaflares", ref moreExaflares))
-        {
-            configuration.EncounterSettings[MoreExaflaresKey] =
-                moreExaflares ? bool.TrueString : bool.FalseString;
-            configuration.Save();
-            RefreshMechanics();
-        }
-
-        DrawDifficultyCombo();
+        DrawMoreExaflaresConfig();
 
         bool jumpableShockwaves = configuration.GetEncounterSetting(JumpableShockwavesKey, true);
         if (ImGui.Checkbox("J.S.", ref jumpableShockwaves))
@@ -182,25 +151,58 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             configuration.Save();
             RefreshMechanics();
         }
+
+        DrawRollingBallConfig();
     }
 
-    private void DrawDifficultyCombo()
+    private void DrawRollingBallConfig()
     {
-
-        var moreExaflaresDifficulty = configuration.GetEncounterSetting(MoreExaflaresDifficultyKey, MoreExaflares.Difficulties.Low.ToString());
-
-        using var moreExaflaresDifficultyCombo = ImRaii.Combo("ME Difficulty", moreExaflaresDifficulty);
-        if (!moreExaflaresDifficultyCombo) { return; }
-
-        foreach (var difficulty in Enum.GetNames<MoreExaflares.Difficulties>())
+        bool rollingBall = configuration.GetEncounterSetting(RollingBallKey, false);
+        if (ImGui.Checkbox("Rolling Ball", ref rollingBall))
         {
-            if (ImGui.Selectable(difficulty))
+            configuration.EncounterSettings[RollingBallKey] =
+                rollingBall ? bool.TrueString : bool.FalseString;
+            configuration.Save();
+            RefreshMechanics();
+        }
+
+        using (ImRaii.PushIndent())
+        using (ImRaii.Disabled(!rollingBall))
+        {
+            ImGui.SetNextItemWidth(120);
+            int maxBalls = configuration.GetEncounterSetting(RollingBallMaxBallsKey, 1);
+            if (ImGui.InputInt("Rolling Ball Max Balls", ref maxBalls))
             {
-                configuration.EncounterSettings[MoreExaflaresDifficultyKey] = difficulty;
+                configuration.EncounterSettings[RollingBallMaxBallsKey] = maxBalls.ToString();
                 configuration.Save();
                 RefreshMechanics();
             }
         }
 
+    }
+
+    private void DrawMoreExaflaresConfig()
+    {
+        bool moreExaflares = configuration.GetEncounterSetting(MoreExaflaresKey, true);
+        if (ImGui.Checkbox("More Exaflares", ref moreExaflares))
+        {
+            configuration.EncounterSettings[MoreExaflaresKey] =
+                moreExaflares ? bool.TrueString : bool.FalseString;
+            configuration.Save();
+            RefreshMechanics();
+        }
+
+        using (ImRaii.PushIndent())
+        using (ImRaii.Disabled(!moreExaflares))
+        {
+            var difficulty = configuration.GetEncounterSetting(MoreExaflaresDifficultyKey, (int)MoreExaflares.Difficulties.Low);
+            ImGui.SetNextItemWidth(120);
+            if (ImGui.Combo("M.E. Difficulty", ref difficulty, this.moreExaflaresDifficulties, this.moreExaflaresDifficulties.Length))
+            {
+                configuration.EncounterSettings[MoreExaflaresDifficultyKey] = difficulty.ToString();
+                configuration.Save();
+                RefreshMechanics();
+            }
+        }
     }
 }
