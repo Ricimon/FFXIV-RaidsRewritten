@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using ECommons.MathHelpers;
 using Flecs.NET.Core;
@@ -104,9 +105,12 @@ public sealed class LightningCorridor(DalamudServices dalamud, ILogger logger) :
                             {
                                 if (!child.Has<Omen>()) { return; }
 
-                                var localPlayer = dalamud.ClientState.LocalPlayer;
-                                if (!hitLocalPlayer && localPlayer != null &&
-                                    RectangleOmen.IsInOmen(child, localPlayer.Position))
+                                var player = dalamud.ClientState.LocalPlayer;
+                                if (!hitLocalPlayer &&
+                                    player != null && !player.IsDead &&
+                                    // Transcendance, TODO: play invulnerable vfx
+                                    !player.StatusList.Any(s => s.StatusId == GameConstants.TranscendanceStatusId) &&
+                                    RectangleOmen.IsInOmen(child, player.Position))
                                 {
                                     hitLocalPlayer = true;
                                 }
