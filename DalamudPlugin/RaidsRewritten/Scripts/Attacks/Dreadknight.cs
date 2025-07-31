@@ -46,6 +46,7 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
 
     public Entity Create(World world)
     {
+        dalamud.ToastGui.ShowNormal("The Dreadknight seeks signs of resistance...");
         return world.Entity()
                 .Set(new Model(379))
                 .Set(new Rotation(0))
@@ -167,9 +168,6 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
             10 * seconds);
         }
     }
-
-    // TODO: implement this
-    private void ShowToast(string text) { }
 
     // does not work with multiple dreadknights
     public static void RemoveChildren(Entity entity)
