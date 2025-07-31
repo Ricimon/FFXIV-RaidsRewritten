@@ -24,6 +24,7 @@ namespace RaidsRewritten.Scripts.Attacks;
 public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISystem
 {
     public record struct Component(float ElapsedTime, float NextRefresh, float StartEnrage = 7f, float Enrage = 12f);
+    public record struct Target(IGameObject? Value);
 
     private const ushort WalkingAnimation = 41;
     private const ushort AttackAnimation = 1515;
@@ -71,13 +72,13 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
 
                 if (component.ElapsedTime < InitialDelay) { return; }  // only want to start looking at player and chasing when ready 
 
-                if (entity.TryGet<ActorVfxTarget>(out var target))
+                if (entity.TryGet<Target>(out var target))
                 {
-                    if (target.Target != null && (target.Target.IsValid() || !target.Target.IsDead))
+                    if (target.Value != null && (target.Value.IsValid() || !target.Value.IsDead))
                     {
                         // face player
                         var sourcePosV2 = new Vector2(position.Value.X, position.Value.Z);
-                        var targetPosV2 = new Vector2(target.Target.Position.X, target.Target.Position.Z);
+                        var targetPosV2 = new Vector2(target.Value.Position.X, target.Value.Position.Z);
                         var angle = MathUtilities.GetAbsoluteAngleFromSourceToTarget(sourcePosV2, targetPosV2);
                         rotation.Value = angle;
 
@@ -96,8 +97,7 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
                     } else
                     {
                         // target just died
-                        entity.Remove<ActorVfx>();
-                        entity.Remove<ActorVfxTarget>();
+                        RemoveChildren(entity);
                         component.StartEnrage = component.ElapsedTime + 10;
                     }
                 } else
@@ -114,14 +114,12 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
 
     public static void ApplyTether(Entity entity, IGameObject target)
     {
-        entity.Remove<ActorVfx>();
+        // remove existing vfxes
+        RemoveChildren(entity);
 
-        // need to wait a bit for any existing vfx to be removed
-        DelayedAction.Create(entity.CsWorld(), () =>
-        {
-            entity.Set(new ActorVfx("vfx/channeling/eff/chn_tergetfix1f.avfx"))
-                .Set(new ActorVfxTarget(target));
-        }, 0.5f);
+        entity.Set(new Target(target));
+        AddActorVfx(entity, "vfx/channeling/eff/chn_tergetfix1f.avfx")
+            .Set(new ActorVfxTarget(target));
             
     }
 
@@ -159,6 +157,8 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
     // TODO: implement this
     private void ShowToast(string text) { }
 
+    private static void RemoveChildren(Entity entity) => entity.Children((Entity child) => child.Destruct());
+
     private void StunPlayer(World world, float duration, float delay = StunDelay)
     {
         this.playerQuery.Each((Entity e, ref Player.Component _) =>
@@ -192,10 +192,7 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
 
     private void CastEnrage(Entity entity, ref Component component)
     {
-        DelayedAction.Create(entity.CsWorld(), () =>
-        {
-            entity.Set(new ActorVfx("vfx/common/eff/mon_eisyo03t.avfx"));
-        }, 0.5f);
+        AddActorVfx(entity, "vfx/common/eff/mon_eisyo03t.avfx");
         component.StartEnrage = -1;
         component.Enrage = component.ElapsedTime + 5;
         
@@ -203,13 +200,20 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
 
     private void Enrage(World world, Entity entity, ref Model model, ref Component component)
     {
-        entity.Remove<ActorVfx>();
+        RemoveChildren(entity);
         ShowTextGimmick("Enraged without the sight of resistance, the Dreadknight lets out a deafening shrill!", EnrageNotificationDuration);
         SetTimeline(model, EnrageAnimation);
-        DelayedAction.Create(world, () => entity.Set(new ActorVfx("vfx/monster/m0150/eff/m150sp003c1m.avfx")), EnrageVfxDelay);
-        //entity.Set(new ActorVfx("vfx/monster/m0150/eff/m150sp003c0m.avfx"));
+        DelayedAction.Create(world, () => AddActorVfx(entity, "vfx/monster/m0150/eff/m150sp003c1m.avfx"), EnrageVfxDelay);
+        DelayedAction.Create(world, () => AddActorVfx(entity, "vfx/monster/m0150/eff/m150sp003c0m.avfx"), EnrageVfxDelay);
         StunPlayer(world, EnrageStunDuration, EnrageStunDelay);
         component.Enrage = -1;
+    }
+
+    private static Entity AddActorVfx(Entity entity, string vfxPath)
+    {
+        return entity.CsWorld().Entity()
+            .Set(new ActorVfx(vfxPath))
+            .ChildOf(entity);
     }
 
     private void HandleNoTarget(World world, Entity entity, ref Model model, ref Component component)
