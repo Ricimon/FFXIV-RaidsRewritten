@@ -25,45 +25,50 @@ public class TankbusterAftershock : Mechanic
     {
         public float TelegraphScale;
         public int TelegraphDegrees;
+        public float OmenVisibleSeconds;
         public string OmenPath;
         public string VfxPath;
 
         public float DelaySeconds;
         public float VfxDelaySeconds;
+        public float StatusDelaySeconds;
     }
 
     private readonly Dictionary<uint, AftershockData> AftershockDict = new Dictionary<uint, AftershockData>
     {
+        // flare breath
         {
             9940, new AftershockData
             {
                 TelegraphDegrees = 90,
                 TelegraphScale = 30f,
+                OmenVisibleSeconds = 0.65f,
                 OmenPath = "",
                 VfxPath = "vfx/monster/m0117/eff/baha_earth_90c0s.avfx",
-                DelaySeconds = 0.8f,
-                VfxDelaySeconds = 0.4f
+                DelaySeconds = 0.65f,
+                VfxDelaySeconds = 0.4f,
+                StatusDelaySeconds = 0.5f
             }
         },
+        // plummet
         {
             9896, new AftershockData
             {
                 TelegraphDegrees = 120,
                 TelegraphScale = 10f,
+                OmenVisibleSeconds = 0.5f,
                 OmenPath = "vfx/omen/eff/gl_fan120_1bf.avfx",
                 VfxPath = "vfx/monster/m0389/eff/m389sp_05c0n.avfx",
                 DelaySeconds = 0.8f,
-                VfxDelaySeconds = 0.3f
+                VfxDelaySeconds = 0.3f,
+                StatusDelaySeconds = 0.4f
             }
         }
     };
 
     private const float TurnDelaySeconds = 0.5f;
-    //private const float StunDurationSeconds = 6f;
     private const float HeavyDurationSeconds = 20f;
     private const int HeavyId = 99409896;
-    private const float OmenVisibleSeconds = 0.5f;
-    private const float StatusDelaySeconds = 0.5f;
 
     private readonly List<List<Entity>> attacks = [];
 
@@ -120,9 +125,16 @@ public class TankbusterAftershock : Mechanic
         ToDestruct.Add(delayedAction);
 
         // check if player is in telegraph
-        delayedAction = DelayedAction.Create(this.World, () => Aftershock(aftershockData, fakeActorFront, originalPosition, originalRotation, ToDestruct), aftershockData.DelaySeconds + OmenVisibleSeconds);
+        delayedAction = DelayedAction.Create(this.World, () => 
+            Aftershock(aftershockData, fakeActorFront, originalPosition, originalRotation, ToDestruct),
+            aftershockData.DelaySeconds + aftershockData.OmenVisibleSeconds
+        );
         ToDestruct.Add(delayedAction);
-        delayedAction = DelayedAction.Create(this.World, () => Aftershock(aftershockData, fakeActorBack, originalPosition, backAngle, ToDestruct), aftershockData.DelaySeconds + OmenVisibleSeconds);
+
+        delayedAction = DelayedAction.Create(this.World, () =>
+            Aftershock(aftershockData, fakeActorBack, originalPosition, backAngle, ToDestruct),
+            aftershockData.DelaySeconds + aftershockData.OmenVisibleSeconds
+        );
         ToDestruct.Add(delayedAction);
 
         // cleanup
@@ -139,13 +151,7 @@ public class TankbusterAftershock : Mechanic
         ToDestruct.Clear();
         attacks.Remove(ToDestruct);
     }
-    private void OnHit(Entity e)
-    {
-        DelayedAction.Create(e.CsWorld(), () =>
-        {
-            Heavy.ApplyToPlayer(e, HeavyDurationSeconds, HeavyId, true);
-        }, StatusDelaySeconds);
-    }
+
     private void Telegraph(AftershockData aftershockData, Vector3 position, float rotation, List<Entity> ToDestruct)
     {
         if (this.AttackManager.TryCreateAttackEntity<FanOmen>(out var FanOmen))
@@ -172,18 +178,25 @@ public class TankbusterAftershock : Mechanic
             FanOmen.Destruct();
         }
 
-        var delayedAction = DelayedAction.Create(this.World, DestroyTelegraph, OmenVisibleSeconds);
+        var delayedAction = DelayedAction.Create(this.World, DestroyTelegraph, aftershockData.OmenVisibleSeconds);
     }
 
     void Aftershock(AftershockData aftershockData, Entity fakeActor, Vector3 position, float rotation, List<Entity> ToDestruct)
     {
         if (this.AttackManager.TryCreateAttackEntity<Fan>(out var AftershockAoE))
         {
+            void OnHit(Entity e)
+            {
+                DelayedAction.Create(e.CsWorld(), () =>
+                {
+                    Heavy.ApplyToPlayer(e, HeavyDurationSeconds, HeavyId, true);
+                }, aftershockData.StatusDelaySeconds);
+            }
 
             AftershockAoE.Set(new Position(position))
-                      .Set(new Rotation(rotation))
-                      .Set(new Scale(new Vector3(aftershockData.TelegraphScale)))
-                      .Set(new Fan.Component(OnHit, aftershockData.TelegraphDegrees));
+                              .Set(new Rotation(rotation))
+                              .Set(new Scale(new Vector3(aftershockData.TelegraphScale)))
+                              .Set(new Fan.Component(OnHit, aftershockData.TelegraphDegrees));
 
             ToDestruct.Add(AftershockAoE);
 
