@@ -19,8 +19,9 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
     private string TankbusterAftershockKey => $"{Name}.TankbusterAftershock";
     private string LightningCorridorKey => $"{Name}.LightningCorridor";
     private string MoreExaflaresKey => $"{Name}.MoreExaflares";
-    private string LiquidHeavenKey => $"{Name}.LiquidHeaven";
     private string TemperatureControlKey => $"{Name}.TemperatureControl";
+    private string TemperatureControlXKey => $"{Name}.TemperatureControlX";
+    private string TemperatureControlYKey => $"{Name}.TemperatureControlY";
     private string JumpableShockwavesKey => $"{Name}.JumpableShockwaves";
 
     private readonly List<Mechanic> mechanics = [];
@@ -76,14 +77,10 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             this.mechanics.Add(mechanicFactory.Create<JumpableShockwaves>());
         }
 
-        if (configuration.GetEncounterSetting(LiquidHeavenKey, true))
-        {
-            this.mechanics.Add(mechanicFactory.Create<LiquidHeaven>());
-        }
-
         if (configuration.GetEncounterSetting(TemperatureControlKey, true))
         {
             this.mechanics.Add(mechanicFactory.Create<TemperatureControl>());
+            this.mechanics.Add(mechanicFactory.Create<LiquidHeaven>());
         }
     }
 
@@ -185,15 +182,6 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             RefreshMechanics();
         }
         
-        bool liquidHeaven = configuration.GetEncounterSetting(LiquidHeavenKey, true);
-        if (ImGui.Checkbox("Liquid Heaven", ref liquidHeaven))
-        {
-            configuration.EncounterSettings[LiquidHeavenKey] =
-                liquidHeaven ? bool.TrueString : bool.FalseString;
-            configuration.Save();
-            RefreshMechanics();
-        }
-
         bool temperatureControl = configuration.GetEncounterSetting(TemperatureControlKey, true);
         if (ImGui.Checkbox("Temperature Control", ref temperatureControl))
         {
@@ -201,6 +189,27 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
                 temperatureControl ? bool.TrueString : bool.FalseString;
             configuration.Save();
             RefreshMechanics();
+        }
+        
+        using (ImRaii.PushIndent())
+        using (ImRaii.Disabled(!temperatureControl))
+        {
+            ImGui.PushItemWidth(120);
+            int temperatureControlX = configuration.GetEncounterSetting(TemperatureControlXKey, 1);
+            if (ImGui.InputInt("Gauge X", ref temperatureControlX))
+            {
+                configuration.EncounterSettings[TemperatureControlXKey] = temperatureControlX.ToString();
+                configuration.Save();
+                RefreshMechanics();
+            }
+            int temperatureControlY = configuration.GetEncounterSetting(TemperatureControlYKey, 1);
+            if (ImGui.InputInt("Gauge Y", ref temperatureControlY))
+            {
+                configuration.EncounterSettings[TemperatureControlYKey] = temperatureControlY.ToString();
+                configuration.Save();
+                RefreshMechanics();
+            }
+            ImGui.PopItemWidth();
         }
     }
 }

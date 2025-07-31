@@ -83,8 +83,6 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
     private readonly Query<Temperature.Component> temperatureQuery;
 
     private const float PADDING_X = 10f;
-    private const float GuageX = 1280f;
-    private const float GuageY = 720f;
 
     public EffectsRenderer(
         Lazy<EffectsRendererPresenter> presenter,
@@ -226,8 +224,7 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
         Vector2 offset = new Vector2(64, 79);
         Vector2 barSize = new Vector2(370, 24);
         Vector2 imageSize = new Vector2(498, 147);
-
-        Vector2 position = new Vector2(GuageX - imageSize.X / 2, GuageY - imageSize.Y / 2);
+        Vector2 position = new Vector2(configuration.GetEncounterSetting("UCOB Rewritten.TemperatureControlX", 0) - imageSize.X / 2, configuration.GetEncounterSetting("UCOB Rewritten.TemperatureControlY", 0) - imageSize.Y / 2);
         var path = "temp_guage.png";
         toDraw.Add(new EffectGuageEntry(position, offset, barSize, imageSize, path, tc.CurrentTemperature));
     }
