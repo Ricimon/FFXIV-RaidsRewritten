@@ -94,7 +94,7 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
 
                         if (Vector2.DistanceSquared(sourcePosV2, targetPosV2) < HitboxRadius)
                         {
-                            Hit(world, ref model, ref component);
+                            Hit(world, ref model, ref component, target);
                         } else
                         {
                             Follow(it, ref model, ref component, ref position, angle);
@@ -199,10 +199,13 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
         position.Value = newPosition;
     }
 
-    private void Hit(World world, ref Model model, ref Component component)
+    private void Hit(World world, ref Model model, ref Component component, Target target)
     {
         SetTimeline(model, AttackAnimation);
-        StunPlayer(world, StunDuration);
+        if (dalamud.ClientState.LocalPlayer == target.Value)
+        {
+            StunPlayer(world, StunDuration);
+        }
         component.NextRefresh = component.ElapsedTime + 3f;
     }
 
