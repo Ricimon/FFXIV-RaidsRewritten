@@ -238,21 +238,37 @@ public class MainWindow : Window, IPluginUIView, IDisposable
 
         if (ImGui.InputInt("Position X", ref effectsRendererPositionX))
         {
+            if(effectsRendererPositionX <= 0)
+            {
+                var viewport = ImGui.GetMainViewport();
+                int x = (int)(viewport.Pos.X + viewport.Size.X / 2);
+                effectsRendererPositionX = x;
+                configuration.EffectsRendererPositionX = effectsRendererPositionX;
+
+            }
             configuration.EffectsRendererPositionX = effectsRendererPositionX;
             configuration.Save();
         }
 
         if (ImGui.InputInt("Position Y", ref effectsRendererPositionY))
         {
+            if (effectsRendererPositionY <= 0)
+            {
+                var viewport = ImGui.GetMainViewport();
+                int y = (int)(viewport.Pos.Y + viewport.Size.Y / 3);
+                effectsRendererPositionY = y;
+                configuration.EffectsRendererPositionY = effectsRendererPositionY;
+
+            }
             configuration.EffectsRendererPositionY = effectsRendererPositionY;
             configuration.Save();
         }
 
-        if (ImGui.Button("Calculate Middle of Screen"))
+        if (ImGui.Button("Reset Status Placement"))
         {
             var viewport = ImGui.GetMainViewport();
             int x = (int)(viewport.Pos.X + viewport.Size.X / 2);
-            int y = (int)(viewport.Pos.Y + viewport.Size.Y / 2);
+            int y = (int)(viewport.Pos.Y + viewport.Size.Y / 3);
 
             effectsRendererPositionX = x;
             effectsRendererPositionY = y;
@@ -269,15 +285,8 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             using var q = ecsContainer.World.Query<Player.Component>();
             q.Each((Entity e, ref Player.Component pc) =>
             {
-                Bind.ApplyToPlayer(e, 200.0f);
+                ecsContainer.World.Entity().Set(new Condition.Component("test", 15.0f)).ChildOf(e);
             });
-        }
-
-        ImGui.SameLine();
-
-        if (ImGui.Button("Clear Status Overlay"))
-        {
-            this.ecsContainer.World.DeleteWith<Condition.Component>();
         }
 
         var encounterText = new StringBuilder("Active Encounter: ");
