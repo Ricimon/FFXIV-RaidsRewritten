@@ -16,7 +16,16 @@ namespace RaidsRewritten.Scripts.Encounters.UCOB;
 public class DreadknightOnNeurolink : Mechanic
 {
     private const uint NeurolinkDataId = 0x1E88FF;
-    private readonly Vector3 ArenaCenter = new(100,0,100);
+    private readonly Vector3 ArenaCenter = new(0,0,0);
+
+    private readonly List<uint> actionIds = [
+        7538,  // interject
+        7551,  // head graze
+        7554,  // leg graze
+        7540,  // low blow
+        25880, // sleep
+        16560, // repose
+    ]; 
 
     private Entity? attack;
 
@@ -60,7 +69,7 @@ public class DreadknightOnNeurolink : Mechanic
     {
         if (set.Action == null) { return; }
         if (!attack.HasValue) { return; }
-        if (set.Action.Value.RowId != 25767) { return; }
+        if (!actionIds.Contains(set.Action.Value.RowId)) { return; }
         if (Dreadknight.HasTarget(attack.Value)) { return; }
         if (set.Source == null) { return; }
 
