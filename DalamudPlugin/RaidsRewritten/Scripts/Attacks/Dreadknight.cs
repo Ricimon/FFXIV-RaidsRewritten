@@ -31,7 +31,7 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
     private const float StunDuration = 8f;
     private const int StunId = 0xDEAD;
     private const float StunDelay = 0.5f;
-    private const float EnrageDuration = 100f;
+    private const float EnrageStatusDuration = 60f;
     private const float InitialDelay = 2f;
 
     private Query<Player.Component> playerQuery;
@@ -69,31 +69,20 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
                     {
                         var sourcePosV2 = new Vector2(position.Value.X, position.Value.Z);
                         var targetPosV2 = new Vector2(target.Target.Position.X, target.Target.Position.Z);
-                        var angle = MathUtilities.GetAbsoluteAngleFromSourceToTarget(position.Value, target.Target.Position);
+                        var angle = MathUtilities.GetAbsoluteAngleFromSourceToTarget(sourcePosV2, targetPosV2);
                         rotation.Value = angle;
 
                         if (Vector2.DistanceSquared(sourcePosV2, targetPosV2) > 2.5)
                         {
-                            SetTimeline(model, WalkingAnimation);
-                            var newPosition = position.Value;
-                            newPosition.Z += MovementSpeed * it.DeltaTime() * MathF.Cos(angle);
-                            newPosition.X += MovementSpeed * it.DeltaTime() * MathF.Sin(angle);
-                            position.Value = newPosition;
-                            component.CanHit = true;
+                            Follow(it, ref model, ref component, ref position, angle);
                         } else
                         {
                             if (component.CanHit && component.ElapsedTime > component.NextRefresh)
                             {
-                                SetTimeline(model, AttackAnimation);
-                                StunPlayer(world, StunDuration);
-                                component.NextRefresh = component.ElapsedTime + 3f;
+                                Hit(world, ref model, ref component);
                             } else
                             {
-                                SetTimeline(model, 0);
-                                if (component.ElapsedTime > InitialDelay)
-                                {
-                                    component.CanHit = true;
-                                }
+                                Stand(ref model, ref component);
                             }
                         }
 
@@ -106,8 +95,7 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
                 {
                     if (component.ElapsedTime > component.Enrage)
                     {
-                        ShowTextGimmick("Enraged without the sight of resistance, Dreadknight flies into a rage!", 4);
-                        entity.Destruct();
+                        Enrage(world, entity);
                     }
                 }
 
@@ -149,13 +137,46 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
         }
     }
 
-    private void StunPlayer(World world, float duration)
+    private void StunPlayer(World world, float duration, float delay = StunDelay)
     {
         this.playerQuery.Each((Entity e, ref Player.Component _) =>
         {
             DelayedAction.Create(world, () => {
                 Stun.ApplyToPlayer(e, duration, StunId);
-            }, StunDelay);
+            }, delay);
         });
+    }
+
+    private void Stand(ref Model model, ref Component component)
+    {
+        SetTimeline(model, 0);
+        if (component.ElapsedTime > InitialDelay)
+        {
+            component.CanHit = true;
+        }
+    }
+
+    private void Follow(Iter it, ref Model model, ref Component component, ref Position position, float angle)
+    {
+        SetTimeline(model, WalkingAnimation);
+        var newPosition = position.Value;
+        newPosition.Z += MovementSpeed * it.DeltaTime() * MathF.Cos(angle);
+        newPosition.X += MovementSpeed * it.DeltaTime() * MathF.Sin(angle);
+        position.Value = newPosition;
+        component.CanHit = true;
+    }
+
+    private void Hit(World world, ref Model model, ref Component component)
+    {
+        SetTimeline(model, AttackAnimation);
+        StunPlayer(world, StunDuration);
+        component.NextRefresh = component.ElapsedTime + 3f;
+    }
+
+    private void Enrage(World world, Entity entity)
+    {
+        ShowTextGimmick("Enraged without the sight of resistance, the Dreadknight lets out a deafening shrill!", 4);
+        StunPlayer(world, EnrageStatusDuration, 2);
+        entity.Destruct();
     }
 }
