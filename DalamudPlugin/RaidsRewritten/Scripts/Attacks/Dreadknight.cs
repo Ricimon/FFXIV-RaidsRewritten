@@ -25,6 +25,7 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
 {
     public record struct Component(float ElapsedTime, float NextRefresh, float StartEnrage = 7f, float Enrage = 12f);
     public record struct Target(IGameObject? Value);
+    public record struct Child(object _);
 
     private const ushort WalkingAnimation = 41;
     private const ushort AttackAnimation = 1515;
@@ -76,6 +77,9 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
                 {
                     if (target.Value != null && (target.Value.IsValid() || !target.Value.IsDead))
                     {
+                        component.StartEnrage = component.ElapsedTime + 5;
+                        component.Enrage = component.ElapsedTime + 10;
+
                         // face player
                         var sourcePosV2 = new Vector2(position.Value.X, position.Value.Z);
                         var targetPosV2 = new Vector2(target.Value.Position.X, target.Value.Position.Z);
@@ -96,15 +100,14 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
                         }
                     } else
                     {
-                        // target just died
-                        RemoveChildren(entity);
-                        component.StartEnrage = component.ElapsedTime + 10;
+                        RemoveTarget(entity);
                     }
                 } else
                 {
                     HandleNoTarget(world, entity, ref model, ref component);
                 }
 
+                // force destruct after 5 mins
                 if (component.ElapsedTime > 300)
                 {
                     entity.Destruct();
@@ -112,18 +115,29 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
             });
     }
 
-    public static void ApplyTether(Entity entity, IGameObject target)
+    public static bool HasTarget(Entity entity) => entity.Has<Target>();
+
+    public static void ApplyTarget(Entity entity, IGameObject target)
     {
-        // remove existing vfxes
         RemoveChildren(entity);
 
         entity.Set(new Target(target));
         AddActorVfx(entity, "vfx/channeling/eff/chn_tergetfix1f.avfx")
             .Set(new ActorVfxTarget(target));
-            
     }
 
-    private void SetTimeline(Model model, ushort animationId)
+    public static void RemoveTarget(Entity entity)
+    {
+        RemoveChildren(entity);
+        if (entity.Has<Model>())
+        {
+            var model = entity.Get<Model>();
+            Stand(ref model);
+        }
+        entity.Remove<Target>();
+    }
+
+    private static void SetTimeline(Model model, ushort animationId)
     {
         unsafe
         {
@@ -138,7 +152,7 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
             }
         }
     }
-    
+
     // maybe move this to a util class?
     private void ShowTextGimmick(string text, int seconds, RaptureAtkModule.TextGimmickHintStyle style = RaptureAtkModule.TextGimmickHintStyle.Warning)
     {
@@ -157,7 +171,11 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
     // TODO: implement this
     private void ShowToast(string text) { }
 
-    private static void RemoveChildren(Entity entity) => entity.Children((Entity child) => child.Destruct());
+    // does not work with multiple dreadknights
+    public static void RemoveChildren(Entity entity)
+    {
+        entity.CsWorld().DeleteWith<Child>();
+    }
 
     private void StunPlayer(World world, float duration, float delay = StunDelay)
     {
@@ -169,7 +187,7 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
         });
     }
 
-    private void Stand(ref Model model)
+    private static void Stand(ref Model model)
     {
         SetTimeline(model, 0);
     }
@@ -190,12 +208,10 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
         component.NextRefresh = component.ElapsedTime + 3f;
     }
 
-    private void CastEnrage(Entity entity, ref Component component)
+    private static void CastEnrage(Entity entity, ref Component component)
     {
         AddActorVfx(entity, "vfx/common/eff/mon_eisyo03t.avfx");
         component.StartEnrage = -1;
-        component.Enrage = component.ElapsedTime + 5;
-        
     }
 
     private void Enrage(World world, Entity entity, ref Model model, ref Component component)
@@ -213,6 +229,7 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
     {
         return entity.CsWorld().Entity()
             .Set(new ActorVfx(vfxPath))
+            .Set(new Child())
             .ChildOf(entity);
     }
 

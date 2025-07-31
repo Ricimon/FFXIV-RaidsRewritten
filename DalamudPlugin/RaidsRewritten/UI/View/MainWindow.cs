@@ -531,7 +531,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                 if (this.attackManager.TryCreateAttackEntity<Dreadknight>(out var dreadknight))
                 {
                     dreadknight.Set(new Position(player.Position));
-                    Dreadknight.ApplyTether(dreadknight, player);
+                    Dreadknight.ApplyTarget(dreadknight, player);
                 }
             }
         }
