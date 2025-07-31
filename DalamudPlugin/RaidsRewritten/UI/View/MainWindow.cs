@@ -149,6 +149,19 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         this.effectsRendererPositionX = configuration.EffectsRendererPositionX;
         this.effectsRendererPositionY = configuration.EffectsRendererPositionY;
 
+
+        var viewport = ImGui.GetMainViewport();
+        int x = (int)(viewport.Pos.X + viewport.Size.X / 2);
+        int y = (int)(viewport.Pos.Y + viewport.Size.Y / 3);
+
+        effectsRendererPositionX = x;
+        effectsRendererPositionY = y;
+
+        configuration.EffectsRendererPositionX = effectsRendererPositionX;
+        configuration.EffectsRendererPositionY = effectsRendererPositionY;
+        configuration.Save();
+
+
 #if DEBUG
         visible = true;
 #endif
@@ -238,28 +251,12 @@ public class MainWindow : Window, IPluginUIView, IDisposable
 
         if (ImGui.InputInt("Position X", ref effectsRendererPositionX))
         {
-            if(effectsRendererPositionX <= 0)
-            {
-                var viewport = ImGui.GetMainViewport();
-                int x = (int)(viewport.Pos.X + viewport.Size.X / 2);
-                effectsRendererPositionX = x;
-                configuration.EffectsRendererPositionX = effectsRendererPositionX;
-
-            }
             configuration.EffectsRendererPositionX = effectsRendererPositionX;
             configuration.Save();
         }
 
         if (ImGui.InputInt("Position Y", ref effectsRendererPositionY))
         {
-            if (effectsRendererPositionY <= 0)
-            {
-                var viewport = ImGui.GetMainViewport();
-                int y = (int)(viewport.Pos.Y + viewport.Size.Y / 3);
-                effectsRendererPositionY = y;
-                configuration.EffectsRendererPositionY = effectsRendererPositionY;
-
-            }
             configuration.EffectsRendererPositionY = effectsRendererPositionY;
             configuration.Save();
         }
