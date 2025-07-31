@@ -52,7 +52,7 @@ public class TankbusterAftershock : Mechanic
                 TelegraphScale = 10f,
                 OmenPath = "vfx/omen/eff/gl_fan120_1bf.avfx",
                 VfxPath = "vfx/monster/m0389/eff/m389sp_05c0n.avfx",
-                DelaySeconds = 0.5f,
+                DelaySeconds = 0.8f,
                 VfxDelaySeconds = 0.5f
             }
         }
@@ -60,9 +60,9 @@ public class TankbusterAftershock : Mechanic
 
     private const float TurnDelaySeconds = 0.5f;
     //private const float StunDurationSeconds = 6f;
-    private const float HeavyDurationSeconds = 30f;
+    private const float HeavyDurationSeconds = 20f;
     private const int HeavyId = 99409896;
-    private const float OmenVisibleSeconds = 0.4f;
+    private const float OmenVisibleSeconds = 0.5f;
     private const float StatusDelaySeconds = 0.5f;
 
     private readonly List<List<Entity>> attacks = [];
@@ -120,9 +120,9 @@ public class TankbusterAftershock : Mechanic
         ToDestruct.Add(delayedAction);
 
         // check if player is in telegraph
-        delayedAction = DelayedAction.Create(this.World, () => Aftershock(aftershockData, fakeActorFront, originalPosition, originalRotation, ToDestruct), aftershockData.DelaySeconds + OmenVisibleSeconds - 0.1f);
+        delayedAction = DelayedAction.Create(this.World, () => Aftershock(aftershockData, fakeActorFront, originalPosition, originalRotation, ToDestruct), aftershockData.DelaySeconds + OmenVisibleSeconds);
         ToDestruct.Add(delayedAction);
-        delayedAction = DelayedAction.Create(this.World, () => Aftershock(aftershockData, fakeActorBack, originalPosition, backAngle, ToDestruct), aftershockData.DelaySeconds + OmenVisibleSeconds - 0.1f);
+        delayedAction = DelayedAction.Create(this.World, () => Aftershock(aftershockData, fakeActorBack, originalPosition, backAngle, ToDestruct), aftershockData.DelaySeconds + OmenVisibleSeconds);
         ToDestruct.Add(delayedAction);
 
         // cleanup
