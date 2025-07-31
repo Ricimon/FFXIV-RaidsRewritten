@@ -53,7 +53,7 @@ public class TankbusterAftershock : Mechanic
                 OmenPath = "vfx/omen/eff/gl_fan120_1bf.avfx",
                 VfxPath = "vfx/monster/m0389/eff/m389sp_05c0n.avfx",
                 DelaySeconds = 0.8f,
-                VfxDelaySeconds = 0.5f
+                VfxDelaySeconds = 0.3f
             }
         }
     };
