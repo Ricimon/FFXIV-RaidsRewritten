@@ -248,6 +248,38 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             configuration.Save();
         }
 
+        if (ImGui.Button("Calculate Middle of Screen"))
+        {
+            var viewport = ImGui.GetMainViewport();
+            int x = (int)(viewport.Pos.X + viewport.Size.X / 2);
+            int y = (int)(viewport.Pos.Y + viewport.Size.Y / 2);
+
+            effectsRendererPositionX = x;
+            effectsRendererPositionY = y;
+
+            configuration.EffectsRendererPositionX = effectsRendererPositionX;
+            configuration.EffectsRendererPositionY = effectsRendererPositionY;
+            configuration.Save();
+        }
+
+        ImGui.SameLine();
+        
+        if (ImGui.Button("Status Overlay"))
+        {
+            using var q = ecsContainer.World.Query<Player.Component>();
+            q.Each((Entity e, ref Player.Component pc) =>
+            {
+                Bind.ApplyToPlayer(e, 200.0f);
+            });
+        }
+
+        ImGui.SameLine();
+
+        if (ImGui.Button("Clear Status Overlay"))
+        {
+            this.ecsContainer.World.DeleteWith<Condition.Component>();
+        }
+
         var encounterText = new StringBuilder("Active Encounter: ");
         if (encounterManager.ActiveEncounter == null)
         {
