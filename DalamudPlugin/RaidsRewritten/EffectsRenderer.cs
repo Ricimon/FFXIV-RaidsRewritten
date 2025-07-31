@@ -32,6 +32,38 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
 
     }
 
+    private class EffectGuageEntry
+    { 
+        public string Text { get; set; }
+        public Vector2 Position { get; set; }
+        public float Value { get; set; }
+        public string Path { get; set; }
+        public Vector2 ImageSize { get; set; }
+        public Vector2 Offset { get; set; }
+        public EffectGuageEntry(string Text, Vector2 Position, Vector2 Offset, Vector2 ImageSize, string Path, float Value)
+        { 
+            this.Text = Text;
+            this.Position = Position;
+            this.Offset = Offset;
+            this.ImageSize = ImageSize;
+            this.Path = Path;
+            this.Value = Value;
+        }
+
+        public struct TempGuage(float Min, float Max, float Overheat, float DeepFreeze)
+        {
+            float Min = Min;
+            float Max = Max;
+            float Overheat = Overheat;
+            float DeepFreeze = DeepFreeze;
+        };
+    }
+
+    private class EffectRectEntry
+    { 
+        public Vector2 Position { get; set; }
+
+    }
     // this extra bool exists for ImGui, since you can't ref a property
     private bool visible = false;
     public bool Visible
@@ -59,7 +91,8 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
     private readonly Query<Temperature.Component> temperatureQuery;
 
     private const float PADDING_X = 10f;
-
+    private const float GuageX = 1280f;
+    private const float GuageY = 720f;
 
     public EffectsRenderer(
         Lazy<EffectsRendererPresenter> presenter,
@@ -117,6 +150,8 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
         if (!this.font.Available) return;
 
         var toDraw = new List<EffectTextEntry>();
+        var toGuageDraw = new List<EffectGuageEntry>();
+
         var drawList = ImGui.GetForegroundDrawList();
         var maxWidth = 0f;
         var offsetY = 0f;
@@ -132,7 +167,7 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
             });
 
             this.temperatureQuery.Each((ref Temperature.Component temperature) => { 
-                AddTemperature(toDraw, temperature, ref offsetY, ref maxWidth);
+                AddTemperature(toGuageDraw, temperature);
             });
 
             if (offsetY > 0f)
@@ -145,6 +180,48 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
                     drawList.AddText(ImGui.GetFont(), 50, effectEntry.Position, Vector4Colors.Red.ToColorU32(), effectEntry.Text);
                 }
             }
+
+            foreach (var guageEntry in toGuageDraw)
+            {
+                var imgGuage = this.textureProvider.GetFromFile(this.pluginInterface.GetResourcePath(guageEntry.Path)).GetWrapOrDefault()?.ImGuiHandle ?? default;
+                float clampedValue = Math.Clamp(guageEntry.Value, -100f, 100f);
+                float normalized = (clampedValue + 100f) / 200f;
+                Vector4 barColor;
+                if (clampedValue == -100f)
+                {
+                    barColor = new Vector4(0.6f, 1, 1, 0.5f);
+                }
+                else if (clampedValue < 0)
+                {
+                    barColor = new Vector4(0, 0, 1, 0.5f);
+                }
+                else
+                {
+                    barColor = new Vector4(1, 1, 0, 0.5f);
+                }
+
+                
+                float barWidth = 370f;
+                float barHeight = 24f;
+                
+                Vector2 barSize = new Vector2(barWidth, barHeight);
+                Vector2 barPosition = guageEntry.Position + guageEntry.Offset;
+
+                drawList.AddImage(imgGuage, guageEntry.Position, guageEntry.Position + guageEntry.ImageSize);
+
+                
+
+                float fillWidth = normalized * barWidth;
+                drawList.AddRectFilled(barPosition + new Vector2(barWidth / 2, 0), barPosition + new Vector2(fillWidth, barHeight), ImGui.ColorConvertFloat4ToU32(barColor), 0f);
+
+                if (guageEntry.Value > 100f)
+                {
+                    float overflowNormalized = guageEntry.Value / 200f;
+                    fillWidth = overflowNormalized * barWidth;
+                    drawList.AddRectFilled(barPosition + new Vector2(barWidth / 2, 0), barPosition + new Vector2(fillWidth, barHeight), ImGui.ColorConvertFloat4ToU32(new Vector4(1, 0, 0, 0.5f)), 0f);
+                }
+            }
+
         }
 
     }
@@ -160,13 +237,12 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
         if (textSize.X > maxWidth) maxWidth = textSize.X;
     }
 
-    private void AddTemperature(List<EffectTextEntry> toDraw, Temperature.Component tc, ref float offsetY, ref float maxWidth) 
+    private void AddTemperature(List<EffectGuageEntry> toDraw, Temperature.Component tc) 
     {
-        var text = $"Temperature: {tc.CurrentTemperature}";
-        var textSize = ImGui.CalcTextSize(text);
-        var position = new Vector2(configuration.EffectsRendererPositionX - textSize.X / 2, configuration.EffectsRendererPositionY + offsetY);
-        toDraw.Add(new EffectTextEntry(text , position));
-        offsetY += textSize.Y;
-        if (textSize.X > maxWidth) maxWidth = textSize.X;
+        var position = new Vector2(GuageX, GuageY);
+        var path = "temp_guage.png";
+        Vector2 offset = new Vector2(64, 79);
+        Vector2 size = new Vector2(498, 147);
+        toDraw.Add(new EffectGuageEntry("" , position, offset, size, path, tc.CurrentTemperature));
     }
 }
