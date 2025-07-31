@@ -368,6 +368,24 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                 Paralysis.ApplyToPlayer(e, 5.0f, 3.0f, 1.0f, -100);
             });
         }
+        ImGui.SameLine();
+        if (ImGui.Button("Heavy"))
+        {
+            using var q = ecsContainer.World.Query<Player.Component>();
+            q.Each((Entity e, ref Player.Component pc) =>
+            {
+                Heavy.ApplyToPlayer(e, 5.0f);
+            });
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Heavy (e)"))
+        {
+            using var q = ecsContainer.World.Query<Player.Component>();
+            q.Each((Entity e, ref Player.Component pc) =>
+            {
+                Heavy.ApplyToPlayer(e, 5.0f, -100, true);
+            });
+        }
 
         ImGui.Text("Attacks");
 

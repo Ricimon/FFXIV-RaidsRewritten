@@ -151,10 +151,11 @@ public unsafe sealed class RollingBall(DalamudServices dalamud, VfxSpawn vfxSpaw
 
                     // Hit detection
                     component.Cooldown = Math.Max(component.Cooldown - it.DeltaTime(), 0);
+                    if (component.Cooldown > 0) { return; }
 
                     var player = dalamud.ClientState.LocalPlayer;
                     if (player == null || player.IsDead) { return; }
-                    if (component.Cooldown > 0) { return; }
+
                     if (Vector2.Distance(position.Value.ToVector2(), player.Position.ToVector2()) <= HitboxRadius)
                     {
                         component.Cooldown = HitCooldown;

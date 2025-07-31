@@ -16,7 +16,7 @@ public class Condition(ILogger logger) : ISystem
     /// This method is used to refresh the duration of an existing condition with the same ID.
     /// An ID of 0 is treated as an unrefreshable condition.
     /// </summary>
-    public static Entity ApplyToPlayer(Entity playerEntity, string name, float duration, int id = 0)
+    public static Entity ApplyToPlayer(Entity playerEntity, string name, float duration, int id = 0, bool extendDuration = false)
     {
         var world = playerEntity.CsWorld();
         if (id != 0)
@@ -27,7 +27,14 @@ public class Condition(ILogger logger) : ISystem
             {
                 if (idx.Value == id)
                 {
-                    component.TimeRemaining = duration;
+                    if (extendDuration)
+                    {
+                        component.TimeRemaining += duration;
+                    }
+                    else
+                    {
+                        component.TimeRemaining = duration;
+                    }
                     existingCondition = e;
                 }
             });

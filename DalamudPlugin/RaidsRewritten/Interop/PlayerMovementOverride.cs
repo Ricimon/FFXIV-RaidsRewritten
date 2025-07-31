@@ -20,6 +20,13 @@ public unsafe sealed class PlayerMovementOverride : IDisposable
 
     public bool OverrideMovement { get; set; }
     public Vector3 OverrideMovementDirection { get; set; }
+    public enum ForcedWalkState
+    {
+        None,
+        Walk,
+        Run,
+    }
+    public ForcedWalkState ForceWalk { get; set; }
 
     private readonly DalamudServices dalamud;
     private readonly ILogger logger;
@@ -48,7 +55,7 @@ public unsafe sealed class PlayerMovementOverride : IDisposable
     private Hook<CheckStrafeKeybindDelegate> checkStrafeKeybindHook = null!;
 
     private bool legacyMode;
-    private bool overrideMovementStateLastFrame;
+    private bool forcedWalkStateLastFrame;
     private bool wasWalking;
 
     public PlayerMovementOverride(DalamudServices dalamud, ILogger logger)
@@ -83,9 +90,10 @@ public unsafe sealed class PlayerMovementOverride : IDisposable
         //this.logger.Info($"WalkDetour rmi1:{rmiWalkIsInputEnabled1(self)}, rmi2: {rmiWalkIsInputEnabled2(self)}, a6: {*a6}, sumLeft:{*sumLeft}, sumForward:{*sumForward}, backOrStrafe:{*haveBackwardOrStrafe}, bAdd:{bAdditiveUnk}");
 
         // Walk save & restoration
-        if (OverrideMovement != overrideMovementStateLastFrame)
+        var forcedWalkState = ForceWalk != ForcedWalkState.None;
+        if (forcedWalkState != forcedWalkStateLastFrame)
         {
-            if (OverrideMovement)
+            if (forcedWalkState)
             {
                 wasWalking = Control.Instance()->IsWalking;
             }
@@ -94,7 +102,7 @@ public unsafe sealed class PlayerMovementOverride : IDisposable
                 Control.Instance()->IsWalking = wasWalking;
             }
         }
-        overrideMovementStateLastFrame = OverrideMovement;
+        forcedWalkStateLastFrame = forcedWalkState;
 
         // Found through testing, this value is more reliable to determine if movement is locked due to being knocked back
         var isBeingKnockedBack = *(byte*)((IntPtr)self + 62) != 0;
@@ -117,6 +125,11 @@ public unsafe sealed class PlayerMovementOverride : IDisposable
                 *sumLeft = 0;
                 *sumForward = 0;
             }
+        }
+
+        if (forcedWalkState)
+        {
+            Control.Instance()->IsWalking = ForceWalk == ForcedWalkState.Walk;
         }
     }
 

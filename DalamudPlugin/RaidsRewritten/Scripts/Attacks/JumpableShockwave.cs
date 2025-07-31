@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Numerics;
 using ECommons.MathHelpers;
 using Flecs.NET.Core;
@@ -100,7 +101,6 @@ public sealed class JumpableShockwave(DalamudServices dalamud, ILogger logger) :
                 component.CurrentRadius = radius;
 
                 var player = dalamud.ClientState.LocalPlayer;
-                if (player == null || player.IsDead) { return; }
 
                 var distToPlayer = Vector2.DistanceSquared(p.ToVector2(), player.Position.ToVector2());
                 var newHitState = distToPlayer < radius * radius ?
@@ -109,14 +109,20 @@ public sealed class JumpableShockwave(DalamudServices dalamud, ILogger logger) :
 
                 if (component.HitDetectionState != newHitState)
                 {
-                    if (component.HitDetectionState != HitDetectionState.None &&
-                        player.Position.Y - p.Y <= JumpClearance)
+                    if (player != null && !player.IsDead &&
+                        // Transcendance, TODO: play invulnerable vfx
+                        !player.StatusList.Any(s => s.StatusId == GameConstants.TranscendanceStatusId))
                     {
-                        this.playerQuery.Each((Entity e, ref Player.Component pc) =>
+                        if (component.HitDetectionState != HitDetectionState.None &&
+                            player.Position.Y - p.Y <= JumpClearance)
                         {
-                            Stun.ApplyToPlayer(e, StunDuration, StunId);
-                        });
+                            this.playerQuery.Each((Entity e, ref Player.Component pc) =>
+                            {
+                                Stun.ApplyToPlayer(e, StunDuration, StunId);
+                            });
+                        }
                     }
+
                     component.HitDetectionState = newHitState;
                 }
 
