@@ -150,15 +150,14 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         this.effectsRendererPositionY = configuration.EffectsRendererPositionY;
 
 
-        if(effectsRendererPositionX == 0 || effectsRendererPositionY == 0) { 
+        if(effectsRendererPositionX == 0 && effectsRendererPositionY == 0) { 
             var viewport = ImGui.GetMainViewport();
             int x = (int)(viewport.Pos.X + viewport.Size.X / 2);
             int y = (int)(viewport.Pos.Y + viewport.Size.Y / 3);
 
-            if(effectsRendererPositionX == 0)
-                effectsRendererPositionX = x;
-            else if(effectsRendererPositionY == 0)
-                effectsRendererPositionY = y;
+
+            effectsRendererPositionX = x;
+            effectsRendererPositionY = y;
 
             configuration.EffectsRendererPositionX = effectsRendererPositionX;
             configuration.EffectsRendererPositionY = effectsRendererPositionY;
