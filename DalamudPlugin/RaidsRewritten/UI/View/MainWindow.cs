@@ -523,6 +523,8 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             }
         }
 
+        ImGui.SameLine();
+
         if (ImGui.Button("Dreadknight With Tether"))
         {
             var player = this.dalamud.ClientState.LocalPlayer;
