@@ -1,4 +1,5 @@
-﻿using ECommons.GameHelpers;
+﻿using Dalamud.Game.ClientState.Objects.Types;
+using ECommons.GameHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.UI;
@@ -22,16 +23,21 @@ namespace RaidsRewritten.Scripts.Attacks;
 
 public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISystem
 {
-    public record struct Component(float ElapsedTime, float NextRefresh, float Enrage = 10f, bool CanHit = false);
+    public record struct Component(float ElapsedTime, float NextRefresh, float StartEnrage = 7f, float Enrage = 12f);
 
     private const ushort WalkingAnimation = 41;
     private const ushort AttackAnimation = 1515;
+    private const ushort EnrageAnimation = 1516;
+    private const float HitboxRadius = 2.5f;
 
     private const float MovementSpeed = 2.5f;
     private const float StunDuration = 8f;
     private const int StunId = 0xDEAD;
-    private const float StunDelay = 0.5f;
-    private const float EnrageStatusDuration = 60f;
+    private const float StunDelay = 0.4f;
+    private const int EnrageNotificationDuration = 4;
+    private const float EnrageStunDuration = 60f;
+    private const float EnrageStunDelay = 0.5f;
+    private const float EnrageVfxDelay = 0.5f;
     private const float InitialDelay = 2f;
 
     private Query<Player.Component> playerQuery;
@@ -63,40 +69,40 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
                 component.ElapsedTime += it.DeltaTime();
                 var entity = it.Entity(i);
 
+                if (component.ElapsedTime < InitialDelay) { return; }  // only want to start looking at player and chasing when ready 
+
                 if (entity.TryGet<ActorVfxTarget>(out var target))
                 {
-                    if (target.Target != null && target.Target.IsValid())
+                    if (target.Target != null && (target.Target.IsValid() || !target.Target.IsDead))
                     {
+                        // face player
                         var sourcePosV2 = new Vector2(position.Value.X, position.Value.Z);
                         var targetPosV2 = new Vector2(target.Target.Position.X, target.Target.Position.Z);
                         var angle = MathUtilities.GetAbsoluteAngleFromSourceToTarget(sourcePosV2, targetPosV2);
                         rotation.Value = angle;
 
-                        if (Vector2.DistanceSquared(sourcePosV2, targetPosV2) > 2.5)
-                        {
-                            Follow(it, ref model, ref component, ref position, angle);
-                        } else
-                        {
-                            if (component.CanHit && component.ElapsedTime > component.NextRefresh)
-                            {
-                                Hit(world, ref model, ref component);
-                            } else
-                            {
-                                Stand(ref model, ref component);
-                            }
+                        if (component.ElapsedTime < component.NextRefresh) {
+                            Stand(ref model);
+                            return;
                         }
 
-                        component.Enrage = component.ElapsedTime + 5f;
+                        if (Vector2.DistanceSquared(sourcePosV2, targetPosV2) < HitboxRadius)
+                        {
+                            Hit(world, ref model, ref component);
+                        } else
+                        {
+                            Follow(it, ref model, ref component, ref position, angle);
+                        }
                     } else
                     {
-                        // remove the actorvfx target
+                        // target just died
+                        entity.Remove<ActorVfx>();
+                        entity.Remove<ActorVfxTarget>();
+                        component.StartEnrage = component.ElapsedTime + 10;
                     }
                 } else
                 {
-                    if (component.ElapsedTime > component.Enrage)
-                    {
-                        Enrage(world, entity);
-                    }
+                    HandleNoTarget(world, entity, ref model, ref component);
                 }
 
                 if (component.ElapsedTime > 300)
@@ -104,6 +110,19 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
                     entity.Destruct();
                 }
             });
+    }
+
+    public static void ApplyTether(Entity entity, IGameObject target)
+    {
+        entity.Remove<ActorVfx>();
+
+        // need to wait a bit for any existing vfx to be removed
+        DelayedAction.Create(entity.CsWorld(), () =>
+        {
+            entity.Set(new ActorVfx("vfx/channeling/eff/chn_tergetfix1f.avfx"))
+                .Set(new ActorVfxTarget(target));
+        }, 0.5f);
+            
     }
 
     private void SetTimeline(Model model, ushort animationId)
@@ -121,7 +140,7 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
             }
         }
     }
-
+    
     // maybe move this to a util class?
     private void ShowTextGimmick(string text, int seconds, RaptureAtkModule.TextGimmickHintStyle style = RaptureAtkModule.TextGimmickHintStyle.Warning)
     {
@@ -137,6 +156,9 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
         }
     }
 
+    // TODO: implement this
+    private void ShowToast(string text) { }
+
     private void StunPlayer(World world, float duration, float delay = StunDelay)
     {
         this.playerQuery.Each((Entity e, ref Player.Component _) =>
@@ -147,13 +169,9 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
         });
     }
 
-    private void Stand(ref Model model, ref Component component)
+    private void Stand(ref Model model)
     {
         SetTimeline(model, 0);
-        if (component.ElapsedTime > InitialDelay)
-        {
-            component.CanHit = true;
-        }
     }
 
     private void Follow(Iter it, ref Model model, ref Component component, ref Position position, float angle)
@@ -163,7 +181,6 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
         newPosition.Z += MovementSpeed * it.DeltaTime() * MathF.Cos(angle);
         newPosition.X += MovementSpeed * it.DeltaTime() * MathF.Sin(angle);
         position.Value = newPosition;
-        component.CanHit = true;
     }
 
     private void Hit(World world, ref Model model, ref Component component)
@@ -173,10 +190,45 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
         component.NextRefresh = component.ElapsedTime + 3f;
     }
 
-    private void Enrage(World world, Entity entity)
+    private void CastEnrage(Entity entity, ref Component component)
     {
-        ShowTextGimmick("Enraged without the sight of resistance, the Dreadknight lets out a deafening shrill!", 4);
-        StunPlayer(world, EnrageStatusDuration, 2);
-        entity.Destruct();
+        DelayedAction.Create(entity.CsWorld(), () =>
+        {
+            entity.Set(new ActorVfx("vfx/common/eff/mon_eisyo03t.avfx"));
+        }, 0.5f);
+        component.StartEnrage = -1;
+        component.Enrage = component.ElapsedTime + 5;
+        
+    }
+
+    private void Enrage(World world, Entity entity, ref Model model, ref Component component)
+    {
+        entity.Remove<ActorVfx>();
+        ShowTextGimmick("Enraged without the sight of resistance, the Dreadknight lets out a deafening shrill!", EnrageNotificationDuration);
+        SetTimeline(model, EnrageAnimation);
+        DelayedAction.Create(world, () => entity.Set(new ActorVfx("vfx/monster/m0150/eff/m150sp003c1m.avfx")), EnrageVfxDelay);
+        //entity.Set(new ActorVfx("vfx/monster/m0150/eff/m150sp003c0m.avfx"));
+        StunPlayer(world, EnrageStunDuration, EnrageStunDelay);
+        component.Enrage = -1;
+    }
+
+    private void HandleNoTarget(World world, Entity entity, ref Model model, ref Component component)
+    {
+        if (component.ElapsedTime < component.StartEnrage) { return; }
+        if (component.ElapsedTime < component.Enrage)
+        {
+            if (component.StartEnrage <= -1) { return; }  // already started preparing enrage
+
+            CastEnrage(entity, ref component);
+        } else
+        {
+            if (component.Enrage <= -1)
+            {  // already enraged
+                Stand(ref model);
+                if (component.ElapsedTime < 295) { component.ElapsedTime = 295; }
+                return;
+            }
+            Enrage(world, entity, ref model, ref component);
+        }
     }
 }
