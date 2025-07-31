@@ -1,4 +1,5 @@
 ﻿using ECommons.MathHelpers;
+using RaidsRewritten.Scripts.Attacks.Components;
 using System;
 using System.Numerics;
 
@@ -47,5 +48,21 @@ public static class MathUtilities
         var cosVal = ((a2.X - a1.X) * (b2.X - b1.X) + (a2.Y - a1.Y) * (b2.Y - b1.Y)) /
                 (MathF.Sqrt(MathHelper.Square(a2.X - a1.X) + MathHelper.Square(a2.Y - a1.Y)) * MathF.Sqrt(MathHelper.Square(b2.X - b1.X) + MathHelper.Square(b2.Y - b1.Y)));
         return MathF.Acos(MathF.Round(cosVal * 10000) / 10000);
+    }
+
+    public static float GetAbsoluteAngleFromSourceToTarget(Vector3 sourcePos, Vector3 targetPos)
+    {
+        var sourcePosV2 = new Vector2(sourcePos.X, sourcePos.Z);
+        var targetPosV2 = new Vector2(targetPos.X, targetPos.Z);
+        return GetAbsoluteAngleFromSourceToTarget(sourcePosV2, targetPosV2);
+    }
+
+    public static float GetAbsoluteAngleFromSourceToTarget(Vector2 sourcePos, Vector2 targetPos)
+    {
+        var north = new Vector2(sourcePos.X, sourcePos.Y + 1);
+        var angle = GetAngleBetweenLines(sourcePos, north, sourcePos, targetPos);
+        if (float.IsNaN(angle)) return 0;
+        if (targetPos.X < sourcePos.X ) { return -angle; }
+        return angle;
     }
 }

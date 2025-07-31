@@ -1,6 +1,7 @@
 ﻿using ECommons.GameHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
+using FFXIVClientStructs.FFXIV.Client.UI;
 using Flecs.NET.Bindings;
 using Flecs.NET.Core;
 using NLog;
@@ -23,6 +24,10 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
 {
     public record struct Component(float ElapsedTime, float NextRefresh, float Enrage = 10f, bool CanHit = false);
 
+    private const ushort WalkingAnimation = 41;
+    private const ushort AttackAnimation = 1515;
+
+    private const float MovementSpeed = 2.5f;
     private const float StunDuration = 8f;
     private const int StunId = 0xDEAD;
     private const float StunDelay = 0.5f;
@@ -38,7 +43,7 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
                 .Set(new Rotation(0))
                 .Set(new Scale())
                 .Set(new UniformScale(1f))
-                .Set(new Component())
+                .Set(new Component(0, 0))
                 .Set(new Position())
                 .Add<Attack>();
     }
@@ -58,32 +63,28 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
                 component.ElapsedTime += it.DeltaTime();
                 var entity = it.Entity(i);
 
-
                 if (entity.TryGet<ActorVfxTarget>(out var target))
                 {
                     if (target.Target != null && target.Target.IsValid())
                     {
-                        var fakeActorPos = new Vector2(position.Value.X, position.Value.Z);
-                        var north = new Vector2(position.Value.X, position.Value.Z + 1);
-                        var playerPos = new Vector2(target.Target.Position.X, target.Target.Position.Z);
-                        var angle = MathUtilities.GetAngleBetweenLines(fakeActorPos, north, fakeActorPos, playerPos);
-                        if (playerPos.X < fakeActorPos.X) { angle = -angle; }
-                        if (float.IsNaN(angle)) angle = 0;
+                        var sourcePosV2 = new Vector2(position.Value.X, position.Value.Z);
+                        var targetPosV2 = new Vector2(target.Target.Position.X, target.Target.Position.Z);
+                        var angle = MathUtilities.GetAbsoluteAngleFromSourceToTarget(position.Value, target.Target.Position);
                         rotation.Value = angle;
 
-                        if (Vector2.DistanceSquared(fakeActorPos, playerPos) > 2.5)
+                        if (Vector2.DistanceSquared(sourcePosV2, targetPosV2) > 2.5)
                         {
-                            SetTimeline(model, 41);
+                            SetTimeline(model, WalkingAnimation);
                             var newPosition = position.Value;
-                            newPosition.Z += 2.5f * it.DeltaTime() * MathF.Cos(angle);
-                            newPosition.X += 2.5f * it.DeltaTime() * MathF.Sin(angle);
+                            newPosition.Z += MovementSpeed * it.DeltaTime() * MathF.Cos(angle);
+                            newPosition.X += MovementSpeed * it.DeltaTime() * MathF.Sin(angle);
                             position.Value = newPosition;
                             component.CanHit = true;
                         } else
                         {
                             if (component.CanHit && component.ElapsedTime > component.NextRefresh)
                             {
-                                SetTimeline(model, 1515);
+                                SetTimeline(model, AttackAnimation);
                                 StunPlayer(world, StunDuration);
                                 component.NextRefresh = component.ElapsedTime + 3f;
                             } else
@@ -105,7 +106,8 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
                 {
                     if (component.ElapsedTime > component.Enrage)
                     {
-
+                        ShowTextGimmick("Enraged without the sight of resistance, Dreadknight flies into a rage!", 4);
+                        entity.Destruct();
                     }
                 }
 
@@ -120,12 +122,30 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
     {
         unsafe
         {
-            var obj = ClientObjectManager.Instance()->GetObjectByIndex((ushort)model.GameObjectIndex);
+            var clientObjectManager = ClientObjectManager.Instance();
+            if (clientObjectManager == null) { return; }
+
+            var obj = clientObjectManager->GetObjectByIndex((ushort)model.GameObjectIndex);
             var chara = (Character*)obj;
             if (chara != null)
             {
                 chara->Timeline.BaseOverride = animationId;
             }
+        }
+    }
+
+    // maybe move this to a util class?
+    private void ShowTextGimmick(string text, int seconds, RaptureAtkModule.TextGimmickHintStyle style = RaptureAtkModule.TextGimmickHintStyle.Warning)
+    {
+        unsafe
+        {
+            var raptureAtkModule = RaptureAtkModule.Instance();
+            if (raptureAtkModule == null) { return; }
+
+            raptureAtkModule->ShowTextGimmickHint(
+            text,
+            style,
+            10 * seconds);
         }
     }
 
