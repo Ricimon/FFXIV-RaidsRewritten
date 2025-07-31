@@ -59,7 +59,9 @@ public class TankbusterAftershock : Mechanic
     };
 
     private const float TurnDelaySeconds = 0.5f;
-    private const float StunDurationSeconds = 6f;
+    //private const float StunDurationSeconds = 6f;
+    private const float HeavyDurationSeconds = 30f;
+    private const int HeavyId = 99409896;
     private const float OmenVisibleSeconds = 0.4f;
     private const float StatusDelaySeconds = 0.5f;
 
@@ -139,7 +141,10 @@ public class TankbusterAftershock : Mechanic
     }
     private void OnHit(Entity e)
     {
-        DelayedAction.Create(e.CsWorld(), () => Stun.ApplyToPlayer(e, StunDurationSeconds), StatusDelaySeconds);
+        DelayedAction.Create(e.CsWorld(), () =>
+        {
+            Heavy.ApplyToPlayer(e, HeavyDurationSeconds, HeavyId, true);
+        }, StatusDelaySeconds);
     }
     private void Telegraph(AftershockData aftershockData, Vector3 position, float rotation, List<Entity> ToDestruct)
     {

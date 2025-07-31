@@ -44,6 +44,12 @@ public class PlayerManager(
         }
     }
 
+    public PlayerMovementOverride.ForcedWalkState ForceWalk
+    {
+        get => movementOverride.ForceWalk;
+        set => movementOverride.ForceWalk = value;
+    }
+
     public bool DisableAllActions
     {
         get => actionManager.DisableAllActions;

@@ -16,6 +16,7 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
     private Query<Component, Condition.Component, Bind.Component> bindQuery;
     private Query<Component, Condition.Component, Stun.Component> stunQuery;
     private Query<Component, Condition.Component, Paralysis.Component> paralysisQuery;
+    private Query<Component, Condition.Component, Heavy.Component> heavyQuery;
 
     public static Entity Create(World world, bool isLocalPlayer)
     {
@@ -28,6 +29,7 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
         this.bindQuery.Dispose();
         this.stunQuery.Dispose();
         this.paralysisQuery.Dispose();
+        this.heavyQuery.Dispose();
     }
 
     public static Query<Component> Query(World world)
@@ -44,6 +46,8 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
         this.stunQuery = world.QueryBuilder<Component, Condition.Component, Stun.Component>()
             .TermAt(0).Up().Cached().Build();
         this.paralysisQuery = world.QueryBuilder<Component, Condition.Component, Paralysis.Component>()
+            .TermAt(0).Up().Cached().Build();
+        this.heavyQuery = world.QueryBuilder<Component, Condition.Component, Heavy.Component>()
             .TermAt(0).Up().Cached().Build();
 
         world.System<Component>()
@@ -79,6 +83,7 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
                         if (!pc.IsLocalPlayer) { return; }
                         stun |= paralysis.StunActive;
                     });
+                    Entity slowEntity = GetFirstConditionEntityOnLocalPlayer(this.heavyQuery);
 
                     // Movement override
                     if (knockbackEntity.IsValid())
@@ -89,17 +94,25 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
 
                         playerManager.OverrideMovement = true;
                         playerManager.OverrideMovementDirection = knockback.KnockbackDirection;
+                        playerManager.ForceWalk = Interop.PlayerMovementOverride.ForcedWalkState.Run;
                     }
                     else
                     {
+                        playerManager.OverrideMovementDirection = Vector3.Zero;
+
                         if (bindEntity.IsValid() || stun)
                         {
                             playerManager.OverrideMovement = true;
-                            playerManager.OverrideMovementDirection = Vector3.Zero;
+                        }
+                        else if (slowEntity.IsValid())
+                        {
+                            playerManager.OverrideMovement = false;
+                            playerManager.ForceWalk = Interop.PlayerMovementOverride.ForcedWalkState.Walk;
                         }
                         else
                         {
                             playerManager.OverrideMovement = false;
+                            playerManager.ForceWalk = Interop.PlayerMovementOverride.ForcedWalkState.None;
                         }
                     }
 
