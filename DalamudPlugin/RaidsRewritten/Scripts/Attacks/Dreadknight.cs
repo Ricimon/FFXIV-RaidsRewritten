@@ -1,11 +1,8 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
-using ECommons.GameHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.UI;
-using Flecs.NET.Bindings;
 using Flecs.NET.Core;
-using NLog;
 using RaidsRewritten.Game;
 using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Scripts.Conditions;
@@ -16,7 +13,6 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
-using static Lumina.Data.Files.ScdFile;
 using Player = RaidsRewritten.Game.Player;
 
 namespace RaidsRewritten.Scripts.Attacks;
