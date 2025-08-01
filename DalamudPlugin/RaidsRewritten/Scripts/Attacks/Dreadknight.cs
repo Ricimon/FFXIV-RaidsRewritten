@@ -76,7 +76,7 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
 
                 if (entity.TryGet<Target>(out var target))
                 {
-                    if (target.Value != null && (target.Value.IsValid() || !target.Value.IsDead))
+                    if (target.Value != null && (target.Value.IsValid() && !target.Value.IsDead))
                     {
                         component.StartEnrage = component.ElapsedTime + 5;
                         component.Enrage = component.ElapsedTime + 10;
