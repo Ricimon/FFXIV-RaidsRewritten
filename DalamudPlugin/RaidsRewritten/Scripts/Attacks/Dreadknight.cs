@@ -21,14 +21,20 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
 {
     public record struct Component(float ElapsedTime, float NextRefresh, float StartEnrage = 7f, float Enrage = 12f);
     public record struct Target(IGameObject? Value);
+    public record struct Speed(float Value);
     public record struct Child(object _);
 
     private const ushort WalkingAnimation = 41;
     private const ushort AttackAnimation = 1515;
     private const ushort EnrageAnimation = 1516;
-    private const float HitboxRadius = 2.5f;
+    private const string SpeedBuffVfx = "vfx/eureka/erk011/eff/abi_erk011c0p.avfx";
+    private const string SpeedDebuffVfx = "vfx/common/eff/dk05th_stdn0t.avfx";
+    private const string EnrageVfx1 = "vfx/monster/m0150/eff/m150sp003c1m.avfx";
+    private const string EnrageVfx2 = "vfx/monster/m0150/eff/m150sp003c0m.avfx";
+    private const string CastingVfx = "vfx/common/eff/mon_eisyo03t.avfx";
+    private const string TetherVfx = "vfx/channeling/eff/chn_tergetfix1f.avfx";
 
-    private const float MovementSpeed = 2.5f;
+    private const float HitboxRadius = 1.75f;
     private const float StunDuration = 8f;
     private const int StunId = 0xDEAD;
     private const float StunDelay = 0.4f;
@@ -50,6 +56,7 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
                 .Set(new UniformScale(1f))
                 .Set(new Component(0, 0))
                 .Set(new Position())
+                .Set(new Speed(3))
                 .Add<Attack>();
     }
 
@@ -62,8 +69,8 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
     {
         this.playerQuery = Player.Query(world);
 
-        world.System<Model, Component, Position, Rotation>()
-            .Each((Iter it, int i, ref Model model, ref Component component, ref Position position, ref Rotation rotation) =>
+        world.System<Model, Component, Position, Rotation, Speed>()
+            .Each((Iter it, int i, ref Model model, ref Component component, ref Position position, ref Rotation rotation, ref Speed speed) =>
             {
                 component.ElapsedTime += it.DeltaTime();
                 var entity = it.Entity(i);
@@ -88,12 +95,12 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
                             return;
                         }
 
-                        if (Vector2.DistanceSquared(sourcePosV2, targetPosV2) < HitboxRadius)
+                        if (Vector2.Distance(sourcePosV2, targetPosV2) < HitboxRadius)
                         {
                             Hit(world, ref model, ref component, target);
                         } else
                         {
-                            Follow(it, ref model, ref component, ref position, angle);
+                            Follow(it, ref model, ref component, ref position, ref speed, angle);
                         }
                     } else
                     {
@@ -119,7 +126,7 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
         RemoveChildren(entity);
 
         entity.Set(new Target(target));
-        AddActorVfx(entity, "vfx/channeling/eff/chn_tergetfix1f.avfx")
+        AddActorVfx(entity, TetherVfx)
             .Set(new ActorVfxTarget(target));
     }
 
@@ -132,6 +139,44 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
             Stand(ref model);
         }
         entity.Remove<Target>();
+    }
+
+    public static void SetSpeed(Entity entity, float speed)
+    {
+        if (entity.Has<Speed>())
+        {
+            var oldSpeed = entity.Get<Speed>();
+            if (oldSpeed.Value > speed)
+            {
+                AddActorVfx(entity, SpeedDebuffVfx);
+            } else if (oldSpeed.Value < speed)
+            {
+                AddActorVfx(entity, SpeedBuffVfx);
+            }
+            entity.Set(new Speed(speed));
+        }
+    }
+
+    public static void IncrementSpeed(Entity entity, float increment)
+    {
+        if (entity.Has<Speed>())
+        {
+            var oldSpeed = entity.Get<Speed>();
+            AddActorVfx(entity, SpeedBuffVfx);
+            entity.Set(new Speed(oldSpeed.Value + increment));
+        }
+    }
+
+    public static void DecrementSpeed(Entity entity, float increment)
+    {
+        if (entity.Has<Speed>())
+        {
+            var oldSpeed = entity.Get<Speed>();
+            AddActorVfx(entity, SpeedDebuffVfx);
+            var newSpeed = oldSpeed.Value - increment;
+            if (newSpeed < 0) newSpeed = 0;
+            entity.Set(new Speed(newSpeed));
+        }
     }
 
     private static void SetTimeline(Model model, ushort animationId)
@@ -186,12 +231,12 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
         SetTimeline(model, 0);
     }
 
-    private void Follow(Iter it, ref Model model, ref Component component, ref Position position, float angle)
+    private void Follow(Iter it, ref Model model, ref Component component, ref Position position, ref Speed speed, float angle)
     {
         SetTimeline(model, WalkingAnimation);
         var newPosition = position.Value;
-        newPosition.Z += MovementSpeed * it.DeltaTime() * MathF.Cos(angle);
-        newPosition.X += MovementSpeed * it.DeltaTime() * MathF.Sin(angle);
+        newPosition.Z += speed.Value * it.DeltaTime() * MathF.Cos(angle);
+        newPosition.X += speed.Value * it.DeltaTime() * MathF.Sin(angle);
         position.Value = newPosition;
     }
 
@@ -207,7 +252,7 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
 
     private static void CastEnrage(Entity entity, ref Component component)
     {
-        AddActorVfx(entity, "vfx/common/eff/mon_eisyo03t.avfx");
+        AddActorVfx(entity, CastingVfx);
         component.StartEnrage = -1;
     }
 
@@ -216,8 +261,8 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
         RemoveChildren(entity);
         ShowTextGimmick("Enraged without the sight of resistance, the Dreadknight lets out a deafening shrill!", EnrageNotificationDuration);
         SetTimeline(model, EnrageAnimation);
-        DelayedAction.Create(world, () => AddActorVfx(entity, "vfx/monster/m0150/eff/m150sp003c1m.avfx"), EnrageVfxDelay);
-        DelayedAction.Create(world, () => AddActorVfx(entity, "vfx/monster/m0150/eff/m150sp003c0m.avfx"), EnrageVfxDelay);
+        DelayedAction.Create(world, () => AddActorVfx(entity, EnrageVfx1), EnrageVfxDelay);
+        DelayedAction.Create(world, () => AddActorVfx(entity, EnrageVfx2), EnrageVfxDelay);
         StunPlayer(world, EnrageStunDuration, EnrageStunDelay);
         component.Enrage = -1;
     }

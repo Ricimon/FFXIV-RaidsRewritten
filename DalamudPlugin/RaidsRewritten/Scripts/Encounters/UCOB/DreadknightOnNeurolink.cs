@@ -17,6 +17,10 @@ public class DreadknightOnNeurolink : Mechanic
 {
     private const uint NeurolinkDataId = 0x1E88FF;
     private readonly Vector3 ArenaCenter = new(0,0,0);
+    private const int GenerateId = 9902;
+    private const int HatchId = 9903;
+    private const float SpeedIncrement = 0.5f;
+
 
     private readonly List<uint> actionIds = [
         7538,  // interject
@@ -30,13 +34,21 @@ public class DreadknightOnNeurolink : Mechanic
     private Entity? attack;
 
     private int neurolinksSpawned = 0;
+    private int oviformsOnField = 0;
 
     public override void Reset()
     {
-        this.attack?.Destruct();
-        this.attack = null;
+        SoftReset();
         neurolinksSpawned = 0;
     }
+
+    private void SoftReset()
+    {
+        this.attack?.Destruct();
+        this.attack = null;
+        oviformsOnField = 0;
+    }
+
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
     {
         if (a3 == DirectorUpdateCategory.Wipe ||
@@ -69,7 +81,7 @@ public class DreadknightOnNeurolink : Mechanic
             case 2:
                 break;
             case 3:
-                Reset();
+                SoftReset();
                 break;
         }
     }
@@ -78,11 +90,22 @@ public class DreadknightOnNeurolink : Mechanic
     {
         if (set.Action == null) { return; }
         if (!attack.HasValue) { return; }
-        if (!actionIds.Contains(set.Action.Value.RowId)) { return; }
-        if (Dreadknight.HasTarget(attack.Value)) { return; }
-        if (set.Source == null) { return; }
 
-        Dreadknight.ApplyTarget(attack.Value, set.Source);
+        if (set.Action.Value.RowId == GenerateId && neurolinksSpawned < 3)
+        {
+            oviformsOnField = neurolinksSpawned;
+        } else if (set.Action.Value.RowId == HatchId) {
+            oviformsOnField--;
+            if (oviformsOnField <= 0 && attack.HasValue && neurolinksSpawned < 3)
+            {
+                Dreadknight.IncrementSpeed(attack.Value, SpeedIncrement);
+            }
+        } else if (actionIds.Contains(set.Action.Value.RowId)) {
+            if (Dreadknight.HasTarget(attack.Value)) { return; }
+            if (set.Source == null) { return; }
+
+            Dreadknight.ApplyTarget(attack.Value, set.Source);
+        }
     }
 
 }
