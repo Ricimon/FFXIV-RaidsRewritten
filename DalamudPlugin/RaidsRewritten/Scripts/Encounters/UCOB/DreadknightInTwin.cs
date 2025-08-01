@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
-public class DreadknightOnNeurolink : Mechanic
+public class DreadknightInTwin : Mechanic
 {
     private const uint NeurolinkDataId = 0x1E88FF;
     private readonly Vector3 ArenaCenter = new(0,0,0);
@@ -58,32 +58,30 @@ public class DreadknightOnNeurolink : Mechanic
         }
     }
 
+    public override void OnCombatStart()
+    {
+        if (attack.HasValue)
+        {
+            attack.Value.Destruct();
+            attack = null;
+        }
+
+        if (this.AttackManager.TryCreateAttackEntity<Dreadknight>(out var dreadknight))
+        {
+            Dalamud.ToastGui.ShowNormal("The Dreadknight seeks signs of resistance...");
+            dreadknight.Set(new Position(ArenaCenter));
+            attack = dreadknight;
+        }
+    }
+
     public override void OnObjectCreation(nint newObjectPointer, IGameObject? newObject)
     {
         if (newObject == null) { return; }
         if (newObject.DataId != NeurolinkDataId) { return; }
         neurolinksSpawned++;
-        switch (neurolinksSpawned)
+        if (neurolinksSpawned >= 3)
         {
-            case 1:
-                if (attack.HasValue)
-                {
-                    attack.Value.Destruct();
-                    attack = null;
-                }
-
-                if (this.AttackManager.TryCreateAttackEntity<Dreadknight>(out var dreadknight))
-                {
-                    Dalamud.ToastGui.ShowNormal("The Dreadknight seeks signs of resistance...");
-                    dreadknight.Set(new Position(ArenaCenter));
-                    attack = dreadknight;
-                }
-                break;
-            case 2:
-                break;
-            case 3:
-                SoftReset();
-                break;
+            SoftReset();
         }
     }
 

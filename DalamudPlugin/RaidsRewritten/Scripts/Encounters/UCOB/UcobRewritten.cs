@@ -87,7 +87,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
 
         if (configuration.GetEncounterSetting(DreadknightKey, true))
         {
-            this.mechanics.Add(mechanicFactory.Create<DreadknightOnNeurolink>());
+            this.mechanics.Add(mechanicFactory.Create<DreadknightInTwin>());
         }
     }
 
