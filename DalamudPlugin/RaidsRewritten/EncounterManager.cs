@@ -45,7 +45,7 @@ public sealed class EncounterManager : IDalamudHook
     ];
     private readonly Dictionary<ushort, IEncounter> encounters;
 
-    private bool CombatStarted = false;
+    private bool InCombat = false;
 
     public EncounterManager(
         DalamudServices dalamud,
@@ -330,9 +330,9 @@ public sealed class EncounterManager : IDalamudHook
     {
         if (this.dalamud.Condition[ConditionFlag.InCombat])
         {
-            if (!this.CombatStarted)
+            if (!this.InCombat)
             {
-                this.CombatStarted = true;
+                this.InCombat = true;
                 this.logger.Debug("COMBAT STARTED");
                 if (this.configuration.EverythingDisabled) { return; }
                 
@@ -346,9 +346,9 @@ public sealed class EncounterManager : IDalamudHook
             }
         } else
         {
-            if (this.CombatStarted)
+            if (this.InCombat)
             {
-                this.CombatStarted = false;
+                this.InCombat = false;
                 this.logger.Debug("COMBAT ENDED");
                 if (this.configuration.EverythingDisabled) { return; }
 
