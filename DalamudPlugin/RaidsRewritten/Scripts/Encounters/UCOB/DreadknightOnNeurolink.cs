@@ -29,13 +29,13 @@ public class DreadknightOnNeurolink : Mechanic
 
     private Entity? attack;
 
-    private bool alreadySpawned = false;
+    private int neurolinksSpawned = 0;
 
     public override void Reset()
     {
         this.attack?.Destruct();
         this.attack = null;
-        alreadySpawned = false;
+        neurolinksSpawned = 0;
     }
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
     {
@@ -50,18 +50,27 @@ public class DreadknightOnNeurolink : Mechanic
     {
         if (newObject == null) { return; }
         if (newObject.DataId != NeurolinkDataId) { return; }
-        if (alreadySpawned) { return; }
-
-        if (attack.HasValue)
+        neurolinksSpawned++;
+        switch (neurolinksSpawned)
         {
-            attack.Value.Destruct();
-            attack = null;
-        }
+            case 1:
+                if (attack.HasValue)
+                {
+                    attack.Value.Destruct();
+                    attack = null;
+                }
 
-        if (this.AttackManager.TryCreateAttackEntity<Dreadknight>(out var dreadknight))
-        {
-            dreadknight.Set(new Position(ArenaCenter));
-            attack = dreadknight;
+                if (this.AttackManager.TryCreateAttackEntity<Dreadknight>(out var dreadknight))
+                {
+                    dreadknight.Set(new Position(ArenaCenter));
+                    attack = dreadknight;
+                }
+                break;
+            case 2:
+                break;
+            case 3:
+                Reset();
+                break;
         }
     }
 
