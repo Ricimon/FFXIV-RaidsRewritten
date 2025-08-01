@@ -41,6 +41,10 @@ public abstract class Mechanic()
 
     public virtual void OnStartingCast(Action action, IBattleChara source) { }
 
+    public virtual void OnCombatStart() { }
+
+    public virtual void OnCombatEnd() { }
+
     public class Factory(DalamudServices dalamud, EcsContainer ecsContainer, AttackManager attackManager, ILogger logger)
     {
         public T Create<T>() where T : Mechanic, new()
