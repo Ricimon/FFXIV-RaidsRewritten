@@ -74,6 +74,7 @@ public class DreadknightOnNeurolink : Mechanic
 
                 if (this.AttackManager.TryCreateAttackEntity<Dreadknight>(out var dreadknight))
                 {
+                    Dalamud.ToastGui.ShowNormal("The Dreadknight seeks signs of resistance...");
                     dreadknight.Set(new Position(ArenaCenter));
                     attack = dreadknight;
                 }

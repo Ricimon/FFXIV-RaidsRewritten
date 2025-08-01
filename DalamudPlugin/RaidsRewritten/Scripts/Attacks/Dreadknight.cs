@@ -51,7 +51,6 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
 
     public Entity Create(World world)
     {
-        dalamud.ToastGui.ShowNormal("The Dreadknight seeks signs of resistance...");
         return world.Entity()
                 .Set(new Model(379))
                 .Set(new Rotation(0))
