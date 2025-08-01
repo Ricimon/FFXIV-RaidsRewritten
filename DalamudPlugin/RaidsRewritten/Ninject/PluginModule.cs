@@ -75,7 +75,6 @@ public class PluginModule : NinjectModule
         Bind<PlayerManager>().ToSelf().InSingletonScope();
         Bind<PlayerMovementOverride>().ToSelf().WhenInjectedInto<PlayerManager>().InSingletonScope();
         Bind<PlayerCameraOverride>().ToSelf().WhenInjectedInto<PlayerManager>().InSingletonScope();
-        Bind<KeybindManager>().ToSelf().WhenInjectedInto<PlayerManager>().InSingletonScope();
         Bind<ActionManagerEx>().ToSelf().WhenInjectedInto<PlayerManager>().InSingletonScope();
 
         // Views and Presenters
