@@ -328,14 +328,28 @@ public sealed class EncounterManager : IDalamudHook
 
     private void OnFrameworkUpdate(IFramework framework)
     {
-        if (this.dalamud.Condition[ConditionFlag.InCombat])
+        var combatState = this.dalamud.Condition[ConditionFlag.InCombat];
+        if (this.dalamud.Condition[ConditionFlag.DutyRecorderPlayback])
+        {
+            if (this.dalamud.ClientState.LocalPlayer == null) { return; }
+
+            unsafe
+            {
+                var chara = this.dalamud.ClientState.LocalPlayer.Character();
+                if (chara == null) { return; }
+
+                combatState = chara->InCombat;
+            }
+        }
+
+        if (combatState)
         {
             if (!this.InCombat)
             {
                 this.InCombat = true;
                 this.logger.Debug("COMBAT STARTED");
                 if (this.configuration.EverythingDisabled) { return; }
-                
+
                 if (ActiveEncounter != null)
                 {
                     foreach (var mechanic in ActiveEncounter.GetMechanics())
