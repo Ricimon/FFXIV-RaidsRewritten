@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Net;
 using Flecs.NET.Core;
 using RaidsRewritten.Extensions;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
-using static Flecs.NET.Core.Ecs.Units;
+using RaidsRewritten.Scripts.Attacks.Components;
 
 namespace RaidsRewritten.Scripts.Conditions;
 
@@ -129,15 +128,15 @@ public class Temperature(ILogger logger) : ISystem
 
                 try
                 {
-                    //This is constantly refreshing and creating new components, gonna work on handling the UI part to fix this in a bit
-                    //e.Set(new Condition.Component(Temperature.CurrentTemperature.ToString(), 9999.0f));
-
                     if (Temperature.CurrentTemperature <= Temperature.DeepfreezeTemp)
                     {
                         if (!e.Has<Deepfreeze>())
                         {
                             e.Remove<Overheat>();
+                            e.Remove<ActorVfx>();
+
                             e.Add<Deepfreeze>();
+                            e.Set(new ActorVfx("vfx/common/eff/hyouketu0f.avfx"));
                             //logger.Info("Deepfreeze");
                         }
                         return;
@@ -147,13 +146,17 @@ public class Temperature(ILogger logger) : ISystem
                         if (!e.Has<Overheat>())
                         { 
                             e.Remove<Deepfreeze>();
-                            e.Add<Overheat>();
+                            e.Remove<ActorVfx>();
+
+                            e.Add<Overheat>(); 
+                            e.Set(new ActorVfx("vfx/common/eff/dk10ht_hea0s.avfx"));
                             //logger.Info("Overheat");
                         }
                         return;
                     }
                     e.Remove<Deepfreeze>();
                     e.Remove<Overheat>();
+                    e.Remove<ActorVfx>();
                 }
                 catch (Exception ex)
                 {

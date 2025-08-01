@@ -32,7 +32,7 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
 
     }
 
-    private class EffectGuageEntry
+    private class EffectGaugeEntry
     { 
         public Vector2 Position { get; set; }
         public Vector2 Offset { get; set; }
@@ -40,7 +40,7 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
         public Vector2 ImageSize { get; set; }
         public string Path { get; set; }
         public float Value { get; set; }
-        public EffectGuageEntry(Vector2 Position, Vector2 Offset, Vector2 BarSize, Vector2 ImageSize, string Path, float Value)
+        public EffectGaugeEntry(Vector2 Position, Vector2 Offset, Vector2 BarSize, Vector2 ImageSize, string Path, float Value)
         { 
             this.Position = Position;
             this.Offset = Offset;
@@ -140,7 +140,7 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
         if (!this.font.Available) return;
 
         var toDraw = new List<EffectTextEntry>();
-        var toGuageDraw = new List<EffectGuageEntry>();
+        var toGaugeDraw = new List<EffectGaugeEntry>();
 
         var drawList = ImGui.GetForegroundDrawList();
         var maxWidth = 0f;
@@ -157,7 +157,7 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
             });
 
             this.temperatureQuery.Each((ref Temperature.Component temperature) => { 
-                AddTemperature(toGuageDraw, temperature);
+                AddTemperature(toGaugeDraw, temperature);
             });
 
             if (offsetY > 0f)
@@ -171,12 +171,12 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
                 }
             }
 
-            foreach (var guageEntry in toGuageDraw)
+            foreach (var gaugeEntry in toGaugeDraw)
             {
-                var imgGuage = this.textureProvider.GetFromFile(this.pluginInterface.GetResourcePath(guageEntry.Path)).GetWrapOrDefault()?.ImGuiHandle ?? default;
-                drawList.AddImage(imgGuage, guageEntry.Position, guageEntry.Position + guageEntry.ImageSize);
+                var imgGauge = this.textureProvider.GetFromFile(this.pluginInterface.GetResourcePath(gaugeEntry.Path)).GetWrapOrDefault()?.ImGuiHandle ?? default;
+                drawList.AddImage(imgGauge, gaugeEntry.Position, gaugeEntry.Position + gaugeEntry.ImageSize);
 
-                float clampedValue = Math.Clamp(guageEntry.Value, -100f, 100f);
+                float clampedValue = Math.Clamp(gaugeEntry.Value, -100f, 100f);
                 float normalized = (clampedValue + 100f) / 200f;
                 Vector4 barColor;
                 if (clampedValue == -100f)
@@ -192,15 +192,15 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
                     barColor = new Vector4(1, 1, 0, 0.5f);
                 }
                 
-                Vector2 barPosition = guageEntry.Position + guageEntry.Offset;
-                float fillWidth = normalized * guageEntry.BarSize.X;
-                drawList.AddRectFilled(barPosition + new Vector2(guageEntry.BarSize.X / 2, 0), barPosition + new Vector2(fillWidth, guageEntry.BarSize.Y), ImGui.ColorConvertFloat4ToU32(barColor), 0f);
+                Vector2 barPosition = gaugeEntry.Position + gaugeEntry.Offset;
+                float fillWidth = normalized * gaugeEntry.BarSize.X;
+                drawList.AddRectFilled(barPosition + new Vector2(gaugeEntry.BarSize.X / 2, 0), barPosition + new Vector2(fillWidth, gaugeEntry.BarSize.Y), ImGui.ColorConvertFloat4ToU32(barColor), 0f);
 
-                if (guageEntry.Value > 100f)
+                if (gaugeEntry.Value > 100f)
                 {
-                    float overflowNormalized = guageEntry.Value / 200f;
-                    fillWidth = overflowNormalized * guageEntry.BarSize.X;
-                    drawList.AddRectFilled(barPosition + new Vector2(guageEntry.BarSize.X / 2, 0), barPosition + new Vector2(fillWidth, guageEntry.BarSize.Y), ImGui.ColorConvertFloat4ToU32(new Vector4(1, 0, 0, 0.5f)), 0f);
+                    float overflowNormalized = gaugeEntry.Value / 200f;
+                    fillWidth = overflowNormalized * gaugeEntry.BarSize.X;
+                    drawList.AddRectFilled(barPosition + new Vector2(gaugeEntry.BarSize.X / 2, 0), barPosition + new Vector2(fillWidth, gaugeEntry.BarSize.Y), ImGui.ColorConvertFloat4ToU32(new Vector4(1, 0, 0, 0.5f)), 0f);
                 }
             }
 
@@ -219,13 +219,13 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
         if (textSize.X > maxWidth) maxWidth = textSize.X;
     }
 
-    private void AddTemperature(List<EffectGuageEntry> toDraw, Temperature.Component tc) 
+    private void AddTemperature(List<EffectGaugeEntry> toDraw, Temperature.Component tc) 
     {
         Vector2 offset = new Vector2(64, 79);
         Vector2 barSize = new Vector2(370, 24);
         Vector2 imageSize = new Vector2(498, 147);
         Vector2 position = new Vector2(configuration.GetEncounterSetting("UCOB Rewritten.TemperatureControlX", 0) - imageSize.X / 2, configuration.GetEncounterSetting("UCOB Rewritten.TemperatureControlY", 0) - imageSize.Y / 2);
         var path = "temperature_gauge.png";
-        toDraw.Add(new EffectGuageEntry(position, offset, barSize, imageSize, path, tc.CurrentTemperature));
+        toDraw.Add(new EffectGaugeEntry(position, offset, barSize, imageSize, path, tc.CurrentTemperature));
     }
 }
