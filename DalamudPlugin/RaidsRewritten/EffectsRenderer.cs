@@ -225,7 +225,7 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
         Vector2 barSize = new Vector2(370, 24);
         Vector2 imageSize = new Vector2(498, 147);
         Vector2 position = new Vector2(configuration.GetEncounterSetting("UCOB Rewritten.TemperatureControlX", 0) - imageSize.X / 2, configuration.GetEncounterSetting("UCOB Rewritten.TemperatureControlY", 0) - imageSize.Y / 2);
-        var path = "temp_guage.png";
+        var path = "temperature_gauge.png";
         toDraw.Add(new EffectGuageEntry(position, offset, barSize, imageSize, path, tc.CurrentTemperature));
     }
 }
