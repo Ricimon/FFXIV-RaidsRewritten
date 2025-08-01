@@ -16,7 +16,7 @@ namespace RaidsRewritten.Scripts.Encounters.UCOB;
 public class DreadknightOnNeurolink : Mechanic
 {
     private const uint NeurolinkDataId = 0x1E88FF;
-    private readonly Vector3 ArenaCenter = new(0,0,0);
+    private readonly Vector3 ArenaCenter = new(100,0,100);
 
     private readonly List<uint> actionIds = [
         7538,  // interject
@@ -68,6 +68,20 @@ public class DreadknightOnNeurolink : Mechanic
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
         if (set.Action == null) { return; }
+        if (set.Action.Value.RowId == 41)
+        {
+            if (attack.HasValue)
+            {
+                attack.Value.Destruct();
+                attack = null;
+            }
+
+            if (this.AttackManager.TryCreateAttackEntity<Dreadknight>(out var dreadknight))
+            {
+                dreadknight.Set(new Position(ArenaCenter));
+                attack = dreadknight;
+            } else { return; }
+        }
         if (!attack.HasValue) { return; }
         if (!actionIds.Contains(set.Action.Value.RowId)) { return; }
         if (Dreadknight.HasTarget(attack.Value)) { return; }
