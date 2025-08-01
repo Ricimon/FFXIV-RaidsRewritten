@@ -5,6 +5,7 @@ using System.Text;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Plugin.Services;
 using ECommons;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
@@ -16,6 +17,7 @@ using RaidsRewritten.Memory;
 using RaidsRewritten.Scripts;
 using RaidsRewritten.Scripts.Encounters;
 using RaidsRewritten.Utility;
+using Dalamud.Game.ClientState.Conditions;
 
 namespace RaidsRewritten;
 
@@ -42,6 +44,8 @@ public sealed class EncounterManager : IDalamudHook
         "vfx/common/eff/cmat_aoz0f.avfx",
     ];
     private readonly Dictionary<ushort, IEncounter> encounters;
+
+    private bool InCombat = false;
 
     public EncounterManager(
         DalamudServices dalamud,
@@ -76,6 +80,7 @@ public sealed class EncounterManager : IDalamudHook
 
         this.dalamud.ClientState.TerritoryChanged += this.OnTerritoryChanged;
         OnTerritoryChanged(this.dalamud.ClientState.TerritoryType);
+        this.dalamud.Framework.Update += OnFrameworkUpdate;
     }
 
     public void Dispose()
@@ -85,6 +90,7 @@ public sealed class EncounterManager : IDalamudHook
         ObjectLife.Dispose();
         ActionEffect.Dispose();
         this.dalamud.ClientState.TerritoryChanged -= this.OnTerritoryChanged;
+        this.dalamud.Framework.Update -= OnFrameworkUpdate;
     }
 
     private void OnTerritoryChanged(ushort obj)
@@ -318,5 +324,42 @@ public sealed class EncounterManager : IDalamudHook
         this.logger.Debug(text.ToString());
 
         if (this.configuration.EverythingDisabled) { return; }
+    }
+
+    private void OnFrameworkUpdate(IFramework framework)
+    {
+        if (this.dalamud.Condition[ConditionFlag.InCombat])
+        {
+            if (!this.InCombat)
+            {
+                this.InCombat = true;
+                this.logger.Debug("COMBAT STARTED");
+                if (this.configuration.EverythingDisabled) { return; }
+                
+                if (ActiveEncounter != null)
+                {
+                    foreach (var mechanic in ActiveEncounter.GetMechanics())
+                    {
+                        mechanic.OnCombatStart();
+                    }
+                }
+            }
+        } else
+        {
+            if (this.InCombat)
+            {
+                this.InCombat = false;
+                this.logger.Debug("COMBAT ENDED");
+                if (this.configuration.EverythingDisabled) { return; }
+
+                if (ActiveEncounter != null)
+                {
+                    foreach (var mechanic in ActiveEncounter.GetMechanics())
+                    {
+                        mechanic.OnCombatEnd();
+                    }
+                }
+            }
+        }
     }
 }
