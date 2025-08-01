@@ -28,4 +28,5 @@ public class DalamudServices
     public IPartyList PartyList => PluginInitializer.PartyList;
     public INotificationManager NotificationManager => PluginInitializer.NotificationManager;
     public IPluginLog Log => PluginInitializer.Log;
+    public IToastGui ToastGui => PluginInitializer.ToastGui;
 }

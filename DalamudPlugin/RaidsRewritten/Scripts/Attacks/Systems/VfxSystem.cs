@@ -3,7 +3,9 @@ using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Spawn;
+using RaidsRewritten.Utility;
 using System.Numerics;
+using System.Security.Principal;
 
 namespace RaidsRewritten.Scripts.Attacks.Systems;
 
@@ -49,17 +51,32 @@ public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogge
         world.System<Model, ActorVfx>()
             .Each((Iter it, int i, ref Model model, ref ActorVfx vfx) =>
             {
+                var entity = it.Entity(i);
                 // UpdateScale doesn't seem to work for actor vfxes from a quick test. Should be looked into
                 // Position/Rotation should be based on source actor
                 if (vfx.VfxPtr == null && model.GameObject != null)
                 {
-                    vfx.VfxPtr = vfxSpawn.SpawnActorVfx(vfx.Path, model.GameObject, model.GameObject);
+                    if (entity.TryGet<ActorVfxTarget>(out var target))
+                    {
+                        if (target.Target != null && target.Target.IsValid())
+                        {
+                            vfx.VfxPtr = vfxSpawn.SpawnActorVfx(vfx.Path, model.GameObject, target.Target);
+                        } else
+                        {
+                            // don't bother spawning vfx if target isn't valid
+                            it.Entity(i).Destruct();
+                            return;
+                        }
+                    } else
+                    {
+                        vfx.VfxPtr = vfxSpawn.SpawnActorVfx(vfx.Path, model.GameObject, model.GameObject);
+                    }
                 }
 
-                // Vfx self-destructed, because it finished playing
-                if (vfx.VfxPtr != null && vfx.VfxPtr.Vfx == null)
+                // Vfx self-destructed, because it finished playing or target is gone
+                if (ActorVfxShouldDestruct(vfx, entity))
                 {
-                    it.Entity(i).Destruct();
+                    entity.Destruct();
                     return;
                 }
             });
@@ -133,5 +150,21 @@ public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogge
                     it.Entity(i).Destruct();
                 }
             });
+    }
+
+    private static bool ActorVfxShouldDestruct(ActorVfx actorVfx, Entity e)
+    {
+        if (actorVfx.VfxPtr == null) { return false; }
+        if (actorVfx.VfxPtr.Vfx == null) { return true; }
+
+        if (e.TryGet<ActorVfxTarget>(out var target))
+        {
+            if (target.Target != null && !target.Target.IsValid())
+            { 
+                return true;
+            }
+        }
+
+        return false;
     }
 }
