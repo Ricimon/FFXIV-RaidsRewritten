@@ -8,6 +8,7 @@ using Dalamud.Hooking;
 using Dalamud.Utility.Signatures;
 using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
+using FFXIVClientStructs.FFXIV.Client.System.Input;
 using RaidsRewritten.Interop.Structs;
 using RaidsRewritten.Log;
 using RaidsRewritten.Structures;
@@ -54,6 +55,8 @@ public unsafe sealed class PlayerMovementOverride : IDisposable
     [Signature("E8 ?? ?? ?? ?? 84 C0 74 04 41 C6 06 01 BA 44 01 00 00")]
     private Hook<CheckStrafeKeybindDelegate> checkStrafeKeybindHook = null!;
 
+    private readonly Hook<InputData.Delegates.IsInputIdPressed> isInputIdPressedHook;
+
     private bool legacyMode;
     private bool forcedWalkStateLastFrame;
     private bool wasWalking;
@@ -68,12 +71,16 @@ public unsafe sealed class PlayerMovementOverride : IDisposable
         rmiWalkIsInputEnabled1 = Marshal.GetDelegateForFunctionPointer<RMIWalkIsInputEnabled>(rmiWalkIsInputEnabled1Addr);
         rmiWalkIsInputEnabled2 = Marshal.GetDelegateForFunctionPointer<RMIWalkIsInputEnabled>(rmiWalkIsInputEnabled2Addr);
 
-        this.dalamud.GameInteropProvider.InitializeFromAttributes(this);
-        this.dalamud.GameConfig.UiControlChanged += OnConfigChanged;
+        var hook = dalamud.GameInteropProvider;
+        hook.InitializeFromAttributes(this);
+        isInputIdPressedHook = hook.HookFromAddress<InputData.Delegates.IsInputIdPressed>(InputData.Addresses.IsInputIdPressed.Value, IsInputIdPressedDetour);
+
+        dalamud.GameConfig.UiControlChanged += OnConfigChanged;
         UpdateLegacyMode();
 
         rmiWalkHook.Enable();
         checkStrafeKeybindHook.Enable();
+        isInputIdPressedHook.Enable();
     }
 
     public void Dispose()
@@ -81,6 +88,7 @@ public unsafe sealed class PlayerMovementOverride : IDisposable
         this.dalamud.GameConfig.UiControlChanged -= OnConfigChanged;
         rmiWalkHook.Dispose();
         checkStrafeKeybindHook.Dispose();
+        isInputIdPressedHook.Dispose();
     }
 
     private void RMIWalkDetour(void* self, float* sumLeft, float* sumForward, float* sumTurnLeft, byte* haveBackwardOrStrafe, byte* a6, byte bAdditiveUnk)
@@ -137,10 +145,26 @@ public unsafe sealed class PlayerMovementOverride : IDisposable
     {
         if (OverrideMovement)
         {
-            // Disables strafing (but does not unset the input key)
-            return false;
+            if (keybind == KeybindType.StrafeLeft || keybind == KeybindType.StrafeRight)
+            { 
+                // Disables strafing (but does not unset the input key)
+                return false;
+            }
         }
         return checkStrafeKeybindHook.Original(ptr, keybind);
+    }
+
+    private bool IsInputIdPressedDetour(InputData* inputData, InputId inputId)
+    {
+        if (OverrideMovement)
+        {
+            if (inputId == InputId.JUMP ||
+                inputId == InputId.PAD_JUMPANDCANCELCAST)
+            {
+                return false;
+            }
+        }
+        return isInputIdPressedHook.Original(inputData, inputId);
     }
 
     private (Angle h, Angle v)? GetDirectionAngles(bool allowVertical)
@@ -157,7 +181,6 @@ public unsafe sealed class PlayerMovementOverride : IDisposable
             ? ((CameraEx*)CameraManager.Instance()->GetActiveCamera())->DirH.Radians() + 180.Degrees()
             : player.Rotation.Radians();
         return (dirH - refDir, dirV);
-
     }
 
     private void OnConfigChanged(object? sender, ConfigChangeEvent evt) => UpdateLegacyMode();

@@ -8,7 +8,6 @@ namespace RaidsRewritten;
 public class PlayerManager(
     PlayerMovementOverride movementOverride,
     PlayerCameraOverride cameraOverride,
-    KeybindManager keybindManager,
     ActionManagerEx actionManager,
     ILogger logger)
 {
@@ -16,13 +15,10 @@ public class PlayerManager(
 
     public bool OverrideMovement
     {
-        get => movementOverride.OverrideMovement ||
-            cameraOverride.Enabled ||
-            keybindManager.InterceptMovementKeys;
+        get => movementOverride.OverrideMovement || cameraOverride.Enabled;
         set
         {
-            movementOverride.OverrideMovement =
-                keybindManager.InterceptMovementKeys = value;
+            movementOverride.OverrideMovement = value;
 
             cameraOverride.Enabled =
                 movementOverride.OverrideMovement &&
