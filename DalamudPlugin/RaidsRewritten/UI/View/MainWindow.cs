@@ -510,6 +510,49 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                 }
             }
         }
+
+        ImGui.Text("Heat Stuff");
+        if (ImGui.Button("Add Temperature"))
+        {
+            var world = ecsContainer.World;
+            using var q = world.Query<Player.Component>();
+            q.Each((Entity e, ref Player.Component pc) =>
+            {
+                Temperature.SetTemperature(e);
+            });
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Incr Heat"))
+        {
+            var world = ecsContainer.World;
+            using var q = world.Query<Player.Component>();
+            q.Each((Entity e, ref Player.Component pc) =>
+            {
+                Temperature.HeatChangedEvent(e, 50);
+            });
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Decr Heat"))
+        {
+            var world = ecsContainer.World;
+            using var q = world.Query<Player.Component>();
+            q.Each((Entity e, ref Player.Component pc) =>
+            {
+                Temperature.HeatChangedEvent(e, -50);
+            });
+        }
+	    if (ImGui.Button("Spawn Liquid Heaven"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<LiquidHeaven>(out var LiquidHeaven))
+                {
+                    LiquidHeaven.Set(new Position(player.Position))
+                                .Set(new Rotation(player.Rotation));
+                }
+            }
+        }
 #endif
     }
 

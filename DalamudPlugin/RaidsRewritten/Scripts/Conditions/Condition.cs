@@ -9,6 +9,8 @@ namespace RaidsRewritten.Scripts.Conditions;
 public class Condition(ILogger logger) : ISystem
 {
     public record struct Component(string Name, float TimeRemaining);
+    public record struct Hidden();
+    public record struct IgnoreOnDeath();
     private record struct Id(int Value);
 
     /// <summary>

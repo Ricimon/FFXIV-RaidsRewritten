@@ -65,7 +65,7 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
                     {
                         playerEntity.Children(c =>
                         {
-                            if (c.Has<Condition.Component>())
+                            if (c.Has<Condition.Component>() && !c.Has<Condition.IgnoreOnDeath>())
                             {
                                 c.Mut(ref it).Destruct();
                             }
