@@ -7,9 +7,14 @@ using RaidsRewritten.Scripts.Attacks.Components;
 
 namespace RaidsRewritten.Scripts.Conditions;
 
-public class Temperature(ILogger logger) : ISystem
+public class Temperature(DalamudServices dalamud, ILogger logger) : ISystem
 {
     private readonly ILogger logger = logger;
+    private Query<Temperature.Component> ComponentQuery;
+    public const string GaugeXPositionConfig = "UCOB Rewritten.TemperatureControlX";
+    public const string GaugeYPositionConfig = "UCOB Rewritten.TemperatureControlY";
+    public const string GaugeImagePath = "temperature_gauge.png";
+
     public record struct Component()
     {
         public float CurrentTemperature = 0.0f;
@@ -22,25 +27,30 @@ public class Temperature(ILogger logger) : ISystem
     public record struct Deepfreeze();
     public record struct Id(int Value);
     public record struct TemperatureDelta(float Value, float ReapplicationCooldownTime, bool SelfDestructable = false, bool Applied = false);
+    public static void SetTemperature(Entity playerEntity)
+    {
+        var world = playerEntity.CsWorld();
+        using Query<Temperature.Component> q = playerEntity.CsWorld().QueryBuilder<Temperature.Component>().With(Ecs.ChildOf, playerEntity).Build();
+        if (q.IsTrue()) { return; }
 
+        playerEntity.CsWorld().Entity()
+                .Set(new Temperature.Component())
+                .Set(new Condition.Component("", 9999.0f))
+                .Add<Condition.Hidden>()
+                .Add<Condition.IgnoreOnDeath>()
+                .ChildOf(playerEntity);
+    }
     public static void HeatChangedEvent(Entity playerEntity, float delta, float duration = 0, int id = 0)
     {
         var world = playerEntity.CsWorld();
         using Query<Temperature.Component> q = playerEntity.CsWorld().QueryBuilder<Temperature.Component>().With(Ecs.ChildOf, playerEntity).Build();
+        if (!q.IsTrue()) { return; }
+        
         Entity te = default;
-        if (!q.IsTrue()) {
-            te = playerEntity.CsWorld().Entity()
-                .Set(new Temperature.Component())
-                .Set(new Condition.Component("", 9999.0f))
-                .Add<Condition.Hidden>()
-                .ChildOf(playerEntity);
-        }
-        else
-        {
-            q.Each((Entity e, ref Temperature.Component tc) => {
-                te = e;
-            });
-        }
+        q.Each((Entity e, ref Temperature.Component tc) => {
+            te = e;
+        });
+        
         if (id != 0)
         {
             Entity existingDelta = default;
@@ -126,6 +136,11 @@ public class Temperature(ILogger logger) : ISystem
                 if (!e.Parent().Has<Player.Component>()) { return; }
                 if (!e.Parent().Get<Player.Component>().IsLocalPlayer) { return; }
 
+                var player = dalamud.ClientState.LocalPlayer;
+                if (player != null && player.IsDead)
+                {
+                    Temperature.CurrentTemperature = 0;
+                }
                 try
                 {
                     if (Temperature.CurrentTemperature <= Temperature.DeepfreezeTemp)

@@ -9,7 +9,7 @@ using RaidsRewritten.Scripts.Conditions;
 
 namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
-internal class TemperatureControl : Mechanic
+public class TemperatureControl : Mechanic
 {
     private struct HeatData
     {
@@ -72,6 +72,12 @@ internal class TemperatureControl : Mechanic
             attack.Destruct();
         }
         this.attacks.Clear();
+
+        using var q = World.Query<Player.Component>();
+        q.Each((Entity e, ref Player.Component pc) =>
+        {
+            Temperature.SetTemperature(e);
+        });
     }
 
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
