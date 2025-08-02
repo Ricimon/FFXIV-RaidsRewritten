@@ -2,6 +2,7 @@
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.UI;
+using Flecs.NET.Bindings;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Scripts.Attacks.Components;
@@ -24,7 +25,6 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
     public record struct Target(IGameObject? Value);
     public record struct Speed(float Value);
     public record struct AnimationState(ushort Value, bool Interrupt = false);
-    public record struct Child(object _);
 
     private const ushort WalkingAnimation = 41;
     private const ushort AttackAnimation = 1515;
@@ -234,10 +234,9 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
         }
     }
 
-    // does not work with multiple dreadknights
     public static void RemoveChildren(Entity entity)
     {
-        entity.CsWorld().DeleteWith<Child>();
+        entity.CsWorld().DeleteWith(flecs.EcsChildOf, entity);
     }
 
     private void StunPlayer(World world, float duration, float delay = StunDelay)
