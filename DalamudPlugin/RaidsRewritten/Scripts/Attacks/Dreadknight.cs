@@ -35,6 +35,7 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
     private const string EnrageVfx2 = "vfx/monster/m0150/eff/m150sp003c0m.avfx";
     private const string CastingVfx = "vfx/common/eff/mon_eisyo03t.avfx";
     private const string TetherVfx = "vfx/channeling/eff/chn_dark001f.avfx";
+    private const string InterruptVfx = "vfx/common/eff/ctstop_mgc0c.avfx";
 
     private const float HitboxRadius = 1.75f;
     private const float StunDuration = 8f;
@@ -118,14 +119,14 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
                 if (component.ElapsedTime < component.StartEnrage) { return; }
                 if (component.ElapsedTime < component.Enrage)
                 {
-                    if (component.StartEnrage <= -1) { return; }  // already started preparing enrage
+                    if (component.StartEnrage == -1) { return; }  // already started preparing enrage
 
                     // start casting enrage
                     AddActorVfx(entity, CastingVfx);
                     component.StartEnrage = -1;
                 } else
                 {
-                    if (component.Enrage <= -1)
+                    if (component.Enrage == -1)
                     {  // already enraged
                         Stand(entity, animationState);
                         if (component.ElapsedTime < 295) { component.ElapsedTime = 295; }
@@ -151,6 +152,7 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
                 if (target.Value != null && target.Value.IsValid() && !target.Value.IsDead)
                 {
                     if (component.ElapsedTime < InitialDelay) { return; }  // only want to start looking at player and chasing when ready 
+                    if (component.Enrage == -1) { return; }
 
                     component.StartEnrage = component.ElapsedTime + 5;
                     component.Enrage = component.ElapsedTime + 10;
@@ -199,11 +201,23 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
 
     public static void ApplyTarget(Entity entity, IGameObject target)
     {
-        RemoveChildren(entity);
+        if (entity.Has<Component>())
+        {
+            var component = entity.Get<Component>();
 
-        entity.Set(new Target(target));
-        AddActorVfx(entity, TetherVfx)
-            .Set(new ActorVfxTarget(target));
+            if (component.Enrage == -1) { return; }
+
+            RemoveChildren(entity);
+
+            if (component.StartEnrage == -1)
+            {
+                AddActorVfx(entity, InterruptVfx);
+            }
+
+            entity.Set(new Target(target));
+            AddActorVfx(entity, TetherVfx)
+                .Set(new ActorVfxTarget(target));
+        }
     }
 
     public static void RemoveTarget(Entity entity, AnimationState animationState)
