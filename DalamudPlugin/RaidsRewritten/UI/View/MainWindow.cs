@@ -510,6 +510,33 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                 }
             }
         }
+
+        if (ImGui.Button("Dreadknight"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<Dreadknight>(out var dreadknight))
+                {
+                    dreadknight.Set(new Position(player.Position));
+                }
+            }
+        }
+
+        ImGui.SameLine();
+
+        if (ImGui.Button("Dreadknight With Tether"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<Dreadknight>(out var dreadknight))
+                {
+                    dreadknight.Set(new Position(player.Position));
+                    Dreadknight.ApplyTarget(dreadknight, player);
+                }
+            }
+        }
 #endif
     }
 

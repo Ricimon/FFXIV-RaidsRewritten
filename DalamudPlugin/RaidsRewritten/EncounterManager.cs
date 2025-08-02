@@ -284,14 +284,14 @@ public sealed class EncounterManager : IDalamudHook
         var text = new StringBuilder("ACTION: ");
 
         // Ignore actions from other players
-        var source = set.Source;
-        var target = set.Target;
-        if (source != null &&
-            source.ObjectKind == ObjectKind.Player &&
-            source.EntityId != this.dalamud.ClientState.LocalPlayer?.EntityId)
-        {
-            return;
-        }
+        //var source = set.Source;
+        //var target = set.Target;
+        //if (source != null &&
+        //    source.ObjectKind == ObjectKind.Player &&
+        //    source.EntityId != this.dalamud.ClientState.LocalPlayer?.EntityId)
+        //{
+        //    return;
+        //}
 
         text.Append(set.ToString());
         this.logger.Debug(text.ToString());
