@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
 using RaidsRewritten.Utility;
+using static FFXIVClientStructs.FFXIV.Client.UI.Agent.AgentMJIFarmManagement;
 
 namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
@@ -87,7 +88,12 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
 
         if (configuration.GetEncounterSetting(LastWishKey, true))
         {
-            this.mechanics.Add(mechanicFactory.Create<LastWish>());
+            var lastWish = mechanicFactory.Create<LastWish>();
+
+            var seed = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
+            lastWish.RngSeed = RandomUtilities.HashToRngSeed(seed);
+
+            this.mechanics.Add(lastWish);
         }
     }
 

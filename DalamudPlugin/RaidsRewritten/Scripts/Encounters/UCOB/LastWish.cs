@@ -1,53 +1,148 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ECommons;
+using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using Flecs.NET.Core;
-using RaidsRewritten.Scripts.Attacks.Components;
+using static RaidsRewritten.Scripts.Attacks.LastWish;
+using Dalamud.Game.ClientState.Party;
+using RaidsRewritten.Scripts.Attacks;
 
 namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
 internal class LastWish : Mechanic
 {
-    /*
-    private float OMEN_VISIBLE_SECONDS = 0.0f;
-    private float STATUS_DELAY_SECONDS = 0.0f;
-    private float DELAY_SECONDS = 0.0f;
-
-    private Query<Player.Component> playerQuery;
-
-    private List<(HitZone, HitZone)>? SolutionTable;
-    private List<(int, int)>? Pairs;
-    private List<(HitZone, HitZone)>? TrueSolutionZones;
-
-    public enum HitZone
-    {
-        In,
-        Out,
-        North,
-        East,
-        South,
-        West
-    }
-    public enum ZoneType
-    {
-        Rect,
-        Donut,
-        Circle
-    }
     public enum Phase
     {
         Start,
-        Idle,
         Telegraph,
         Resolution
     }
+    /*
+    private static readonly Dictionary<uint, Phase> HookedActions = new()
+    {
+        { 9970, Phase.Telegraph }, //Pheonix
 
-    public readonly DalamudServices dalamud = dalamud;
-    public readonly ILogger logger = logger;
+    };
+    */
+    //Debug Hooks
+    private static readonly Dictionary<uint, Phase> HookedActions = new()
+    {
+        { 9898, Phase.Start }, //Twister
+        { 9896, Phase.Telegraph }, //plummet
+        { 9922, Phase.Resolution }, // Bahamut Favor
+
+    };
+    private readonly List<Entity> attacks = [];
+
+    public int RngSeed { get; set; }
+    private Random? random;
+    HitZone[,]? SolutionTable;
+    List<(HitZone, HitZone)>? TrueSolutionZones;
+    List<(int, int)>? Pairs;
+    private const float TELEGRAPH_DELAY = 1.5f;
+    private int PlayerID;
+    public override void Reset()
+    {
+        foreach (var attack in this.attacks)
+        {
+            attack.Destruct();
+        }
+        this.attacks.Clear();
+    }
+
+    public override void OnDirectorUpdate(DirectorUpdateCategory a3)
+    {
+        if (a3 == DirectorUpdateCategory.Wipe ||
+            a3 == DirectorUpdateCategory.Recommence)
+        {
+            Reset();
+        }
+    }
+
+    public void ForceSim(int phase)
+    {
+        switch (phase)
+        {
+            case 0:
+                var seed = RngSeed;
+                random = new Random(seed);
+                GenerateTable(8, 4);
+                GenerateSolution();
+                Shuffle(random, SymbolPaths);
+                DebugOutput();
+                break;
+            case 1:
+
+                break;
+            case 2:
+                break;
+        }
+    }
+    public override void OnActionEffectEvent(ActionEffectSet set)
+    {
+        if (set.Action == null) { return; }
+        if (set.Target == null) { return; }
+        if (!HookedActions.TryGetValue(set.Action.Value.RowId, out var phase)) { return; }
+        switch (phase)
+        {
+            case Phase.Start:
+                Logger.Info("Starting Start");
+                var seed = RngSeed;
+                random = new Random(seed);
+                GenerateTable(8, 4);
+                GenerateSolution();
+                Shuffle(random, SymbolPaths);
+                DebugOutput();
+                PlayerID = 0;
+                break;
+            case Phase.Telegraph:
+                Logger.Info("Starting Telegraph");
+                if (SolutionTable == null || Pairs == null || TrueSolutionZones == null) { return; }
+                
+                for (int i = 0; i < SolutionTable.GetLength(1); i++)
+                {
+                    int iteration = i;
+                    var da = DelayedAction.Create(this.World, () =>
+                    {
+                        if (this.AttackManager.TryCreateAttackEntity<Scripts.Attacks.LastWish>(out var wish))
+                        {
+                            wish.Set(new Scripts.Attacks.LastWish.Component(SolutionTable[PlayerID,iteration], true));
+                        }
+                    }, (TELEGRAPH_DELAY + Scripts.Attacks.LastWish.OMEN_VISIBLE_SECONDS)*i) ;
+                    this.attacks.Add(da);
+                }
+                break;
+            case Phase.Resolution:
+                Logger.Info("Starting Resolution");
+                if (SolutionTable == null || Pairs == null || TrueSolutionZones == null) { return; }
+
+                int count = 0;
+                TrueSolutionZones.Each(a =>
+                {
+                    int iteration = count;
+                    var da = DelayedAction.Create(this.World, () =>
+                    {
+                        if (this.AttackManager.TryCreateAttackEntity<Scripts.Attacks.LastWish>(out var wish))
+                        {
+                            wish.Set(new Scripts.Attacks.LastWish.Component(a.Item1));
+                        }
+                    }, (TELEGRAPH_DELAY + Scripts.Attacks.LastWish.OMEN_VISIBLE_SECONDS) * iteration);
+                    this.attacks.Add(da);
+
+                    da = DelayedAction.Create(this.World, () =>
+                    {
+                        if (this.AttackManager.TryCreateAttackEntity<Scripts.Attacks.LastWish>(out var wish))
+                        {
+                            wish.Set(new Scripts.Attacks.LastWish.Component(a.Item2));
+                        }
+                    }, (TELEGRAPH_DELAY + Scripts.Attacks.LastWish.OMEN_VISIBLE_SECONDS) * iteration);
+                    this.attacks.Add(da);
+                    count++;
+                }); 
+                break;
+        }
+    }
 
     private static readonly Dictionary<HitZone, HitZone> Opposites = new()
     {
@@ -58,94 +153,23 @@ internal class LastWish : Mechanic
         { HitZone.East, HitZone.West },
         { HitZone.West, HitZone.East },
     };
-    private struct ZoneData
-    {
-        public Vector3 TelegraphScale;
-        public string OmenPath;
-        public string PredictOmenPath;
-        public string VfxPath;
-        public Vector3 Position;
-        public float VfxDelaySeconds;
-        public ZoneType ZoneType;
-        public float Rotation;
-    }
-    private static readonly Dictionary<HitZone, ZoneData> ZoneDict = new Dictionary<HitZone, ZoneData>
-    {
-        {
-            HitZone.In, new ZoneData
-            {
-                TelegraphScale = new Vector3(0, 0, 0),
-                Position = new Vector3(0, 0, 0),
-                OmenPath = "",
-                PredictOmenPath = "",
-                VfxPath = "",
-                VfxDelaySeconds = 0.0f,
-                ZoneType = ZoneType.Circle,
-            }
-        },
-        {
-            HitZone.Out, new ZoneData
-            {
-                ZoneType = ZoneType.Donut,
-            }
-        },
-        {
-            HitZone.North, new ZoneData
-            {
-                ZoneType = ZoneType.Rect,
-            }
-        },
-        {
-            HitZone.East, new ZoneData
-            {
-                ZoneType = ZoneType.Rect,
-            }
-        },
-        {
-            HitZone.South, new ZoneData
-            {
-                ZoneType = ZoneType.Rect,
-            }
-        },
-        {
-            HitZone.West, new ZoneData
-            {
-                ZoneType = ZoneType.Rect,
-            }
-        },
-    };
+
     private static List<string> SymbolPaths = new List<string> {
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        ""
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11"
     };
-    public record struct ShowOmen(Entity Omen);
 
 
-
-
-    public Entity Create(World world)
-    {
-        return world.Entity()
-            .Set(new Position())
-            .Set(new Rotation())
-            .Set(new Scale())
-            .Set(new Component())
-            .Add<Attack>();
-    }
-    public void Dispose()
-    {
-        this.playerQuery.Dispose();
-    }
     #region Algorithm
     private void GenerateTable(int Players, int Sequences)
     {
@@ -266,8 +290,14 @@ internal class LastWish : Mechanic
     }
     #endregion
 
+    
     private void DebugOutput()
     {
+        if (SolutionTable == null || Pairs == null || TrueSolutionZones == null)
+        {
+            Logger.Info("Something is null");
+            return;
+        }
         var str = "";
         int rows = SolutionTable.GetLength(0);
         int cols = SolutionTable.GetLength(1);
@@ -278,54 +308,34 @@ internal class LastWish : Mechanic
             {
                 str += $"{SolutionTable[r, c],6} ";
             }
-            logger.Info(str);
+            Logger.Info(str);
             str = "";
         }
 
 
-        logger.Info("Player Solution");
+        Logger.Info("Player Solution");
         Pairs.Each(a =>
         {
-            logger.Info($"{a.ToString()}");
+            Logger.Info($"{a.ToString()}");
         });
 
-        logger.Info("Zone Solution");
+        Logger.Info("Zone Solution");
         TrueSolutionZones.Each(a =>
         {
-            logger.Info($"{a.ToString()}");
+            Logger.Info($"{a.ToString()}");
         });
-    }
-
-    public void TriggerPhase(Entity playerEntity, Phase phase)
-    {
-        var world = playerEntity.CsWorld();
-        using Query<LastWish.Component> q = playerEntity.CsWorld().QueryBuilder<LastWish.Component>().With(Ecs.ChildOf, playerEntity).Build();
-        if (!q.IsTrue()) { return; }
-        Entity le = default;
-        q.Each((Entity e, ref LastWish.Component lw) => {
-            lw.Phase = phase;
+        /*
+        Logger.Info("Symbol Paths");
+        SymbolPaths.Each(a =>
+        { 
+            Logger.Info(a.ToString());
         });
-    }
-    //*/
-    public int RngSeed { get; set; }
-    private readonly List<Entity> attacks = [];
+        Logger.Info("Party Members");
 
-    private const uint PHEONIX_HOOK = 9970;
-    public override void Reset()
-    {
-        foreach (var attack in this.attacks)
+        Dalamud.PartyList.Each(a =>
         {
-            attack.Destruct();
-        }
-        this.attacks.Clear();
-    }
-    public override void OnActionEffectEvent(ActionEffectSet set)
-    {
-        if (set.Action == null) { return; }
-        if (set.Target == null) { return; }
-        if (set.Action.Value.RowId != PHEONIX_HOOK) { return; }
-
-        var localPlayer = Dalamud.ClientState.LocalPlayer;
-        if (localPlayer == null) { return; }
-    }
+            Logger.Info(a.ToString());
+        });
+        */
+    }    
 }
