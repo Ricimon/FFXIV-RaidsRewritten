@@ -149,7 +149,7 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
                     RemoveChildren(entity);
                     if (!component.EnrageLoop)
                     {
-                        ShowTextGimmick("Enraged without the sight of resistance, the Dreadknight lets out a deafening shrill!", EnrageNotificationDuration);
+                        ShowTextGimmick("Given uninterrupted power, the Dreadknight flies into a rage!", EnrageNotificationDuration);
                     }
                     if (animationState.Value != CastingAnimation) { entity.Set(new AnimationState(CastingAnimation, true)); }
                     DelayedAction.Create(world, () => AddActorVfx(entity, EnrageVfx1), EnrageVfxDelay);
