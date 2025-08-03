@@ -3,8 +3,6 @@ using Flecs.NET.Core;
 using RaidsRewritten.Extensions;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
-using RaidsRewritten.Scripts.Attacks.Components;
-using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Conditions;
 
@@ -103,7 +101,7 @@ public class Temperature(DalamudServices dalamud, ILogger logger) : ISystem, IDi
 
     public void Register(World world)
     {
-        this.playerQuery = Player.Query(world);
+        this.playerQuery = Player.QueryForLocalPlayer(world);
         this.overheatQuery  = world.QueryBuilder<Overheat.Component>().Build();
         this.deepfreezeQuery = world.QueryBuilder<Deepfreeze.Component>().Build();
 
