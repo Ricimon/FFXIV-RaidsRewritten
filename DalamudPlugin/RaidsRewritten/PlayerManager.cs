@@ -13,31 +13,37 @@ public class PlayerManager(
 {
     public bool IsMovementAllowedByGame => movementOverride.IsMovementAllowedByGame;
 
-    public bool OverrideMovement
+    public PlayerMovementOverride.OverrideMovementState OverrideMovement
     {
-        get => movementOverride.OverrideMovement || cameraOverride.Enabled;
+        get => movementOverride.OverrideMovement;
         set
         {
             movementOverride.OverrideMovement = value;
 
             cameraOverride.Enabled =
-                movementOverride.OverrideMovement &&
-                movementOverride.OverrideMovementDirection != Vector3.Zero;
+                movementOverride.OverrideMovement == PlayerMovementOverride.OverrideMovementState.ForceMovementWorldDirection
+                    && movementOverride.OverrideMovementWorldDirection != Vector3.Zero;
         }
     }
 
-    public Vector3 OverrideMovementDirection
+    public Vector3 OverrideMovementWorldDirection
     {
-        get => movementOverride.OverrideMovementDirection;
+        get => movementOverride.OverrideMovementWorldDirection;
         set
         {
-            movementOverride.OverrideMovementDirection = value;
+            movementOverride.OverrideMovementWorldDirection = value;
 
             cameraOverride.Enabled =
-                movementOverride.OverrideMovement &&
-                movementOverride.OverrideMovementDirection != Vector3.Zero;
+                movementOverride.OverrideMovement == PlayerMovementOverride.OverrideMovementState.ForceMovementWorldDirection
+                    && movementOverride.OverrideMovementWorldDirection != Vector3.Zero;
             cameraOverride.DesiredAzimuth = Angle.FromDirectionXZ(value) + 180.Degrees();
         }
+    }
+
+    public Vector2 OverrideMovementCameraDirection
+    {
+        get => movementOverride.OverrideMovementCameraDirection;
+        set => movementOverride.OverrideMovementCameraDirection = value;
     }
 
     public PlayerMovementOverride.ForcedWalkState ForceWalk

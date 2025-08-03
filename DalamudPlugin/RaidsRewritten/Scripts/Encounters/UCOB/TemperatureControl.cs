@@ -84,7 +84,7 @@ public class TemperatureControl : Mechanic
         {
             playerQuery = World.Query<Player.Component>();
         }
-        playerQuery.Value.Each((Entity e, ref Player.Component pc) =>
+        playerQuery?.Each((Entity e, ref Player.Component pc) =>
         {
             Temperature.SetTemperature(e);
         });
