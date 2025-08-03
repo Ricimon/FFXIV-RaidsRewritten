@@ -131,7 +131,11 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
                 if (component.ElapsedTime < component.StartEnrage) { return; }
                 if (component.ElapsedTime < component.Enrage)
                 {
-                    if (component.StartEnrage == -1) { return; }  // already started preparing enrage
+                    // already started preparing enrage
+                    if (component.StartEnrage == -1) {
+                        Stand(entity, animationState);
+                        return;
+                    }
 
                     // start casting enrage
                     AddActorVfx(entity, CastingVfx);
