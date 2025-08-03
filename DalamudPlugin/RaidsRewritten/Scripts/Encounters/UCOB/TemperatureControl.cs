@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Dalamud.Plugin.Services;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using Flecs.NET.Core;
@@ -63,6 +64,7 @@ public class TemperatureControl : Mechanic
     };
 
     private readonly List<Entity> attacks = [];
+    private Query<Player.Component>? playerQuery;
     private int AfahMultiplier = 1;
 
     public override void Reset()
@@ -76,6 +78,17 @@ public class TemperatureControl : Mechanic
         World.DeleteWith<Temperature.Component>();
     }
 
+    public override void OnFrameworkUpdate(IFramework framework)
+    {
+        if (!playerQuery.HasValue)
+        {
+            playerQuery = World.Query<Player.Component>();
+        }
+        playerQuery.Value.Each((Entity e, ref Player.Component pc) =>
+        {
+            Temperature.SetTemperature(e);
+        });
+    }
    
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
     {
