@@ -83,6 +83,14 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
                         });
                     }
 
+#if DEBUG
+                    if (configuration.PunishmentImmunity) {
+                        playerManager.OverrideMovement = PlayerMovementOverride.OverrideMovementState.None;
+                        playerManager.ForceWalk = PlayerMovementOverride.ForcedWalkState.None;
+                        return;
+                    }
+#endif
+
                     // Handle each condition
                     bool stun = false;
                     Entity knockbackEntity = GetFirstConditionEntityOnLocalPlayer(this.knockbackQuery);
