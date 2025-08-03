@@ -373,6 +373,15 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             }
         }
 
+#if DEBUG
+        bool punishmentImmunity = configuration.PunishmentImmunity;
+        if (ImGui.Checkbox("Punishment Immunity", ref punishmentImmunity))
+        {
+            configuration.PunishmentImmunity = punishmentImmunity;
+            configuration.Save();
+        }
+#endif
+
         ImGui.Text("Fake statuses");
         if (ImGui.Button("Bind"))
         {
