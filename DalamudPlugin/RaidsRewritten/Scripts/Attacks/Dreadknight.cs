@@ -213,11 +213,11 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
             {
                 AddActorVfx(entity, InterruptVfx);
             }
-
-            entity.Set(new Target(target));
-            AddActorVfx(entity, TetherVfx)
-                .Set(new ActorVfxTarget(target));
         }
+
+        entity.Set(new Target(target));
+        AddActorVfx(entity, TetherVfx)
+            .Set(new ActorVfxTarget(target));
     }
 
     public static void RemoveTarget(Entity entity, AnimationState animationState)
