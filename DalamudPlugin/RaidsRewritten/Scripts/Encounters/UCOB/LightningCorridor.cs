@@ -46,6 +46,11 @@ public class LightningCorridor : Mechanic
         }
     }
 
+    public override void OnCombatEnd()
+    {
+        Reset();
+    }
+
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
         if (set.Action?.RowId == ChainLightningApplicationActionRowId)

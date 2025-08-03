@@ -21,8 +21,9 @@ namespace RaidsRewritten.Scripts.Attacks;
 
 public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISystem
 {
-    public record struct Component(float ElapsedTime, float NextRefresh, float StartEnrage = 7f, float Enrage = 12f, bool EnrageLoop = false);
+    public record struct Component(float ElapsedTime, float NextRefresh, float StartEnrage = 7f, float Enrage = 12f, bool EnrageLoop = false, bool BackupActive = false);
     public record struct Target(IGameObject? Value);
+    public record struct BackupTarget(IGameObject? Value);
     public record struct Speed(float Value);
     public record struct AnimationState(ushort Value, bool Interrupt = false);
 
@@ -116,10 +117,25 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
             {
                 var entity = it.Entity(i);
 
+                if (!component.BackupActive && entity.Has<BackupTarget>())
+                {
+                    var backupTarget = entity.Get<BackupTarget>();
+                    if (backupTarget.Value != null && backupTarget.Value.IsValid() && !backupTarget.Value.IsDead)
+                    {
+                        var tether = AddActorVfx(entity, TetherVfx);
+                        tether.Set(new ActorVfxTarget(backupTarget.Value));
+                        component.BackupActive = true;
+                    }
+                }
+
                 if (component.ElapsedTime < component.StartEnrage) { return; }
                 if (component.ElapsedTime < component.Enrage)
                 {
-                    if (component.StartEnrage == -1) { return; }  // already started preparing enrage
+                    // already started preparing enrage
+                    if (component.StartEnrage == -1) {
+                        Stand(entity, animationState);
+                        return;
+                    }
 
                     // start casting enrage
                     AddActorVfx(entity, CastingVfx);
@@ -137,7 +153,7 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
                     RemoveChildren(entity);
                     if (!component.EnrageLoop)
                     {
-                        ShowTextGimmick("Enraged without the sight of resistance, the Dreadknight lets out a deafening shrill!", EnrageNotificationDuration);
+                        ShowTextGimmick("Given uninterrupted power, the Dreadknight flies into a rage!", EnrageNotificationDuration);
                     }
                     if (animationState.Value != CastingAnimation) { entity.Set(new AnimationState(CastingAnimation, true)); }
                     DelayedAction.Create(world, () => AddActorVfx(entity, EnrageVfx1), EnrageVfxDelay);
@@ -155,6 +171,7 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
 
                 if (target.Value != null && target.Value.IsValid() && !target.Value.IsDead)
                 {
+                    component.BackupActive = false;
                     if (component.ElapsedTime < InitialDelay) { return; }  // only want to start looking at player and chasing when ready 
                     if (component.Enrage == -1) { return; }
 

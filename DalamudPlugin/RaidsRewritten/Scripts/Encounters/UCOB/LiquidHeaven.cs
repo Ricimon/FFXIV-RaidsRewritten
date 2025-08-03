@@ -31,6 +31,11 @@ public class LiquidHeaven : Mechanic
         }
     }
 
+    public override void OnCombatEnd()
+    {
+        Reset();
+    }
+
     public override void OnObjectCreation(nint newObjectPointer, IGameObject? newObject)
     {
         if (newObject == null) { return; }

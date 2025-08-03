@@ -107,6 +107,11 @@ public class TemperatureControl : Mechanic
         }
     }
 
+    public override void OnCombatEnd()
+    {
+        Reset();
+    }
+
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
         try

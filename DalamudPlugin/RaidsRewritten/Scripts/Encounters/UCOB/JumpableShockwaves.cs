@@ -37,6 +37,11 @@ public class JumpableShockwaves : Mechanic
         }
     }
 
+    public override void OnCombatEnd()
+    {
+        Reset();
+    }
+
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
         if (set.Action == null) { return; }

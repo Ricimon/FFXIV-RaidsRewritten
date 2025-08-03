@@ -253,14 +253,12 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             {
                 configuration.EncounterSettings[TemperatureControlXKey] = temperatureControlX.ToString();
                 configuration.Save();
-                RefreshMechanics();
             }
             int temperatureControlY = configuration.GetEncounterSetting(TemperatureControlYKey, 1);
             if (ImGui.InputInt("Gauge Y", ref temperatureControlY))
             {
                 configuration.EncounterSettings[TemperatureControlYKey] = temperatureControlY.ToString();
                 configuration.Save();
-                RefreshMechanics();
             }
             ImGui.PopItemWidth();
         }
