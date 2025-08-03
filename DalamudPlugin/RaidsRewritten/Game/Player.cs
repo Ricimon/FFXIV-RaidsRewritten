@@ -3,6 +3,7 @@ using System.Numerics;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Flecs.NET.Core;
 using RaidsRewritten.Extensions;
+using RaidsRewritten.Interop;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Conditions;
 
@@ -17,6 +18,8 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
     private Query<Component, Condition.Component, Stun.Component> stunQuery;
     private Query<Component, Condition.Component, Paralysis.Component> paralysisQuery;
     private Query<Component, Condition.Component, Heavy.Component> heavyQuery;
+    private Query<Component, Condition.Component> overheatQuery;
+    private Query<Component, Condition.Component> deepfreezeQuery;
 
     public static Entity Create(World world, bool isLocalPlayer)
     {
@@ -30,6 +33,8 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
         this.stunQuery.Dispose();
         this.paralysisQuery.Dispose();
         this.heavyQuery.Dispose();
+        this.overheatQuery.Dispose();
+        this.deepfreezeQuery.Dispose();
     }
 
     public static Query<Component> Query(World world)
@@ -49,6 +54,12 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
             .TermAt(0).Up().Cached().Build();
         this.heavyQuery = world.QueryBuilder<Component, Condition.Component, Heavy.Component>()
             .TermAt(0).Up().Cached().Build();
+        this.overheatQuery = world.QueryBuilder<Component, Condition.Component>()
+            .With<Temperature.Overheat>()
+            .TermAt(0).Up().Cached().Build();
+        this.deepfreezeQuery = world.QueryBuilder<Component, Condition.Component>()
+            .With<Temperature.Deepfreeze>()
+            .TermAt(0).Up().Cached().Build();
 
         world.System<Component>()
             .Each((Iter it, int i, ref Component component) =>
@@ -65,7 +76,7 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
                     {
                         playerEntity.Children(c =>
                         {
-                            if (c.Has<Condition.Component>())
+                            if (c.Has<Condition.Component>() && !c.Has<Condition.IgnoreOnDeath>())
                             {
                                 c.Mut(ref it).Destruct();
                             }
@@ -78,12 +89,15 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
                     Entity bindEntity = GetFirstConditionEntityOnLocalPlayer(this.bindQuery);
                     Entity stunEntity = GetFirstConditionEntityOnLocalPlayer(this.stunQuery);
                     stun |= stunEntity.IsValid();
+                    Entity deepfreezeEntity = GetFirstConditionEntityOnLocalPlayer(this.deepfreezeQuery);
+                    stun |= deepfreezeEntity.IsValid();
                     this.paralysisQuery.Each((Entity e, ref Component pc, ref Condition.Component _, ref Paralysis.Component paralysis) =>
                     {
                         if (!pc.IsLocalPlayer) { return; }
                         stun |= paralysis.StunActive;
                     });
                     Entity slowEntity = GetFirstConditionEntityOnLocalPlayer(this.heavyQuery);
+                    Entity overheatEntity = GetFirstConditionEntityOnLocalPlayer(this.overheatQuery);
 
                     // Movement override
                     if (knockbackEntity.IsValid())
@@ -92,27 +106,38 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
                         var knockback = knockbackEntity.Get<Knockback.Component>();
                         //this.logger.Info("Player has knockback, direction {0}, time left {1}", knockback.KnockbackDirection, condition.TimeRemaining);
 
-                        playerManager.OverrideMovement = true;
-                        playerManager.OverrideMovementDirection = knockback.KnockbackDirection;
-                        playerManager.ForceWalk = Interop.PlayerMovementOverride.ForcedWalkState.Run;
+                        playerManager.OverrideMovement = PlayerMovementOverride.OverrideMovementState.ForceMovementWorldDirection;
+                        playerManager.OverrideMovementWorldDirection = knockback.KnockbackDirection;
+                        playerManager.ForceWalk = PlayerMovementOverride.ForcedWalkState.Run;
                     }
                     else
                     {
-                        playerManager.OverrideMovementDirection = Vector3.Zero;
+                        playerManager.OverrideMovementWorldDirection = Vector3.Zero;
 
                         if (bindEntity.IsValid() || stun)
                         {
-                            playerManager.OverrideMovement = true;
-                        }
-                        else if (slowEntity.IsValid())
-                        {
-                            playerManager.OverrideMovement = false;
-                            playerManager.ForceWalk = Interop.PlayerMovementOverride.ForcedWalkState.Walk;
+                            playerManager.OverrideMovement = PlayerMovementOverride.OverrideMovementState.ForceMovementWorldDirection;
                         }
                         else
                         {
-                            playerManager.OverrideMovement = false;
-                            playerManager.ForceWalk = Interop.PlayerMovementOverride.ForcedWalkState.None;
+                            if (overheatEntity.IsValid())
+                            {
+                                playerManager.OverrideMovement = PlayerMovementOverride.OverrideMovementState.ForceMovementCameraDirection;
+                                playerManager.OverrideMovementCameraDirection = Vector2.UnitY;
+                            }
+                            else
+                            {
+                                playerManager.OverrideMovement = PlayerMovementOverride.OverrideMovementState.None;
+                            }
+
+                            if (slowEntity.IsValid())
+                            {
+                                playerManager.ForceWalk = PlayerMovementOverride.ForcedWalkState.Walk;
+                            }
+                            else
+                            {
+                                playerManager.ForceWalk = PlayerMovementOverride.ForcedWalkState.None;
+                            }
                         }
                     }
 
@@ -130,6 +155,18 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
     {
         Entity entity = default;
         query.Each((Entity e, ref Component pc, ref Condition.Component _, ref T _) =>
+        {
+            if (!pc.IsLocalPlayer) { return; }
+            if (entity.IsValid()) { return; }
+            entity = e;
+        });
+        return entity;
+    }
+
+    private static Entity GetFirstConditionEntityOnLocalPlayer(Query<Component, Condition.Component> query)
+    {
+        Entity entity = default;
+        query.Each((Entity e, ref Component pc, ref Condition.Component _) =>
         {
             if (!pc.IsLocalPlayer) { return; }
             if (entity.IsValid()) { return; }

@@ -5,6 +5,7 @@ using RaidsRewritten.Game;
 using ECommons.Hooks.ActionEffectTypes;
 using RaidsRewritten.Log;
 using Lumina.Excel.Sheets;
+using Dalamud.Plugin.Services;
 
 namespace RaidsRewritten.Scripts;
 
@@ -30,6 +31,8 @@ public abstract class Mechanic()
     }
 
     public virtual void Reset() { }
+
+    public virtual void OnFrameworkUpdate(IFramework framework) { }
 
     public virtual void OnDirectorUpdate(DirectorUpdateCategory a3) { }
 
