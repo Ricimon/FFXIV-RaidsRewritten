@@ -20,7 +20,7 @@ public class DreadknightInTwin : Mechanic
     private const int GenerateId = 9902;
     private const int HatchId = 9903;
     private const float SpeedIncrement = 0.5f;
-
+    private const float TwintaniaId = 0x1FDF;
 
     private readonly List<uint> actionIds = [
         7538,  // interject
@@ -69,9 +69,18 @@ public class DreadknightInTwin : Mechanic
 
         if (this.AttackManager.TryCreateAttackEntity<Dreadknight>(out var dreadknight))
         {
-            Dalamud.ToastGui.ShowNormal("The Dreadknight seeks signs of resistance...");
+            Dalamud.ToastGui.ShowNormal("Twintania channels energy to the Dreadknight...");
             dreadknight.Set(new Position(ArenaCenter));
             attack = dreadknight;
+            
+            foreach(var obj in Dalamud.ObjectTable)
+            {
+                if (obj.DataId == TwintaniaId)
+                {
+                    dreadknight.Set(new Dreadknight.BackupTarget(obj));
+                    break;
+                }
+            }
         }
     }
 
