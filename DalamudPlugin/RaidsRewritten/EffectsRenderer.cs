@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Numerics;
 using Dalamud.Interface.ManagedFontAtlas;
-using Dalamud.Interface.Utility;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using Flecs.NET.Core;
@@ -11,7 +10,6 @@ using RaidsRewritten.Extensions;
 using RaidsRewritten.Game;
 using RaidsRewritten.Input;
 using RaidsRewritten.Log;
-using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.UI.Util;
 using RaidsRewritten.UI.View;
