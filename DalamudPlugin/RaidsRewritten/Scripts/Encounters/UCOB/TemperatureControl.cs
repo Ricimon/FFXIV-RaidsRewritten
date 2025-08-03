@@ -73,13 +73,10 @@ public class TemperatureControl : Mechanic
         }
         this.attacks.Clear();
 
-        using var q = World.Query<Player.Component>();
-        q.Each((Entity e, ref Player.Component pc) =>
-        {
-            Temperature.SetTemperature(e);
-        });
+        World.DeleteWith<Temperature.Component>();
     }
 
+   
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
     {
         if (a3 == DirectorUpdateCategory.Wipe ||

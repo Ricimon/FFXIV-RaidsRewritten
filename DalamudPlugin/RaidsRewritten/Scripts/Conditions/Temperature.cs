@@ -35,7 +35,7 @@ public class Temperature(DalamudServices dalamud, ILogger logger) : ISystem
 
         playerEntity.CsWorld().Entity()
                 .Set(new Temperature.Component())
-                .Set(new Condition.Component("", 9999.0f))
+                .Set(new Condition.Component("", float.PositiveInfinity))
                 .Add<Condition.Hidden>()
                 .Add<Condition.IgnoreOnDeath>()
                 .ChildOf(playerEntity);

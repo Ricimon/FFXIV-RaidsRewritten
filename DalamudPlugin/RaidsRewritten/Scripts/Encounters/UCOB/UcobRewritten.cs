@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
+using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Encounters.UCOB;
@@ -21,8 +22,8 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
     private string LightningCorridorKey => $"{Name}.LightningCorridor";
     private string MoreExaflaresKey => $"{Name}.MoreExaflares";
     private string TemperatureControlKey => $"{Name}.TemperatureControl";
-    private string TemperatureControlXKey => $"{Name}.TemperatureControlX";
-    private string TemperatureControlYKey => $"{Name}.TemperatureControlY";
+    private string TemperatureControlXKey => Temperature.GaugeXPositionConfig;
+    private string TemperatureControlYKey => Temperature.GaugeYPositionConfig;
     private string MoreExaflaresDifficultyKey => $"{Name}.MoreExaflaresDifficulty";
     private string JumpableShockwavesKey => $"{Name}.JumpableShockwaves";
 
