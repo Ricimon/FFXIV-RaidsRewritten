@@ -57,7 +57,7 @@ public sealed class JumpableShockwave(DalamudServices dalamud, ILogger logger) :
 
     public void Register(World world)
     {
-        this.playerQuery = Player.Query(world);
+        this.playerQuery = Player.QueryForLocalPlayer(world);
 
         world.System<Component, Position, Rotation>()
             .Each((Iter it, int i, ref Component component, ref Position position, ref Rotation rotation) =>

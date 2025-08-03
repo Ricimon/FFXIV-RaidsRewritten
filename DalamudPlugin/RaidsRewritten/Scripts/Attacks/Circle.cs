@@ -45,7 +45,7 @@ public class Circle(DalamudServices dalamud, ILogger logger) : IAttack, ISystem,
 
     public void Register(World world)
     {
-        this.playerQuery = Player.Query(world);
+        this.playerQuery = Player.QueryForLocalPlayer(world);
 
         world.System<Component, Position, Rotation, Scale>()
             .Each((Iter it, int i, ref Component component, ref Position position, ref Rotation rotation, ref Scale scale) =>

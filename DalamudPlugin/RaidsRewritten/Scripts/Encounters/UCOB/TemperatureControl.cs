@@ -64,7 +64,7 @@ public class TemperatureControl : Mechanic
     };
 
     private readonly List<Entity> attacks = [];
-    private Query<Player.Component>? playerQuery;
+    private Query<Player.Component, Temperature.Component>? playerTemperatureQuery;
     private int AfahMultiplier = 1;
 
     public override void Reset()
@@ -80,14 +80,22 @@ public class TemperatureControl : Mechanic
 
     public override void OnFrameworkUpdate(IFramework framework)
     {
-        if (!playerQuery.HasValue)
+        if (!playerTemperatureQuery.HasValue)
         {
-            playerQuery = World.Query<Player.Component>();
+            playerTemperatureQuery = World.QueryBuilder<Player.Component, Temperature.Component>()
+                .TermAt(0).Up()
+                .With<Player.LocalPlayer>().Up()
+                .Cached().Build();
         }
-        playerQuery?.Each((Entity e, ref Player.Component pc) =>
+        if (!playerTemperatureQuery.Value.IsTrue())
         {
-            Temperature.SetTemperature(e);
-        });
+            using var q = Player.QueryForLocalPlayer(World);
+            var player = q.First();
+            if (player.IsValid())
+            {
+                Temperature.SetTemperature(player);
+            }
+        }
     }
    
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)

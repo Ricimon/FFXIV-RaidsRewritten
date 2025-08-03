@@ -373,6 +373,15 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             }
         }
 
+#if DEBUG
+        bool punishmentImmunity = configuration.PunishmentImmunity;
+        if (ImGui.Checkbox("Punishment Immunity", ref punishmentImmunity))
+        {
+            configuration.PunishmentImmunity = punishmentImmunity;
+            configuration.Save();
+        }
+#endif
+
         ImGui.Text("Fake statuses");
         if (ImGui.Button("Bind"))
         {
@@ -511,6 +520,33 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             }
         }
 
+        if (ImGui.Button("Dreadknight"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<Dreadknight>(out var dreadknight))
+                {
+                    dreadknight.Set(new Position(player.Position));
+                }
+            }
+        }
+
+        ImGui.SameLine();
+
+        if (ImGui.Button("Dreadknight With Tether"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<Dreadknight>(out var dreadknight))
+                {
+                    dreadknight.Set(new Position(player.Position));
+                    Dreadknight.ApplyTarget(dreadknight, player);
+                }
+            }
+        }
+
         ImGui.Text("Heat Stuff");
         if (ImGui.Button("Add Temperature"))
         {
@@ -550,31 +586,6 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                 {
                     LiquidHeaven.Set(new Position(player.Position))
                                 .Set(new Rotation(player.Rotation));
-                }
-            }
-        }
-
-        if (ImGui.Button("Dreadknight"))
-        {
-            var player = this.dalamud.ClientState.LocalPlayer;
-            if (player != null)
-            {
-                if (this.attackManager.TryCreateAttackEntity<Dreadknight>(out var dreadknight))
-                {
-                    dreadknight.Set(new Position(player.Position));
-                }
-            }
-        }
-        ImGui.SameLine();
-        if (ImGui.Button("Dreadknight With Tether"))
-        {
-            var player = this.dalamud.ClientState.LocalPlayer;
-            if (player != null)
-            {
-                if (this.attackManager.TryCreateAttackEntity<Dreadknight>(out var dreadknight))
-                {
-                    dreadknight.Set(new Position(player.Position));
-                    Dreadknight.ApplyTarget(dreadknight, player);
                 }
             }
         }

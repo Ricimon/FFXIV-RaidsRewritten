@@ -53,7 +53,7 @@ public unsafe sealed class RollingBall(DalamudServices dalamud, VfxSpawn vfxSpaw
 
     public void Register(World world)
     {
-        this.playerQuery = Player.Query(world);
+        this.playerQuery = Player.QueryForLocalPlayer(world);
 
         // Make the ball roll around
         world.System<Model, Component, Movement, Position, Rotation>()

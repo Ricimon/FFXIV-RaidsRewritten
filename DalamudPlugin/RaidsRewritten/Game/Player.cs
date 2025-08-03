@@ -11,19 +11,25 @@ namespace RaidsRewritten.Game;
 
 public sealed class Player(DalamudServices dalamud, PlayerManager playerManager, Configuration configuration, ILogger logger) : ISystem, IDisposable
 {
-    public record struct Component(bool IsLocalPlayer, IPlayerCharacter? PlayerCharacter);
+    public record struct Component(IPlayerCharacter? PlayerCharacter);
+    public struct LocalPlayer;
 
-    private Query<Component, Condition.Component, Knockback.Component> knockbackQuery;
-    private Query<Component, Condition.Component, Bind.Component> bindQuery;
-    private Query<Component, Condition.Component, Stun.Component> stunQuery;
-    private Query<Component, Condition.Component, Paralysis.Component> paralysisQuery;
-    private Query<Component, Condition.Component, Heavy.Component> heavyQuery;
-    private Query<Component, Condition.Component> overheatQuery;
-    private Query<Component, Condition.Component> deepfreezeQuery;
+    private Query<Condition.Component, Knockback.Component> knockbackQuery;
+    private Query<Condition.Component, Bind.Component> bindQuery;
+    private Query<Condition.Component, Stun.Component> stunQuery;
+    private Query<Condition.Component, Paralysis.Component> paralysisQuery;
+    private Query<Condition.Component, Heavy.Component> heavyQuery;
+    private Query<Condition.Component> overheatQuery;
+    private Query<Condition.Component> deepfreezeQuery;
 
     public static Entity Create(World world, bool isLocalPlayer)
     {
-        return world.Entity().Set(new Component(isLocalPlayer, null));
+        var entity = world.Entity().Set(new Component(null));
+        if (isLocalPlayer)
+        {
+            entity.Add<LocalPlayer>();
+        }
+        return entity;
     }
 
     public void Dispose()
@@ -37,37 +43,35 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
         this.deepfreezeQuery.Dispose();
     }
 
-    public static Query<Component> Query(World world)
+    public static Query<Component> QueryForLocalPlayer(World world)
     {
-        return world.Query<Component>();
+        return world.QueryBuilder<Component>().With<LocalPlayer>().Cached().Build();
     }
 
     public void Register(World world)
     {
-        this.knockbackQuery = world.QueryBuilder<Component, Condition.Component, Knockback.Component>()
-            .TermAt(0).Up().Cached().Build();
-        this.bindQuery = world.QueryBuilder<Component, Condition.Component, Bind.Component>()
-            .TermAt(0).Up().Cached().Build();
-        this.stunQuery = world.QueryBuilder<Component, Condition.Component, Stun.Component>()
-            .TermAt(0).Up().Cached().Build();
-        this.paralysisQuery = world.QueryBuilder<Component, Condition.Component, Paralysis.Component>()
-            .TermAt(0).Up().Cached().Build();
-        this.heavyQuery = world.QueryBuilder<Component, Condition.Component, Heavy.Component>()
-            .TermAt(0).Up().Cached().Build();
-        this.overheatQuery = world.QueryBuilder<Component, Condition.Component>()
+        this.knockbackQuery = world.QueryBuilder<Condition.Component, Knockback.Component>()
+            .With<LocalPlayer>().Up().Cached().Build();
+        this.bindQuery = world.QueryBuilder<Condition.Component, Bind.Component>()
+            .With<LocalPlayer>().Up().Cached().Build();
+        this.stunQuery = world.QueryBuilder<Condition.Component, Stun.Component>()
+            .With<LocalPlayer>().Up().Cached().Build();
+        this.paralysisQuery = world.QueryBuilder<Condition.Component, Paralysis.Component>()
+            .With<LocalPlayer>().Up().Cached().Build();
+        this.heavyQuery = world.QueryBuilder<Condition.Component, Heavy.Component>()
+            .With<LocalPlayer>().Up().Cached().Build();
+        this.overheatQuery = world.QueryBuilder<Condition.Component>()
             .With<Overheat.Component>()
-            .TermAt(0).Up().Cached().Build();
-        this.deepfreezeQuery = world.QueryBuilder<Component, Condition.Component>()
+            .With<LocalPlayer>().Up().Cached().Build();
+        this.deepfreezeQuery = world.QueryBuilder<Condition.Component>()
             .With<Deepfreeze.Component>()
-            .TermAt(0).Up().Cached().Build();
+            .With<LocalPlayer>().Up().Cached().Build();
 
-        world.System<Component>()
+        world.System<Component>().With<LocalPlayer>()
             .Each((Iter it, int i, ref Component component) =>
             {
                 try
                 {
-                    if (!component.IsLocalPlayer) { return; }
-
                     var playerEntity = it.Entity(i);
 
                     var player = dalamud.ClientState.LocalPlayer;
@@ -76,28 +80,41 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
                     {
                         playerEntity.Children(c =>
                         {
-                            if (c.Has<Condition.Component>() && !c.Has<Condition.IgnoreOnDeath>())
+                            var destroy = c.Has<Condition.Component>();
+                            // Ignore specific conditions under normal circumstances
+                            if (!configuration.EverythingDisabled && player != null)
+                            {
+                                destroy &= !c.Has<Condition.IgnoreOnDeath>();
+                            }
+                            if (destroy)
                             {
                                 c.Mut(ref it).Destruct();
                             }
                         });
                     }
 
+#if DEBUG
+                    if (configuration.PunishmentImmunity) {
+                        playerManager.OverrideMovement = PlayerMovementOverride.OverrideMovementState.None;
+                        playerManager.ForceWalk = PlayerMovementOverride.ForcedWalkState.None;
+                        return;
+                    }
+#endif
+
                     // Handle each condition
                     bool stun = false;
-                    Entity knockbackEntity = GetFirstConditionEntityOnLocalPlayer(this.knockbackQuery);
-                    Entity bindEntity = GetFirstConditionEntityOnLocalPlayer(this.bindQuery);
-                    Entity stunEntity = GetFirstConditionEntityOnLocalPlayer(this.stunQuery);
+                    Entity knockbackEntity = this.knockbackQuery.First();
+                    Entity bindEntity = this.bindQuery.First();
+                    Entity stunEntity = this.stunQuery.First();
                     stun |= stunEntity.IsValid();
-                    Entity deepfreezeEntity = GetFirstConditionEntityOnLocalPlayer(this.deepfreezeQuery);
+                    Entity deepfreezeEntity = this.deepfreezeQuery.First();
                     stun |= deepfreezeEntity.IsValid();
-                    this.paralysisQuery.Each((Entity e, ref Component pc, ref Condition.Component _, ref Paralysis.Component paralysis) =>
+                    this.paralysisQuery.Each((Entity e, ref Condition.Component _, ref Paralysis.Component paralysis) =>
                     {
-                        if (!pc.IsLocalPlayer) { return; }
                         stun |= paralysis.StunActive;
                     });
-                    Entity slowEntity = GetFirstConditionEntityOnLocalPlayer(this.heavyQuery);
-                    Entity overheatEntity = GetFirstConditionEntityOnLocalPlayer(this.overheatQuery);
+                    Entity slowEntity = this.heavyQuery.First();
+                    Entity overheatEntity = this.overheatQuery.First();
 
                     // Movement override
                     if (knockbackEntity.IsValid())
@@ -149,29 +166,5 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
                     logger.Error(e.ToStringFull());
                 }
             });
-    }
-
-    private static Entity GetFirstConditionEntityOnLocalPlayer<T>(Query<Component, Condition.Component, T> query)
-    {
-        Entity entity = default;
-        query.Each((Entity e, ref Component pc, ref Condition.Component _, ref T _) =>
-        {
-            if (!pc.IsLocalPlayer) { return; }
-            if (entity.IsValid()) { return; }
-            entity = e;
-        });
-        return entity;
-    }
-
-    private static Entity GetFirstConditionEntityOnLocalPlayer(Query<Component, Condition.Component> query)
-    {
-        Entity entity = default;
-        query.Each((Entity e, ref Component pc, ref Condition.Component _) =>
-        {
-            if (!pc.IsLocalPlayer) { return; }
-            if (entity.IsValid()) { return; }
-            entity = e;
-        });
-        return entity;
     }
 }

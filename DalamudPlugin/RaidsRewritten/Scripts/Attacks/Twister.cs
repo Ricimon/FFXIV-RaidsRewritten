@@ -39,7 +39,7 @@ public sealed class Twister(DalamudServices dalamud, VfxSpawn vfxSpawn, Random r
 
     public void Register(World world)
     {
-        this.playerQuery = Player.Query(world);
+        this.playerQuery = Player.QueryForLocalPlayer(world);
 
         world.System<Component, Position>()
             .Each((Iter it, int i, ref Component component, ref Position position) =>

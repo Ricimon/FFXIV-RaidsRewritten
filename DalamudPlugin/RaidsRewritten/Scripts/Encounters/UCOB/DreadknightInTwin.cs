@@ -27,6 +27,7 @@ public class DreadknightInTwin : Mechanic
         7551,  // head graze
         7554,  // leg graze
         7540,  // low blow
+        7863,  // leg sweep
         25880, // sleep
         16560, // repose
     ]; 
