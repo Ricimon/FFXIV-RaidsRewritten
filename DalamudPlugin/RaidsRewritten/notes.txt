@@ -4,6 +4,9 @@ Twister: DataId 0x1E8910
 T9
 Chain Lightning: vfx/monster/gimmick/eff/crystal2_chein_kakusan_c0c.avfx (actor), 5y radius
 
+O10s
+Ground Ice Effect: bgcommon/world/common/vfx_for_btl/b0195/eff/b0195_yuka_c.avfx, 5y radius
+
 E1S
 Vice of Apathy: DataId 0x1EAE20
 

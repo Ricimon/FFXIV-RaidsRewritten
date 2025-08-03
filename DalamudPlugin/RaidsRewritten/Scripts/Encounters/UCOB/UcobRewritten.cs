@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
+using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Encounters.UCOB;
@@ -20,6 +21,9 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
     private string TankbusterAftershockKey => $"{Name}.TankbusterAftershock";
     private string LightningCorridorKey => $"{Name}.LightningCorridor";
     private string MoreExaflaresKey => $"{Name}.MoreExaflares";
+    private string TemperatureControlKey => $"{Name}.TemperatureControl";
+    private string TemperatureControlXKey => Temperature.GaugeXPositionConfig;
+    private string TemperatureControlYKey => Temperature.GaugeYPositionConfig;
     private string MoreExaflaresDifficultyKey => $"{Name}.MoreExaflaresDifficulty";
     private string JumpableShockwavesKey => $"{Name}.JumpableShockwaves";
     private string DreadknightKey => $"{Name}.Dreadknight";
@@ -83,6 +87,12 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
         if (configuration.GetEncounterSetting(JumpableShockwavesKey, true))
         {
             this.mechanics.Add(mechanicFactory.Create<JumpableShockwaves>());
+        }
+
+        if (configuration.GetEncounterSetting(TemperatureControlKey, true))
+        {
+            this.mechanics.Add(mechanicFactory.Create<TemperatureControl>());
+            this.mechanics.Add(mechanicFactory.Create<LiquidHeaven>());
         }
 
         if (configuration.GetEncounterSetting(DreadknightKey, true))
@@ -160,6 +170,8 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
 
         DrawRollingBallConfig();
 
+        DrawTemperatureControlConfig();
+
         bool dreadknight = configuration.GetEncounterSetting(DreadknightKey, true);
         if (ImGui.Checkbox("Dreadknight", ref dreadknight))
         {
@@ -218,6 +230,39 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
                 configuration.Save();
                 RefreshMechanics();
             }
+        }
+    }
+
+    private void DrawTemperatureControlConfig()
+    {
+        bool temperatureControl = configuration.GetEncounterSetting(TemperatureControlKey, true);
+        if (ImGui.Checkbox("Temperature Control", ref temperatureControl))
+        {
+            configuration.EncounterSettings[TemperatureControlKey] =
+                temperatureControl ? bool.TrueString : bool.FalseString;
+            configuration.Save();
+            RefreshMechanics();
+        }
+        
+        using (ImRaii.PushIndent())
+        using (ImRaii.Disabled(!temperatureControl))
+        {
+            ImGui.PushItemWidth(120);
+            int temperatureControlX = configuration.GetEncounterSetting(TemperatureControlXKey, 1);
+            if (ImGui.InputInt("Gauge X", ref temperatureControlX))
+            {
+                configuration.EncounterSettings[TemperatureControlXKey] = temperatureControlX.ToString();
+                configuration.Save();
+                RefreshMechanics();
+            }
+            int temperatureControlY = configuration.GetEncounterSetting(TemperatureControlYKey, 1);
+            if (ImGui.InputInt("Gauge Y", ref temperatureControlY))
+            {
+                configuration.EncounterSettings[TemperatureControlYKey] = temperatureControlY.ToString();
+                configuration.Save();
+                RefreshMechanics();
+            }
+            ImGui.PopItemWidth();
         }
     }
 }

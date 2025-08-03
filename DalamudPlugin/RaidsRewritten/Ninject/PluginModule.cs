@@ -103,6 +103,7 @@ public class PluginModule : NinjectModule
         Bind<IAttack, ISystem>().To<Scripts.Attacks.LightningCorridor>();
         Bind<IAttack, ISystem>().To<Exaflare>();
         Bind<IAttack, ISystem>().To<ExaflareRow>();
+        Bind<IAttack, ISystem>().To<Scripts.Attacks.LiquidHeaven>();
         Bind<IAttack, ISystem>().To<JumpableShockwave>();
         Bind<IAttack, ISystem>().To<Dreadknight>();
         Bind<ISystem>().To<Player>();
@@ -113,6 +114,7 @@ public class PluginModule : NinjectModule
         // Conditions
         Bind<ISystem>().To<Condition>();
         Bind<IDalamudHook>().To<Knockback>();
+        Bind<ISystem>().To<Temperature>();
         Bind<ISystem>().To<Paralysis>();
 
         Bind<ILogger>().To<DalamudLogger>();
