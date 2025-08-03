@@ -25,6 +25,7 @@ public class Paralysis(Random random, ILogger logger) : ISystem
     {
         world.System<Player.Component, Component>()
             .TermAt(0).Up()
+            .With<Player.LocalPlayer>().Up()
             .Each((Iter it, int i, ref Player.Component pc, ref Component component) =>
             {
                 //if (component.ElapsedTime == 0)
@@ -36,7 +37,7 @@ public class Paralysis(Random random, ILogger logger) : ISystem
 
                 var modT = (component.ElapsedTime + component.TimeOffset) % (component.StunInterval + component.StunDuration);
                 var stunActive = modT > component.StunInterval;
-                if (pc.IsLocalPlayer && stunActive && !component.StunActive)
+                if (stunActive && !component.StunActive)
                 {
                     world.Entity()
                         .Set(new ActorVfx("vfx/common/eff/dk05ht_sta0h.avfx"))

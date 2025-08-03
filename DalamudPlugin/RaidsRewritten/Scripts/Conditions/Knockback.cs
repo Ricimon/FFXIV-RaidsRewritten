@@ -92,7 +92,7 @@ public sealed class Knockback : IDalamudHook
         this.world = ecsContainer.World;
         this.logger = logger;
 
-        this.playerQuery = Player.Query(ecsContainer.World);
+        this.playerQuery = Player.QueryForLocalPlayer(ecsContainer.World);
     }
 
     public void HookToDalamud()

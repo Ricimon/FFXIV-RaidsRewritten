@@ -71,7 +71,7 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
 
     public void Register(World world)
     {
-        this.playerQuery = Player.Query(world);
+        this.playerQuery = Player.QueryForLocalPlayer(world);
 
         // need to process AnimationState first before it's overwritten by default standing state in later system
         world.System<Model, AnimationState>()

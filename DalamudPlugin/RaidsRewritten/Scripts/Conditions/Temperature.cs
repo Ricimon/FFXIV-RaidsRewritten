@@ -130,11 +130,11 @@ public class Temperature(DalamudServices dalamud, ILogger logger) : ISystem
             });
 
         world.System<Temperature.Component>()
+            .With<Player.Component>().Up()
+            .With<Player.LocalPlayer>().Up()
             .Each((Iter it, int i, ref Component Temperature) => 
             {
                 var e = it.Entity(i);
-                if (!e.Parent().Has<Player.Component>()) { return; }
-                if (!e.Parent().Get<Player.Component>().IsLocalPlayer) { return; }
 
                 var player = dalamud.ClientState.LocalPlayer;
                 if (player != null && player.IsDead)

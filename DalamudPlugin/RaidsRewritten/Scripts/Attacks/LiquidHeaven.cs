@@ -38,7 +38,7 @@ public class LiquidHeaven(DalamudServices dalamud, ILogger logger) : IAttack, IS
 
     public void Register(World world)
     {
-        this.playerQuery = Player.Query(world);
+        this.playerQuery = Player.QueryForLocalPlayer(world);
         world.System<Component, Position>()
             .Each((Iter it, int i, ref Component component, ref Position position) =>
             {
