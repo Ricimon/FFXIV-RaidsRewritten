@@ -27,8 +27,6 @@ public class Temperature(DalamudServices dalamud, ILogger logger) : ISystem, IDi
         public readonly float OverheatTemp = 100.0f;
         public readonly float DeepfreezeTemp = -100.0f;
     }
-    //public record struct Overheat();
-    //public record struct Deepfreeze();
     public record struct Id(int Value);
     public record struct TemperatureDelta(float Value, float ReapplicationCooldownTime, bool SelfDestructable = false, bool Applied = false);
     public static void SetTemperature(Entity playerEntity)
