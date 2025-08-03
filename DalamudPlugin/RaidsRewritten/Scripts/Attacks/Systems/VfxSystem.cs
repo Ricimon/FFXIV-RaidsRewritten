@@ -82,6 +82,39 @@ public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogge
                 }
             });
 
+        world.System<Model, ActorVfx>()
+        .Each((Iter it, int i, ref Model model, ref ActorVfx vfx) =>
+            {
+                var entity = it.Entity(i);
+                // UpdateScale doesn't seem to work for actor vfxes from a quick test. Should be looked into
+                // Position/Rotation should be based on source actor
+                if (vfx.VfxPtr == null && model.GameObject != null)
+                {
+                    if (entity.TryGet<ActorVfxTarget>(out var target))
+                    {
+                        if (target.Target != null && target.Target.IsValid())
+                        {
+                            vfx.VfxPtr = vfxSpawn.SpawnActorVfx(vfx.Path, model.GameObject, target.Target);
+                        } else
+                        {
+                            // don't bother spawning vfx if target isn't valid
+                            it.Entity(i).Destruct();
+                            return;
+                        }
+                    } else
+                    {
+                        vfx.VfxPtr = vfxSpawn.SpawnActorVfx(vfx.Path, model.GameObject, model.GameObject);
+                    }
+                }
+
+                // Vfx self-destructed, because it finished playing or target is gone
+                if (ActorVfxShouldDestruct(vfx, entity))
+                {
+                    entity.Destruct();
+                    return;
+                }
+            });
+
         world.System<Player.Component, ActorVfx>()
             .TermAt(0).Up()
             .Each((Iter it, int i, ref Player.Component pc, ref ActorVfx vfx) =>
