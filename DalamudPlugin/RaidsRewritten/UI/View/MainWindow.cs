@@ -510,6 +510,150 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                 }
             }
         }
+        ImGui.Text("LW Testing");
+        if (ImGui.Button("LW-in"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<Scripts.Attacks.LastWish>(out var wish))
+                {
+                    wish.Set(new LastWish.Component(LastWish.HitZone.In, true));
+                }
+            }
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("LW-out"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<Scripts.Attacks.LastWish>(out var wish))
+                {
+                    wish.Set(new LastWish.Component(LastWish.HitZone.Out, true));
+                }
+            }
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("LW-rectN"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<Scripts.Attacks.LastWish>(out var wish))
+                {
+                    wish.Set(new LastWish.Component(LastWish.HitZone.North, true));
+                }
+            }
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("LW-rectE"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<Scripts.Attacks.LastWish>(out var wish))
+                {
+                    wish.Set(new LastWish.Component(LastWish.HitZone.East, true));
+                }
+            }
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("LW-rectS"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<Scripts.Attacks.LastWish>(out var wish))
+                {
+                    wish.Set(new LastWish.Component(LastWish.HitZone.South, true));
+                }
+            }
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("LW-rectW"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<Scripts.Attacks.LastWish>(out var wish))
+                {
+                    wish.Set(new LastWish.Component(LastWish.HitZone.West, true));
+                }
+            }
+        }
+        ImGui.Text("LW Hitboxes");
+        if (ImGui.Button("LWH-in"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<Scripts.Attacks.LastWish>(out var wish))
+                {
+                    wish.Set(new LastWish.Component(LastWish.HitZone.In));
+                }
+            }
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("LWH-out"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<Scripts.Attacks.LastWish>(out var wish))
+                {
+                    wish.Set(new LastWish.Component(LastWish.HitZone.Out));
+                }
+            }
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("LWH-rectN"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<Scripts.Attacks.LastWish>(out var wish))
+                {
+                    wish.Set(new LastWish.Component(LastWish.HitZone.North));
+                }
+            }
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("LWH-rectE"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<Scripts.Attacks.LastWish>(out var wish))
+                {
+                    wish.Set(new LastWish.Component(LastWish.HitZone.East));
+                }
+            }
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("LWH-rectS"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<Scripts.Attacks.LastWish>(out var wish))
+                {
+                    wish.Set(new LastWish.Component(LastWish.HitZone.South));
+                }
+            }
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("LWH-rectW"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<Scripts.Attacks.LastWish>(out var wish))
+                {
+                    wish.Set(new LastWish.Component(LastWish.HitZone.West));
+                }
+            }
+        }
 #endif
     }
 

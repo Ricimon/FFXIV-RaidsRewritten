@@ -108,7 +108,7 @@ public class PluginModule : NinjectModule
         Bind<ISystem>().To<DelayedAction>();
         Bind<ISystem>().To<VfxSystem>();
         Bind<ISystem>().To<ModelSystem>();
-
+        Bind<IAttack, ISystem>().To<Scripts.Attacks.LastWish>();
         // Conditions
         Bind<ISystem>().To<Condition>();
         Bind<IDalamudHook>().To<Knockback>();

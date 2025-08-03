@@ -22,6 +22,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
     private string MoreExaflaresKey => $"{Name}.MoreExaflares";
     private string MoreExaflaresDifficultyKey => $"{Name}.MoreExaflaresDifficulty";
     private string JumpableShockwavesKey => $"{Name}.JumpableShockwaves";
+    private string LastWishKey => $"{Name}.LastWish";
 
     private readonly List<Mechanic> mechanics = [];
     private readonly string[] moreExaflaresDifficulties = [
@@ -82,6 +83,11 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
         if (configuration.GetEncounterSetting(JumpableShockwavesKey, true))
         {
             this.mechanics.Add(mechanicFactory.Create<JumpableShockwaves>());
+        }
+
+        if (configuration.GetEncounterSetting(LastWishKey, true))
+        {
+            this.mechanics.Add(mechanicFactory.Create<LastWish>());
         }
     }
 
@@ -153,6 +159,15 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
         }
 
         DrawRollingBallConfig();
+
+        bool lastWish = configuration.GetEncounterSetting(LastWishKey, true);
+        if (ImGui.Checkbox("Last Wish", ref lastWish))
+        {
+            configuration.EncounterSettings[LastWishKey] =
+                lastWish ? bool.TrueString : bool.FalseString;
+            configuration.Save();
+            RefreshMechanics();
+        }
     }
 
     private void DrawRollingBallConfig()
