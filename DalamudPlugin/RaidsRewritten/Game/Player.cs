@@ -55,10 +55,10 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
         this.heavyQuery = world.QueryBuilder<Component, Condition.Component, Heavy.Component>()
             .TermAt(0).Up().Cached().Build();
         this.overheatQuery = world.QueryBuilder<Component, Condition.Component>()
-            .With<Temperature.Overheat>()
+            .With<Overheat.Component>()
             .TermAt(0).Up().Cached().Build();
         this.deepfreezeQuery = world.QueryBuilder<Component, Condition.Component>()
-            .With<Temperature.Deepfreeze>()
+            .With<Deepfreeze.Component>()
             .TermAt(0).Up().Cached().Build();
 
         world.System<Component>()
