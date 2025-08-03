@@ -82,7 +82,7 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
     private readonly Query<Temperature.Component> temperatureQuery;
 
     private const float PADDING_X = 10f;
-    private const float PADDING_Y = 10f;
+    private const float PADDING_Y = 7f;
 
     public EffectsRenderer(
         Lazy<EffectsRendererPresenter> presenter,
