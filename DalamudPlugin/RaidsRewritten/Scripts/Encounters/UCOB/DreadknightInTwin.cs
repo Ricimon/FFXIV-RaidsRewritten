@@ -59,6 +59,11 @@ public class DreadknightInTwin : Mechanic
         }
     }
 
+    public override void OnCombatEnd()
+    {
+        Reset();
+    }
+
     public override void OnCombatStart()
     {
         if (attack.HasValue)
