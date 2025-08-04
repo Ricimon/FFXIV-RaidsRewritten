@@ -3,18 +3,20 @@ using Flecs.NET.Core;
 using RaidsRewritten.Extensions;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
-using RaidsRewritten.Scripts.Attacks.Components;
 
 namespace RaidsRewritten.Scripts.Conditions;
 
-public class Temperature(DalamudServices dalamud, ILogger logger) : ISystem
+public class Temperature(DalamudServices dalamud, ILogger logger) : ISystem, IDisposable
 {
     private readonly ILogger logger = logger;
-    private Query<Temperature.Component> ComponentQuery;
+    private Query<Player.Component> playerQuery;
+    private Query<Overheat.Component> overheatQuery;
+    private Query<Deepfreeze.Component> deepfreezeQuery;
+
     public const string GaugeXPositionConfig = "UCOB Rewritten.TemperatureControlX";
     public const string GaugeYPositionConfig = "UCOB Rewritten.TemperatureControlY";
     public const string GaugeImagePath = "temperature_gauge.png";
-
+    private const int TemperatureID = 420;
     public record struct Component()
     {
         public float CurrentTemperature = 0.0f;
@@ -23,8 +25,6 @@ public class Temperature(DalamudServices dalamud, ILogger logger) : ISystem
         public readonly float OverheatTemp = 100.0f;
         public readonly float DeepfreezeTemp = -100.0f;
     }
-    public record struct Overheat();
-    public record struct Deepfreeze();
     public record struct Id(int Value);
     public record struct TemperatureDelta(float Value, float ReapplicationCooldownTime, bool SelfDestructable = false, bool Applied = false);
     public static void SetTemperature(Entity playerEntity)
@@ -92,9 +92,18 @@ public class Temperature(DalamudServices dalamud, ILogger logger) : ISystem
         }
 
     }
+    public void Dispose()
+    {
+        playerQuery.Dispose();
+        overheatQuery.Dispose();
+        deepfreezeQuery.Dispose();
+    }
 
     public void Register(World world)
     {
+        this.playerQuery = Player.QueryForLocalPlayer(world);
+        this.overheatQuery  = world.QueryBuilder<Overheat.Component>().Build();
+        this.deepfreezeQuery = world.QueryBuilder<Deepfreeze.Component>().Build();
 
         world.System<Temperature.Component, TemperatureDelta>()
             .TermAt(0).Up()
@@ -145,33 +154,26 @@ public class Temperature(DalamudServices dalamud, ILogger logger) : ISystem
                 {
                     if (Temperature.CurrentTemperature <= Temperature.DeepfreezeTemp)
                     {
-                        if (!e.Has<Deepfreeze>())
+                        if(deepfreezeQuery.IsTrue()) { return; }
+                        this.playerQuery.Each((Entity e, ref Player.Component pc) =>
                         {
-                            e.Remove<Overheat>();
-                            e.Remove<ActorVfx>();
-
-                            e.Add<Deepfreeze>();
-                            e.Set(new ActorVfx("vfx/common/eff/hyouketu0f.avfx"));
-                            //logger.Info("Deepfreeze");
-                        }
+                            world.DeleteWith<Overheat.Component>();
+                            Deepfreeze.ApplyToPlayer(e, float.PositiveInfinity, TemperatureID);
+                        });
                         return;
                     }
                     if (Temperature.CurrentTemperature >= Temperature.OverheatTemp)
                     {
-                        if (!e.Has<Overheat>())
-                        { 
-                            e.Remove<Deepfreeze>();
-                            e.Remove<ActorVfx>();
-
-                            e.Add<Overheat>(); 
-                            e.Set(new ActorVfx("vfx/common/eff/dk10ht_hea0s.avfx"));
-                            //logger.Info("Overheat");
-                        }
+                        if (overheatQuery.IsTrue()) { return; }
+                        this.playerQuery.Each((Entity e, ref Player.Component pc) =>
+                        {
+                            world.DeleteWith<Deepfreeze.Component>();
+                            Overheat.ApplyToPlayer(e, float.PositiveInfinity, TemperatureID);
+                        });
                         return;
                     }
-                    e.Remove<Deepfreeze>();
-                    e.Remove<Overheat>();
-                    e.Remove<ActorVfx>();
+                    world.DeleteWith<Deepfreeze.Component>();
+                    world.DeleteWith<Overheat.Component>();
                 }
                 catch (Exception ex)
                 {

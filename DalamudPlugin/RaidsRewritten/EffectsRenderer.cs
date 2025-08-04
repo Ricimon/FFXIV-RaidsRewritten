@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Numerics;
 using Dalamud.Interface.ManagedFontAtlas;
-using Dalamud.Interface.Utility;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using Flecs.NET.Core;
@@ -83,6 +82,7 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
     private readonly Query<Temperature.Component> temperatureQuery;
 
     private const float PADDING_X = 10f;
+    private const float PADDING_Y = 7f;
 
     public EffectsRenderer(
         Lazy<EffectsRendererPresenter> presenter,
@@ -179,6 +179,7 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
                 float clampedValue = Math.Clamp(gaugeEntry.Value, -100f, 100f);
                 float normalized = (clampedValue + 100f) / 200f;
                 Vector4 barColor;
+                string barText;
                 if (clampedValue == -100f)
                 {
                     barColor = new Vector4(0.6f, 1, 1, 0.5f);
@@ -198,14 +199,43 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
 
                 if (gaugeEntry.Value > 100f)
                 {
+                    barColor = new Vector4(1, 0, 0, 0.5f);
                     float overflowNormalized = gaugeEntry.Value / 200f;
                     fillWidth = overflowNormalized * gaugeEntry.BarSize.X;
-                    drawList.AddRectFilled(barPosition + new Vector2(gaugeEntry.BarSize.X / 2, 0), barPosition + new Vector2(fillWidth, gaugeEntry.BarSize.Y), ImGui.ColorConvertFloat4ToU32(new Vector4(1, 0, 0, 0.5f)), 0f);
+
+                    drawList.AddRectFilled(barPosition + new Vector2(gaugeEntry.BarSize.X / 2, 0), barPosition + new Vector2(fillWidth, gaugeEntry.BarSize.Y), ImGui.ColorConvertFloat4ToU32(barColor), 0f);
                 }
+
+
+                if (gaugeEntry.Value > 100)
+                {
+                    barText = $"+{gaugeEntry.Value}!";
+                }
+                else if (gaugeEntry.Value > 0)
+                {
+                    barText = $"+{gaugeEntry.Value}";
+                }
+                else
+                {
+                    barText = $"{gaugeEntry.Value}";
+                }
+                var textSize = ImGui.CalcTextSize(barText);
+                var position = new Vector2(barPosition.X + fillWidth - (textSize.X/2), barPosition.Y + textSize.Y / 2 + PADDING_Y);
+
+                TextOutline(ImGui.GetFont(), 40, position, Vector4Colors.Black.ToColorU32(), barText, 2, drawList);
+                drawList.AddText(ImGui.GetFont(), 40, position, Vector4Colors.White.ToColorU32(), barText);
             }
 
         }
 
+    }
+
+    private void TextOutline(ImFontPtr font, int fontSize, Vector2 position, UInt32 color, string text, int outline, ImDrawListPtr drawListPtr)
+    {
+        drawListPtr.AddText(font, fontSize, position + new Vector2(-outline, -outline), color, text);
+        drawListPtr.AddText(font, fontSize, position + new Vector2(outline, -outline), color, text);
+        drawListPtr.AddText(font, fontSize, position + new Vector2(-outline, outline), color, text);
+        drawListPtr.AddText(font, fontSize, position + new Vector2(outline, outline), color, text);
     }
 
     private void AddStatus(List<EffectTextEntry> toDraw, string statusName, double timeRemaining, ref float offsetY, ref float maxWidth)
