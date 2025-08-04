@@ -3,7 +3,7 @@ using RaidsRewritten.Scripts.Attacks.Components;
 
 namespace RaidsRewritten.Scripts.Conditions;
 
-internal class Overheat
+public class Overheat
 {
     public record struct Component(object _);
 

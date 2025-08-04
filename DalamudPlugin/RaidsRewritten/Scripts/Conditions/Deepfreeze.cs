@@ -3,7 +3,7 @@ using RaidsRewritten.Scripts.Attacks.Components;
 
 namespace RaidsRewritten.Scripts.Conditions;
 
-internal class Deepfreeze
+public class Deepfreeze
 {
     public record struct Component(object _);
 
