@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Numerics;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons.Hooks;
 using Flecs.NET.Core;
@@ -10,6 +11,7 @@ namespace RaidsRewritten.Scripts.Encounters.UCOB;
 public class LiquidHeaven : Mechanic
 {
     private const uint NEUROLINK_DATA_ID = 0x1E88FF;
+    private const uint CLEANSE_DATA_ID = 0x1E91D4;
 
     private readonly List<Entity> attacks = [];
 
@@ -35,20 +37,46 @@ public class LiquidHeaven : Mechanic
     {
         Reset();
     }
-
+    //"bgcommon/world/common/vfx_for_btl/b3566/eff/b3566_rset_y1.avfx"
     public override void OnObjectCreation(nint newObjectPointer, IGameObject? newObject)
     {
         if (newObject == null) { return; }
-        if (newObject.DataId != NEUROLINK_DATA_ID) { return; }
-        
-        var player = this.Dalamud.ClientState.LocalPlayer;
-        if (player != null)
+        if (newObject.DataId == NEUROLINK_DATA_ID)
         {
-            if (this.AttackManager.TryCreateAttackEntity<Attacks.LiquidHeaven>(out var liquidHeaven))
+            var player = this.Dalamud.ClientState.LocalPlayer;
+            if (player != null)
             {
-                liquidHeaven.Set(new Position(newObject.Position));
-                liquidHeaven.Set(new Rotation(newObject.Rotation));
-                attacks.Add(liquidHeaven);
+                if (this.AttackManager.TryCreateAttackEntity<Attacks.LiquidHeaven>(out var liquidHeaven))
+                {
+                    liquidHeaven.Set(new Position(newObject.Position));
+                    liquidHeaven.Set(new Rotation(newObject.Rotation));
+                    attacks.Add(liquidHeaven);
+                }
+            }
+        }
+        if (newObject.DataId == CLEANSE_DATA_ID)
+        {
+            var player = this.Dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.AttackManager.TryCreateAttackEntity<Attacks.DoomCleanse>(out var dc))
+                { 
+                    dc.Set(new Position(newObject.Position))
+                        .Set(new Rotation(newObject.Rotation))
+                        .Set(new DoomCleanse.Component(newObject.EntityId));
+                    attacks.Add(dc);
+                }
+                /*
+                var e = World.Entity()
+                    .Set(new StaticVfx("bgcommon/world/common/vfx_for_btl/b3566/eff/b3566_rset_y1.avfx"))
+                    .Set(new Position(newObject.Position))
+                    .Set(new Rotation(newObject.Rotation))
+                    .Set(new Scale(2*Vector3.One))
+                    .Add<Attack>();
+               
+                var da = DelayedAction.Create(World, () => { e.Destruct(); }, 2);
+                attacks.Add(da);
+                */
             }
         }
     }
