@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Encounters.E1S;

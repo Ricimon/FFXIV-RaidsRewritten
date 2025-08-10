@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Dalamud.NET.Sdk/12.0.2">
+<Project Sdk="Dalamud.NET.Sdk/13.0.0">
   <PropertyGroup>
     <Authors>Ricimon</Authors>
     <Company></Company>
@@ -44,8 +44,8 @@
 			<HintPath>$(DalamudLibPath)Reloaded.Hooks.Definitions.dll</HintPath>
 			<Private>False</Private>
 		</Reference>
-		<Reference Include="PInvoke.User32">
-			<HintPath>$(DalamudLibPath)PInvoke.User32.dll</HintPath>
+		<Reference Include="TerraFX.Interop.Windows">
+			<HintPath>$(DalamudLibPath)TerraFX.Interop.Windows.dll</HintPath>
 			<Private>False</Private>
 		</Reference>
 	</ItemGroup>

@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using Flecs.NET.Core;
-using ImGuiNET;
 using RaidsRewritten.Extensions;
 using RaidsRewritten.Game;
 using RaidsRewritten.Input;
@@ -173,7 +173,7 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
 
             foreach (var gaugeEntry in toGaugeDraw)
             {
-                var imgGauge = this.textureProvider.GetFromFile(this.pluginInterface.GetResourcePath(gaugeEntry.Path)).GetWrapOrDefault()?.ImGuiHandle ?? default;
+                var imgGauge = this.textureProvider.GetFromFile(this.pluginInterface.GetResourcePath(gaugeEntry.Path)).GetWrapOrDefault()?.Handle ?? default;
                 drawList.AddImage(imgGauge, gaugeEntry.Position, gaugeEntry.Position + gaugeEntry.ImageSize);
 
                 float clampedValue = Math.Clamp(gaugeEntry.Value, -100f, 100f);

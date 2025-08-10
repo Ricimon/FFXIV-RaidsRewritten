@@ -4,6 +4,7 @@ using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.ClientState.Statuses;
 using ECommons.DalamudServices;
 using ECommons.ExcelServices;
+using ECommons.GameFunctions;
 using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
@@ -21,6 +22,9 @@ using GrandCompany = ECommons.ExcelServices.GrandCompany;
 
 namespace ECommons.GameHelpers;
 
+/// <summary>
+/// In general, these properties and methods should be made in a way that does not throws <see cref="NullReferenceException"/>, where feasible.
+/// </summary>
 public static unsafe class Player
 {
     public static readonly Number MaxLevel = 100;
@@ -36,7 +40,7 @@ public static unsafe class Player
     public static string GetNameWithWorld(this IPlayerCharacter pc) => pc == null ? null : (pc.Name.ToString() + "@" + pc.HomeWorld.ValueNullable?.Name.ToString());
 
     public static int Level => Svc.ClientState.LocalPlayer?.Level ?? 0;
-    public static bool IsLevelSynced => PlayerState.Instance()->IsLevelSynced == 1;
+    public static bool IsLevelSynced => PlayerState.Instance()->IsLevelSynced;
     public static int SyncedLevel => PlayerState.Instance()->SyncedLevel;
     public static int UnsyncedLevel => GetUnsyncedLevel(GetJob(Object));
     public static int GetUnsyncedLevel(Job job) => PlayerState.Instance()->ClassJobLevels[Svc.Data.GetExcelSheet<ClassJob>().GetRowOrDefault((uint)job).Value.ExpArrayIndex];
@@ -56,7 +60,7 @@ public static unsafe class Player
     public static TerritoryIntendedUseEnum TerritoryIntendedUse => (TerritoryIntendedUseEnum)(Svc.Data.GetExcelSheet<TerritoryType>().GetRowOrDefault(Territory)?.TerritoryIntendedUse.ValueNullable?.RowId ?? default);
     public static uint HomeAetheryteTerritory => Svc.Data.GetExcelSheet<Aetheryte>().GetRowOrDefault(PlayerState.Instance()->HomeAetheryteId).Value.Territory.RowId;
     public static bool IsInDuty => GameMain.Instance()->CurrentContentFinderConditionId != 0;
-    public static bool IsOnIsland => MJIManager.Instance()->IsPlayerInSanctuary == 1;
+    public static bool IsOnIsland => MJIManager.Instance()->IsPlayerInSanctuary;
     public static bool IsInPvP => GameMain.IsInPvPInstance();
 
     public static Job Job => GetJob(Svc.ClientState.LocalPlayer);
@@ -68,20 +72,21 @@ public static unsafe class Player
     public static uint JobId => Player.Object?.ClassJob.RowId ?? 0;
     public static uint OnlineStatus => Player.Object?.OnlineStatus.RowId ?? 0;
 
-    public static Vector3 Position => Object.Position;
-    public static float Rotation => Object.Rotation;
-    public static bool IsMoving => AgentMap.Instance()->IsPlayerMoving || IsJumping;
-    public static bool IsJumping => Svc.Condition[ConditionFlag.Jumping] || Svc.Condition[ConditionFlag.Jumping61] || Character->IsJumping();
+    public static Vector3 Position => Available ? Object.Position : Vector3.Zero;
+    public static float Rotation => Available ? Object.Rotation : 0;
+    public static bool IsMoving => Available && (AgentMap.Instance()->IsPlayerMoving || IsJumping);
+    public static bool IsJumping => Available && (Svc.Condition[ConditionFlag.Jumping] || Svc.Condition[ConditionFlag.Jumping61] || Character->IsJumping());
     public static bool Mounted => Svc.Condition[ConditionFlag.Mounted];
-    public static bool Mounting => Svc.Condition[ConditionFlag.Unknown57]; // condition 57 is set while mount up animation is playing
+    public static bool Mounting => Svc.Condition[ConditionFlag.MountOrOrnamentTransition];
     public static bool CanMount => Svc.Data.GetExcelSheet<TerritoryType>().GetRow(Territory).Mount && PlayerState.Instance()->NumOwnedMounts > 0;
     public static bool CanFly => Control.CanFly;
 
     public static float AnimationLock => *(float*)((nint)ActionManager.Instance() + 8);
     public static bool IsAnimationLocked => AnimationLock > 0;
+    public static bool IsCasting => Available && Object.IsCasting();
     public static bool IsDead => Svc.Condition[ConditionFlag.Unconscious];
     public static bool Revivable => IsDead && AgentRevive.Instance()->ReviveState != 0;
-    
+
     public static float DistanceTo(Vector3 other) => Vector3.Distance(Position, other);
     public static float DistanceTo(Vector2 other) => Vector2.Distance(Position.ToVector2(), other);
     public static float DistanceTo(IGameObject other) => Vector3.Distance(Position, other.Position);
