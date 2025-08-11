@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Plugin.Services;
@@ -14,7 +13,6 @@ using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ObjectLifeTracker;
 using RaidsRewritten.Log;
 using RaidsRewritten.Memory;
-using RaidsRewritten.Scripts;
 using RaidsRewritten.Scripts.Encounters;
 using RaidsRewritten.Utility;
 using Dalamud.Game.ClientState.Conditions;
