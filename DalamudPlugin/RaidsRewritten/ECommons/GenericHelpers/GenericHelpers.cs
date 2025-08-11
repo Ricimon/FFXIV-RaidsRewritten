@@ -134,50 +134,50 @@ public static unsafe partial class GenericHelpers
 #pragma warning restore
     public static bool UseAsyncKeyCheck = false;
 
-    /// <summary>
-    /// Checks if a key is pressed via winapi.
-    /// </summary>
-    /// <param name="key">Key</param>
-    /// <returns>Whether the key is currently pressed</returns>
-    public static bool IsKeyPressed(int key)
-    {
-        if(key == 0) return false;
-        if(UseAsyncKeyCheck)
-        {
-            return Bitmask.IsBitSet((uint)NativeFunctions.GetKeyState(key), 15);
-        }
-        else
-        {
-            return Bitmask.IsBitSet((uint)NativeFunctions.GetAsyncKeyState(key), 15);
-        }
-    }
+    ///// <summary>
+    ///// Checks if a key is pressed via winapi.
+    ///// </summary>
+    ///// <param name="key">Key</param>
+    ///// <returns>Whether the key is currently pressed</returns>
+    //public static bool IsKeyPressed(int key)
+    //{
+    //    if(key == 0) return false;
+    //    if(UseAsyncKeyCheck)
+    //    {
+    //        return Bitmask.IsBitSet((uint)NativeFunctions.GetKeyState(key), 15);
+    //    }
+    //    else
+    //    {
+    //        return Bitmask.IsBitSet((uint)NativeFunctions.GetAsyncKeyState(key), 15);
+    //    }
+    //}
 
     /// <summary>
     /// Checks if a key is pressed via winapi.
     /// </summary>
     /// <param name="key">Key</param>
     /// <returns>Whether the key is currently pressed</returns>
-    public static bool IsKeyPressed(LimitedKeys key) => IsKeyPressed((int)key);
+    //public static bool IsKeyPressed(LimitedKeys key) => IsKeyPressed((int)key);
 
-    public static bool IsAnyKeyPressed(IEnumerable<LimitedKeys> keys) => keys.Any(IsKeyPressed);
+    //public static bool IsAnyKeyPressed(IEnumerable<LimitedKeys> keys) => keys.Any(IsKeyPressed);
 
-    public static bool IsKeyPressed(IEnumerable<LimitedKeys> keys)
-    {
-        foreach(var x in keys)
-        {
-            if(IsKeyPressed(x)) return true;
-        }
-        return false;
-    }
+    //public static bool IsKeyPressed(IEnumerable<LimitedKeys> keys)
+    //{
+    //    foreach(var x in keys)
+    //    {
+    //        if(IsKeyPressed(x)) return true;
+    //    }
+    //    return false;
+    //}
 
-    public static bool IsKeyPressed(IEnumerable<int> keys)
-    {
-        foreach(var x in keys)
-        {
-            if(IsKeyPressed(x)) return true;
-        }
-        return false;
-    }
+    //public static bool IsKeyPressed(IEnumerable<int> keys)
+    //{
+    //    foreach(var x in keys)
+    //    {
+    //        if(IsKeyPressed(x)) return true;
+    //    }
+    //    return false;
+    //}
 
     /// <summary>
     /// Checks if you are targeting object <paramref name="obj"/>.
