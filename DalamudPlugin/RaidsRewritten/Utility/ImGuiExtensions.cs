@@ -1,5 +1,5 @@
-﻿using Dalamud.Game.ClientState.Keys;
-using ImGuiNET;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Game.ClientState.Keys;
 
 namespace RaidsRewritten.Extensions;
 
@@ -43,16 +43,16 @@ public static class ImGuiExtensions
             VirtualKey.SNAPSHOT => ImGuiKey.PrintScreen,
             VirtualKey.INSERT => ImGuiKey.Insert,
             VirtualKey.DELETE => ImGuiKey.Delete,
-            VirtualKey.KEY_0 => ImGuiKey._0,
-            VirtualKey.KEY_1 => ImGuiKey._1,
-            VirtualKey.KEY_2 => ImGuiKey._2,
-            VirtualKey.KEY_3 => ImGuiKey._3,
-            VirtualKey.KEY_4 => ImGuiKey._4,
-            VirtualKey.KEY_5 => ImGuiKey._5,
-            VirtualKey.KEY_6 => ImGuiKey._6,
-            VirtualKey.KEY_7 => ImGuiKey._7,
-            VirtualKey.KEY_8 => ImGuiKey._8,
-            VirtualKey.KEY_9 => ImGuiKey._9,
+            VirtualKey.KEY_0 => ImGuiKey.Key0,
+            VirtualKey.KEY_1 => ImGuiKey.Key1,
+            VirtualKey.KEY_2 => ImGuiKey.Key2,
+            VirtualKey.KEY_3 => ImGuiKey.Key3,
+            VirtualKey.KEY_4 => ImGuiKey.Key4,
+            VirtualKey.KEY_5 => ImGuiKey.Key5,
+            VirtualKey.KEY_6 => ImGuiKey.Key6,
+            VirtualKey.KEY_7 => ImGuiKey.Key7,
+            VirtualKey.KEY_8 => ImGuiKey.Key8,
+            VirtualKey.KEY_9 => ImGuiKey.Key9,
             VirtualKey.A => ImGuiKey.A,
             VirtualKey.B => ImGuiKey.B,
             VirtualKey.C => ImGuiKey.C,

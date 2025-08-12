@@ -88,7 +88,7 @@ public unsafe sealed class ActionManagerEx : IDisposable
         return res;
     }
 
-    private bool UseActionLocationDetour(ActionManager* self, ActionType actionType, uint actionId, ulong targetId, Vector3* location, uint extraParam)
+    private bool UseActionLocationDetour(ActionManager* self, ActionType actionType, uint actionId, ulong targetId, Vector3* location, uint extraParam, byte a7)
     {
         if (DisableAllActions)
         {
@@ -106,7 +106,7 @@ public unsafe sealed class ActionManagerEx : IDisposable
         //var preventAutos = _autoAutosTweak.ShouldPreventAutoActivation(ActionManager.GetSpellIdForAction(actionType, actionId));
         //if (preventAutos)
         //    targetSystem->Target = null;
-        bool ret = useActionLocationHook.Original(self, actionType, actionId, targetId, location, extraParam);
+        bool ret = useActionLocationHook.Original(self, actionType, actionId, targetId, location, extraParam, a7);
         this.logger.Debug($"USE_ACTION_LOCATION: type:{actionType}, actionId:{actionId}, targetId:{targetId}, location:{*location}, ret:{ret}");
         //if (preventAutos)
         //    targetSystem->Target = hardTarget;

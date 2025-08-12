@@ -4,6 +4,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using Lumina.Excel.Sheets;
 using RaidsRewritten.Extensions;
 using RaidsRewritten.Log;
+using RaidsRewritten.Utility;
 using System;
 using System.Text;
 
@@ -49,7 +50,7 @@ public class MapManager : IDisposable
             case TerritoryIntendedUseEnum.GoldSaucer:
                 return true;
             case TerritoryIntendedUseEnum.HousingPrivateArea:
-                return HousingManager.Instance()->GetCurrentIndoorHouseId() != -1;
+                return HousingManager.Instance()->GetCurrentIndoorHouseId().IsValid();
             case TerritoryIntendedUseEnum.Inn:
             case TerritoryIntendedUseEnum.Dungeon:
             case TerritoryIntendedUseEnum.JailArea:
@@ -124,7 +125,7 @@ public class MapManager : IDisposable
         {
             var housingManager = HousingManager.Instance();
             var houseId = housingManager->GetCurrentIndoorHouseId();
-            if (houseId != -1)
+            if (houseId.IsValid())
             {
                 s.Append("_h"); s.Append(houseId);
             }
