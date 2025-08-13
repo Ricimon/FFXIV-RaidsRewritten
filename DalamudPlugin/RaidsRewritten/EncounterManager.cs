@@ -43,7 +43,7 @@ public sealed class EncounterManager : IDalamudHook
     ];
     private readonly Dictionary<ushort, IEncounter> encounters;
 
-    private bool InCombat = false;
+    private bool? InCombat = null;
     private byte Weather = 0;
 
     public EncounterManager(
@@ -355,9 +355,15 @@ public sealed class EncounterManager : IDalamudHook
             }
         }
 
+        if (!this.InCombat.HasValue)
+        {
+            this.InCombat = combatState;
+            return;
+        }
+
         if (combatState)
         {
-            if (!this.InCombat)
+            if (!this.InCombat.Value)
             {
                 this.InCombat = true;
                 this.logger.Debug("COMBAT STARTED");
@@ -373,7 +379,7 @@ public sealed class EncounterManager : IDalamudHook
             }
         } else
         {
-            if (this.InCombat)
+            if (this.InCombat.Value)
             {
                 this.InCombat = false;
                 this.logger.Debug("COMBAT ENDED");
