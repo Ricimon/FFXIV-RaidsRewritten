@@ -44,6 +44,7 @@ public sealed class EncounterManager : IDalamudHook
     private readonly Dictionary<ushort, IEncounter> encounters;
 
     private bool InCombat = false;
+    private byte Weather = 0;
 
     public EncounterManager(
         DalamudServices dalamud,
@@ -334,6 +335,12 @@ public sealed class EncounterManager : IDalamudHook
             }
         }
 
+        UpdateCombatState();
+        UpdateWeather();
+    }
+
+    private void UpdateCombatState()
+    {
         var combatState = this.dalamud.Condition[ConditionFlag.InCombat];
         if (this.dalamud.Condition[ConditionFlag.DutyRecorderPlayback])
         {
@@ -378,6 +385,31 @@ public sealed class EncounterManager : IDalamudHook
                     {
                         mechanic.OnCombatEnd();
                     }
+                }
+            }
+        }
+    }
+
+    private void UpdateWeather()
+    {
+        unsafe
+        {
+            var weatherManager = FFXIVClientStructs.FFXIV.Client.Game.WeatherManager.Instance();
+            if (weatherManager == null) { return; }
+            var weather = weatherManager->GetCurrentWeather();
+            if (Weather == weather) { return; }
+
+            this.logger.Debug($"WEATHER: {weather}");
+
+            var prevWeather = Weather;
+            Weather = weather;
+
+            if (this.configuration.EverythingDisabled) { return; }
+            if (prevWeather > 0 && ActiveEncounter != null)
+            {
+                foreach (var mechanic in ActiveEncounter.GetMechanics())
+                {
+                    mechanic.OnWeatherChange(weather);
                 }
             }
         }

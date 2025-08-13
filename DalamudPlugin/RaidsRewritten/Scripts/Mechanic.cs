@@ -48,6 +48,8 @@ public abstract class Mechanic()
 
     public virtual void OnCombatEnd() { }
 
+    public virtual void OnWeatherChange(byte weather) { }
+
     public class Factory(DalamudServices dalamud, EcsContainer ecsContainer, AttackManager attackManager, ILogger logger)
     {
         public T Create<T>() where T : Mechanic, new()
