@@ -39,6 +39,7 @@ public class DreadknightInUCoB : Mechanic
 
     private int neurolinksSpawned = 0;
     private int oviformsOnField = 0;
+    private DateTime lastTargetSwap = DateTime.MinValue;
 
     public override void Reset()
     {
@@ -56,6 +57,7 @@ public class DreadknightInUCoB : Mechanic
         this.dreadknight?.Destruct();
         this.dreadknight = null;
         oviformsOnField = 0;
+        lastTargetSwap = DateTime.MinValue;
     }
 
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
@@ -124,10 +126,12 @@ public class DreadknightInUCoB : Mechanic
                 Dreadknight.IncrementSpeed(dreadknight.Value, speedIncrement);
             }
         } else if (actionIds.Contains(set.Action.Value.RowId)) {
-            if (Dreadknight.HasTarget(dreadknight.Value)) { return; }
+            var timeDiff = DateTime.Now - lastTargetSwap;
+            if (timeDiff.TotalSeconds < 30 && Dreadknight.HasTarget(dreadknight.Value)) { return; }
             if (set.Source == null) { return; }
 
             Dreadknight.ApplyTarget(dreadknight.Value, set.Source);
+            lastTargetSwap = DateTime.Now;
         }
     }
 
