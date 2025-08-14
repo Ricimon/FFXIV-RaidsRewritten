@@ -14,6 +14,9 @@ public class LiquidHeaven : Mechanic
     private const uint CLEANSE_DATA_ID = 0x1E91D4;
 
     private readonly List<Entity> attacks = [];
+    private const int MaxHeavens = 3;
+
+    private int heavensSpawned;
 
     public override void Reset()
     {
@@ -22,6 +25,7 @@ public class LiquidHeaven : Mechanic
             attack.Destruct();
         }
         this.attacks.Clear();
+        this.heavensSpawned = 0;
     }
 
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
@@ -43,6 +47,8 @@ public class LiquidHeaven : Mechanic
         if (newObject == null) { return; }
         if (newObject.DataId == NEUROLINK_DATA_ID)
         {
+            if (heavensSpawned >= MaxHeavens) { return; }
+
             var player = this.Dalamud.ClientState.LocalPlayer;
             if (player != null)
             {
@@ -53,6 +59,7 @@ public class LiquidHeaven : Mechanic
                     attacks.Add(liquidHeaven);
                 }
             }
+            heavensSpawned++;
         }
         if (newObject.DataId == CLEANSE_DATA_ID)
         {
@@ -66,17 +73,6 @@ public class LiquidHeaven : Mechanic
                         .Set(new DoomCleanse.Component(newObject.EntityId));
                     attacks.Add(dc);
                 }
-                /*
-                var e = World.Entity()
-                    .Set(new StaticVfx("bgcommon/world/common/vfx_for_btl/b3566/eff/b3566_rset_y1.avfx"))
-                    .Set(new Position(newObject.Position))
-                    .Set(new Rotation(newObject.Rotation))
-                    .Set(new Scale(2*Vector3.One))
-                    .Add<Attack>();
-               
-                var da = DelayedAction.Create(World, () => { e.Destruct(); }, 2);
-                attacks.Add(da);
-                */
             }
         }
     }
