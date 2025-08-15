@@ -70,7 +70,7 @@ public class LiquidHeaven : Mechanic
                 { 
                     dc.Set(new Position(newObject.Position))
                         .Set(new Rotation(newObject.Rotation))
-                        .Set(new DoomCleanse.Component(newObject.EntityId));
+                        .Set(new DoomCleanse.Component(newObject));
                     attacks.Add(dc);
                 }
             }
