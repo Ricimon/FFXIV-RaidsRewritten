@@ -111,16 +111,6 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
                 }
             });
 
-        world.System<Component, BackupTarget>()
-            .Each((Iter it, int i, ref Component component, ref BackupTarget backupTarget) =>
-            {
-                var gameObj = backupTarget.Value;
-                if (gameObj == null || !gameObj.IsValid() || gameObj.IsDead)
-                {
-                    it.Entity(i).Destruct();
-                } 
-            });
-
         // no target
         world.System<Component, AnimationState>().Without<Target>()
             .Each((Iter it, int i, ref Component component, ref AnimationState animationState) =>

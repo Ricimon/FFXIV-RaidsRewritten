@@ -135,6 +135,14 @@ public class DreadknightInUCoB : Mechanic
         }
     }
 
+    public override void OnVFXSpawn(IGameObject? target, string vfxPath)
+    {
+        if (vfxPath.Equals("vfx/channeling/eff/chn_kosoku1f.avfx"))
+        {
+            Reset();
+        }
+    }
+
     private void SpawnDreadknight()
     {
         if (this.AttackManager.TryCreateAttackEntity<Dreadknight>(out var dreadknight))
