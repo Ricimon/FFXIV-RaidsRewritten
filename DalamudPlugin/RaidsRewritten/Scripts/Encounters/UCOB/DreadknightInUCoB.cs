@@ -25,6 +25,7 @@ public class DreadknightInUCoB : Mechanic
     private const byte AddsWeather = 31;
     private const float AddsDreadknightSpawnDelay = 10f;
     private const string SwappableTetherVfx = "vfx/channeling/eff/chn_light01f.avfx";
+    private const int SecondsUntilSwappable = 30;
 
     private readonly List<uint> actionIds = [
         7538,  // interject
@@ -131,7 +132,7 @@ public class DreadknightInUCoB : Mechanic
             }
         } else if (actionIds.Contains(set.Action.Value.RowId)) {
             var timeDiff = DateTime.Now - lastTargetSwap;
-            if (timeDiff.TotalSeconds < 30 && Dreadknight.HasTarget(dreadknight.Value)) { return; }
+            if (timeDiff.TotalSeconds < SecondsUntilSwappable && Dreadknight.HasTarget(dreadknight.Value)) { return; }
             if (set.Source == null) { return; }
 
             Dreadknight.ApplyTarget(dreadknight.Value, set.Source);
@@ -150,7 +151,7 @@ public class DreadknightInUCoB : Mechanic
 
     public override void OnFrameworkUpdate(IFramework framework)
     {
-        if (dreadknight.HasValue && !tetherVfxChanged && (DateTime.Now - lastTargetSwap).Seconds > 30)
+        if (dreadknight.HasValue && !tetherVfxChanged && (DateTime.Now - lastTargetSwap).Seconds > SecondsUntilSwappable)
         {
             Dreadknight.ChangeTetherVfx(dreadknight.Value, SwappableTetherVfx);
             tetherVfxChanged = true;
