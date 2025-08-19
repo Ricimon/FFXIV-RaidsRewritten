@@ -36,6 +36,7 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
     private const string EnrageVfx2 = "vfx/monster/m0150/eff/m150sp003c0m.avfx";
     private const string CastingVfx = "vfx/common/eff/mon_eisyo03t.avfx";
     private const string TetherVfx = "vfx/channeling/eff/chn_dark001f.avfx";
+    private const string BackupTetherVfx = "vfx/channeling/eff/chn_light01f.avfx";
     private const string InterruptVfx = "vfx/common/eff/ctstop_mgc0c.avfx";
 
     private const float HitboxRadius = 1.75f;
@@ -117,12 +118,11 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
             {
                 var entity = it.Entity(i);
 
-                if (!component.BackupActive && entity.Has<BackupTarget>())
+                if (!component.BackupActive && entity.TryGet<BackupTarget>(out var backupTarget))
                 {
-                    var backupTarget = entity.Get<BackupTarget>();
                     if (backupTarget.Value != null && backupTarget.Value.IsValid() && !backupTarget.Value.IsDead)
                     {
-                        var tether = AddActorVfx(entity, TetherVfx);
+                        var tether = AddActorVfx(entity, BackupTetherVfx);
                         tether.Set(new ActorVfxTarget(backupTarget.Value));
                         component.BackupActive = true;
                     }
@@ -222,10 +222,8 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
 
     public static void ApplyTarget(Entity entity, IGameObject target)
     {
-        if (entity.Has<Component>())
+        if (entity.TryGet<Component>(out var component))
         {
-            var component = entity.Get<Component>();
-
             if (component.Enrage == -1) { return; }
 
             RemoveChildren(entity);
@@ -248,11 +246,21 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
         entity.Remove<Target>();
     }
 
+    public static void ChangeTetherVfx(Entity entity, string VfxPath = TetherVfx)
+    {
+        if (entity.TryGet<Target>(out var target))
+        {
+            RemoveChildren(entity);
+
+            AddActorVfx(entity, VfxPath)
+                .Set(new ActorVfxTarget(target.Value));
+        }
+    }
+
     public static void SetSpeed(Entity entity, float speed)
     {
-        if (entity.Has<Speed>() && entity.Has<Component>())
+        if (entity.TryGet<Speed>(out var oldSpeed) && entity.TryGet<Component>(out var oldComponent))
         {
-            var oldSpeed = entity.Get<Speed>();
             if (oldSpeed.Value > speed)
             {
                 AddActorVfx(entity, SpeedDebuffVfx);
@@ -264,7 +272,6 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
                 return;
             }
 
-            var oldComponent = entity.Get<Component>();
             entity.Set(new Component(oldComponent.ElapsedTime, oldComponent.ElapsedTime + CastingAnimationDelay, oldComponent.StartEnrage, oldComponent.Enrage))
                 .Set(new AnimationState(CastingAnimation, true))
                 .Set(new Speed(speed));
@@ -273,12 +280,10 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
 
     public static void IncrementSpeed(Entity entity, float increment)
     {
-        if (entity.Has<Speed>() && entity.Has<Component>())
+        if (entity.TryGet<Speed>(out var oldSpeed) && entity.TryGet<Component>(out var oldComponent))
         {
-            var oldSpeed = entity.Get<Speed>();
             AddActorVfx(entity, SpeedBuffVfx);
 
-            var oldComponent = entity.Get<Component>();
             entity.Set(new Component(oldComponent.ElapsedTime, oldComponent.ElapsedTime + CastingAnimationDelay, oldComponent.StartEnrage, oldComponent.Enrage))
                 .Set(new AnimationState(CastingAnimation, true))
                 .Set(new Speed(oldSpeed.Value + increment));
@@ -287,14 +292,12 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
 
     public static void DecrementSpeed(Entity entity, float decrement)
     {
-        if (entity.Has<Speed>() && entity.Has<Component>())
+        if (entity.TryGet<Speed>(out var oldSpeed) && entity.TryGet<Component>(out var oldComponent))
         {
-            var oldSpeed = entity.Get<Speed>();
             AddActorVfx(entity, SpeedDebuffVfx);
             var newSpeed = oldSpeed.Value - decrement;
             if (newSpeed < 0) newSpeed = 0;
             
-            var oldComponent = entity.Get<Component>();
             entity.Set(new Component(oldComponent.ElapsedTime, oldComponent.ElapsedTime + CastingAnimationDelay, oldComponent.StartEnrage, oldComponent.Enrage))
                 .Set(new AnimationState(CastingAnimation, true))
                 .Set(new Speed(newSpeed));
