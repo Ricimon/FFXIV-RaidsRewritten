@@ -64,6 +64,7 @@ public sealed class DoomCleanse(DalamudServices dalamud, ILogger logger) : IAtta
                         {
                             var csGameObject = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)c.GameObject.Address;
 
+                            //THIS IS A FILLER FOR csGameObject->EventState (see below)
                             var bytes = DumpGameObjectBytes(csGameObject);
                             if (bytes[112] == 0x07)
                             {

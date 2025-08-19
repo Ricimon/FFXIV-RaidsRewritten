@@ -11,7 +11,7 @@ namespace RaidsRewritten.Scripts.Encounters.UCOB;
 public class LiquidHeaven : Mechanic
 {
     private const uint NEUROLINK_DATA_ID = 0x1E88FF;
-    private const uint CLEANSE_DATA_ID = 0x1E91D4;
+    //private const uint CLEANSE_DATA_ID = 0x1E91D4;
 
     private readonly List<Entity> attacks = [];
     private const int MaxHeavens = 3;
@@ -61,6 +61,7 @@ public class LiquidHeaven : Mechanic
             }
             heavensSpawned++;
         }
+        /*
         if (newObject.DataId == CLEANSE_DATA_ID)
         {
             var player = this.Dalamud.ClientState.LocalPlayer;
@@ -75,5 +76,6 @@ public class LiquidHeaven : Mechanic
                 }
             }
         }
+        */
     }
 }
