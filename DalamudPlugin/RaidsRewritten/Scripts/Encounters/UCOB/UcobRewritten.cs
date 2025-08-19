@@ -27,6 +27,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
     private string MoreExaflaresDifficultyKey => $"{Name}.MoreExaflaresDifficulty";
     private string JumpableShockwavesKey => $"{Name}.JumpableShockwaves";
     private string DreadknightKey => $"{Name}.Dreadknight";
+    private string CloudToCloudKey => $"{Name}.CloudToCloud";
 
     private readonly List<Mechanic> mechanics = [];
     private readonly string[] moreExaflaresDifficulties = [
@@ -98,6 +99,16 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
         if (configuration.GetEncounterSetting(DreadknightKey, true))
         {
             this.mechanics.Add(mechanicFactory.Create<DreadknightInUCoB>());
+        }
+
+        if (configuration.GetEncounterSetting(CloudToCloudKey, true))
+        {
+            var cloudToCloud = mechanicFactory.Create<CloudToCloud>();
+
+            var seed = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
+            cloudToCloud.RngSeed = RandomUtilities.HashToRngSeed(seed);
+
+            this.mechanics.Add(cloudToCloud);
         }
     }
 
@@ -177,6 +188,15 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
         {
             configuration.EncounterSettings[DreadknightKey] =
                 dreadknight ? bool.TrueString : bool.FalseString;
+            configuration.Save();
+            RefreshMechanics();
+        }
+
+        bool cloudToCloud = configuration.GetEncounterSetting(CloudToCloudKey, true);
+        if (ImGui.Checkbox("Cloud To Cloud", ref cloudToCloud))
+        {
+            configuration.EncounterSettings[CloudToCloudKey] =
+                cloudToCloud ? bool.TrueString : bool.FalseString;
             configuration.Save();
             RefreshMechanics();
         }

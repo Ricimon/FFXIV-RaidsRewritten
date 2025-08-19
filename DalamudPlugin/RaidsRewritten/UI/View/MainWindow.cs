@@ -547,6 +547,37 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             }
         }
 
+        if (ImGui.Button("ADS"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<ADS>(out var ads))
+                {
+                    var originalPosition = player.Position;
+                    ads.Set(new Position(player.Position))
+                        .Set(new Rotation(player.Rotation));
+                    DelayedAction.Create(ads.CsWorld(), () =>
+                    {
+                        var player = this.dalamud.ClientState.LocalPlayer;
+                        if (player != null)
+                        {
+                            ADS.CastLineAoe(ads, MathUtilities.GetAbsoluteAngleFromSourceToTarget(originalPosition, player.Position));
+                        }
+                    }, 3f);
+                    DelayedAction.Create(ads.CsWorld(), () =>
+                    {
+                        var player = this.dalamud.ClientState.LocalPlayer;
+                        if (player != null)
+                        {
+                            ADS.CastLineAoe(ads, MathUtilities.GetAbsoluteAngleFromSourceToTarget(originalPosition, player.Position));
+                        }
+                    }, 9f);
+                    DelayedAction.Create(ads.CsWorld(), ads.Destruct, 15f);
+                }
+            }
+        }
+
         ImGui.Text("Heat Stuff");
         if (ImGui.Button("Add Temperature"))
         {
