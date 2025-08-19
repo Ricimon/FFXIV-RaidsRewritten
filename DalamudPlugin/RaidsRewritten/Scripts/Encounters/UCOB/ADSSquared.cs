@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
-public class CloudToCloud : Mechanic
+public class ADSSquared : Mechanic
 {
     private struct MechanicInfoPair
     {

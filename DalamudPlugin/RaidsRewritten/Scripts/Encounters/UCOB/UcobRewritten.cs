@@ -27,7 +27,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
     private string MoreExaflaresDifficultyKey => $"{Name}.MoreExaflaresDifficulty";
     private string JumpableShockwavesKey => $"{Name}.JumpableShockwaves";
     private string DreadknightKey => $"{Name}.Dreadknight";
-    private string CloudToCloudKey => $"{Name}.CloudToCloud";
+    private string ADSSquared => $"{Name}.ADS^2";
 
     private readonly List<Mechanic> mechanics = [];
     private readonly string[] moreExaflaresDifficulties = [
@@ -101,7 +101,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             this.mechanics.Add(mechanicFactory.Create<DreadknightInUCoB>());
         }
 
-        if (configuration.GetEncounterSetting(CloudToCloudKey, true))
+        if (configuration.GetEncounterSetting(ADSSquared, true))
         {
             var cloudToCloud = mechanicFactory.Create<CloudToCloud>();
 
@@ -192,10 +192,10 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             RefreshMechanics();
         }
 
-        bool cloudToCloud = configuration.GetEncounterSetting(CloudToCloudKey, true);
-        if (ImGui.Checkbox("Cloud To Cloud", ref cloudToCloud))
+        bool cloudToCloud = configuration.GetEncounterSetting(ADSSquared, true);
+        if (ImGui.Checkbox("ADS²", ref cloudToCloud))
         {
-            configuration.EncounterSettings[CloudToCloudKey] =
+            configuration.EncounterSettings[ADSSquared] =
                 cloudToCloud ? bool.TrueString : bool.FalseString;
             configuration.Save();
             RefreshMechanics();
