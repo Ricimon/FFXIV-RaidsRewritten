@@ -48,7 +48,7 @@ public class LiquidHeaven : Mechanic
         if (newObject.DataId == NEUROLINK_DATA_ID)
         {
             if (heavensSpawned >= MaxHeavens) { return; }
-
+            Logger.Debug($"Heaven-{heavensSpawned}");
             var player = this.Dalamud.ClientState.LocalPlayer;
             if (player != null)
             {

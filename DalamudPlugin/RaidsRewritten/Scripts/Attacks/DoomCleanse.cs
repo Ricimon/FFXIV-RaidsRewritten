@@ -72,7 +72,7 @@ public sealed class DoomCleanse(DalamudServices dalamud, ILogger logger) : IAtta
                             }
 
                             /*
-                            if (csGameObject ->EventState == 0x07)
+                            if (csGameObject ->EventState == 0x07) //EventState is off by 4 bytes on the remapping
                             {
                                 logger.Info("taken");
                                 it.Entity(i).Destruct();
