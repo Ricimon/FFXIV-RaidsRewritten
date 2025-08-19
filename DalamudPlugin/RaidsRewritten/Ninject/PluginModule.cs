@@ -106,6 +106,7 @@ public class PluginModule : NinjectModule
         Bind<IAttack, ISystem>().To<Scripts.Attacks.LiquidHeaven>();
         Bind<IAttack, ISystem>().To<JumpableShockwave>();
         Bind<IAttack, ISystem>().To<Dreadknight>();
+        Bind<IAttack, ISystem>().To<DoomCleanse>();
         Bind<ISystem>().To<Player>();
         Bind<ISystem>().To<DelayedAction>();
         Bind<ISystem>().To<VfxSystem>();
