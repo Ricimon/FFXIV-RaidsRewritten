@@ -36,6 +36,7 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
     private const string EnrageVfx2 = "vfx/monster/m0150/eff/m150sp003c0m.avfx";
     private const string CastingVfx = "vfx/common/eff/mon_eisyo03t.avfx";
     private const string TetherVfx = "vfx/channeling/eff/chn_dark001f.avfx";
+    private const string BackupTetherVfx = "vfx/channeling/eff/chn_light01f.avfx";
     private const string InterruptVfx = "vfx/common/eff/ctstop_mgc0c.avfx";
 
     private const float HitboxRadius = 1.75f;
@@ -122,7 +123,7 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
                     var backupTarget = entity.Get<BackupTarget>();
                     if (backupTarget.Value != null && backupTarget.Value.IsValid() && !backupTarget.Value.IsDead)
                     {
-                        var tether = AddActorVfx(entity, TetherVfx);
+                        var tether = AddActorVfx(entity, BackupTetherVfx);
                         tether.Set(new ActorVfxTarget(backupTarget.Value));
                         component.BackupActive = true;
                     }
@@ -246,6 +247,17 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
         RemoveChildren(entity);
         Stand(entity, animationState);
         entity.Remove<Target>();
+    }
+
+    public static void ChangeTetherVfx(Entity entity, string VfxPath = TetherVfx)
+    {
+        if (entity.TryGet<Target>(out var target))
+        {
+            RemoveChildren(entity);
+
+            AddActorVfx(entity, VfxPath)
+                .Set(new ActorVfxTarget(target.Value));
+        }
     }
 
     public static void SetSpeed(Entity entity, float speed)

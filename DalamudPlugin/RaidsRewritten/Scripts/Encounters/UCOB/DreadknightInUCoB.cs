@@ -1,4 +1,5 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Plugin.Services;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using Flecs.NET.Core;
@@ -23,6 +24,7 @@ public class DreadknightInUCoB : Mechanic
     private const float TwintaniaId = 0x1FDF;
     private const byte AddsWeather = 31;
     private const float AddsDreadknightSpawnDelay = 10f;
+    private const string SwappableTetherVfx = "vfx/channeling/eff/chn_light01f.avfx";
 
     private readonly List<uint> actionIds = [
         7538,  // interject
@@ -40,6 +42,7 @@ public class DreadknightInUCoB : Mechanic
     private int neurolinksSpawned = 0;
     private int oviformsOnField = 0;
     private DateTime lastTargetSwap = DateTime.MinValue;
+    private bool tetherVfxChanged = true;
 
     public override void Reset()
     {
@@ -58,6 +61,7 @@ public class DreadknightInUCoB : Mechanic
         this.dreadknight = null;
         oviformsOnField = 0;
         lastTargetSwap = DateTime.MinValue;
+        tetherVfxChanged = true;
     }
 
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
@@ -132,6 +136,7 @@ public class DreadknightInUCoB : Mechanic
 
             Dreadknight.ApplyTarget(dreadknight.Value, set.Source);
             lastTargetSwap = DateTime.Now;
+            tetherVfxChanged = false;
         }
     }
 
@@ -140,6 +145,15 @@ public class DreadknightInUCoB : Mechanic
         if (vfxPath.Equals("vfx/channeling/eff/chn_kosoku1f.avfx"))
         {
             Reset();
+        }
+    }
+
+    public override void OnFrameworkUpdate(IFramework framework)
+    {
+        if (dreadknight.HasValue && !tetherVfxChanged && (DateTime.Now - lastTargetSwap).Seconds > 30)
+        {
+            Dreadknight.ChangeTetherVfx(dreadknight.Value, SwappableTetherVfx);
+            tetherVfxChanged = true;
         }
     }
 
