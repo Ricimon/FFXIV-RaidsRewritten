@@ -1,27 +1,13 @@
 ﻿using System;
-using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
-using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Plugin.Services;
-using ECommons;
-using ECommons.GameFunctions;
-using ECommons.Logging;
-using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Flecs.NET.Core;
 using RaidsRewritten.Extensions;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
-using RaidsRewritten.Memory;
 using RaidsRewritten.Scripts.Attacks.Components;
-using RaidsRewritten.Scripts.Conditions;
-using RaidsRewritten.Spawn;
-using RaidsRewritten.Utility;
-using static Flecs.NET.Core.Ecs.Units.Datas;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
