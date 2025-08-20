@@ -225,7 +225,7 @@ public class ADSSquared : Mechanic
         {
             if (!ADS.CastLineAoe(source, MathUtilities.GetAbsoluteAngleFromSourceToTarget(sourcePos.Value, targetPos.Value)))
             {
-                Dalamud.Log.Debug("ADS tried to cast before it was ready");
+                this.Logger.Debug("ADS tried to cast before it was ready");
             } else
             {
                 numADSShot++;

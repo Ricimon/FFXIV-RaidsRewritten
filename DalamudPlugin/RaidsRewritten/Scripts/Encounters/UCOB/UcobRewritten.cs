@@ -27,7 +27,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
     private string MoreExaflaresDifficultyKey => $"{Name}.MoreExaflaresDifficulty";
     private string JumpableShockwavesKey => $"{Name}.JumpableShockwaves";
     private string DreadknightKey => $"{Name}.Dreadknight";
-    private string ADSSquared => $"{Name}.ADS^2";
+    private string ADSSquaredKey => $"{Name}.ADS^2";
 
     private readonly List<Mechanic> mechanics = [];
     private readonly string[] moreExaflaresDifficulties = [
@@ -101,14 +101,14 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             this.mechanics.Add(mechanicFactory.Create<DreadknightInUCoB>());
         }
 
-        if (configuration.GetEncounterSetting(ADSSquared, true))
+        if (configuration.GetEncounterSetting(ADSSquaredKey, true))
         {
-            var cloudToCloud = mechanicFactory.Create<CloudToCloud>();
+            var adsSquared = mechanicFactory.Create<ADSSquared>();
 
             var seed = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
-            cloudToCloud.RngSeed = RandomUtilities.HashToRngSeed(seed);
+            adsSquared.RngSeed = RandomUtilities.HashToRngSeed(seed);
 
-            this.mechanics.Add(cloudToCloud);
+            this.mechanics.Add(adsSquared);
         }
     }
 
@@ -192,11 +192,11 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             RefreshMechanics();
         }
 
-        bool cloudToCloud = configuration.GetEncounterSetting(ADSSquared, true);
-        if (ImGui.Checkbox("ADS²", ref cloudToCloud))
+        bool adsSquared = configuration.GetEncounterSetting(this.ADSSquaredKey, true);
+        if (ImGui.Checkbox("ADS²", ref adsSquared))
         {
-            configuration.EncounterSettings[ADSSquared] =
-                cloudToCloud ? bool.TrueString : bool.FalseString;
+            configuration.EncounterSettings[this.ADSSquaredKey] =
+                adsSquared ? bool.TrueString : bool.FalseString;
             configuration.Save();
             RefreshMechanics();
         }
