@@ -197,8 +197,8 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
                         if (dalamud.ClientState.LocalPlayer == target.Value)
                         {
                             StunPlayer(world, StunDuration);
+                            component.NextRefresh = component.ElapsedTime + 3f;
                         }
-                        component.NextRefresh = component.ElapsedTime + 3f;
                     } else
                     {
                         // follow
