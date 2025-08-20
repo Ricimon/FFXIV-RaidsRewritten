@@ -30,6 +30,7 @@ public class DreadknightInUCoB : Mechanic
     private readonly List<uint> actionIds = [
         7538,  // interject
         7551,  // head graze
+        7553,  // foot graze
         7554,  // leg graze
         7540,  // low blow
         7863,  // leg sweep
