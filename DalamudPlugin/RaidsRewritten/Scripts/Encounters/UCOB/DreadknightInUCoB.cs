@@ -26,10 +26,11 @@ public class DreadknightInUCoB : Mechanic
     private const float AddsDreadknightSpawnDelay = 10f;
     private const string SwappableTetherVfx = "vfx/channeling/eff/chn_light01f.avfx";
     private const int SecondsUntilSwappable = 30;
-
+    private const string StartMessage = "Twintania channels energy to the Dreadknight...";
     private readonly List<uint> actionIds = [
         7538,  // interject
         7551,  // head graze
+        7553,  // foot graze
         7554,  // leg graze
         7540,  // low blow
         7863,  // leg sweep
@@ -162,7 +163,8 @@ public class DreadknightInUCoB : Mechanic
     {
         if (this.AttackManager.TryCreateAttackEntity<Dreadknight>(out var dreadknight))
         {
-            Dalamud.ToastGui.ShowNormal("Twintania channels energy to the Dreadknight...");
+            Dalamud.ToastGui.ShowNormal(StartMessage);
+            Dalamud.ChatGui.Print(StartMessage);
             dreadknight.Set(new Position(ArenaCenter));
             this.dreadknight = dreadknight;
 

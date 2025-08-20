@@ -49,7 +49,7 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
     private const float EnrageVfxDelay = 0.5f;
     private const float InitialDelay = 2f;
     private const float CastingAnimationDelay = 1.5f;
-
+    private const string EnrageMessage = "Given uninterrupted power, the Dreadknight flies into a rage!";
     private Query<Player.Component> playerQuery;
 
     public Entity Create(World world)
@@ -153,7 +153,8 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
                     RemoveChildren(entity);
                     if (!component.EnrageLoop)
                     {
-                        ShowTextGimmick("Given uninterrupted power, the Dreadknight flies into a rage!", EnrageNotificationDuration);
+                        ShowTextGimmick(EnrageMessage, EnrageNotificationDuration);
+                        dalamud.ChatGui.Print(EnrageMessage);
                     }
                     if (animationState.Value != CastingAnimation) { entity.Set(new AnimationState(CastingAnimation, true)); }
                     DelayedAction.Create(world, () => AddActorVfx(entity, EnrageVfx1), EnrageVfxDelay);
