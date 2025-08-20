@@ -45,23 +45,6 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
     {
         this.mechanics.Clear();
 
-        if (configuration.GetEncounterSetting(PermanentTwistersKey, true))
-        {
-            this.mechanics.Add(mechanicFactory.Create<PermanentTwister>());
-        }
-
-        if (configuration.GetEncounterSetting(RollingBallKey, false))
-        {
-            var rollingBall = mechanicFactory.Create<RollingBallOnNeurolink>();
-
-            rollingBall.MaxBalls = configuration.GetEncounterSetting(RollingBallMaxBallsKey, 1);
-
-            var seed = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
-            rollingBall.RngSeed = RandomUtilities.HashToRngSeed(seed);
-
-            this.mechanics.Add(rollingBall);
-        }
-
         if (configuration.GetEncounterSetting(TankbusterAftershockKey, true))
         {
             this.mechanics.Add(mechanicFactory.Create<TankbusterAftershock>());
@@ -110,6 +93,23 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
 
             this.mechanics.Add(adsSquared);
         }
+
+        if (configuration.GetEncounterSetting(PermanentTwistersKey, true))
+        {
+            this.mechanics.Add(mechanicFactory.Create<PermanentTwister>());
+        }
+
+        if (configuration.GetEncounterSetting(RollingBallKey, false))
+        {
+            var rollingBall = mechanicFactory.Create<RollingBallOnNeurolink>();
+
+            rollingBall.MaxBalls = configuration.GetEncounterSetting(RollingBallMaxBallsKey, 1);
+
+            var seed = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
+            rollingBall.RngSeed = RandomUtilities.HashToRngSeed(seed);
+
+            this.mechanics.Add(rollingBall);
+        }
     }
 
     public void Unload()
@@ -137,15 +137,6 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
         if (ImGui.InputText("RNG Seed", ref rngSeed, 100))
         {
             configuration.EncounterSettings[RngSeedKey] = rngSeed;
-            configuration.Save();
-            RefreshMechanics();
-        }
-
-        bool permanentTwisters = configuration.GetEncounterSetting(PermanentTwistersKey, true);
-        if (ImGui.Checkbox("Permanent Twisters", ref permanentTwisters))
-        {
-            configuration.EncounterSettings[PermanentTwistersKey] =
-                permanentTwisters ? bool.TrueString : bool.FalseString;
             configuration.Save();
             RefreshMechanics();
         }
@@ -179,8 +170,6 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             RefreshMechanics();
         }
 
-        DrawRollingBallConfig();
-
         DrawTemperatureControlConfig();
 
         bool dreadknight = configuration.GetEncounterSetting(DreadknightKey, true);
@@ -200,6 +189,17 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             configuration.Save();
             RefreshMechanics();
         }
+
+        bool permanentTwisters = configuration.GetEncounterSetting(PermanentTwistersKey, true);
+        if (ImGui.Checkbox("Permanent Twisters", ref permanentTwisters))
+        {
+            configuration.EncounterSettings[PermanentTwistersKey] =
+                permanentTwisters ? bool.TrueString : bool.FalseString;
+            configuration.Save();
+            RefreshMechanics();
+        }
+
+        DrawRollingBallConfig();
     }
 
     private void DrawRollingBallConfig()
