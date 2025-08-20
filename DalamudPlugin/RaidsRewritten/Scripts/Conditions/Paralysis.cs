@@ -9,7 +9,7 @@ namespace RaidsRewritten.Scripts.Conditions;
 public class Paralysis(Random random, ILogger logger) : ISystem
 {
     public record struct Component(float StunInterval, float StunDuration,
-        float ElapsedTime = 0, float TimeOffset = 0, bool StunActive = false);
+        float ElapsedTime = 0, float TimeOffset = 0, bool StunActive = false, int LastTimeIntervalEvaluation = -1);
 
     public static Entity ApplyToPlayer(Entity playerEntity, float duration, float stunInterval, float stunDuration, int id = 0)
     {
@@ -35,15 +35,29 @@ public class Paralysis(Random random, ILogger logger) : ISystem
 
                 component.ElapsedTime += it.DeltaTime();
 
-                var modT = (component.ElapsedTime + component.TimeOffset) % (component.StunInterval + component.StunDuration);
-                var stunActive = modT > component.StunInterval;
-                if (stunActive && !component.StunActive)
+                var elapsedTime = component.ElapsedTime + component.TimeOffset;
+                var interval = component.StunInterval + component.StunDuration;
+                var divT = (int)(elapsedTime / interval);
+                var modT = elapsedTime % interval;
+
+                if (modT <= component.StunInterval)
                 {
-                    world.Entity()
-                        .Set(new ActorVfx("vfx/common/eff/dk05ht_sta0h.avfx"))
-                        .ChildOf(it.Entity(i));
+                    component.StunActive = false;
+                    return;
                 }
-                component.StunActive = stunActive;
+
+                if (divT != component.LastTimeIntervalEvaluation)
+                {
+                    component.LastTimeIntervalEvaluation = divT;
+                    var stun = random.Next(10) > 1; // 80%
+                    if (stun)
+                    {
+                        world.Entity()
+                            .Set(new ActorVfx("vfx/common/eff/dk05ht_sta0h.avfx"))
+                            .ChildOf(it.Entity(i));
+                        component.StunActive = true;
+                    }
+                }
             });
     }
 }
