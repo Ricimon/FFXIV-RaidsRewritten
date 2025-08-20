@@ -27,6 +27,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
     private string MoreExaflaresDifficultyKey => $"{Name}.MoreExaflaresDifficulty";
     private string JumpableShockwavesKey => $"{Name}.JumpableShockwaves";
     private string DreadknightKey => $"{Name}.Dreadknight";
+    private string ADSSquaredKey => $"{Name}.ADS^2";
 
     private readonly List<Mechanic> mechanics = [];
     private readonly string[] moreExaflaresDifficulties = [
@@ -98,6 +99,16 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
         if (configuration.GetEncounterSetting(DreadknightKey, true))
         {
             this.mechanics.Add(mechanicFactory.Create<DreadknightInUCoB>());
+        }
+
+        if (configuration.GetEncounterSetting(ADSSquaredKey, true))
+        {
+            var adsSquared = mechanicFactory.Create<ADSSquared>();
+
+            var seed = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
+            adsSquared.RngSeed = RandomUtilities.HashToRngSeed(seed);
+
+            this.mechanics.Add(adsSquared);
         }
     }
 
@@ -177,6 +188,15 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
         {
             configuration.EncounterSettings[DreadknightKey] =
                 dreadknight ? bool.TrueString : bool.FalseString;
+            configuration.Save();
+            RefreshMechanics();
+        }
+
+        bool adsSquared = configuration.GetEncounterSetting(this.ADSSquaredKey, true);
+        if (ImGui.Checkbox("ADS²", ref adsSquared))
+        {
+            configuration.EncounterSettings[this.ADSSquaredKey] =
+                adsSquared ? bool.TrueString : bool.FalseString;
             configuration.Save();
             RefreshMechanics();
         }
