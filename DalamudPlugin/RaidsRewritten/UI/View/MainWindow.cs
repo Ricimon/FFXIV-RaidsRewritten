@@ -578,6 +578,90 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             }
         }
 
+        if (ImGui.Button("Close Tether to Target"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                var target = player.TargetObject;
+                if (target != null)
+                {
+                    if (this.attackManager.TryCreateAttackEntity<DistanceTether>(out var tether))
+                    {
+                        DistanceTether.SetTetherVfx(
+                            tether,
+                            DistanceTether.TetherVfxes[DistanceTether.TetherVfx.DelayedClose]
+                            )
+                            .Set(new ActorVfxSource(player))
+                            .Set(new ActorVfxTarget(target))
+                            .Set(new DistanceTether.VfxOnCondition("vfx/monster/m0005/eff/m0005sp_15t0t.avfx"))
+                            .Set(new DistanceTether.Tether(
+                                    (distance) => distance > 10,
+                                    (e) => { Stun.ApplyToPlayer(e, 15); },
+                                    () => { DistanceTether.RemoveTetherVfx(tether); }
+                                ));
+
+                        DelayedAction.Create(tether.CsWorld(), () =>
+                        {
+                            DistanceTether.SetTetherVfx(
+                                tether,
+                                DistanceTether.TetherVfxes[DistanceTether.TetherVfx.ActivatedClose]
+                                )
+                                .Add<DistanceTether.Activated>();
+                        }, 1f);
+
+                        DelayedAction.Create(tether.CsWorld(), () =>
+                        {
+                            tether.Destruct();
+                        }, 10f);
+                    }
+                }
+            }
+        }
+
+        ImGui.SameLine();
+
+        if (ImGui.Button("Far Tether to Target"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                var target = player.TargetObject;
+                if (target != null)
+                {
+                    if (this.attackManager.TryCreateAttackEntity<DistanceTether>(out var tether))
+                    {
+                        DistanceTether.SetTetherVfx(
+                            tether,
+                            DistanceTether.TetherVfxes[DistanceTether.TetherVfx.DelayedFar]
+                            )
+                            .Set(new ActorVfxSource(player))
+                            .Set(new ActorVfxTarget(target))
+                            .Set(new DistanceTether.VfxOnCondition("vfx/monster/m0005/eff/m0005sp_15t0t.avfx"))
+                            .Set(new DistanceTether.Tether(
+                                    (distance) => distance < 10,
+                                    (e) => { Stun.ApplyToPlayer(e, 15); },
+                                    () => { DistanceTether.RemoveTetherVfx(tether); }
+                                ));
+
+                        DelayedAction.Create(tether.CsWorld(), () =>
+                        {
+                            DistanceTether.SetTetherVfx(
+                                tether,
+                                DistanceTether.TetherVfxes[DistanceTether.TetherVfx.ActivatedFar]
+                                )
+                                .Add<DistanceTether.Activated>();
+                        }, 1f);
+
+                        DelayedAction.Create(tether.CsWorld(), () =>
+                        {
+                            tether.Destruct();
+                        }, 10f);
+                    }
+                }
+            }
+        }
+
         ImGui.Text("Heat Stuff");
         if (ImGui.Button("Add Temperature"))
         {

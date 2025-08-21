@@ -107,6 +107,7 @@ public class PluginModule : NinjectModule
         Bind<IAttack, ISystem>().To<JumpableShockwave>();
         Bind<IAttack, ISystem>().To<Dreadknight>();
         Bind<IAttack, ISystem>().To<ADS>();
+        Bind<IAttack, ISystem>().To<DistanceTether>();
         Bind<ISystem>().To<Player>();
         Bind<ISystem>().To<DelayedAction>();
         Bind<ISystem>().To<VfxSystem>();
