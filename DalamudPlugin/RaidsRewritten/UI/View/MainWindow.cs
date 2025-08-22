@@ -594,10 +594,10 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                             )
                             .Set(new ActorVfxSource(player))
                             .Set(new ActorVfxTarget(target))
-                            .Set(new DistanceTether.VfxOnCondition("vfx/monster/m0005/eff/m0005sp_15t0t.avfx"))
+                            .Set(new DistanceTether.VfxOnCondition(["vfx/monster/m0005/eff/m0005sp_15t0t.avfx"]))
                             .Set(new DistanceTether.Tether(
                                     (distance) => distance > 10,
-                                    (e) => { Stun.ApplyToPlayer(e, 15); },
+                                    (e) => { Stun.ApplyToPlayer(e, 5); },
                                     () => { DistanceTether.RemoveTetherVfx(tether); }
                                 ));
 
@@ -613,7 +613,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                         DelayedAction.Create(tether.CsWorld(), () =>
                         {
                             tether.Destruct();
-                        }, 10f);
+                        }, 5f);
                     }
                 }
             }
@@ -637,10 +637,10 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                             )
                             .Set(new ActorVfxSource(player))
                             .Set(new ActorVfxTarget(target))
-                            .Set(new DistanceTether.VfxOnCondition("vfx/monster/m0005/eff/m0005sp_15t0t.avfx"))
+                            .Set(new DistanceTether.VfxOnCondition(["vfx/monster/m0005/eff/m0005sp_15t0t.avfx"]))
                             .Set(new DistanceTether.Tether(
                                     (distance) => distance < 10,
-                                    (e) => { Stun.ApplyToPlayer(e, 15); },
+                                    (e) => { Stun.ApplyToPlayer(e, 5); },
                                     () => { DistanceTether.RemoveTetherVfx(tether); }
                                 ));
 
@@ -656,7 +656,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                         DelayedAction.Create(tether.CsWorld(), () =>
                         {
                             tether.Destruct();
-                        }, 10f);
+                        }, 5f);
                     }
                 }
             }
