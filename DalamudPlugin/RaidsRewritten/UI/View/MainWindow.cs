@@ -588,32 +588,17 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                 {
                     if (this.attackManager.TryCreateAttackEntity<DistanceTether>(out var tether))
                     {
-                        DistanceTether.SetTetherVfx(
-                            tether,
-                            DistanceTether.TetherVfxes[DistanceTether.TetherVfx.DelayedClose]
-                            )
+                        tether.Set(new ActorVfx(TetherOmen.TetherVfxes[TetherOmen.TetherVfx.ActivatedClose]))
                             .Set(new ActorVfxSource(player))
                             .Set(new ActorVfxTarget(target))
-                            .Set(new DistanceTether.VfxOnCondition(["vfx/monster/m0005/eff/m0005sp_15t0t.avfx"]))
-                            .Set(new DistanceTether.Tether(
-                                    (distance) => distance > 10,
-                                    (e) => { Stun.ApplyToPlayer(e, 5); },
-                                    () => { DistanceTether.RemoveTetherVfx(tether); }
-                                ));
+                            .Set(new DistanceTether.VfxOnFail(["vfx/monster/m0005/eff/m0005sp_15t0t.avfx"]))
+                            .Set(new DistanceTether.Tether((e) => { Stun.ApplyToPlayer(e, 5); }))
+                            .Set(new DistanceTether.FailWhenFurtherThan(10));
 
                         DelayedAction.Create(tether.CsWorld(), () =>
                         {
-                            DistanceTether.SetTetherVfx(
-                                tether,
-                                DistanceTether.TetherVfxes[DistanceTether.TetherVfx.ActivatedClose]
-                                )
-                                .Add<DistanceTether.Activated>();
-                        }, 1f);
-
-                        DelayedAction.Create(tether.CsWorld(), () =>
-                        {
-                            tether.Destruct();
-                        }, 5f);
+                                tether.Add<DistanceTether.Activated>();
+                        }, 3f);
                     }
                 }
             }
@@ -631,32 +616,17 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                 {
                     if (this.attackManager.TryCreateAttackEntity<DistanceTether>(out var tether))
                     {
-                        DistanceTether.SetTetherVfx(
-                            tether,
-                            DistanceTether.TetherVfxes[DistanceTether.TetherVfx.DelayedFar]
-                            )
+                        tether.Set(new ActorVfx(TetherOmen.TetherVfxes[TetherOmen.TetherVfx.ActivatedFar]))
                             .Set(new ActorVfxSource(player))
                             .Set(new ActorVfxTarget(target))
-                            .Set(new DistanceTether.VfxOnCondition(["vfx/monster/m0005/eff/m0005sp_15t0t.avfx"]))
-                            .Set(new DistanceTether.Tether(
-                                    (distance) => distance < 10,
-                                    (e) => { Stun.ApplyToPlayer(e, 5); },
-                                    () => { DistanceTether.RemoveTetherVfx(tether); }
-                                ));
+                            .Set(new DistanceTether.VfxOnFail(["vfx/monster/m0005/eff/m0005sp_15t0t.avfx"]))
+                            .Set(new DistanceTether.Tether((e) => { Stun.ApplyToPlayer(e, 5); }))
+                            .Set(new DistanceTether.FailWhenCloserThan(10));
 
                         DelayedAction.Create(tether.CsWorld(), () =>
                         {
-                            DistanceTether.SetTetherVfx(
-                                tether,
-                                DistanceTether.TetherVfxes[DistanceTether.TetherVfx.ActivatedFar]
-                                )
-                                .Add<DistanceTether.Activated>();
-                        }, 1f);
-
-                        DelayedAction.Create(tether.CsWorld(), () =>
-                        {
-                            tether.Destruct();
-                        }, 5f);
+                            tether.Add<DistanceTether.Activated>();
+                        }, 3f);
                     }
                 }
             }

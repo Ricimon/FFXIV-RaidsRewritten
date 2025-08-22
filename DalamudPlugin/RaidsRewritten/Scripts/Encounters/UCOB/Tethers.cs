@@ -6,6 +6,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using Flecs.NET.Core;
 using RaidsRewritten.Scripts.Attacks;
 using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Scripts.Attacks.Omens;
 using RaidsRewritten.Scripts.Conditions;
 using System;
 using System.Collections.Generic;
@@ -20,8 +21,12 @@ public class Tethers : Mechanic
     private const int TwistingDive = 9906;
     private const int Heavensfall = 9911;
     private const int HeavensfallTrio = 9957;
+
     private readonly List<string> PunishmentVfx = ["vfx/lockon/eff/m0489trg_b0c.avfx", "vfx/monster/m0005/eff/m0005sp_15t0t.avfx"];
     private readonly List<string> CorrectVfx = ["vfx/lockon/eff/m0489trg_a0c.avfx"];
+
+    private const float CloseTetherBreakpoint = 10f;
+    private const float FarTetherBreakpoint = 30f;
 
     public int RngSeed { get; set; }
 
@@ -85,7 +90,6 @@ public class Tethers : Mechanic
                 if (this.AttackManager.TryCreateAttackEntity<DistanceTether>(out var tether))
                 {
                     var onCondition1 = (Entity _) => { };
-                    var onCondition2 = () => { DistanceTether.RemoveTetherVfx(tether); };
 
                     if (src == this.Dalamud.ClientState.LocalPlayer || target == this.Dalamud.ClientState.LocalPlayer)
                     {
@@ -96,18 +100,20 @@ public class Tethers : Mechanic
 
                     if (i < 4)
                     {
-                        DistanceTether.SetTetherVfx(tether, DistanceTether.TetherVfxes[DistanceTether.TetherVfx.ActivatedClose])
-                            .Set(new DistanceTether.Tether(CloseTetherFailCondition, onCondition1, onCondition2, true));
+                        tether.Set(new ActorVfx(TetherOmen.TetherVfxes[TetherOmen.TetherVfx.ActivatedClose]))
+                            .Set(new DistanceTether.Tether(onCondition1))
+                            .Set(new DistanceTether.FailWhenFurtherThan(CloseTetherBreakpoint));
                     } else
                     {
-                        DistanceTether.SetTetherVfx(tether, DistanceTether.TetherVfxes[DistanceTether.TetherVfx.ActivatedFar])
-                            .Set(new DistanceTether.Tether(FarTetherFailCondition, onCondition1, onCondition2, true));
+                        tether.Set(new ActorVfx(TetherOmen.TetherVfxes[TetherOmen.TetherVfx.ActivatedFar]))
+                            .Set(new DistanceTether.Tether(onCondition1))
+                            .Set(new DistanceTether.FailWhenFurtherThan(FarTetherBreakpoint));
                     }
 
                     tether.Set(new ActorVfxSource(src))
                         .Set(new ActorVfxTarget(target))
-                        .Set(new DistanceTether.VfxOnCondition(PunishmentVfx))
-                        .Set(new DistanceTether.VfxOnResolve(CorrectVfx));
+                        .Set(new DistanceTether.VfxOnFail(PunishmentVfx))
+                        .Set(new DistanceTether.VfxOnSuccess(CorrectVfx));
 
                     attacks.Add(tether);
                     tethers.Add(tether);
@@ -137,7 +143,4 @@ public class Tethers : Mechanic
                 break;
         }
     }
-
-    private bool FarTetherFailCondition(float distance) => distance < 30;
-    private bool CloseTetherFailCondition(float distance) => distance > 10;
 }

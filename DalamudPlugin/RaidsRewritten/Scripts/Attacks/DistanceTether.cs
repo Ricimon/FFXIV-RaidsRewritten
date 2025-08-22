@@ -9,19 +9,11 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
-using static RaidsRewritten.Scripts.Attacks.DistanceTether;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
 public class DistanceTether : IAttack, ISystem, IDisposable
 {
-    public enum TetherVfx
-    {
-        ActivatedClose,
-        ActivatedFar,
-        DelayedClose,
-        DelayedFar,
-    }
 
     public enum TetherConditionVfxTarget
     {
@@ -30,25 +22,12 @@ public class DistanceTether : IAttack, ISystem, IDisposable
         OnlyTarget
     }
 
-    public static readonly Dictionary<TetherVfx, string> TetherVfxes = new()
-    {
-        {TetherVfx.ActivatedClose, "vfx/channeling/eff/chn_alpha0h.avfx"},
-        {TetherVfx.ActivatedFar, "vfx/channeling/eff/chn_beta0h.avfx"},
-        {TetherVfx.DelayedClose, "vfx/channeling/eff/chn_m0771_alpha0c.avfx"},
-        {TetherVfx.DelayedFar, "vfx/channeling/eff/chn_m0771_beta0c.avfx"},
-    };
-
-    // Condition: bool func(float distance)
-    // RunOnce: only checks condition a single time
-    // ProcConditionOnce: check condition until condition is fulfilled once
-    public record struct Tether(Func<float, bool> Condition, Action<Entity> StatusOnCondition, Action OnCondition, bool RunOnce = false, bool ProcConditionOnce = true);
-    // vfx when condition is fulfilled
-    public record struct VfxOnCondition(List<string> Vfx, TetherConditionVfxTarget VfxTarget = TetherConditionVfxTarget.Both);
-    // vfx when condition isn't fulfilled and DestructTetherVfxAfterActive is true
-    // for tethers that resolve once instead of continuously e.g house arrest/restraining order vs mid/far glitch
-    public record struct VfxOnResolve(List<string> Vfx, TetherConditionVfxTarget VfxTarget = TetherConditionVfxTarget.Both);
+    public record struct Tether(Action<Entity> StatusOnCondition);
+    public record struct VfxOnFail(List<string> Vfx, TetherConditionVfxTarget VfxTarget = TetherConditionVfxTarget.Both);
+    public record struct VfxOnSuccess(List<string> Vfx, TetherConditionVfxTarget VfxTarget = TetherConditionVfxTarget.Both);
+    public record struct FailWhenFurtherThan(float distance);
+    public record struct FailWhenCloserThan(float distance);
     public struct Activated;
-    public struct Broken;
 
     private Query<Player.Component> playerQuery;
 
@@ -71,7 +50,6 @@ public class DistanceTether : IAttack, ISystem, IDisposable
             .Each((Iter it, int i, ref Tether tether, ref ActorVfxSource sourceComponent, ref ActorVfxTarget targetComponent) =>
             {
                 var entity = it.Entity(i);
-                if (tether.ProcConditionOnce && entity.Has<Broken>()) { return; }
 
                 var source = sourceComponent.Source;
                 var target = targetComponent.Target;
@@ -81,7 +59,21 @@ public class DistanceTether : IAttack, ISystem, IDisposable
                     var sourcePos = new Vector2(source!.Position.X, source.Position.Z);
                     var targetPos = new Vector2(target!.Position.X, target.Position.Z);
 
-                    if (tether.Condition(Vector2.Distance(sourcePos, targetPos)))
+                    var distance = Vector2.Distance(sourcePos, targetPos);
+
+                    bool failed = false;
+
+                    if (entity.TryGet<FailWhenFurtherThan>(out var far))
+                    {
+                        failed |= distance > far.distance;
+                    }
+
+                    if (entity.TryGet<FailWhenCloserThan>(out var close))
+                    {
+                        failed |= distance < close.distance;
+                    }
+
+                    if (failed)
                     {
                         // anonymous functions hates refs from outside
                         var onCondition = tether.StatusOnCondition;
@@ -90,43 +82,23 @@ public class DistanceTether : IAttack, ISystem, IDisposable
                             onCondition(e);
                         });
 
-                        tether.OnCondition();
-
-                        if (tether.RunOnce && entity.TryGet<VfxOnCondition>(out var vfxOnCondition))
+                        if (entity.TryGet<VfxOnFail>(out var vfxOnFail))
                         {
-                            RunConditionResolveVfx(entity, source, target, vfxOnCondition.Vfx, vfxOnCondition.VfxTarget);
+                            RunConditionResolveVfx(entity, source, target, vfxOnFail.Vfx, vfxOnFail.VfxTarget);
                         }
-
-                        entity.Add<Broken>();
                     } else
                     {
-                        if (tether.RunOnce && entity.TryGet<VfxOnResolve>(out var vfxOnResolve))
+                        if (entity.TryGet<VfxOnSuccess>(out var vfxOnSuccess))
                         {
-                            RunConditionResolveVfx(entity, source, target, vfxOnResolve.Vfx, vfxOnResolve.VfxTarget);
+                            RunConditionResolveVfx(entity, source, target, vfxOnSuccess.Vfx, vfxOnSuccess.VfxTarget);
                         }
                     }
-
-                    if (tether.RunOnce)
-                    {
-                        entity.Remove<Activated>().Remove<ActorVfx>();
-                    }
                 }
+
+                entity.Destruct();
             });
     }
 
-    public static Entity SetTetherVfx(Entity entity, string tetherVfx)
-    {
-        RemoveTetherVfx(entity);
-        // this can't be done on the same frame for w/e reason
-        DelayedAction.Create(
-            entity.CsWorld(),
-            () => { entity.Set(new ActorVfx(tetherVfx)); },
-            0);
-        return entity;
-    }
-
-    public static bool IsBroken(Entity entity) => entity.Has<Broken>();
-    public static Entity RemoveTetherVfx(Entity entity) => entity.Remove<ActorVfx>();
     private static bool ValidActor(IGameObject? gameObject) => gameObject != null && gameObject.IsValid();
 
     private static void RunConditionResolveVfx(Entity entity, IGameObject source, IGameObject target, List<string> vfxList, TetherConditionVfxTarget vfxTarget)
@@ -136,7 +108,7 @@ public class DistanceTether : IAttack, ISystem, IDisposable
             foreach (var vfx in vfxList)
             {
                 entity.CsWorld().Entity().Set(new ActorVfxSource(source))
-                    .Set(new ActorVfx(vfx)).ChildOf(entity);
+                    .Set(new ActorVfx(vfx));
             }
         }
         if (vfxTarget == TetherConditionVfxTarget.Both || vfxTarget == TetherConditionVfxTarget.OnlyTarget)
@@ -144,7 +116,7 @@ public class DistanceTether : IAttack, ISystem, IDisposable
             foreach (var vfx in vfxList)
             {
                 entity.CsWorld().Entity().Set(new ActorVfxSource(target))
-                .Set(new ActorVfx(vfx)).ChildOf(entity);
+                .Set(new ActorVfx(vfx));
             }
         }
     }
