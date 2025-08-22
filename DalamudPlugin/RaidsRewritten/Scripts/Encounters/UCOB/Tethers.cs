@@ -126,10 +126,11 @@ public class Tethers : Mechanic
                     () => {
                         foreach (var tether in tethers)
                         {
-                            tether.Add<DistanceTether.Activated>();
+                            if (tether.IsValid()) {
+                                tether.Add<DistanceTether.Activated>();
+                            }
                         }
-                    }, 0.5f)
-                );
+                    }, 0.5f));
                 break;
             case Heavensfall:
                 Reset();
