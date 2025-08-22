@@ -28,6 +28,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
     private string JumpableShockwavesKey => $"{Name}.JumpableShockwaves";
     private string DreadknightKey => $"{Name}.Dreadknight";
     private string ADSSquaredKey => $"{Name}.ADS^2";
+    private string TethersKey => $"{Name}.Tethers";
 
     private readonly List<Mechanic> mechanics = [];
     private readonly string[] moreExaflaresDifficulties = [
@@ -92,6 +93,16 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             adsSquared.RngSeed = RandomUtilities.HashToRngSeed(seed);
 
             this.mechanics.Add(adsSquared);
+        }
+
+        if (configuration.GetEncounterSetting(TethersKey, true))
+        {
+            var tethers = mechanicFactory.Create<Tethers>();
+
+            var seed = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
+            tethers.RngSeed = RandomUtilities.HashToRngSeed(seed);
+
+            this.mechanics.Add(tethers);
         }
 
         if (configuration.GetEncounterSetting(PermanentTwistersKey, true))
@@ -186,6 +197,15 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
         {
             configuration.EncounterSettings[this.ADSSquaredKey] =
                 adsSquared ? bool.TrueString : bool.FalseString;
+            configuration.Save();
+            RefreshMechanics();
+        }
+
+        bool tethers = configuration.GetEncounterSetting(this.TethersKey, true);
+        if (ImGui.Checkbox("Tethers", ref tethers))
+        {
+            configuration.EncounterSettings[this.TethersKey] =
+                tethers ? bool.TrueString : bool.FalseString;
             configuration.Save();
             RefreshMechanics();
         }

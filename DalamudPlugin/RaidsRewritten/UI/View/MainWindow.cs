@@ -578,6 +578,60 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             }
         }
 
+        if (ImGui.Button("Close Tether to Target"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                var target = player.TargetObject;
+                if (target != null)
+                {
+                    if (this.attackManager.TryCreateAttackEntity<DistanceSnapshotTether>(out var tether))
+                    {
+                        DistanceSnapshotTether.SetTetherVfx(tether, TetherOmen.TetherVfx.ActivatedClose)
+                            .Set(new ActorVfxSource(player))
+                            .Set(new ActorVfxTarget(target))
+                            .Set(new DistanceSnapshotTether.VfxOnFail(["vfx/monster/m0005/eff/m0005sp_15t0t.avfx"]))
+                            .Set(new DistanceSnapshotTether.Tether((e) => { Stun.ApplyToPlayer(e, 5); }))
+                            .Set(new DistanceSnapshotTether.FailWhenFurtherThan(10));
+
+                        DelayedAction.Create(tether.CsWorld(), () =>
+                        {
+                                tether.Add<DistanceSnapshotTether.Activated>();
+                        }, 3f);
+                    }
+                }
+            }
+        }
+
+        ImGui.SameLine();
+
+        if (ImGui.Button("Far Tether to Target"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                var target = player.TargetObject;
+                if (target != null)
+                {
+                    if (this.attackManager.TryCreateAttackEntity<DistanceSnapshotTether>(out var tether))
+                    {
+                        DistanceSnapshotTether.SetTetherVfx(tether, TetherOmen.TetherVfx.ActivatedFar)
+                            .Set(new ActorVfxSource(player))
+                            .Set(new ActorVfxTarget(target))
+                            .Set(new DistanceSnapshotTether.VfxOnFail(["vfx/monster/m0005/eff/m0005sp_15t0t.avfx"]))
+                            .Set(new DistanceSnapshotTether.Tether((e) => { Stun.ApplyToPlayer(e, 5); }))
+                            .Set(new DistanceSnapshotTether.FailWhenCloserThan(10));
+
+                        DelayedAction.Create(tether.CsWorld(), () =>
+                        {
+                            tether.Add<DistanceSnapshotTether.Activated>();
+                        }, 3f);
+                    }
+                }
+            }
+        }
+
         ImGui.Text("Heat Stuff");
         if (ImGui.Button("Add Temperature"))
         {
