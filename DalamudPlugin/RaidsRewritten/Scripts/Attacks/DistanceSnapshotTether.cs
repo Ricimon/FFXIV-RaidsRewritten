@@ -2,6 +2,7 @@
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Scripts.Attacks.Omens;
 using RaidsRewritten.Utility;
 using System;
 using System.Collections.Generic;
@@ -98,6 +99,8 @@ public class DistanceSnapshotTether : IAttack, ISystem, IDisposable
                 entity.Destruct();
             });
     }
+
+    public static Entity SetTetherVfx(Entity entity, TetherOmen.TetherVfx tetherVfx) => entity.Set(new ActorVfx(TetherOmen.TetherVfxes[tetherVfx]));
 
     private static bool ValidActor(IGameObject? gameObject) => gameObject != null && gameObject.IsValid();
 

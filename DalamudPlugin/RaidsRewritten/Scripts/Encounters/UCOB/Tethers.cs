@@ -100,12 +100,12 @@ public class Tethers : Mechanic
 
                     if (i < 4)
                     {
-                        tether.Set(new ActorVfx(TetherOmen.TetherVfxes[TetherOmen.TetherVfx.ActivatedClose]))
+                        DistanceSnapshotTether.SetTetherVfx(tether, TetherOmen.TetherVfx.ActivatedClose)
                             .Set(new DistanceSnapshotTether.Tether(onCondition1))
                             .Set(new DistanceSnapshotTether.FailWhenFurtherThan(CloseTetherBreakpoint));
                     } else
                     {
-                        tether.Set(new ActorVfx(TetherOmen.TetherVfxes[TetherOmen.TetherVfx.ActivatedFar]))
+                        DistanceSnapshotTether.SetTetherVfx(tether, TetherOmen.TetherVfx.ActivatedFar)
                             .Set(new DistanceSnapshotTether.Tether(onCondition1))
                             .Set(new DistanceSnapshotTether.FailWhenFurtherThan(FarTetherBreakpoint));
                     }

@@ -588,7 +588,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                 {
                     if (this.attackManager.TryCreateAttackEntity<DistanceSnapshotTether>(out var tether))
                     {
-                        tether.Set(new ActorVfx(TetherOmen.TetherVfxes[TetherOmen.TetherVfx.ActivatedClose]))
+                        DistanceSnapshotTether.SetTetherVfx(tether, TetherOmen.TetherVfx.ActivatedClose)
                             .Set(new ActorVfxSource(player))
                             .Set(new ActorVfxTarget(target))
                             .Set(new DistanceSnapshotTether.VfxOnFail(["vfx/monster/m0005/eff/m0005sp_15t0t.avfx"]))
@@ -616,7 +616,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                 {
                     if (this.attackManager.TryCreateAttackEntity<DistanceSnapshotTether>(out var tether))
                     {
-                        tether.Set(new ActorVfx(TetherOmen.TetherVfxes[TetherOmen.TetherVfx.ActivatedFar]))
+                        DistanceSnapshotTether.SetTetherVfx(tether, TetherOmen.TetherVfx.ActivatedFar)
                             .Set(new ActorVfxSource(player))
                             .Set(new ActorVfxTarget(target))
                             .Set(new DistanceSnapshotTether.VfxOnFail(["vfx/monster/m0005/eff/m0005sp_15t0t.avfx"]))
