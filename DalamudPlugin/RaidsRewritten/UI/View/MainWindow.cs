@@ -586,18 +586,18 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                 var target = player.TargetObject;
                 if (target != null)
                 {
-                    if (this.attackManager.TryCreateAttackEntity<DistanceTether>(out var tether))
+                    if (this.attackManager.TryCreateAttackEntity<DistanceSnapshotTether>(out var tether))
                     {
                         tether.Set(new ActorVfx(TetherOmen.TetherVfxes[TetherOmen.TetherVfx.ActivatedClose]))
                             .Set(new ActorVfxSource(player))
                             .Set(new ActorVfxTarget(target))
-                            .Set(new DistanceTether.VfxOnFail(["vfx/monster/m0005/eff/m0005sp_15t0t.avfx"]))
-                            .Set(new DistanceTether.Tether((e) => { Stun.ApplyToPlayer(e, 5); }))
-                            .Set(new DistanceTether.FailWhenFurtherThan(10));
+                            .Set(new DistanceSnapshotTether.VfxOnFail(["vfx/monster/m0005/eff/m0005sp_15t0t.avfx"]))
+                            .Set(new DistanceSnapshotTether.Tether((e) => { Stun.ApplyToPlayer(e, 5); }))
+                            .Set(new DistanceSnapshotTether.FailWhenFurtherThan(10));
 
                         DelayedAction.Create(tether.CsWorld(), () =>
                         {
-                                tether.Add<DistanceTether.Activated>();
+                                tether.Add<DistanceSnapshotTether.Activated>();
                         }, 3f);
                     }
                 }
@@ -614,18 +614,18 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                 var target = player.TargetObject;
                 if (target != null)
                 {
-                    if (this.attackManager.TryCreateAttackEntity<DistanceTether>(out var tether))
+                    if (this.attackManager.TryCreateAttackEntity<DistanceSnapshotTether>(out var tether))
                     {
                         tether.Set(new ActorVfx(TetherOmen.TetherVfxes[TetherOmen.TetherVfx.ActivatedFar]))
                             .Set(new ActorVfxSource(player))
                             .Set(new ActorVfxTarget(target))
-                            .Set(new DistanceTether.VfxOnFail(["vfx/monster/m0005/eff/m0005sp_15t0t.avfx"]))
-                            .Set(new DistanceTether.Tether((e) => { Stun.ApplyToPlayer(e, 5); }))
-                            .Set(new DistanceTether.FailWhenCloserThan(10));
+                            .Set(new DistanceSnapshotTether.VfxOnFail(["vfx/monster/m0005/eff/m0005sp_15t0t.avfx"]))
+                            .Set(new DistanceSnapshotTether.Tether((e) => { Stun.ApplyToPlayer(e, 5); }))
+                            .Set(new DistanceSnapshotTether.FailWhenCloserThan(10));
 
                         DelayedAction.Create(tether.CsWorld(), () =>
                         {
-                            tether.Add<DistanceTether.Activated>();
+                            tether.Add<DistanceSnapshotTether.Activated>();
                         }, 3f);
                     }
                 }

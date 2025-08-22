@@ -87,7 +87,7 @@ public class Tethers : Mechanic
                 var src = playerList[i];
                 var target = playerList[i + 1];
 
-                if (this.AttackManager.TryCreateAttackEntity<DistanceTether>(out var tether))
+                if (this.AttackManager.TryCreateAttackEntity<DistanceSnapshotTether>(out var tether))
                 {
                     var onCondition1 = (Entity _) => { };
 
@@ -101,19 +101,19 @@ public class Tethers : Mechanic
                     if (i < 4)
                     {
                         tether.Set(new ActorVfx(TetherOmen.TetherVfxes[TetherOmen.TetherVfx.ActivatedClose]))
-                            .Set(new DistanceTether.Tether(onCondition1))
-                            .Set(new DistanceTether.FailWhenFurtherThan(CloseTetherBreakpoint));
+                            .Set(new DistanceSnapshotTether.Tether(onCondition1))
+                            .Set(new DistanceSnapshotTether.FailWhenFurtherThan(CloseTetherBreakpoint));
                     } else
                     {
                         tether.Set(new ActorVfx(TetherOmen.TetherVfxes[TetherOmen.TetherVfx.ActivatedFar]))
-                            .Set(new DistanceTether.Tether(onCondition1))
-                            .Set(new DistanceTether.FailWhenFurtherThan(FarTetherBreakpoint));
+                            .Set(new DistanceSnapshotTether.Tether(onCondition1))
+                            .Set(new DistanceSnapshotTether.FailWhenFurtherThan(FarTetherBreakpoint));
                     }
 
                     tether.Set(new ActorVfxSource(src))
                         .Set(new ActorVfxTarget(target))
-                        .Set(new DistanceTether.VfxOnFail(PunishmentVfx))
-                        .Set(new DistanceTether.VfxOnSuccess(CorrectVfx));
+                        .Set(new DistanceSnapshotTether.VfxOnFail(PunishmentVfx))
+                        .Set(new DistanceSnapshotTether.VfxOnSuccess(CorrectVfx));
 
                     attacks.Add(tether);
                     tethers.Add(tether);
@@ -133,7 +133,7 @@ public class Tethers : Mechanic
                         foreach (var tether in tethers)
                         {
                             if (tether.IsValid()) {
-                                tether.Add<DistanceTether.Activated>();
+                                tether.Add<DistanceSnapshotTether.Activated>();
                             }
                         }
                     }, 0.5f));

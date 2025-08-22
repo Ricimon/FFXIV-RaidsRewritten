@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public class DistanceTether : IAttack, ISystem, IDisposable
+public class DistanceSnapshotTether : IAttack, ISystem, IDisposable
 {
 
     public enum TetherConditionVfxTarget
