@@ -96,6 +96,7 @@ public class PluginModule : NinjectModule
         Bind<IAttack>().To<CircleOmen>();
         Bind<IAttack>().To<FanOmen>();
         Bind<IAttack>().To<RectangleOmen>();
+        Bind<IAttack>().To<StarOmen>();
         Bind<IAttack>().To<ExaflareOmen>();
         Bind<IAttack, ISystem>().To<Twister>();
         Bind<IAttack, ISystem>().To<RollingBall>();

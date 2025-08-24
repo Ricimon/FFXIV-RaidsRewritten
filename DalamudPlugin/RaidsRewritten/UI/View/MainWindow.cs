@@ -362,6 +362,20 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                 }
             }
         }
+        ImGui.SameLine();
+        if (ImGui.Button("Star Omen"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<StarOmen>(out var star))
+                {
+                    star.Set(new Position(player.Position));
+                    star.Set(new Rotation(player.Rotation));
+                    star.Set(new Scale(2.5f * Vector3.One));
+                }
+            }
+        }
 
         if (ImGui.Button("Print Player Data"))
         {

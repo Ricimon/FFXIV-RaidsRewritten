@@ -1,0 +1,44 @@
+﻿using System;
+using System.Numerics;
+using Flecs.NET.Core;
+using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Utility;
+
+namespace RaidsRewritten.Scripts.Attacks.Omens;
+
+public class StarOmen : IAttack
+{
+    public static bool IsInOmen(Entity omen, Vector3 position)
+    {
+        if (!omen.TryGet<Position>(out var p)) { return false; }
+        if (!omen.TryGet<Rotation>(out var r)) { return false; }
+        if (!omen.TryGet<Scale>(out var s)) { return false; }
+
+        for(var i = 0; i < 8; i++)
+        {
+            var rotation = r.Value + i * 0.25f * MathF.PI;
+            var forward = MathUtilities.RotationToUnitVector(rotation);
+            var right = MathUtilities.RotationToUnitVector(rotation - 0.5f * MathF.PI);
+
+            var width = 2 * s.Value.X;
+        }
+
+        return false;
+    }
+
+    public static Entity CreateEntity(World world)
+    {
+        return world.Entity()
+            .Set(new StaticVfx("vfx/omen/eff/m063mist_omen_o0v.avfx"))
+            .Set(new Position())
+            .Set(new Rotation())
+            .Set(new Scale())
+            .Add<Attack>()
+            .Add<Omen>();
+    }
+
+    public Entity Create(World world)
+    {
+        return CreateEntity(world);
+    }
+}

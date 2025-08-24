@@ -106,10 +106,10 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             this.mechanics.Add(tethers);
         }
 
-        if (configuration.GetEncounterSetting(ExpandingPuddlesKey, true))
-        {
-            this.mechanics.Add(mechanicFactory.Create<ExpandingEarthshakerPuddles>());
-        }
+        //if (configuration.GetEncounterSetting(ExpandingPuddlesKey, true))
+        //{
+        //    this.mechanics.Add(mechanicFactory.Create<ExpandingEarthshakerPuddles>());
+        //}
 
         if (configuration.GetEncounterSetting(PermanentTwistersKey, true))
         {
@@ -221,14 +221,14 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             RefreshMechanics();
         }
 
-        bool expandingPuddles = configuration.GetEncounterSetting(this.ExpandingPuddlesKey, true);
-        if (ImGui.Checkbox("Expanding Puddles", ref expandingPuddles))
-        {
-            configuration.EncounterSettings[this.ExpandingPuddlesKey] =
-                expandingPuddles ? bool.TrueString : bool.FalseString;
-            configuration.Save();
-            RefreshMechanics();
-        }
+        //bool expandingPuddles = configuration.GetEncounterSetting(this.ExpandingPuddlesKey, true);
+        //if (ImGui.Checkbox("Expanding Puddles", ref expandingPuddles))
+        //{
+        //    configuration.EncounterSettings[this.ExpandingPuddlesKey] =
+        //        expandingPuddles ? bool.TrueString : bool.FalseString;
+        //    configuration.Save();
+        //    RefreshMechanics();
+        //}
 
         bool permanentTwisters = configuration.GetEncounterSetting(PermanentTwistersKey, true);
         if (ImGui.Checkbox("Permanent Twisters", ref permanentTwisters))
@@ -339,7 +339,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
         configuration.EncounterSettings[DreadknightKey] = bool.TrueString;
         configuration.EncounterSettings[ADSSquaredKey] = bool.TrueString;
         configuration.EncounterSettings[TethersKey] = bool.TrueString;
-        configuration.EncounterSettings[ExpandingPuddlesKey] = bool.TrueString;
+        //configuration.EncounterSettings[ExpandingPuddlesKey] = bool.TrueString;
 
         configuration.EncounterSettings[PermanentTwistersKey] = bool.FalseString;
         configuration.EncounterSettings[RollingBallKey] = bool.FalseString;
