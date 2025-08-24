@@ -53,17 +53,13 @@ public class MoreExaflares : Mechanic
             Difficulties.Medium, new DifficultyData
             {
                 MaxConcurrentExaflares = 1,
-                RequiredNeuroNum = 0,
+                RequiredNeuroNum = 2,
                 ActionEffectIds = [
-                    9900, // fireball (twin)
-                    9901, // liquid hell
-                    9914, // adds megaflare
-                    9925, // fireball (firehorn)
-                    9942, // gigaflare
+                    9939,  // calamitous blaze (seventh umbral era)
+                    9950,  // megaflare stack
                 ],
                 ObjectIds = [NeurolinkDataId],
                 StartCastIds = [
-                    9941,  // flatten
                     9967,  // exaflare part 1
                     9968,  // exaflare part 2
                 ],
