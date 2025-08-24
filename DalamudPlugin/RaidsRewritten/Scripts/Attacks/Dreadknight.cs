@@ -19,7 +19,7 @@ using Player = RaidsRewritten.Game.Player;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISystem
+public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) : IAttack, ISystem
 {
     public record struct Component(float ElapsedTime, float NextRefresh, float StartEnrage = 7f, float Enrage = 12f, bool EnrageLoop = false, bool BackupActive = false);
     public record struct Target(IGameObject? Value);
@@ -50,7 +50,6 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
     private const float InitialDelay = 2f;
     private const float CastingAnimationDelay = 1.5f;
     private const string EnrageMessage = "Given uninterrupted power, the Dreadknight flies into a rage!";
-    private Query<Player.Component> playerQuery;
 
     public Entity Create(World world)
     {
@@ -66,15 +65,8 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
                 .Add<Attack>();
     }
 
-    public void Dispose()
-    {
-        this.playerQuery.Dispose();
-    }
-
     public void Register(World world)
     {
-        this.playerQuery = Player.QueryForLocalPlayer(world);
-
         // need to process AnimationState first before it's overwritten by default standing state in later system
         world.System<Model, AnimationState>()
             .Each((Iter it, int i, ref Model model, ref AnimationState animationState) =>
@@ -327,7 +319,7 @@ public class Dreadknight(DalamudServices dalamud) : IAttack, IDisposable, ISyste
 
     private void StunPlayer(World world, float duration, float delay = StunDelay)
     {
-        this.playerQuery.Each((Entity e, ref Player.Component _) =>
+        commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
         {
             DelayedAction.Create(world, () => {
                 Stun.ApplyToPlayer(e, duration, StunId);

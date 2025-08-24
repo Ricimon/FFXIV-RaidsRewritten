@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public class ADS(DalamudServices dalamud) : IAttack, ISystem, IDisposable
+public class ADS(DalamudServices dalamud, CommonQueries commonQueries) : IAttack, ISystem
 {
     public enum Phase
     {
@@ -43,8 +43,6 @@ public class ADS(DalamudServices dalamud) : IAttack, ISystem, IDisposable
         { Phase.Reset, 2.4f },
     };
 
-    private Query<Player.Component> playerQuery;
-
     public static Entity CreateEntity(World world)
     {
         return world.Entity()
@@ -63,15 +61,8 @@ public class ADS(DalamudServices dalamud) : IAttack, ISystem, IDisposable
         return CreateEntity(world);
     }
 
-    public void Dispose()
-    {
-        this.playerQuery.Dispose();
-    }
-
     public void Register(World world)
     {
-        this.playerQuery = Player.QueryForLocalPlayer(world);
-
         world.System<Model, AnimationState>()
         .Each((Iter it, int i, ref Model model, ref AnimationState animationState) =>
         {
@@ -138,7 +129,7 @@ public class ADS(DalamudServices dalamud) : IAttack, ISystem, IDisposable
 
                         if (player != null && !player.IsDead && RectangleOmen.IsInOmen(child, player.Position))
                         {
-                            this.playerQuery.Each((Entity e, ref Player.Component _) =>
+                            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
                             {
                                 Paralysis.ApplyToPlayer(e, 30f, 3f, 1f, ParalysisId);
                             });

@@ -12,7 +12,7 @@ using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public sealed class JumpableShockwave(DalamudServices dalamud, ILogger logger) : IAttack, ISystem, IDisposable
+public sealed class JumpableShockwave(DalamudServices dalamud, CommonQueries commonQueries, ILogger logger) : IAttack, ISystem
 {
     public enum HitDetectionState
     {
@@ -28,8 +28,6 @@ public sealed class JumpableShockwave(DalamudServices dalamud, ILogger logger) :
     private const float JumpClearance = 1.0f;
     private const float StunDuration = 10.0f;
     private const int StunId = 42140;
-
-    private Query<Player.Component> playerQuery;
 
     public Entity Create(World world)
     {
@@ -50,15 +48,8 @@ public sealed class JumpableShockwave(DalamudServices dalamud, ILogger logger) :
         return entity;
     }
 
-    public void Dispose()
-    {
-        this.playerQuery.Dispose();
-    }
-
     public void Register(World world)
     {
-        this.playerQuery = Player.QueryForLocalPlayer(world);
-
         world.System<Component, Position, Rotation>()
             .Each((Iter it, int i, ref Component component, ref Position position, ref Rotation rotation) =>
             {
@@ -116,7 +107,7 @@ public sealed class JumpableShockwave(DalamudServices dalamud, ILogger logger) :
                         if (component.HitDetectionState != HitDetectionState.None &&
                             player.Position.Y - p.Y <= JumpClearance)
                         {
-                            this.playerQuery.Each((Entity e, ref Player.Component pc) =>
+                            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
                             {
                                 Stun.ApplyToPlayer(e, StunDuration, StunId);
                             });

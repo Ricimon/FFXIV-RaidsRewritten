@@ -14,14 +14,12 @@ using System.Threading.Tasks;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public class Circle(DalamudServices dalamud, ILogger logger) : IAttack, ISystem, IDisposable
+public class Circle(DalamudServices dalamud, CommonQueries commonQueries, ILogger logger) : IAttack, ISystem
 {
     public record struct Component(Action<Entity> OnHit);
 
     public readonly DalamudServices dalamud = dalamud;
     public readonly ILogger logger = logger;
-
-    private Query<Player.Component> playerQuery;
 
     public static Entity CreateEntity(World world)
     {
@@ -38,15 +36,8 @@ public class Circle(DalamudServices dalamud, ILogger logger) : IAttack, ISystem,
         return CreateEntity(world);
     }
 
-    public void Dispose()
-    {
-        this.playerQuery.Dispose();
-    }
-
     public void Register(World world)
     {
-        this.playerQuery = Player.QueryForLocalPlayer(world);
-
         world.System<Component, Position, Rotation, Scale>()
             .Each((Iter it, int i, ref Component component, ref Position position, ref Rotation rotation, ref Scale scale) =>
             {
@@ -63,7 +54,7 @@ public class Circle(DalamudServices dalamud, ILogger logger) : IAttack, ISystem,
 
                         if (distanceToCenter <= scale.Value.Z)
                         {
-                            this.playerQuery.Each((Entity e, ref Player.Component _) =>
+                            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
                             {
                                 onHit(e);
                             });

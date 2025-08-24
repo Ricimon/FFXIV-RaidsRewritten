@@ -12,12 +12,14 @@ public sealed class EcsContainer : IDisposable
     public World World { get; init; }
 
     private readonly DalamudServices dalamud;
+    private readonly CommonQueries commonQueries;
     private readonly ISystem[] systems;
     private readonly ILogger logger;
 
-    public EcsContainer(DalamudServices dalamud, ISystem[] systems, ILogger logger)
+    public EcsContainer(DalamudServices dalamud, CommonQueries commonQueries, ISystem[] systems, ILogger logger)
     {
         this.dalamud = dalamud;
+        this.commonQueries = commonQueries;
         this.systems = systems;
         this.logger = logger;
 
@@ -25,6 +27,8 @@ public sealed class EcsContainer : IDisposable
 #if DEBUG
         this.World.Set<flecs.EcsRest>(default);
 #endif
+
+        this.commonQueries.CreateQueries(this.World);
 
         // Register all systems
         foreach(var system in systems)
@@ -48,6 +52,7 @@ public sealed class EcsContainer : IDisposable
                 d.Dispose();
             }
         }
+        this.commonQueries.Dispose();
         this.World.Dispose();
     }
 

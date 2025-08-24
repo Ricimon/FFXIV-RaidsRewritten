@@ -13,7 +13,7 @@ using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public sealed class LightningCorridor(DalamudServices dalamud, ILogger logger) : IAttack, ISystem, IDisposable
+public sealed class LightningCorridor(DalamudServices dalamud, CommonQueries commonQueries, ILogger logger) : IAttack, ISystem
 {
     public enum Phase
     {
@@ -38,8 +38,6 @@ public sealed class LightningCorridor(DalamudServices dalamud, ILogger logger) :
         { Phase.Attack, 5.0f },
     };
 
-    private Query<Player.Component> playerQuery;
-
     public Entity Create(World world)
     {
         return world.Entity()
@@ -50,15 +48,8 @@ public sealed class LightningCorridor(DalamudServices dalamud, ILogger logger) :
             .Add<Attack>();
     }
 
-    public void Dispose()
-    {
-        this.playerQuery.Dispose();
-    }
-
     public void Register(World world)
     {
-        this.playerQuery = Player.QueryForLocalPlayer(world);
-
         world.System<Component, Position, Rotation, Scale>()
             .Each((Iter it, int i, ref Component component, ref Position position, ref Rotation rotation, ref Scale scale) =>
             {
@@ -183,7 +174,7 @@ public sealed class LightningCorridor(DalamudServices dalamud, ILogger logger) :
                             // Affect player
                             if (component.HitLocalPlayer)
                             {
-                                this.playerQuery.Each((Entity e, ref Player.Component _) =>
+                                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
                                 {
                                     Paralysis.ApplyToPlayer(e, 30.0f, 3.0f, 1.0f, ParalysisId);
                                 });

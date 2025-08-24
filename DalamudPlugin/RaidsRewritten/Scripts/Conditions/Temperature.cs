@@ -6,10 +6,9 @@ using RaidsRewritten.Log;
 
 namespace RaidsRewritten.Scripts.Conditions;
 
-public class Temperature(DalamudServices dalamud, ILogger logger) : ISystem, IDisposable
+public class Temperature(DalamudServices dalamud, CommonQueries commonQueries, ILogger logger) : ISystem, IDisposable
 {
     private readonly ILogger logger = logger;
-    private Query<Player.Component> playerQuery;
     private Query<Overheat.Component> overheatQuery;
     private Query<Deepfreeze.Component> deepfreezeQuery;
 
@@ -94,14 +93,12 @@ public class Temperature(DalamudServices dalamud, ILogger logger) : ISystem, IDi
     }
     public void Dispose()
     {
-        playerQuery.Dispose();
         overheatQuery.Dispose();
         deepfreezeQuery.Dispose();
     }
 
     public void Register(World world)
     {
-        this.playerQuery = Player.QueryForLocalPlayer(world);
         this.overheatQuery  = world.QueryBuilder<Overheat.Component>().Build();
         this.deepfreezeQuery = world.QueryBuilder<Deepfreeze.Component>().Build();
 
@@ -155,7 +152,7 @@ public class Temperature(DalamudServices dalamud, ILogger logger) : ISystem, IDi
                     if (Temperature.CurrentTemperature <= Temperature.DeepfreezeTemp)
                     {
                         if(deepfreezeQuery.IsTrue()) { return; }
-                        this.playerQuery.Each((Entity e, ref Player.Component pc) =>
+                        commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
                         {
                             world.DeleteWith<Overheat.Component>();
                             Deepfreeze.ApplyToPlayer(e, float.PositiveInfinity, TemperatureID);
@@ -165,7 +162,7 @@ public class Temperature(DalamudServices dalamud, ILogger logger) : ISystem, IDi
                     if (Temperature.CurrentTemperature >= Temperature.OverheatTemp)
                     {
                         if (overheatQuery.IsTrue()) { return; }
-                        this.playerQuery.Each((Entity e, ref Player.Component pc) =>
+                        commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
                         {
                             world.DeleteWith<Deepfreeze.Component>();
                             Overheat.ApplyToPlayer(e, float.PositiveInfinity, TemperatureID);

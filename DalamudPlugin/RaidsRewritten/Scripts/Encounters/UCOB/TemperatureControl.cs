@@ -89,8 +89,7 @@ public class TemperatureControl : Mechanic
         }
         if (!playerTemperatureQuery.Value.IsTrue())
         {
-            using var q = Player.QueryForLocalPlayer(World);
-            var player = q.First();
+            var player = CommonQueries.LocalPlayerQuery.First();
             if (player.IsValid())
             {
                 Temperature.SetTemperature(player);

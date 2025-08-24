@@ -4,6 +4,9 @@ Twister: DataId 0x1E8910
 T9
 Chain Lightning: vfx/monster/gimmick/eff/crystal2_chein_kakusan_c0c.avfx (actor), 5y radius
 
+T13
+Earthshaker puddle: bgcommon/world/common/vfx_for_btl/b0282/eff/b0282_yuka_o.avfx (static)
+
 O10s
 Ground Ice Effect: bgcommon/world/common/vfx_for_btl/b0195/eff/b0195_yuka_c.avfx, 5y radius
 

@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public class DistanceSnapshotTether : IAttack, ISystem, IDisposable
+public class DistanceSnapshotTether(CommonQueries commonQueries) : IAttack, ISystem
 {
 
     public enum TetherConditionVfxTarget
@@ -30,23 +30,14 @@ public class DistanceSnapshotTether : IAttack, ISystem, IDisposable
     public record struct FailWhenCloserThan(float distance);
     public struct Activated;
 
-    private Query<Player.Component> playerQuery;
-
     public Entity Create(World world)
     {
         return world.Entity()
             .Add<Attack>();
     }
 
-    public void Dispose()
-    {
-        this.playerQuery.Dispose();
-    }
-
     public void Register(World world)
     {
-        this.playerQuery = Player.QueryForLocalPlayer(world);
-
         world.System<Tether, ActorVfxSource, ActorVfxTarget>().With<Activated>()
             .Each((Iter it, int i, ref Tether tether, ref ActorVfxSource sourceComponent, ref ActorVfxTarget targetComponent) =>
             {
@@ -78,7 +69,7 @@ public class DistanceSnapshotTether : IAttack, ISystem, IDisposable
                     {
                         // anonymous functions hates refs from outside
                         var onCondition = tether.StatusOnCondition;
-                        this.playerQuery.Each((Entity e, ref Player.Component _) =>
+                        commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
                         {
                             onCondition(e);
                         });

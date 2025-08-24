@@ -71,6 +71,7 @@ public class PluginModule : NinjectModule
         Bind<MapManager>().ToSelf().InSingletonScope();
         Bind<Mechanic.Factory>().ToSelf();
         Bind<EcsContainer>().ToSelf().InSingletonScope();
+        Bind<CommonQueries>().ToSelf().InSingletonScope();
         // Native control overrides
         Bind<PlayerManager>().ToSelf().InSingletonScope();
         Bind<PlayerMovementOverride>().ToSelf().WhenInjectedInto<PlayerManager>().InSingletonScope();

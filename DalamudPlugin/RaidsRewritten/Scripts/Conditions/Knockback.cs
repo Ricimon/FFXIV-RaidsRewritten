@@ -31,9 +31,8 @@ public sealed class Knockback : IDalamudHook
 
     private readonly DalamudServices dalamud;
     private readonly World world;
+    private readonly CommonQueries commonQueries;
     private readonly ILogger logger;
-
-    private readonly Query<Player.Component> playerQuery;
 
     public static void ApplyToPlayer(Entity playerEntity, Vector3 knockbackDirection, float duration, bool canResist)
     {
@@ -84,15 +83,14 @@ public sealed class Knockback : IDalamudHook
             .ChildOf(playerEntity);
     }
 
-    public Knockback(DalamudServices dalamud, EcsContainer ecsContainer, ILogger logger)
+    public Knockback(DalamudServices dalamud, EcsContainer ecsContainer, CommonQueries commonQueries, ILogger logger)
     {
         Logger = logger;
 
         this.dalamud = dalamud;
         this.world = ecsContainer.World;
+        this.commonQueries = commonQueries;
         this.logger = logger;
-
-        this.playerQuery = Player.QueryForLocalPlayer(ecsContainer.World);
     }
 
     public void HookToDalamud()
@@ -103,7 +101,6 @@ public sealed class Knockback : IDalamudHook
     public void Dispose()
     {
         ActionEffect.ActionEffectEvent -= OnActionEffectEvent;
-        this.playerQuery.Dispose();
     }
 
     private void OnActionEffectEvent(ActionEffectSet set)
@@ -121,7 +118,7 @@ public sealed class Knockback : IDalamudHook
                 {
                     // Remove any fake knockback conditions if a real knockback occurs
                     this.world.DeferBegin();
-                    this.playerQuery.Each((Entity e, ref Player.Component _) =>
+                    this.commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
                     {
                         e.Children(child =>
                         {

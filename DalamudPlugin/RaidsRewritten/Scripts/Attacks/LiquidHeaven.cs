@@ -10,7 +10,7 @@ using RaidsRewritten.Scripts.Conditions;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public class LiquidHeaven(DalamudServices dalamud, ILogger logger) : IAttack, ISystem, IDisposable
+public class LiquidHeaven(DalamudServices dalamud, CommonQueries commonQueries, ILogger logger) : IAttack, ISystem
 {
     public record struct Component(float Cooldown);
 
@@ -18,7 +18,6 @@ public class LiquidHeaven(DalamudServices dalamud, ILogger logger) : IAttack, IS
     private const float HeatValue = -1.0f;
     private const float HitCooldown = 0.1f;
     private const int HeavenID = 1234; //Sample numbers, could also use the entity id maybe
-    private Query<Player.Component> playerQuery;
 
     public Entity Create(World world)
     {
@@ -31,14 +30,8 @@ public class LiquidHeaven(DalamudServices dalamud, ILogger logger) : IAttack, IS
             .Add<Attack>();
     }
 
-    public void Dispose()
-    {
-        this.playerQuery.Dispose();
-    }
-
     public void Register(World world)
     {
-        this.playerQuery = Player.QueryForLocalPlayer(world);
         world.System<Component, Position>()
             .Each((Iter it, int i, ref Component component, ref Position position) =>
             {
@@ -49,7 +42,7 @@ public class LiquidHeaven(DalamudServices dalamud, ILogger logger) : IAttack, IS
 
                     if (Vector2.Distance(position.Value.ToVector2(), player.Position.ToVector2()) <= HitBoxRadius)
                     {
-                        this.playerQuery.Each((Entity e, ref Player.Component pc) => 
+                        commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) => 
                         {
                             Temperature.HeatChangedEvent(e, HeatValue, HitCooldown, HeavenID);
                         });

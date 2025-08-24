@@ -14,14 +14,12 @@ using System.Threading.Tasks;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public sealed class Fan(DalamudServices dalamud, ILogger logger) : IAttack, ISystem, IDisposable
+public sealed class Fan(DalamudServices dalamud, CommonQueries commonQueries, ILogger logger) : IAttack, ISystem
 {
     public record struct Component(Action<Entity> OnHit, int Degrees);
 
     private readonly DalamudServices dalamud = dalamud;
     private readonly ILogger logger = logger;
-
-    private Query<Player.Component> playerQuery;
 
     public Entity Create(World world)
     {
@@ -33,15 +31,8 @@ public sealed class Fan(DalamudServices dalamud, ILogger logger) : IAttack, ISys
             .Add<Attack>();
     }
 
-    public void Dispose()
-    {
-        this.playerQuery.Dispose();
-    }
-
     public void Register(World world)
     {
-        this.playerQuery = Player.QueryForLocalPlayer(world);
-
         world.System<Component, Position, Rotation, Scale>()
             .Each((Iter it, int i, ref Component component, ref Position position, ref Rotation rotation, ref Scale scale) =>
             {
@@ -67,7 +58,7 @@ public sealed class Fan(DalamudServices dalamud, ILogger logger) : IAttack, ISys
 
                         if (distanceToBoss < scale.Value.Z && (angle <= MathHelper.DegToRad(component.Degrees / 2) || float.IsNaN(angle)))
                         {
-                            this.playerQuery.Each((Entity e, ref Player.Component _) =>
+                            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
                             {
                                 onHit(e);
                             });
