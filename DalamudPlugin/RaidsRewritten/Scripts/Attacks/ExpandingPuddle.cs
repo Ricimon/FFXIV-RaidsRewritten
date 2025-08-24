@@ -1,4 +1,5 @@
-﻿using Flecs.NET.Core;
+﻿using System.Numerics;
+using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Scripts.Attacks.Components;
 
@@ -6,12 +7,17 @@ namespace RaidsRewritten.Scripts.Attacks;
 
 public class ExpandingPuddle(DalamudServices dalamud, CommonQueries commonQueries) : IAttack, ISystem
 {
-    public record struct Component(string VfxPath, float ElapsedTime = 0);
+    public record struct Component(
+        string VfxPath,
+        float StartScale,
+        float EndScale,
+        float ExpandSpeed,
+        float Lifetime,
+        float ElapsedTime = 0);
 
     public Entity Create(World world)
     {
         return world.Entity()
-            .Set(new StaticVfx("bgcommon/world/common/vfx_for_btl/b0195/eff/b0195_yuka_c.avfx"))
             .Set(new Position())
             .Set(new Rotation())
             .Set(new Scale())
@@ -30,9 +36,24 @@ public class ExpandingPuddle(DalamudServices dalamud, CommonQueries commonQuerie
                 }
             });
 
-        world.System<Component, Position>()
-            .Each((Iter it, int i, ref Component component, ref Position position) =>
+        world.System<Component, Position, Scale>()
+            .Each((Iter it, int i, ref Component component, ref Position position, ref Scale scale) =>
             {
+                component.ElapsedTime += it.DeltaTime();
+
+                var targetScale = component.ElapsedTime * component.ExpandSpeed + component.StartScale;
+                if (targetScale > component.EndScale)
+                {
+                    targetScale = component.EndScale;
+                }
+
+                scale.Value = targetScale * Vector3.One;
+
+                if (component.ElapsedTime > component.Lifetime)
+                {
+                    it.Entity(i).Destruct();
+                }
+
                 //try
                 //{
                 //    var player = dalamud.ClientState.LocalPlayer;

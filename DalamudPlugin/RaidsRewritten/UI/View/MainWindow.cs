@@ -21,7 +21,6 @@ using RaidsRewritten.UI.Util;
 using RaidsRewritten.Utility;
 using Reactive.Bindings;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
@@ -373,14 +372,14 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             }
         }
 
-#if DEBUG
+//#if DEBUG
         bool punishmentImmunity = configuration.PunishmentImmunity;
         if (ImGui.Checkbox("Punishment Immunity", ref punishmentImmunity))
         {
             configuration.PunishmentImmunity = punishmentImmunity;
             configuration.Save();
         }
-#endif
+//#endif
 
         ImGui.Text("Fake statuses");
         if (ImGui.Button("Bind"))
@@ -628,6 +627,26 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                             tether.Add<DistanceSnapshotTether.Activated>();
                         }, 3f);
                     }
+                }
+            }
+        }
+
+        if (ImGui.Button("Expanding Puddle"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<ExpandingPuddle>(out var puddle))
+                {
+                    puddle.Set(new ExpandingPuddle.Component(
+                        Scripts.Encounters.UCOB.ExpandingEarthshakerPuddles.VfxPath,
+                        0.5f,
+                        10.0f,
+                        1.0f,
+                        10.0f));
+                    puddle.Set(new Position(player.Position));
+                    puddle.Set(new Rotation(player.Rotation));
+                    puddle.Set(new Scale(Vector3.One));
                 }
             }
         }

@@ -1,13 +1,13 @@
-using System;
 using System.Collections.Generic;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
+using RaidsRewritten.Game;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
-public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration configuration) : IEncounter
+public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration configuration, EcsContainer ecsContainer) : IEncounter
 {
     public ushort TerritoryId => 733;
 
@@ -29,6 +29,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
     private string DreadknightKey => $"{Name}.Dreadknight";
     private string ADSSquaredKey => $"{Name}.ADS^2";
     private string TethersKey => $"{Name}.Tethers";
+    private string ExpandingPuddlesKey => $"{Name}.ExpandingPuddles";
 
     private readonly List<Mechanic> mechanics = [];
     private readonly string[] moreExaflaresDifficulties = [
@@ -105,6 +106,11 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             this.mechanics.Add(tethers);
         }
 
+        if (configuration.GetEncounterSetting(ExpandingPuddlesKey, true))
+        {
+            this.mechanics.Add(mechanicFactory.Create<ExpandingEarthshakerPuddles>());
+        }
+
         if (configuration.GetEncounterSetting(PermanentTwistersKey, true))
         {
             this.mechanics.Add(mechanicFactory.Create<PermanentTwister>());
@@ -143,6 +149,11 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
 
     public void DrawConfig()
     {
+        if (ImGui.Button("Apply Intended Difficulty"))
+        {
+            ApplyIntendedFightSettings();
+        }
+
         ImGui.SetNextItemWidth(140);
         string rngSeed = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
         if (ImGui.InputText("RNG Seed", ref rngSeed, 100))
@@ -210,6 +221,15 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             RefreshMechanics();
         }
 
+        bool expandingPuddles = configuration.GetEncounterSetting(this.ExpandingPuddlesKey, true);
+        if (ImGui.Checkbox("Expanding Puddles", ref expandingPuddles))
+        {
+            configuration.EncounterSettings[this.ExpandingPuddlesKey] =
+                expandingPuddles ? bool.TrueString : bool.FalseString;
+            configuration.Save();
+            RefreshMechanics();
+        }
+
         bool permanentTwisters = configuration.GetEncounterSetting(PermanentTwistersKey, true);
         if (ImGui.Checkbox("Permanent Twisters", ref permanentTwisters))
         {
@@ -220,32 +240,6 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
         }
 
         DrawRollingBallConfig();
-    }
-
-    private void DrawRollingBallConfig()
-    {
-        bool rollingBall = configuration.GetEncounterSetting(RollingBallKey, false);
-        if (ImGui.Checkbox("Rolling Ball", ref rollingBall))
-        {
-            configuration.EncounterSettings[RollingBallKey] =
-                rollingBall ? bool.TrueString : bool.FalseString;
-            configuration.Save();
-            RefreshMechanics();
-        }
-
-        using (ImRaii.PushIndent())
-        using (ImRaii.Disabled(!rollingBall))
-        {
-            ImGui.SetNextItemWidth(120);
-            int maxBalls = configuration.GetEncounterSetting(RollingBallMaxBallsKey, 1);
-            if (ImGui.InputInt("Rolling Ball Max Balls", ref maxBalls))
-            {
-                configuration.EncounterSettings[RollingBallMaxBallsKey] = maxBalls.ToString();
-                configuration.Save();
-                RefreshMechanics();
-            }
-        }
-
     }
 
     private void DrawMoreExaflaresConfig()
@@ -281,6 +275,10 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             configuration.EncounterSettings[TemperatureControlKey] =
                 temperatureControl ? bool.TrueString : bool.FalseString;
             configuration.Save();
+            if (!temperatureControl)
+            {
+                ecsContainer.World.DeleteWith<Temperature.Component>();
+            }
             RefreshMechanics();
         }
         
@@ -302,5 +300,51 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             }
             ImGui.PopItemWidth();
         }
+    }
+
+    private void DrawRollingBallConfig()
+    {
+        bool rollingBall = configuration.GetEncounterSetting(RollingBallKey, false);
+        if (ImGui.Checkbox("Rolling Ball", ref rollingBall))
+        {
+            configuration.EncounterSettings[RollingBallKey] =
+                rollingBall ? bool.TrueString : bool.FalseString;
+            configuration.Save();
+            RefreshMechanics();
+        }
+
+        using (ImRaii.PushIndent())
+        using (ImRaii.Disabled(!rollingBall))
+        {
+            ImGui.SetNextItemWidth(120);
+            int maxBalls = configuration.GetEncounterSetting(RollingBallMaxBallsKey, 1);
+            if (ImGui.InputInt("Rolling Ball Max Balls", ref maxBalls))
+            {
+                configuration.EncounterSettings[RollingBallMaxBallsKey] = maxBalls.ToString();
+                configuration.Save();
+                RefreshMechanics();
+            }
+        }
+
+    }
+
+    private void ApplyIntendedFightSettings()
+    {
+        configuration.EncounterSettings[TankbusterAftershockKey] = bool.TrueString;
+        configuration.EncounterSettings[LightningCorridorKey] = bool.TrueString;
+        configuration.EncounterSettings[MoreExaflaresKey] = bool.TrueString;
+        configuration.EncounterSettings[MoreExaflaresDifficultyKey] = ((int)MoreExaflares.Difficulties.Low).ToString();
+        configuration.EncounterSettings[JumpableShockwavesKey] = bool.TrueString;
+        configuration.EncounterSettings[TemperatureControlKey] = bool.TrueString;
+        configuration.EncounterSettings[DreadknightKey] = bool.TrueString;
+        configuration.EncounterSettings[ADSSquaredKey] = bool.TrueString;
+        configuration.EncounterSettings[TethersKey] = bool.TrueString;
+        configuration.EncounterSettings[ExpandingPuddlesKey] = bool.TrueString;
+
+        configuration.EncounterSettings[PermanentTwistersKey] = bool.FalseString;
+        configuration.EncounterSettings[RollingBallKey] = bool.FalseString;
+
+        configuration.Save();
+        RefreshMechanics();
     }
 }

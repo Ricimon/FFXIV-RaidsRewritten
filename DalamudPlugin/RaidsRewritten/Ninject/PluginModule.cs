@@ -109,6 +109,7 @@ public class PluginModule : NinjectModule
         Bind<IAttack, ISystem>().To<Dreadknight>();
         Bind<IAttack, ISystem>().To<ADS>();
         Bind<IAttack, ISystem>().To<DistanceSnapshotTether>();
+        Bind<IAttack, ISystem>().To<ExpandingPuddle>();
         Bind<ISystem>().To<Player>();
         Bind<ISystem>().To<DelayedAction>();
         Bind<ISystem>().To<VfxSystem>();
