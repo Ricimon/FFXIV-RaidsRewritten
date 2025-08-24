@@ -28,13 +28,13 @@ public class TemperatureControl : Mechanic
             9901, new HeatData { HeatValue = 20.0f, ID = 9901, DelaySeconds = 1.1f } //Liquid hell
         },
         {
-            9917, new HeatData { HeatValue = 50.0f, ID = 9917, DelaySeconds = 0.8f } //Thermeonic Beam
+            9917, new HeatData { HeatValue = 40.0f, ID = 9917, DelaySeconds = 0.8f } //Thermeonic Beam
         },
         {
             9925, new HeatData { HeatValue = 50.0f, ID = 9925, DelaySeconds = 1.0f } //Fireball (Firehorn)
         },
         {
-            9926, new HeatData { HeatValue = -50.0f, ID = 9926, DelaySeconds = 1.0f } //Iceball (Iceclaw)
+            9926, new HeatData { HeatValue = -40.0f, ID = 9926, DelaySeconds = 1.0f } //Iceball (Iceclaw)
         },
         {
             9937, new HeatData { HeatValue = 100.0f, ID = 9937, DelaySeconds = 0.1f } //Seventh Umbral Era
@@ -43,7 +43,7 @@ public class TemperatureControl : Mechanic
             9938, new HeatData { HeatValue = 20.0f, ID = 9938, DelaySeconds = 0.2f } //Calamitous Flame
         },
         {
-            9939, new HeatData { HeatValue = 20.0f, ID = 9939, DelaySeconds = 0.2f } //Calamitous Blaze (Final hit)
+            9939, new HeatData { HeatValue = 30.0f, ID = 9939, DelaySeconds = 0.2f } //Calamitous Blaze (Final hit)
         },
         { 
             9940, new HeatData { HeatValue = 20.0f, ID = 9940, DelaySeconds = 0.9f } //Flare Breath
