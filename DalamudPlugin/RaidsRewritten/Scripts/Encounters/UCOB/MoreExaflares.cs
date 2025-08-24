@@ -41,7 +41,6 @@ public class MoreExaflares : Mechanic
                 RequiredNeuroNum = 2,
                 ActionEffectIds = [
                     9939,  // calamitous blaze (seventh umbral era)
-                    9950,  // megaflare stack
                 ],
                 ObjectIds = [NeurolinkDataId],
                 StartCastIds = [
