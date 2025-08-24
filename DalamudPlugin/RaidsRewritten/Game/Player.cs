@@ -93,13 +93,14 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
                         });
                     }
 
-#if DEBUG
+//#if DEBUG
                     if (configuration.PunishmentImmunity) {
                         playerManager.OverrideMovement = PlayerMovementOverride.OverrideMovementState.None;
                         playerManager.ForceWalk = PlayerMovementOverride.ForcedWalkState.None;
+                        playerManager.DisableAllActions = false;
                         return;
                     }
-#endif
+//#endif
 
                     // Handle each condition
                     bool stun = false;
