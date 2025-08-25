@@ -4,10 +4,11 @@ using ECommons.Hooks;
 using Flecs.NET.Core;
 using RaidsRewritten.Scripts.Attacks;
 using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Scripts.Conditions;
 
 namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
-public class ExpandingEarthshakerPuddles : Mechanic
+public class EarthShakerStar : Mechanic
 {
     public const string VfxPath = "bgcommon/world/common/vfx_for_btl/b0801/eff/b0801_yuka_o.avfx";
 
@@ -43,17 +44,14 @@ public class ExpandingEarthshakerPuddles : Mechanic
         if (newObject == null) { return; }
         if (newObject.DataId != EarthShakerPuddleDataId) { return; }
 
-        if (this.AttackManager.TryCreateAttackEntity<ExpandingPuddle>(out var puddle))
+        if (this.AttackManager.TryCreateAttackEntity<Star>(out var star))
         {
-            puddle.Set(new Position(newObject.Position));
-            puddle.Set(new Rotation(newObject.Rotation));
-            puddle.Set(new ExpandingPuddle.Component(
-                VfxPath,
-                StartScale: 0.5f,
-                EndScale: 5.0f,
-                ExpandSpeed: 0.25f,
-                Lifetime: 22.0f));
-            attacks.Add(puddle);
+            star.Set(new Star.Component(
+                OmenTime: 4.75f,
+                VfxPath: "vfx/monster/gimmick5/eff/x6r7_b3_g08_c0p.avfx",
+                OnHit: e => { Stun.ApplyToPlayer(e, 10.0f); }));
+            star.Set(new Position(newObject.Position));
+            attacks.Add(star);
         }
     }
 }

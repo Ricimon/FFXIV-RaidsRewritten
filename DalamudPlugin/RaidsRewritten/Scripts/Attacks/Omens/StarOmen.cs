@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Numerics;
+using ECommons.MathHelpers;
 using Flecs.NET.Core;
 using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Utility;
@@ -14,16 +15,30 @@ public class StarOmen : IAttack
         if (!omen.TryGet<Rotation>(out var r)) { return false; }
         if (!omen.TryGet<Scale>(out var s)) { return false; }
 
-        for(var i = 0; i < 8; i++)
+        var width = 2 * s.Value.X / 2.5f;
+
+        bool inOmen = false;
+
+        for (var i = 0; i < 8; i++)
         {
             var rotation = r.Value + i * 0.25f * MathF.PI;
             var forward = MathUtilities.RotationToUnitVector(rotation);
             var right = MathUtilities.RotationToUnitVector(rotation - 0.5f * MathF.PI);
 
-            var width = 2 * s.Value.X;
+            var originToPosition = position.ToVector2() - p.Value.ToVector2();
+            var amountForward = Vector2.Dot(forward, originToPosition);
+            var amountRight = Vector2.Dot(right, originToPosition);
+
+            if (amountForward >= 0 &&
+                amountRight >= -0.5f * width &&
+                amountRight <= 0.5f * width)
+            {
+                inOmen = true;
+                break;
+            }
         }
 
-        return false;
+        return inOmen;
     }
 
     public static Entity CreateEntity(World world)

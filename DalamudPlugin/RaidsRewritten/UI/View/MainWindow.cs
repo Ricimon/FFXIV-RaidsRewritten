@@ -149,7 +149,8 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         this.effectsRendererPositionY = configuration.EffectsRendererPositionY;
 
 
-        if(effectsRendererPositionX == 0 && effectsRendererPositionY == 0) { 
+        if (effectsRendererPositionX == 0 && effectsRendererPositionY == 0)
+        {
             var viewport = ImGui.GetMainViewport();
             int x = (int)(viewport.Pos.X + viewport.Size.X / 2);
             int y = (int)(viewport.Pos.Y + viewport.Size.Y / 3);
@@ -226,7 +227,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                     var mechanics = this.encounterManager.ActiveEncounter?.GetMechanics();
                     if (mechanics != null)
                     {
-                        foreach(var mechanic in mechanics)
+                        foreach (var mechanic in mechanics)
                         {
                             mechanic.Reset();
                         }
@@ -278,7 +279,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         }
 
         ImGui.SameLine();
-        
+
         if (ImGui.Button("Status Overlay"))
         {
             using var q = ecsContainer.World.Query<Player.Component>();
@@ -300,7 +301,9 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             ImGui.Text(encounterText.ToString());
 
             using (ImRaii.PushIndent())
+#if !DEBUG
             using (ImRaii.Disabled(encounterManager.InCombat))
+#endif
             {
                 encounterManager.ActiveEncounter.DrawConfig();
             }
@@ -312,71 +315,14 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         using var debugTab = ImRaii.TabItem("Debug");
         if (!debugTab) return;
 
-        if (ImGui.Button("Clear All Attacks"))
+        //#if DEBUG
+        bool punishmentImmunity = configuration.PunishmentImmunity;
+        if (ImGui.Checkbox("Punishment Immunity", ref punishmentImmunity))
         {
-            this.attackManager.ClearAllAttacks();
+            configuration.PunishmentImmunity = punishmentImmunity;
+            configuration.Save();
         }
-        ImGui.SameLine();
-        if (ImGui.Button("Clear All Statuses"))
-        {
-            this.ecsContainer.World.DeleteWith<Condition.Component>();
-        }
-
-        if (ImGui.Button("Circle Omen"))
-        {
-            var player = this.dalamud.ClientState.LocalPlayer;
-            if (player != null)
-            {
-                if (this.attackManager.TryCreateAttackEntity<CircleOmen>(out var circle))
-                {
-                    circle.Set(new Position(player.Position));
-                    circle.Set(new Rotation(player.Rotation));
-                    circle.Set(new Scale(Vector3.One));
-                }
-            }
-        }
-        ImGui.SameLine();
-        if (ImGui.Button("Fan Omen"))
-        {
-            var player = this.dalamud.ClientState.LocalPlayer;
-            if (player != null)
-            {
-                if (this.attackManager.TryCreateAttackEntity<FanOmen>(out var fan))
-                {
-                    fan.Set(new Position(player.Position));
-                    fan.Set(new Rotation(player.Rotation));
-                    fan.Set(new Scale(Vector3.One));
-                }
-            }
-        }
-        ImGui.SameLine();
-        if (ImGui.Button("Rect Omen"))
-        {
-            var player = this.dalamud.ClientState.LocalPlayer;
-            if (player != null)
-            {
-                if (this.attackManager.TryCreateAttackEntity<RectangleOmen>(out var rect))
-                {
-                    rect.Set(new Position(player.Position));
-                    rect.Set(new Rotation(player.Rotation));
-                    rect.Set(new Scale(Vector3.One));
-                }
-            }
-        }
-        ImGui.SameLine();
-        if (ImGui.Button("Star Omen"))
-        {
-            var player = this.dalamud.ClientState.LocalPlayer;
-            if (player != null)
-            {
-                if (this.attackManager.TryCreateAttackEntity<StarOmen>(out var star))
-                {
-                    star.Set(new Position(player.Position));
-                    star.Set(new Rotation(player.Rotation));
-                    star.Set(new Scale(2.5f * Vector3.One));
-                }
-            }
-        }
+        //#endif
 
         if (ImGui.Button("Print Player Data"))
         {
@@ -387,14 +333,15 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             }
         }
 
-//#if DEBUG
-        bool punishmentImmunity = configuration.PunishmentImmunity;
-        if (ImGui.Checkbox("Punishment Immunity", ref punishmentImmunity))
+        if (ImGui.Button("Clear All Attacks"))
         {
-            configuration.PunishmentImmunity = punishmentImmunity;
-            configuration.Save();
+            this.attackManager.ClearAllAttacks();
         }
-//#endif
+        ImGui.SameLine();
+        if (ImGui.Button("Clear All Statuses"))
+        {
+            this.ecsContainer.World.DeleteWith<Condition.Component>();
+        }
 
         ImGui.Text("Fake statuses");
         if (ImGui.Button("Bind"))
@@ -451,7 +398,64 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             });
         }
 
-        ImGui.Text("Attacks");
+        ImGui.Text("Test Omens");
+        if (ImGui.Button("Circle Omen"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<CircleOmen>(out var circle))
+                {
+                    circle.Set(new Position(player.Position));
+                    circle.Set(new Rotation(player.Rotation));
+                    circle.Set(new Scale(Vector3.One));
+                }
+            }
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Fan Omen"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<FanOmen>(out var fan))
+                {
+                    fan.Set(new Position(player.Position));
+                    fan.Set(new Rotation(player.Rotation));
+                    fan.Set(new Scale(Vector3.One));
+                }
+            }
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Rect Omen"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<RectangleOmen>(out var rect))
+                {
+                    rect.Set(new Position(player.Position));
+                    rect.Set(new Rotation(player.Rotation));
+                    rect.Set(new Scale(Vector3.One));
+                }
+            }
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Star Omen"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<StarOmen>(out var star))
+                {
+                    star.Set(new Position(player.Position));
+                    star.Set(new Rotation(player.Rotation));
+                    star.Set(new Scale(5.0f * Vector3.One));
+                }
+            }
+        }
+
+        ImGui.Text("Test Attacks");
 
         if (ImGui.Button("Spawn Twister"))
         {
@@ -611,7 +615,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
 
                         DelayedAction.Create(tether.CsWorld(), () =>
                         {
-                                tether.Add<DistanceSnapshotTether.Activated>();
+                            tether.Add<DistanceSnapshotTether.Activated>();
                         }, 3f);
                     }
                 }
@@ -654,7 +658,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                 if (this.attackManager.TryCreateAttackEntity<ExpandingPuddle>(out var puddle))
                 {
                     puddle.Set(new ExpandingPuddle.Component(
-                        Scripts.Encounters.UCOB.ExpandingEarthshakerPuddles.VfxPath,
+                        "bgcommon/world/common/vfx_for_btl/b0801/eff/b0801_yuka_o.avfx",
                         0.5f,
                         10.0f,
                         1.0f,
@@ -662,6 +666,23 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                     puddle.Set(new Position(player.Position));
                     puddle.Set(new Rotation(player.Rotation));
                     puddle.Set(new Scale(Vector3.One));
+                }
+            }
+        }
+
+        if (ImGui.Button("Star"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<Star>(out var star))
+                {
+                    star.Set(new Star.Component(
+                        OmenTime: 2.75f,
+                        VfxPath: "vfx/monster/gimmick5/eff/x6r7_b3_g08_c0p.avfx",
+                        OnHit: e => { Stun.ApplyToPlayer(e, 2.0f); }));
+                    star.Set(new Position(player.Position));
+                    star.Set(new Rotation(player.Rotation));
                 }
             }
         }
@@ -696,7 +717,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                 Temperature.HeatChangedEvent(e, -50);
             });
         }
-	    if (ImGui.Button("Spawn Liquid Heaven"))
+        if (ImGui.Button("Spawn Liquid Heaven"))
         {
             var player = this.dalamud.ClientState.LocalPlayer;
             if (player != null)

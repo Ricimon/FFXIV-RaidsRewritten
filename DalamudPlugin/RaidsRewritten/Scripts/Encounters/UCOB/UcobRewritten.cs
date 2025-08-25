@@ -29,7 +29,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
     private string DreadknightKey => $"{Name}.Dreadknight";
     private string ADSSquaredKey => $"{Name}.ADS^2";
     private string TethersKey => $"{Name}.Tethers";
-    private string ExpandingPuddlesKey => $"{Name}.ExpandingPuddles";
+    private string EarthShakerStarKey => $"{Name}.EarthShakerStar";
 
     private readonly List<Mechanic> mechanics = [];
     private readonly string[] moreExaflaresDifficulties = [
@@ -106,10 +106,10 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             this.mechanics.Add(tethers);
         }
 
-        //if (configuration.GetEncounterSetting(ExpandingPuddlesKey, true))
-        //{
-        //    this.mechanics.Add(mechanicFactory.Create<ExpandingEarthshakerPuddles>());
-        //}
+        if (configuration.GetEncounterSetting(EarthShakerStarKey, true))
+        {
+            this.mechanics.Add(mechanicFactory.Create<EarthShakerStar>());
+        }
 
         if (configuration.GetEncounterSetting(PermanentTwistersKey, true))
         {
@@ -203,32 +203,32 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             RefreshMechanics();
         }
 
-        bool adsSquared = configuration.GetEncounterSetting(this.ADSSquaredKey, true);
+        bool adsSquared = configuration.GetEncounterSetting(ADSSquaredKey, true);
         if (ImGui.Checkbox("ADS²", ref adsSquared))
         {
-            configuration.EncounterSettings[this.ADSSquaredKey] =
+            configuration.EncounterSettings[ADSSquaredKey] =
                 adsSquared ? bool.TrueString : bool.FalseString;
             configuration.Save();
             RefreshMechanics();
         }
 
-        bool tethers = configuration.GetEncounterSetting(this.TethersKey, true);
+        bool tethers = configuration.GetEncounterSetting(TethersKey, true);
         if (ImGui.Checkbox("Tethers", ref tethers))
         {
-            configuration.EncounterSettings[this.TethersKey] =
+            configuration.EncounterSettings[TethersKey] =
                 tethers ? bool.TrueString : bool.FalseString;
             configuration.Save();
             RefreshMechanics();
         }
 
-        //bool expandingPuddles = configuration.GetEncounterSetting(this.ExpandingPuddlesKey, true);
-        //if (ImGui.Checkbox("Expanding Puddles", ref expandingPuddles))
-        //{
-        //    configuration.EncounterSettings[this.ExpandingPuddlesKey] =
-        //        expandingPuddles ? bool.TrueString : bool.FalseString;
-        //    configuration.Save();
-        //    RefreshMechanics();
-        //}
+        bool earthShakerStar = configuration.GetEncounterSetting(EarthShakerStarKey, true);
+        if (ImGui.Checkbox("Earth Shaker Star", ref earthShakerStar))
+        {
+            configuration.EncounterSettings[EarthShakerStarKey] =
+                earthShakerStar ? bool.TrueString : bool.FalseString;
+            configuration.Save();
+            RefreshMechanics();
+        }
 
         bool permanentTwisters = configuration.GetEncounterSetting(PermanentTwistersKey, false);
         if (ImGui.Checkbox("Permanent Twisters", ref permanentTwisters))
@@ -339,7 +339,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
         configuration.EncounterSettings[DreadknightKey] = bool.TrueString;
         configuration.EncounterSettings[ADSSquaredKey] = bool.TrueString;
         configuration.EncounterSettings[TethersKey] = bool.TrueString;
-        //configuration.EncounterSettings[ExpandingPuddlesKey] = bool.TrueString;
+        configuration.EncounterSettings[EarthShakerStarKey] = bool.TrueString;
 
         configuration.EncounterSettings[PermanentTwistersKey] = bool.FalseString;
         configuration.EncounterSettings[RollingBallKey] = bool.FalseString;

@@ -10,6 +10,10 @@ Earthshaker puddle: DataId 0x1E9663 bgcommon/world/common/vfx_for_btl/b0282/eff/
 O10s
 Ground Ice Effect: bgcommon/world/common/vfx_for_btl/b0195/eff/b0195_yuka_c.avfx, 5y radius
 
+The Dancing Plague
+Star Omen: bg/ex3/01_nvt_n4/common/vfx/eff/b1588rod01_u.avfx (static)
+Star Attack VFX: bg/ex3/01_nvt_n4/common/vfx/eff/b1588yuka1_u.avfx (static)
+
 E1S
 Vice of Apathy: DataId 0x1EAE20
 
@@ -30,5 +34,8 @@ Electrical Condenser (3x3): vfx/monster/gimmick5/eff/x6r4_b_g016_c0t1.avfx (acto
 FRU
 Diamond Dust Star Omen: vfx/omen/eff/m063mist_omen_o0v.avfx (static)
 Diamond Dust Star: vfx/monster/gimmick2/eff/e3d7_b3_g3_c0v.avfx
+
+M7S
+Tendrils of Terror: vfx/monster/gimmick5/eff/x6r7_b3_g08_c0p.avfx (actor)
 
 Rectangle Omen: vfx/omen/eff/general02f.avfx (static)
