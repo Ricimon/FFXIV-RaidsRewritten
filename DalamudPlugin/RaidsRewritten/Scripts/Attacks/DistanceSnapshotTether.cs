@@ -15,6 +15,7 @@ namespace RaidsRewritten.Scripts.Attacks;
 
 public class DistanceSnapshotTether(CommonQueries commonQueries) : IAttack, ISystem
 {
+    private const string DebuffVfx = "vfx/common/eff/dk05th_stdn0t.avfx";
 
     public enum TetherConditionVfxTarget
     {
@@ -91,7 +92,14 @@ public class DistanceSnapshotTether(CommonQueries commonQueries) : IAttack, ISys
             });
     }
 
-    public static Entity SetTetherVfx(Entity entity, TetherOmen.TetherVfx tetherVfx) => entity.Set(new ActorVfx(TetherOmen.TetherVfxes[tetherVfx]));
+    public static Entity SetTetherVfx(Entity entity, TetherOmen.TetherVfx tetherVfx, IGameObject source, IGameObject target)
+    {
+        entity.CsWorld().Entity().Set(new ActorVfx(DebuffVfx)).Set(new ActorVfxSource(source));
+        entity.CsWorld().Entity().Set(new ActorVfx(DebuffVfx)).Set(new ActorVfxSource(target));
+        return entity.Set(new ActorVfx(TetherOmen.TetherVfxes[tetherVfx]))
+                .Set(new ActorVfxSource(source))
+                .Set(new ActorVfxTarget(target));
+    }
 
     private static bool ValidActor(IGameObject? gameObject) => gameObject != null && gameObject.IsValid();
 
