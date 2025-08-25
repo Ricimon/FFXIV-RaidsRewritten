@@ -107,7 +107,7 @@ public class Tethers : Mechanic
                     {
                         DistanceSnapshotTether.SetTetherVfx(tether, TetherOmen.TetherVfx.ActivatedFar)
                             .Set(new DistanceSnapshotTether.Tether(onCondition1))
-                            .Set(new DistanceSnapshotTether.FailWhenFurtherThan(FarTetherBreakpoint));
+                            .Set(new DistanceSnapshotTether.FailWhenCloserThan(FarTetherBreakpoint));
                     }
 
                     tether.Set(new ActorVfxSource(src))

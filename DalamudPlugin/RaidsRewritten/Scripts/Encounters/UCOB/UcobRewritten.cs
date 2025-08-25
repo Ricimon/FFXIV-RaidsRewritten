@@ -230,7 +230,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
         //    RefreshMechanics();
         //}
 
-        bool permanentTwisters = configuration.GetEncounterSetting(PermanentTwistersKey, true);
+        bool permanentTwisters = configuration.GetEncounterSetting(PermanentTwistersKey, false);
         if (ImGui.Checkbox("Permanent Twisters", ref permanentTwisters))
         {
             configuration.EncounterSettings[PermanentTwistersKey] =

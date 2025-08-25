@@ -300,6 +300,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             ImGui.Text(encounterText.ToString());
 
             using (ImRaii.PushIndent())
+            using (ImRaii.Disabled(encounterManager.InCombat))
             {
                 encounterManager.ActiveEncounter.DrawConfig();
             }

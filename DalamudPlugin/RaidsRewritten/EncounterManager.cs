@@ -22,6 +22,7 @@ namespace RaidsRewritten;
 public sealed class EncounterManager : IDalamudHook
 {
     public IEncounter? ActiveEncounter { get; private set; }
+    public bool InCombat => inCombat ?? false;
 
     private readonly DalamudServices dalamud;
     private readonly MapEffectProcessor mapEffectProcessor;
@@ -43,8 +44,8 @@ public sealed class EncounterManager : IDalamudHook
     ];
     private readonly Dictionary<ushort, IEncounter> encounters;
 
-    private bool? InCombat = null;
-    private byte Weather = 0;
+    private bool? inCombat = null;
+    private byte weather = 0;
 
     public EncounterManager(
         DalamudServices dalamud,
@@ -355,17 +356,17 @@ public sealed class EncounterManager : IDalamudHook
             }
         }
 
-        if (!this.InCombat.HasValue)
+        if (!this.inCombat.HasValue)
         {
-            this.InCombat = combatState;
+            this.inCombat = combatState;
             return;
         }
 
         if (combatState)
         {
-            if (!this.InCombat.Value)
+            if (!this.inCombat.Value)
             {
-                this.InCombat = true;
+                this.inCombat = true;
                 this.logger.Debug("COMBAT STARTED");
                 if (this.configuration.EverythingDisabled) { return; }
 
@@ -379,9 +380,9 @@ public sealed class EncounterManager : IDalamudHook
             }
         } else
         {
-            if (this.InCombat.Value)
+            if (this.inCombat.Value)
             {
-                this.InCombat = false;
+                this.inCombat = false;
                 this.logger.Debug("COMBAT ENDED");
                 if (this.configuration.EverythingDisabled) { return; }
 
@@ -403,12 +404,12 @@ public sealed class EncounterManager : IDalamudHook
             var weatherManager = FFXIVClientStructs.FFXIV.Client.Game.WeatherManager.Instance();
             if (weatherManager == null) { return; }
             var weather = weatherManager->GetCurrentWeather();
-            if (Weather == weather) { return; }
+            if (this.weather == weather) { return; }
 
             this.logger.Debug($"WEATHER: {weather}");
 
-            var prevWeather = Weather;
-            Weather = weather;
+            var prevWeather = this.weather;
+            this.weather = weather;
 
             if (this.configuration.EverythingDisabled) { return; }
             if (prevWeather > 0 && ActiveEncounter != null)
