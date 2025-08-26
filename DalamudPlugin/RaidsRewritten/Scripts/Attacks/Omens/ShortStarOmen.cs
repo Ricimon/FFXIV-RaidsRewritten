@@ -7,8 +7,10 @@ using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Attacks.Omens;
 
-public class StarOmen : IAttack
+public class ShortStarOmen : IAttack
 {
+    public const float ScaleMultiplier = 5.0f;
+
     public static bool IsInOmen(Entity omen, Vector3 position)
     {
         if (!omen.TryGet<Position>(out var p)) { return false; }

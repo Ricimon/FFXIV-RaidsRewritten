@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Numerics;
+using ECommons.MathHelpers;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
@@ -12,6 +13,12 @@ namespace RaidsRewritten.Scripts.Attacks;
 
 public class Star(DalamudServices dalamud, CommonQueries commonQueries, ILogger logger) : IAttack, ISystem
 {
+    public enum Type
+    {
+        Short,
+        Long
+    }
+
     public enum Phase
     {
         Omen,
@@ -20,6 +27,7 @@ public class Star(DalamudServices dalamud, CommonQueries commonQueries, ILogger 
     }
 
     public record struct Component(
+        Type Type,
         float OmenTime,
         string VfxPath,
         Action<Entity> OnHit,
@@ -29,12 +37,44 @@ public class Star(DalamudServices dalamud, CommonQueries commonQueries, ILogger 
 
     private const float DamageDelay = 0.5f;
 
+    public static bool IsInAttack(Entity attack, Vector3 position)
+    {
+        if (!attack.TryGet<Position>(out var p)) { return false; }
+        if (!attack.TryGet<Rotation>(out var r)) { return false; }
+        if (!attack.TryGet<Scale>(out var s)) { return false; }
+
+        var width = 4 * s.Value.X;
+
+        bool inAttack = false;
+
+        for (var i = 0; i < 8; i++)
+        {
+            var rotation = r.Value + i * 0.25f * MathF.PI;
+            var forward = MathUtilities.RotationToUnitVector(rotation);
+            var right = MathUtilities.RotationToUnitVector(rotation - 0.5f * MathF.PI);
+
+            var originToPosition = position.ToVector2() - p.Value.ToVector2();
+            var amountForward = Vector2.Dot(forward, originToPosition);
+            var amountRight = Vector2.Dot(right, originToPosition);
+
+            if (amountForward >= 0 &&
+                amountRight >= -0.5f * width &&
+                amountRight <= 0.5f * width)
+            {
+                inAttack = true;
+                break;
+            }
+        }
+
+        return inAttack;
+    }
+
     public Entity Create(World world)
     {
         return world.Entity()
             .Set(new Position())
             .Set(new Rotation())
-            .Set(new Scale(5.0f * Vector3.One))
+            .Set(new Scale(Vector3.One))
             .Set(new Component())
             .Add<Attack>();
     }
@@ -56,10 +96,19 @@ public class Star(DalamudServices dalamud, CommonQueries commonQueries, ILogger 
                             // Create Omen
                             if (!component.OmenEntity.IsValid())
                             {
-                                component.OmenEntity = StarOmen.CreateEntity(it.World())
+                                if (component.Type == Type.Short)
+                                {
+                                    component.OmenEntity = ShortStarOmen.CreateEntity(it.World())
+                                        .Set(new Scale(ShortStarOmen.ScaleMultiplier * scale.Value));
+                                }
+                                else
+                                {
+                                    component.OmenEntity = LongStarOmen.CreateEntity(it.World())
+                                        .Set(new Scale(LongStarOmen.ScaleMultiplier * scale.Value));
+                                }
+                                component.OmenEntity
                                     .Set(new Position(position.Value))
                                     .Set(new Rotation(rotation.Value))
-                                    .Set(new Scale(scale.Value))
                                     .ChildOf(entity);
                             }
                         }
@@ -114,8 +163,7 @@ public class Star(DalamudServices dalamud, CommonQueries commonQueries, ILogger 
             // Transcendance, TODO: play invulnerable vfx
             !player.StatusList.Any(s => s.StatusId == GameConstants.TranscendanceStatusId))
         {
-            // This attack and its omen share transform values, so this is okay
-            if (StarOmen.IsInOmen(entity, player.Position))
+            if (IsInAttack(entity, player.Position))
             {
                 var onHit = component.OnHit;
                 if (onHit != null)

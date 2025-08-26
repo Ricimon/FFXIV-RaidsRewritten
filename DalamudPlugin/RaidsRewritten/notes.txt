@@ -36,6 +36,10 @@ Diamond Dust Star Omen: vfx/omen/eff/m063mist_omen_o0v.avfx (static)
 Diamond Dust Star: vfx/monster/gimmick2/eff/e3d7_b3_g3_c0v.avfx
 
 M7S
+Tendrils of Terror Omen: vfx/omen/eff/m0935mist_omen_o0p.avfx (static)
 Tendrils of Terror: vfx/monster/gimmick5/eff/x6r7_b3_g08_c0p.avfx (actor)
 
 Rectangle Omen: vfx/omen/eff/general02f.avfx (static)
+
+Animations
+Minion normal/idle_inactive1: 4

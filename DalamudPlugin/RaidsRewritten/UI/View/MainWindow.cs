@@ -446,11 +446,11 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             var player = this.dalamud.ClientState.LocalPlayer;
             if (player != null)
             {
-                if (this.attackManager.TryCreateAttackEntity<StarOmen>(out var star))
+                if (this.attackManager.TryCreateAttackEntity<ShortStarOmen>(out var star))
                 {
                     star.Set(new Position(player.Position));
                     star.Set(new Rotation(player.Rotation));
-                    star.Set(new Scale(5.0f * Vector3.One));
+                    star.Set(new Scale(ShortStarOmen.ScaleMultiplier * Vector3.One));
                 }
             }
         }
@@ -674,6 +674,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                 if (this.attackManager.TryCreateAttackEntity<Star>(out var star))
                 {
                     star.Set(new Star.Component(
+                        Type: Star.Type.Long,
                         OmenTime: 2.75f,
                         VfxPath: "vfx/monster/gimmick5/eff/x6r7_b3_g08_c0p.avfx",
                         OnHit: e => { Stun.ApplyToPlayer(e, 2.0f); }));

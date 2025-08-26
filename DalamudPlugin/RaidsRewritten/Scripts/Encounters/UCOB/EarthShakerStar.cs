@@ -47,6 +47,7 @@ public class EarthShakerStar : Mechanic
         if (this.AttackManager.TryCreateAttackEntity<Star>(out var star))
         {
             star.Set(new Star.Component(
+                Type: Star.Type.Long,
                 OmenTime: 4.75f,
                 VfxPath: "vfx/monster/gimmick5/eff/x6r7_b3_g08_c0p.avfx",
                 OnHit: e => { Stun.ApplyToPlayer(e, 10.0f); }));
