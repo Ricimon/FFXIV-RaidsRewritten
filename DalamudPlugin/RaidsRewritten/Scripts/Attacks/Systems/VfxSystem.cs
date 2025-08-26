@@ -6,7 +6,6 @@ using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Spawn;
 using RaidsRewritten.Utility;
 using System.Numerics;
-using System.Security.Principal;
 
 namespace RaidsRewritten.Scripts.Attacks.Systems;
 
@@ -17,6 +16,7 @@ public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogge
 
     public void Register(World world)
     {
+        // Static VFX
         world.System<StaticVfx, Position, Rotation, Scale>()
             .Each((Iter it, int i, ref StaticVfx vfx, ref Position position, ref Rotation rotation, ref Scale scale) =>
             {
@@ -49,6 +49,43 @@ public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogge
                 }
             });
 
+        world.System<StaticVfx, Alpha>()
+            .Each((Iter it, int i, ref StaticVfx vfx, ref Alpha alpha) =>
+            {
+                if (!it.Changed()) { return; }
+                if (vfx.VfxPtr == null) { return; }
+                vfx.VfxPtr.UpdateAlpha(alpha.Value);
+            });
+
+        world.Observer<StaticVfx>()
+            .Event(Ecs.OnRemove)
+            .Each((Entity e, ref StaticVfx _) =>
+            {
+                // For whatever reason the ref Vfx variable does not match that of the entity variable
+                // Probably some quirk of the Observer binding
+                var vfx = e.Get<StaticVfx>();
+                if (vfx.VfxPtr != null && vfx.VfxPtr.Vfx != null)
+                {
+                    Entity fadeOutEntity;
+                    if (e.Has<Omen>())
+                    {
+                        fadeOutEntity = e.CsWorld().Entity()
+                            .Set(new VfxFadeOut(vfx.VfxPtr, 0.25f, 0.25f));
+                    }
+                    else
+                    {
+                        fadeOutEntity = e.CsWorld().Entity()
+                            .Set(new VfxFadeOut(vfx.VfxPtr, 1.0f, 1.0f));
+                    }
+
+                    if (e.TryGet(out Alpha alpha))
+                    {
+                        fadeOutEntity.Set(new Alpha(alpha.Value));
+                    }
+                }
+            });
+
+        // Actor VFX
         world.System<Model, ActorVfx>()
             .TermAt(0).Self().Up()
             .Each((Iter it, int i, ref Model model, ref ActorVfx vfx) =>
@@ -82,28 +119,6 @@ public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogge
                 }
             });
 
-        world.Observer<StaticVfx>()
-            .Event(Ecs.OnRemove)
-            .Each((Entity e, ref StaticVfx _) =>
-            {
-                // For whatever reason the ref Vfx variable does not match that of the entity variable
-                // Probably some quirk of the Observer binding
-                var vfx = e.Get<StaticVfx>();
-                if (vfx.VfxPtr != null && vfx.VfxPtr.Vfx != null)
-                {
-                    if (e.Has<Omen>())
-                    {
-                        e.CsWorld().Entity()
-                            .Set(new VfxFadeOut(vfx.VfxPtr, 0.25f, 0.25f));
-                    }
-                    else
-                    {
-                        e.CsWorld().Entity()
-                            .Set(new VfxFadeOut(vfx.VfxPtr, 1.0f, 1.0f));
-                    }
-                }
-            });
-
         world.Observer<ActorVfx>()
             .Event(Ecs.OnRemove)
             .Each((Entity e, ref ActorVfx _) =>
@@ -117,13 +132,20 @@ public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogge
                 }
             });
 
+        // Common
         world.System<VfxFadeOut>()
             .Each((Iter it, int i, ref VfxFadeOut vfxFade) =>
             {
+                var entity = it.Entity(i);
                 vfxFade.TimeRemaining -= it.DeltaTime();
                 if (vfxFade.TimeRemaining > 0)
                 {
-                    vfxFade.VfxPtr.UpdateAlpha(vfxFade.TimeRemaining / vfxFade.Duration);
+                    float a = 1.0f;
+                    if (entity.TryGet(out Alpha alpha))
+                    {
+                        a = alpha.Value;
+                    }
+                    vfxFade.VfxPtr.UpdateAlpha(a * vfxFade.TimeRemaining / vfxFade.Duration);
                 }
                 else
                 {
@@ -141,7 +163,7 @@ public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogge
         if (e.TryGet<ActorVfxTarget>(out var target))
         {
             if (target.Target != null && !target.Target.IsValid())
-            { 
+            {
                 return true;
             }
         }

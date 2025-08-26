@@ -3,6 +3,8 @@ using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using ECommons.MathHelpers;
+using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using Flecs.NET.Core;
 using RaidsRewritten.Audio;
 using RaidsRewritten.Data;
@@ -330,6 +332,21 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             if (player != null)
             {
                 this.logger.Info($"Player position:{player.Position}, address:0x{player.Address:X}, entityId:0x{player.EntityId:X}, gameObjectId:0x{player.GameObjectId}");
+            }
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Print Weather/Time Data"))
+        {
+            unsafe
+            {
+                var weatherManager = WeatherManager.Instance();
+                var framework = Framework.Instance();
+                if (weatherManager != null && framework != null)
+                {
+                    var weather = weatherManager->GetCurrentWeather();
+                    var et = framework->ClientTime.GetEorzeaTimeOfDay();
+                    this.logger.Info($"Weather: {weather}, Eorzea Time: {et}");
+                }
             }
         }
 

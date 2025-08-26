@@ -7,4 +7,5 @@ public record struct StaticVfx(string Path, Interop.Structs.Vfx.StaticVfx? VfxPt
 public record struct ActorVfx(string Path, Interop.Structs.Vfx.ActorVfx? VfxPtr = null);
 public record struct ActorVfxSource(IGameObject? Source);
 public record struct ActorVfxTarget(IGameObject? Target);
+public record struct Alpha(float Value);
 public record struct VfxFadeOut(BaseVfx VfxPtr, float Duration, float TimeRemaining);
