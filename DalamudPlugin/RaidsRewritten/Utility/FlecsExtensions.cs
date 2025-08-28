@@ -51,4 +51,11 @@ public static class FlecsExtensions
             return query.CPtr() != null;
         }
     }
+
+    public static bool HasChildren(this Entity entity)
+    {
+        var childCount = 0;
+        entity.Children(child => { childCount++; });
+        return childCount > 0;
+    }
 }

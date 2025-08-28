@@ -13,6 +13,8 @@ namespace RaidsRewritten
 
         public bool EverythingDisabled = false;
 
+        public bool PunishmentImmunity = false;
+
         public Dictionary<string, string> EncounterSettings = [];
 
         // Saved UI inputs

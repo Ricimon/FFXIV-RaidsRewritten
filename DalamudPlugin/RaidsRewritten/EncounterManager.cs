@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Plugin.Services;
@@ -14,7 +13,6 @@ using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ObjectLifeTracker;
 using RaidsRewritten.Log;
 using RaidsRewritten.Memory;
-using RaidsRewritten.Scripts;
 using RaidsRewritten.Scripts.Encounters;
 using RaidsRewritten.Utility;
 using Dalamud.Game.ClientState.Conditions;
@@ -24,6 +22,7 @@ namespace RaidsRewritten;
 public sealed class EncounterManager : IDalamudHook
 {
     public IEncounter? ActiveEncounter { get; private set; }
+    public bool InCombat => inCombat ?? false;
 
     private readonly DalamudServices dalamud;
     private readonly MapEffectProcessor mapEffectProcessor;
@@ -45,7 +44,8 @@ public sealed class EncounterManager : IDalamudHook
     ];
     private readonly Dictionary<ushort, IEncounter> encounters;
 
-    private bool InCombat = false;
+    private bool? inCombat = null;
+    private byte weather = 0;
 
     public EncounterManager(
         DalamudServices dalamud,
@@ -284,14 +284,14 @@ public sealed class EncounterManager : IDalamudHook
         var text = new StringBuilder("ACTION: ");
 
         // Ignore actions from other players
-        var source = set.Source;
-        var target = set.Target;
-        if (source != null &&
-            source.ObjectKind == ObjectKind.Player &&
-            source.EntityId != this.dalamud.ClientState.LocalPlayer?.EntityId)
-        {
-            return;
-        }
+        //var source = set.Source;
+        //var target = set.Target;
+        //if (source != null &&
+        //    source.ObjectKind == ObjectKind.Player &&
+        //    source.EntityId != this.dalamud.ClientState.LocalPlayer?.EntityId)
+        //{
+        //    return;
+        //}
 
         text.Append(set.ToString());
         this.logger.Debug(text.ToString());
@@ -328,6 +328,20 @@ public sealed class EncounterManager : IDalamudHook
 
     private void OnFrameworkUpdate(IFramework framework)
     {
+        if (!this.configuration.EverythingDisabled && ActiveEncounter != null)
+        {
+            foreach(var mechanic in ActiveEncounter.GetMechanics())
+            {
+                mechanic.OnFrameworkUpdate(framework);
+            }
+        }
+
+        UpdateCombatState();
+        UpdateWeather();
+    }
+
+    private void UpdateCombatState()
+    {
         var combatState = this.dalamud.Condition[ConditionFlag.InCombat];
         if (this.dalamud.Condition[ConditionFlag.DutyRecorderPlayback])
         {
@@ -342,11 +356,17 @@ public sealed class EncounterManager : IDalamudHook
             }
         }
 
+        if (!this.inCombat.HasValue)
+        {
+            this.inCombat = combatState;
+            return;
+        }
+
         if (combatState)
         {
-            if (!this.InCombat)
+            if (!this.inCombat.Value)
             {
-                this.InCombat = true;
+                this.inCombat = true;
                 this.logger.Debug("COMBAT STARTED");
                 if (this.configuration.EverythingDisabled) { return; }
 
@@ -360,9 +380,9 @@ public sealed class EncounterManager : IDalamudHook
             }
         } else
         {
-            if (this.InCombat)
+            if (this.inCombat.Value)
             {
-                this.InCombat = false;
+                this.inCombat = false;
                 this.logger.Debug("COMBAT ENDED");
                 if (this.configuration.EverythingDisabled) { return; }
 
@@ -372,6 +392,31 @@ public sealed class EncounterManager : IDalamudHook
                     {
                         mechanic.OnCombatEnd();
                     }
+                }
+            }
+        }
+    }
+
+    private void UpdateWeather()
+    {
+        unsafe
+        {
+            var weatherManager = FFXIVClientStructs.FFXIV.Client.Game.WeatherManager.Instance();
+            if (weatherManager == null) { return; }
+            var weather = weatherManager->GetCurrentWeather();
+            if (this.weather == weather) { return; }
+
+            this.logger.Debug($"WEATHER: {weather}");
+
+            var prevWeather = this.weather;
+            this.weather = weather;
+
+            if (this.configuration.EverythingDisabled) { return; }
+            if (prevWeather > 0 && ActiveEncounter != null)
+            {
+                foreach (var mechanic in ActiveEncounter.GetMechanics())
+                {
+                    mechanic.OnWeatherChange(weather);
                 }
             }
         }

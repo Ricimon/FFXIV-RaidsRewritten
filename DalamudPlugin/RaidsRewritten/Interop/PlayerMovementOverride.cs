@@ -19,8 +19,15 @@ public unsafe sealed class PlayerMovementOverride : IDisposable
 {
     public bool IsMovementAllowedByGame { get; private set; }
 
-    public bool OverrideMovement { get; set; }
-    public Vector3 OverrideMovementDirection { get; set; }
+    public enum OverrideMovementState
+    {
+        None,
+        ForceMovementWorldDirection,
+        ForceMovementCameraDirection,
+    }
+    public OverrideMovementState OverrideMovement { get; set; }
+    public Vector3 OverrideMovementWorldDirection { get; set; }
+    public Vector2 OverrideMovementCameraDirection { get; set; }
     public enum ForcedWalkState
     {
         None,
@@ -117,21 +124,30 @@ public unsafe sealed class PlayerMovementOverride : IDisposable
         IsMovementAllowedByGame = bAdditiveUnk == 0 && rmiWalkIsInputEnabled1(self) && rmiWalkIsInputEnabled2(self) && !isBeingKnockedBack;
         //UserInput = *sumLeft != 0 || *sumForward != 0;
 
-        if (OverrideMovement && IsMovementAllowedByGame &&
-            GetDirectionAngles(false) is var relDir)
+        var overrideMovement = OverrideMovement != OverrideMovementState.None;
+        if (overrideMovement && IsMovementAllowedByGame)
         {
-            if (relDir != null)
+            if (OverrideMovement == OverrideMovementState.ForceMovementWorldDirection)
             {
-                var dir = relDir.Value.h.ToDirection();
-                *sumLeft = dir.X;
-                *sumForward = dir.Y;
-                *haveBackwardOrStrafe = 0;
-                Control.Instance()->IsWalking = false;
+                var relDir = GetDirectionAngles(false);
+                if (relDir != null)
+                {
+                    var dir = relDir.Value.h.ToDirection();
+                    *sumLeft = dir.X;
+                    *sumForward = dir.Y;
+                    *haveBackwardOrStrafe = 0;
+                    Control.Instance()->IsWalking = false;
+                }
+                else
+                {
+                    *sumLeft = 0;
+                    *sumForward = 0;
+                }
             }
-            else
+            else if (OverrideMovement == OverrideMovementState.ForceMovementCameraDirection)
             {
-                *sumLeft = 0;
-                *sumForward = 0;
+                *sumLeft = Math.Clamp(this.OverrideMovementCameraDirection.X, -1, 1);
+                *sumForward = Math.Clamp(this.OverrideMovementCameraDirection.Y, -1, 1);
             }
         }
 
@@ -143,7 +159,7 @@ public unsafe sealed class PlayerMovementOverride : IDisposable
 
     private bool CheckStrafeKeybind(IntPtr ptr, KeybindType keybind)
     {
-        if (OverrideMovement)
+        if (OverrideMovement != OverrideMovementState.None)
         {
             if (keybind == KeybindType.StrafeLeft || keybind == KeybindType.StrafeRight)
             { 
@@ -156,7 +172,7 @@ public unsafe sealed class PlayerMovementOverride : IDisposable
 
     private bool IsInputIdPressedDetour(InputData* inputData, InputId inputId)
     {
-        if (OverrideMovement)
+        if (OverrideMovement != OverrideMovementState.None)
         {
             if (inputId == InputId.JUMP ||
                 inputId == InputId.PAD_JUMPANDCANCELCAST)
@@ -172,10 +188,10 @@ public unsafe sealed class PlayerMovementOverride : IDisposable
         var player = this.dalamud.ClientState.LocalPlayer;
         if (player == null) { return null; }
 
-        if (this.OverrideMovementDirection == Vector3.Zero) { return null; }
+        if (this.OverrideMovementWorldDirection == Vector3.Zero) { return null; }
 
-        var dirH = Angle.FromDirectionXZ(this.OverrideMovementDirection);
-        var dirV = allowVertical ? Angle.FromDirection(new(this.OverrideMovementDirection.Y, this.OverrideMovementDirection.ToVector2().Length())) : default;
+        var dirH = Angle.FromDirectionXZ(this.OverrideMovementWorldDirection);
+        var dirV = allowVertical ? Angle.FromDirection(new(this.OverrideMovementWorldDirection.Y, this.OverrideMovementWorldDirection.ToVector2().Length())) : default;
 
         var refDir = this.legacyMode && !InputManager.IsAutoRunning()
             ? ((CameraEx*)CameraManager.Instance()->GetActiveCamera())->DirH.Radians() + 180.Degrees()

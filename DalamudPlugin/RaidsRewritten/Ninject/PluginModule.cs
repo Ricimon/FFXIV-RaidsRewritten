@@ -71,6 +71,7 @@ public class PluginModule : NinjectModule
         Bind<MapManager>().ToSelf().InSingletonScope();
         Bind<Mechanic.Factory>().ToSelf();
         Bind<EcsContainer>().ToSelf().InSingletonScope();
+        Bind<CommonQueries>().ToSelf().InSingletonScope();
         // Native control overrides
         Bind<PlayerManager>().ToSelf().InSingletonScope();
         Bind<PlayerMovementOverride>().ToSelf().WhenInjectedInto<PlayerManager>().InSingletonScope();
@@ -95,6 +96,8 @@ public class PluginModule : NinjectModule
         Bind<IAttack>().To<CircleOmen>();
         Bind<IAttack>().To<FanOmen>();
         Bind<IAttack>().To<RectangleOmen>();
+        Bind<IAttack>().To<ShortStarOmen>();
+        Bind<IAttack>().To<LongStarOmen>();
         Bind<IAttack>().To<ExaflareOmen>();
         Bind<IAttack, ISystem>().To<Twister>();
         Bind<IAttack, ISystem>().To<RollingBall>();
@@ -103,7 +106,13 @@ public class PluginModule : NinjectModule
         Bind<IAttack, ISystem>().To<Scripts.Attacks.LightningCorridor>();
         Bind<IAttack, ISystem>().To<Exaflare>();
         Bind<IAttack, ISystem>().To<ExaflareRow>();
+        Bind<IAttack, ISystem>().To<Scripts.Attacks.LiquidHeaven>();
         Bind<IAttack, ISystem>().To<JumpableShockwave>();
+        Bind<IAttack, ISystem>().To<Dreadknight>();
+        Bind<IAttack, ISystem>().To<ADS>();
+        Bind<IAttack, ISystem>().To<DistanceSnapshotTether>();
+        Bind<IAttack, ISystem>().To<ExpandingPuddle>();
+        Bind<IAttack, ISystem>().To<Star>();
         Bind<ISystem>().To<Player>();
         Bind<ISystem>().To<DelayedAction>();
         Bind<ISystem>().To<VfxSystem>();
@@ -112,6 +121,7 @@ public class PluginModule : NinjectModule
         // Conditions
         Bind<ISystem>().To<Condition>();
         Bind<IDalamudHook>().To<Knockback>();
+        Bind<ISystem>().To<Temperature>();
         Bind<ISystem>().To<Paralysis>();
 
         Bind<ILogger>().To<DalamudLogger>();

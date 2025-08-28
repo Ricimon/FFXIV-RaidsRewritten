@@ -88,6 +88,9 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
                     chara->Rotation = rotation.Value;
                     chara->Scale = scale.Value;
 
+                    var modelData = &chara->ModelContainer;
+                    modelData->ModelCharaId = model.ModelCharaId;
+
                     var name = $"FakeBattleNpc[{model.ModelCharaId}]";
                     for (int x = 0; x < name.Length; x++)
                     {
@@ -108,12 +111,9 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
                         //{
                         //    chara->CharacterSetup.CopyFromCharacter(localPlayer.Character(), CharacterSetupContainer.CopyFlags.WeaponHiding);
                         //}
-                        // This is needed to get idle/movement sounds working
+                        // This is needed to get idle/movement sounds working (must be called after model id is assigned)
                         chara->CharacterSetup.CopyFromCharacter((Character*)model.GameObject.Address, CharacterSetupContainer.CopyFlags.None);
                     }
-
-                    var modelData = &chara->ModelContainer;
-                    modelData->ModelCharaId = model.ModelCharaId;
                 }
                 else
                 {

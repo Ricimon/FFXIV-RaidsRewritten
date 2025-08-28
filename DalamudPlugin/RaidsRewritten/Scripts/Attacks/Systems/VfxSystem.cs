@@ -1,11 +1,11 @@
 ﻿using Flecs.NET.Core;
+using Dalamud.Game.ClientState.Objects.Types;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Spawn;
 using RaidsRewritten.Utility;
 using System.Numerics;
-using System.Security.Principal;
 
 namespace RaidsRewritten.Scripts.Attacks.Systems;
 
@@ -16,6 +16,7 @@ public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogge
 
     public void Register(World world)
     {
+        // Static VFX
         world.System<StaticVfx, Position, Rotation, Scale>()
             .Each((Iter it, int i, ref StaticVfx vfx, ref Position position, ref Rotation rotation, ref Scale scale) =>
             {
@@ -48,57 +49,12 @@ public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogge
                 }
             });
 
-        world.System<Model, ActorVfx>()
-            .Each((Iter it, int i, ref Model model, ref ActorVfx vfx) =>
+        world.System<StaticVfx, Alpha>()
+            .Each((Iter it, int i, ref StaticVfx vfx, ref Alpha alpha) =>
             {
-                var entity = it.Entity(i);
-                // UpdateScale doesn't seem to work for actor vfxes from a quick test. Should be looked into
-                // Position/Rotation should be based on source actor
-                if (vfx.VfxPtr == null && model.GameObject != null)
-                {
-                    if (entity.TryGet<ActorVfxTarget>(out var target))
-                    {
-                        if (target.Target != null && target.Target.IsValid())
-                        {
-                            vfx.VfxPtr = vfxSpawn.SpawnActorVfx(vfx.Path, model.GameObject, target.Target);
-                        } else
-                        {
-                            // don't bother spawning vfx if target isn't valid
-                            it.Entity(i).Destruct();
-                            return;
-                        }
-                    } else
-                    {
-                        vfx.VfxPtr = vfxSpawn.SpawnActorVfx(vfx.Path, model.GameObject, model.GameObject);
-                    }
-                }
-
-                // Vfx self-destructed, because it finished playing or target is gone
-                if (ActorVfxShouldDestruct(vfx, entity))
-                {
-                    entity.Destruct();
-                    return;
-                }
-            });
-
-        world.System<Player.Component, ActorVfx>()
-            .TermAt(0).Up()
-            .Each((Iter it, int i, ref Player.Component pc, ref ActorVfx vfx) =>
-            {
-                if (!pc.IsLocalPlayer) { return; }
-
-                var localPlayer = dalamud.ClientState.LocalPlayer;
-                if (vfx.VfxPtr == null && localPlayer != null)
-                {
-                    vfx.VfxPtr = vfxSpawn.SpawnActorVfx(vfx.Path, localPlayer, localPlayer);
-                }
-
-                // Vfx self-destructed, because it finished playing
-                if (vfx.VfxPtr != null && vfx.VfxPtr.Vfx == null)
-                {
-                    it.Entity(i).Destruct();
-                    return;
-                }
+                if (!it.Changed()) { return; }
+                if (vfx.VfxPtr == null) { return; }
+                vfx.VfxPtr.UpdateAlpha(alpha.Value);
             });
 
         world.Observer<StaticVfx>()
@@ -110,16 +66,56 @@ public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogge
                 var vfx = e.Get<StaticVfx>();
                 if (vfx.VfxPtr != null && vfx.VfxPtr.Vfx != null)
                 {
+                    Entity fadeOutEntity;
                     if (e.Has<Omen>())
                     {
-                        e.CsWorld().Entity()
+                        fadeOutEntity = e.CsWorld().Entity()
                             .Set(new VfxFadeOut(vfx.VfxPtr, 0.25f, 0.25f));
                     }
                     else
                     {
-                        e.CsWorld().Entity()
+                        fadeOutEntity = e.CsWorld().Entity()
                             .Set(new VfxFadeOut(vfx.VfxPtr, 1.0f, 1.0f));
                     }
+
+                    if (e.TryGet(out Alpha alpha))
+                    {
+                        fadeOutEntity.Set(new Alpha(alpha.Value));
+                    }
+                }
+            });
+
+        // Actor VFX
+        world.System<Model, ActorVfx>()
+            .TermAt(0).Self().Up()
+            .Each((Iter it, int i, ref Model model, ref ActorVfx vfx) =>
+            {
+                ProcessActorVfx(it.Entity(i), model.GameObject, ref vfx);
+            });
+
+        world.System<ActorVfxSource, ActorVfx>()
+            .Without<Model>()
+            .Each((Iter it, int i, ref ActorVfxSource source, ref ActorVfx vfx) =>
+            {
+                ProcessActorVfx(it.Entity(i), source.Source, ref vfx);
+            });
+
+        world.System<Player.Component, ActorVfx>()
+            .TermAt(0).Up()
+            .With<Player.LocalPlayer>().Up()
+            .Each((Iter it, int i, ref Player.Component pc, ref ActorVfx vfx) =>
+            {
+                var localPlayer = dalamud.ClientState.LocalPlayer;
+                if (vfx.VfxPtr == null && localPlayer != null)
+                {
+                    vfx.VfxPtr = vfxSpawn.SpawnActorVfx(vfx.Path, localPlayer, localPlayer);
+                }
+
+                // Vfx self-destructed, because it finished playing
+                if (vfx.VfxPtr != null && vfx.VfxPtr.Vfx == null)
+                {
+                    it.Entity(i).Destruct();
+                    return;
                 }
             });
 
@@ -136,13 +132,20 @@ public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogge
                 }
             });
 
+        // Common
         world.System<VfxFadeOut>()
             .Each((Iter it, int i, ref VfxFadeOut vfxFade) =>
             {
+                var entity = it.Entity(i);
                 vfxFade.TimeRemaining -= it.DeltaTime();
                 if (vfxFade.TimeRemaining > 0)
                 {
-                    vfxFade.VfxPtr.UpdateAlpha(vfxFade.TimeRemaining / vfxFade.Duration);
+                    float a = 1.0f;
+                    if (entity.TryGet(out Alpha alpha))
+                    {
+                        a = alpha.Value;
+                    }
+                    vfxFade.VfxPtr.UpdateAlpha(a * vfxFade.TimeRemaining / vfxFade.Duration);
                 }
                 else
                 {
@@ -160,11 +163,43 @@ public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogge
         if (e.TryGet<ActorVfxTarget>(out var target))
         {
             if (target.Target != null && !target.Target.IsValid())
-            { 
+            {
                 return true;
             }
         }
 
         return false;
+    }
+
+    private void ProcessActorVfx(Entity entity, IGameObject? source, ref ActorVfx vfx)
+    {
+        // UpdateScale doesn't seem to work for actor vfxes from a quick test. Should be looked into
+        // Position/Rotation should be based on source actor
+        if (vfx.VfxPtr == null && source != null)
+        {
+            if (entity.TryGet<ActorVfxTarget>(out var targetComponent))
+            {
+                var target = targetComponent.Target;
+                if (target != null && target.IsValid())
+                {
+                    vfx.VfxPtr = vfxSpawn.SpawnActorVfx(vfx.Path, source, target);
+                } else
+                {
+                    // don't bother spawning vfx if target isn't valid
+                    entity.Destruct();
+                    return;
+                }
+            } else
+            {
+                vfx.VfxPtr = vfxSpawn.SpawnActorVfx(vfx.Path, source, source);
+            }
+        }
+
+        // Vfx self-destructed, because it finished playing or target is gone
+        if (ActorVfxShouldDestruct(vfx, entity))
+        {
+            entity.Destruct();
+            return;
+        }
     }
 }

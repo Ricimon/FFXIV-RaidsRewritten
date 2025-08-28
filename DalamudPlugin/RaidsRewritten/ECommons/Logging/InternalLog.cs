@@ -1,6 +1,9 @@
-﻿using Dalamud.Interface.Colors;
+﻿// Adapted from https://github.com/NightmareXIV/ECommons/blob/master/ECommons/Logging/InternalLog.cs
+using Dalamud.Interface.Colors;
 using ECommons.CircularBuffers;
-using ImGuiNET;
+//using ECommons.ImGuiMethods;
+//using ECommons.Reflection;
+using Dalamud.Bindings.ImGui;
 using Serilog.Events;
 using System;
 using System.Linq;
@@ -84,6 +87,54 @@ public class InternalLog
     private static bool Autoscroll = true;
     private static LogEventLevel SelectedLevel = LogEventLevel.Verbose;
     private static FilterType Filter = FilterType.Default;
+//    public static void PrintImgui()
+//    {
+//        ImGui.Checkbox("##Autoscroll", ref Autoscroll);
+//        ImGuiEx.Tooltip("Autoscroll");
+//        ImGui.SameLine();
+//        if(ImGui.Button("Copy all"))
+//        {
+//#pragma warning disable
+//            GenericHelpers.Copy(Messages.Where(x => x.Level >= SelectedLevel).Select(x => $"[{x.Level}@{x.Time}] {x.Message}").Join("\n"));
+//#pragma warning restore
+//        }
+//        ImGui.SameLine();
+//        if(ImGui.Button("Clear"))
+//        {
+//            Messages.Clear();
+//        }
+//        ImGui.SameLine();
+//        ImGuiEx.SetNextItemFullWidth(-30);
+//        ImGui.InputTextWithHint("##Filter", "Filter...", ref Search, 100);
+//        ImGui.SameLine();
+//        if(ImGuiEx.IconButton(Dalamud.Interface.FontAwesomeIcon.Filter, "##LogFilter")) ImGui.OpenPopup("filter_window");
+//        ImGuiEx.Tooltip("Log Filter");
+
+//        if(ImGui.BeginPopup("filter_window", ImGuiWindowFlags.NoMove | ImGuiWindowFlags.Popup))
+//        {
+//            DrawFilterPopup();
+//            ImGui.EndPopup();
+//        }
+
+//        ImGui.BeginChild($"Plugin_log{DalamudReflector.GetPluginName()}");
+//        foreach(var x in Messages)
+//        {
+//            if(!ShouldDisplayLog(x.Level)) continue;
+//            if(Search == String.Empty || x.Level.ToString().EqualsIgnoreCase(Search) || x.Message.Contains(Search, StringComparison.OrdinalIgnoreCase))
+//                ImGuiEx.TextWrappedCopy(x.Level == LogEventLevel.Fatal ? ImGuiColors.DPSRed
+//                    : x.Level == LogEventLevel.Error ? ImGuiColors.DalamudRed
+//                    : x.Level == LogEventLevel.Warning ? ImGuiColors.DalamudOrange
+//                    : x.Level == LogEventLevel.Information ? ImGuiColors.DalamudWhite
+//                    : x.Level == LogEventLevel.Debug ? ImGuiColors.DalamudGrey
+//                    : x.Level == LogEventLevel.Verbose ? ImGuiColors.DalamudGrey2
+//                    : ImGuiColors.DalamudWhite2, $"> [{x.Time}] {x.Message}");
+//        }
+//        if(Autoscroll)
+//        {
+//            ImGui.SetScrollHereY();
+//        }
+//        ImGui.EndChild();
+//    }
 
     private static void DrawFilterPopup()
     {

@@ -7,6 +7,7 @@ namespace RaidsRewritten;
 
 public class DalamudServices
 {
+#pragma warning disable CA1822 // Mark members as static
     public IDalamudPluginInterface PluginInterface => PluginInitializer.PluginInterface;
     public ICommandManager CommandManager => PluginInitializer.CommandManager;
     public IGameInteropProvider GameInteropProvider => PluginInitializer.GameInteropProvider;
@@ -29,4 +30,5 @@ public class DalamudServices
     public INotificationManager NotificationManager => PluginInitializer.NotificationManager;
     public IToastGui ToastGui => PluginInitializer.ToastGui;
     public IPluginLog Log => PluginInitializer.Log;
+#pragma warning restore CA1822 // Mark members as static
 }

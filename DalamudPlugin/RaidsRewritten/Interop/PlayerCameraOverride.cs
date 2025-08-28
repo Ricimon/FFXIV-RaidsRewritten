@@ -35,7 +35,7 @@ public unsafe sealed class PlayerCameraOverride : IDisposable
     //public Angle SpeedV = 360.Degrees(); // per second
 
     private delegate void RMICameraDelegate(CameraEx* self, int inputMode, float speedH, float speedV);
-    [Signature("E8 ?? ?? ?? ?? EB 05 E8 ?? ?? ?? ?? 44 0F 28 4C 24 ??")]
+    [Signature("48 8B C4 53 48 81 EC ?? ?? ?? ?? 44 0F 29 50 ??")]
     private Hook<RMICameraDelegate> _rmiCameraHook = null!;
 
     private readonly DalamudServices dalamud;

@@ -114,7 +114,7 @@ public unsafe class XivHudNodeMap : IDisposable
         // Enhancements
         if (!this.enhancementsLoaded)
         {
-            var statusEnhancements = (AtkUnitBase*)this.gameGui.GetAddonByName("_StatusCustom0");
+            var statusEnhancements = (AtkUnitBase*)this.gameGui.GetAddonByName("_StatusCustom0").Address;
             if (statusEnhancements == null)
             {
                 this.logger.Error("Could not load _StatusCustom0 addon.");
@@ -134,7 +134,7 @@ public unsafe class XivHudNodeMap : IDisposable
         // Enfeeblements
         if (!this.enfeeblementsLoaded)
         {
-            var statusEnfeeblements = (AtkUnitBase*)this.gameGui.GetAddonByName("_StatusCustom1");
+            var statusEnfeeblements = (AtkUnitBase*)this.gameGui.GetAddonByName("_StatusCustom1").Address;
             if (statusEnfeeblements == null)
             {
                 this.logger.Error("Could not load _StatusCustom1 addon.");
@@ -154,7 +154,7 @@ public unsafe class XivHudNodeMap : IDisposable
         // Other
         if (!this.otherLoaded)
         {
-            var statusOther = (AtkUnitBase*)this.gameGui.GetAddonByName("_StatusCustom2");
+            var statusOther = (AtkUnitBase*)this.gameGui.GetAddonByName("_StatusCustom2").Address;
             if (statusOther == null)
             {
                 this.logger.Error("Could not load _StatusCustom2 addon.");
@@ -174,7 +174,7 @@ public unsafe class XivHudNodeMap : IDisposable
         // Conditional Enhancements
         if (!this.conditionalEnhancementsLoaded)
         {
-            var statusConditionalEnhancements = (AtkUnitBase*)this.gameGui.GetAddonByName("_StatusCustom3");
+            var statusConditionalEnhancements = (AtkUnitBase*)this.gameGui.GetAddonByName("_StatusCustom3").Address;
             if (statusConditionalEnhancements == null)
             {
                 this.logger.Error("Could not load _StatusCustom3 addon.");
@@ -192,7 +192,7 @@ public unsafe class XivHudNodeMap : IDisposable
         }
 
         // Party List
-        var partyList = (AddonPartyList*)this.gameGui.GetAddonByName("_PartyList");
+        var partyList = (AddonPartyList*)this.gameGui.GetAddonByName("_PartyList").Address;
         if (partyList == null)
         {
             this.logger.Error("Could not load _PartyList addon.");
@@ -253,7 +253,7 @@ public unsafe class XivHudNodeMap : IDisposable
         // Target HP
         if (!this.targetHpLoaded)
         {
-            var targetInfoMainTarget = (AtkUnitBase*)this.gameGui.GetAddonByName("_TargetInfoMainTarget");
+            var targetInfoMainTarget = (AtkUnitBase*)this.gameGui.GetAddonByName("_TargetInfoMainTarget").Address;
             if (targetInfoMainTarget == null)
             {
                 this.logger.Error("Could not load _TargetInfoMainTarget addon.");
@@ -275,7 +275,7 @@ public unsafe class XivHudNodeMap : IDisposable
         // Target Statuses
         if (!this.targetStatusLoaded)
         {
-            var targetInfoBuffDebuff = (AtkUnitBase*)this.gameGui.GetAddonByName("_TargetInfoBuffDebuff");
+            var targetInfoBuffDebuff = (AtkUnitBase*)this.gameGui.GetAddonByName("_TargetInfoBuffDebuff").Address;
             if (targetInfoBuffDebuff == null)
             {
                 this.logger.Error("Could not load _TargetInfoBuffDebuff addon.");
@@ -326,21 +326,21 @@ public unsafe class XivHudNodeMap : IDisposable
 
     public bool IsConditionalEnhancementsEnabled()
     {
-        var addon = (AtkUnitBase*)this.gameGui.GetAddonByName("_StatusCustom3");
+        var addon = this.gameGui.GetAddonByName("_StatusCustom3");
         if (addon == null) { return false; }
-        return addon->IsVisible;
+        return addon.IsVisible;
     }
 
     public bool IsOwnEnhancementsPrioritized()
     {
-        var addon = (AtkUnitBase*)this.gameGui.GetAddonByName("_StatusCustom0");
+        var addon = (AtkUnitBase*)this.gameGui.GetAddonByName("_StatusCustom0").Address;
         if (addon == null) { return false; }
         return addon->Param == 256;
     }
 
     public bool IsOthersEnhancementsDisplayedInOthers()
     {
-        var addon = (AtkUnitBase*)this.gameGui.GetAddonByName("_StatusCustom0");
+        var addon = (AtkUnitBase*)this.gameGui.GetAddonByName("_StatusCustom0").Address;
         if (addon == null) { return false; }
         return addon->Param == 512;
     }
