@@ -12,7 +12,7 @@ using RaidsRewritten.Spawn;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public unsafe sealed class LastWish(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogger logger) : IAttack, ISystem, IDisposable
+public unsafe sealed class LastWish(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn vfxSpawn, ILogger logger) : IAttack, ISystem, IDisposable
 {   
     public record struct Component(HitZone Zone, bool IsTelegraph = false);
 
@@ -23,8 +23,8 @@ public unsafe sealed class LastWish(DalamudServices dalamud, VfxSpawn vfxSpawn, 
     //private static Vector3 ARENA_CENTER = new Vector3(100f, 0f, 100f);
     private int ATTACK_ID = 56;
     private float HEAVY_TIME = 1.0f;
+    private const int HeavyID = 0x51;
     private string HIT_VFX = "vfx/monster/gimmick/eff/bahamut_wyvn_uchiage_c0m.avfx";
-    private Query<Player.Component> playerQuery;
     public readonly DalamudServices dalamud = dalamud;
     public readonly ILogger logger = logger;
     public Entity Create(World world)
@@ -39,7 +39,6 @@ public unsafe sealed class LastWish(DalamudServices dalamud, VfxSpawn vfxSpawn, 
     List<Entity> ToDestruct = [];
     public void Dispose()
     {
-        this.playerQuery.Dispose();
         foreach (Entity e in ToDestruct)
         {
             e.Destruct();
@@ -227,7 +226,7 @@ public unsafe sealed class LastWish(DalamudServices dalamud, VfxSpawn vfxSpawn, 
             if (hit)
             {
                 vfxSpawn.SpawnActorVfx(HIT_VFX, player, player);
-                this.playerQuery.Each((Entity e, ref Player.Component pc) =>
+                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
                 {
                     Heavy.ApplyToPlayer(e, HEAVY_TIME, ATTACK_ID, true);
                 });
@@ -237,8 +236,6 @@ public unsafe sealed class LastWish(DalamudServices dalamud, VfxSpawn vfxSpawn, 
 
     public void Register(World world)
     {
-        this.playerQuery = Player.Query(world);
-
         world.System<Component, Position, Rotation, Scale>()
             .Each((Iter it, int i, ref Component component, ref Position position, ref Rotation rotation, ref Scale scale) =>
             {
