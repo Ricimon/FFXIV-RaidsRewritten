@@ -77,6 +77,7 @@ public class PluginModule : NinjectModule
         Bind<PlayerMovementOverride>().ToSelf().WhenInjectedInto<PlayerManager>().InSingletonScope();
         Bind<PlayerCameraOverride>().ToSelf().WhenInjectedInto<PlayerManager>().InSingletonScope();
         Bind<ActionManagerEx>().ToSelf().WhenInjectedInto<PlayerManager>().InSingletonScope();
+        Bind<HotbarManager>().ToSelf().WhenInjectedInto<PlayerManager>().InSingletonScope();
 
         // Views and Presenters
         Bind<WindowSystem>().ToMethod(_ => new(PluginInitializer.Name)).InSingletonScope();

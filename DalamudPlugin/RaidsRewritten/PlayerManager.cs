@@ -9,6 +9,7 @@ public class PlayerManager(
     PlayerMovementOverride movementOverride,
     PlayerCameraOverride cameraOverride,
     ActionManagerEx actionManager,
+    HotbarManager hotbarManager,
     ILogger logger)
 {
     public bool IsMovementAllowedByGame => movementOverride.IsMovementAllowedByGame;
@@ -54,7 +55,7 @@ public class PlayerManager(
 
     public bool DisableAllActions
     {
-        get => actionManager.DisableAllActions;
+        get => actionManager.DisableAllActions || hotbarManager.DisableAllActions;
         set
         {
             if (!DisableAllActions && value)
@@ -62,6 +63,7 @@ public class PlayerManager(
                 actionManager.CancelCast();
             }
             actionManager.DisableAllActions = value;
+            hotbarManager.DisableAllActions = value;
         }
     }
 }
