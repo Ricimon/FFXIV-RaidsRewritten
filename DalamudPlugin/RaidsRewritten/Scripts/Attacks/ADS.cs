@@ -26,7 +26,7 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries) : IAttack
     }
 
     public struct ADSEntity;
-    public record struct Action(float ElapsedTime, Phase Phase = Phase.Omen);
+    public record struct Action(float Angle, float ElapsedTime = 0, Phase Phase = Phase.Omen);
 
     private const string ActionVfx = "vfx/monster/m0653/eff/m0653sp16_c0a1.avfx";
     private const string CastingVfx = "vfx/common/eff/mon_eisyo03t.avfx";
@@ -77,7 +77,7 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries) : IAttack
                     var omen = RectangleOmen.CreateEntity(world);
                     {
                         omen.Set(new Position(position.Value))
-                            .Set(new Rotation(rotation.Value))
+                            .Set(new Rotation(component.Angle))
                             .Set(new Scale(new Vector3(0.75f, 1, 44)))
                             .ChildOf(entity);
                     }
@@ -85,7 +85,8 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries) : IAttack
                     break;
                 case Phase.Animation:
                     if (ShouldReturn(component)) { return; }
-                    entity.Set(new TimelineBase(AttackAnimation));
+                    entity.Set(new Rotation(component.Angle))
+                        .Set(new TimelineBase(AttackAnimation));
                     component.Phase = Phase.Snapshot;
                     break;
                 case Phase.Snapshot:
@@ -130,8 +131,7 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries) : IAttack
     public static bool CastLineAoe(Entity entity, float angle)
     {
         if (entity.Has<Action>()) { return false; }
-        entity.Set(new Rotation(angle))
-            .Set(new Action());
+        entity.Set(new Action(angle));
         return true;
     }
 
