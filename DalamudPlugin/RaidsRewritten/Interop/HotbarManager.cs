@@ -3,21 +3,20 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using Dalamud.Hooking;
 using Dalamud.Utility.Signatures;
 using FFXIVClientStructs.Attributes;
-using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI;
+using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using static FFXIVClientStructs.FFXIV.Client.UI.Misc.RaptureHotbarModule;
+using RaidsRewritten.Data;
 using RaidsRewritten.Extensions;
 using RaidsRewritten.Log;
 
 namespace RaidsRewritten.Interop;
 
-public unsafe sealed partial class HotbarManager : IDisposable
+public unsafe sealed class HotbarManager : IDisposable
 {
     public bool DisableAllActions
     {
@@ -27,35 +26,22 @@ public unsafe sealed partial class HotbarManager : IDisposable
             if (value != this.disableAllActions)
             {
                 this.disableAllActions = value;
-                if (value)
-                {
-                    this.onHotBarSlotUpdateHook.Enable();
-                }
-                else
-                {
-                    this.onHotBarSlotUpdateHook.Disable();
-                }
                 ProcessAllHotBars();
             }
         }
     }
 
-    [StructLayout(LayoutKind.Explicit, Size = 0x40)]
-    private struct NumberArrayStruct {
-        [FieldOffset(0x00)] public NumberArrayActionType ActionType;
-        [FieldOffset(0x0C)] public uint ActionId;
-        [FieldOffset(0x14)] public bool ActionAvailable_1;
-        [FieldOffset(0x18)] public bool ActionAvailable_2;
-        [FieldOffset(0x20)] public int CooldownPercent;
-        [FieldOffset(0x28)] public int ManaCost;
-        [FieldOffset(0x40)] public bool TargetInRange;
-    }
-
-    private enum NumberArrayActionType: uint {
-        Action = 0x2E,
-        CraftAction = 0x36,
-        
-        // Note, 7.0 added new a new type before 0x2E, and potentially more after, unused values were removed.
+    public bool DisableDamagingActions
+    {
+        get => this.disableDamagingActions;
+        set
+        {
+            if (value != this.disableDamagingActions)
+            {
+                this.disableDamagingActions = value;
+                ProcessAllHotBars();
+            }
+        }
     }
 
     private delegate void UpdateHotBarSlotDelegate(AddonActionBarBase* addon, ActionBarSlot* uiData, NumberArrayData* numberArray, StringArrayData* stringArray, int numberArrayIndex, int stringArrayIndex);
@@ -81,9 +67,8 @@ public unsafe sealed partial class HotbarManager : IDisposable
         "_ActionDoubleCrossL",
     ];
 
-    private readonly Dictionary<uint, Lumina.Excel.Sheets.Action?> actionCache = [];
-
     private bool disableAllActions;
+    private bool disableDamagingActions;
 
     public HotbarManager(DalamudServices dalamud, ILogger logger)
     {
@@ -98,52 +83,35 @@ public unsafe sealed partial class HotbarManager : IDisposable
         this.onHotBarSlotUpdateHook.Dispose();
     }
 
+    private bool ShouldEnableHook()
+    {
+        return DisableAllActions || DisableDamagingActions;
+    }
+
     private void ProcessAllHotBars()
     {
-        int hotbarIndex = 0;
         foreach (var addonName in addonActionBarNames)
         {
             var addon = GetUnitBase<AddonActionBarBase>(addonName);
-            if (addon is null) {
-                hotbarIndex++;
-                continue;
-            }
+            if (addon is null) { continue; } 
 
-            this.logger.Debug($"Addon {addonName}");
-            uint slotIndex = 0;
+            //this.logger.Debug($"Addon {addonName}, slots address: 0x{(nint)addon->ActionBarSlotVector.First:X}");
             foreach (var slot in addon->ActionBarSlotVector)
             {
-                if (!DisableAllActions)
-                {
-                    // Reset everything if turning off
-                    ApplyDarkening(&slot, false);
-                }
-                //else
-                //{
-                //    // Be picky if turning on
-                //    var action = GetAction((uint)slot.ActionId);
-                //    if (action != null)
-                //    {
-                //        this.logger.Debug($"Hotbar {slot.HotbarId} action {action.Value.Name}({slot.ActionId}) actionCategory:{action.Value.ActionCategory.Value.Name} behaviorType:{action.Value.BehaviourType}, isPlayerAction:{action.Value.IsPlayerAction}");
-                //        ApplyDarkening(&slot, true);
-                //    }
-                //}
-                unsafe
-                {
-                    var raptureSlot = Framework.Instance()->GetUIModule()->GetRaptureHotbarModule()->Hotbars[hotbarIndex].GetHotbarSlot(slotIndex);
-                    if (raptureSlot is not null)
-                    {
-                        if (raptureSlot->CommandType != HotbarSlotType.Action || !DpsActions.Contains((uint)slot.ActionId))
-                        {
-                            slotIndex++;
-                            continue;
-                        }
-                        //this.logger.Debug($"Hotbar: {hotbarIndex}\nSlot: {slotIndex}\nType: {raptureSlot->CommandType}\nAction: {raptureSlot->CommandId}");
-                    }
-                }
-                slotIndex++;
+                ProcessHotBarSlot(addon, &slot);
+                // slot.ActionId seems to hold a wrong value for slots that don't have a combat action,
+                // so this value is not reliable
+                // Ex. Limit Break has ActionId 3 (sprint)
             }
-            hotbarIndex++;
+        }
+
+        if (DisableAllActions || DisableDamagingActions)
+        {
+            this.onHotBarSlotUpdateHook.Enable();
+        }
+        else
+        {
+            this.onHotBarSlotUpdateHook.Disable();
         }
     }
 
@@ -152,7 +120,7 @@ public unsafe sealed partial class HotbarManager : IDisposable
         //this.logger.Debug($"OnHotBarSlotUpdate addon:{addon->NameString}, numberArrayDataPtr:0x{(nint)numberArray:X} numberArrayIndex:{numberArrayIndex}, stringArrayIndex:{stringArrayIndex}");
         try
         {
-            ProcessHotBarSlot(hotBarSlotData, numberArray, numberArrayIndex);
+            ProcessHotBarSlot(addon, hotBarSlotData);
         }
         catch(Exception e)
         {
@@ -162,27 +130,43 @@ public unsafe sealed partial class HotbarManager : IDisposable
         onHotBarSlotUpdateHook.Original(addon, hotBarSlotData, numberArray, stringArray, numberArrayIndex, stringArrayIndex);
     }
 
-    private Lumina.Excel.Sheets.Action? GetAction(uint actionId)
+    private void ProcessHotBarSlot(AddonActionBarBase* addon, ActionBarSlot* hotBarSlotData)
     {
-        var adjustedActionId = ActionManager.Instance()->GetAdjustedActionId(actionId);
-
-        if (this.actionCache.TryGetValue(adjustedActionId, out var action)) { return action; }
-
-        action = this.dalamud.DataManager.GetExcelSheet<Lumina.Excel.Sheets.Action>().GetRowOrDefault(adjustedActionId);
-        this.actionCache.Add(adjustedActionId, action);
-        return action;
-    }
-
-    private void ProcessHotBarSlot(ActionBarSlot* hotBarSlotData, NumberArrayData* numberArray, int numberArrayIndex)
-    {
-        var numberArrayData = (NumberArrayStruct*)(&numberArray->IntArray[numberArrayIndex]);
-
-        if (numberArrayData->ActionType is not (NumberArrayActionType.Action or NumberArrayActionType.CraftAction))
+        if (!DisableAllActions && !DisableDamagingActions)
         {
+            ApplyDarkening(hotBarSlotData, false);
             return;
         }
 
-        ApplyDarkening(hotBarSlotData, DisableAllActions);
+        // ActionBarSlotVector is a Vector, so its individual components do not have unique addresses,
+        // meaning you cannot use addresses in a Find predicate.
+        // Instead, we can use a pointer in the ActionBarSlot struct
+        var slotIndex = addon->ActionBarSlotVector.FindIndex(s => s.Icon == hotBarSlotData->Icon);
+        //this.logger.Debug($"slotIndex:{slotIndex}");
+        if (slotIndex < 0) { return; }
+        var raptureSlot = Framework.Instance()->GetUIModule()->GetRaptureHotbarModule()->GetSlotById(addon->RaptureHotbarId, (uint)slotIndex);
+
+        var isBlockableAction = 
+            raptureSlot->ApparentSlotType == RaptureHotbarModule.HotbarSlotType.Action ||
+            raptureSlot->ApparentSlotType == RaptureHotbarModule.HotbarSlotType.Item ||
+            raptureSlot->ApparentSlotType == RaptureHotbarModule.HotbarSlotType.EventItem ||
+            raptureSlot->ApparentSlotType == RaptureHotbarModule.HotbarSlotType.CraftAction ||
+            raptureSlot->ApparentSlotType == RaptureHotbarModule.HotbarSlotType.GeneralAction;
+
+        if (!isBlockableAction) { return; }
+
+        if (DisableAllActions)
+        {
+            ApplyDarkening(hotBarSlotData, true);
+            return;
+        }
+
+        if (DisableDamagingActions)
+        {
+            var isDamageAction = Actions.DamageActions.Contains(raptureSlot->ApparentActionId);
+            ApplyDarkening(hotBarSlotData, isDamageAction);
+            return;
+        }
     }
 
     private void ApplyDarkening(ActionBarSlot* hotBarSlotData, bool darken)
@@ -192,14 +176,21 @@ public unsafe sealed partial class HotbarManager : IDisposable
 
         if (iconComponent is null) { return; }
         if (iconComponent->IconImage is null) { return; }
-        if (iconComponent->Frame is null) { return; }
+
+        if (!darken)
+        {
+            iconComponent->IconImage->Color.R = 0xFF;
+            iconComponent->IconImage->Color.G = 0xFF;
+            iconComponent->IconImage->Color.B = 0xFF;
+            return;
+        }
 
         var iconIsAlreadyDarkened =
             iconComponent->IconImage->MultiplyRed < 0x64 &&
             iconComponent->IconImage->MultiplyGreen < 0x64 &&
             iconComponent->IconImage->MultiplyBlue < 0x64;
 
-        if (darken && !iconIsAlreadyDarkened)
+        if (!iconIsAlreadyDarkened)
         {
             iconComponent->IconImage->Color.R = 0x80;
             iconComponent->IconImage->Color.G = 0x80;
