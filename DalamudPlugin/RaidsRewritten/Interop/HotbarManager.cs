@@ -17,7 +17,7 @@ using RaidsRewritten.Log;
 
 namespace RaidsRewritten.Interop;
 
-public unsafe sealed class HotbarManager : IDisposable
+public unsafe sealed partial class HotbarManager : IDisposable
 {
     public bool DisableAllActions
     {
@@ -109,7 +109,7 @@ public unsafe sealed class HotbarManager : IDisposable
                 unsafe
                 {
                     var raptureSlot = Framework.Instance()->GetUIModule()->GetRaptureHotbarModule()->Hotbars[hotbarIndex].GetHotbarSlot(slotIndex);
-                    if (raptureSlot is null)
+                    if (raptureSlot is not null)
                     {
                         if (raptureSlot->CommandType != HotbarSlotType.Action)
                         {
