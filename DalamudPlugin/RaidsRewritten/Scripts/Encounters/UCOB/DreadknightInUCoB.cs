@@ -25,20 +25,27 @@ public class DreadknightInUCoB : Mechanic
     private const byte AddsWeather = 31;
     private const float AddsDreadknightSpawnDelay = 10f;
     private const string SwappableTetherVfx = "vfx/channeling/eff/chn_light01f.avfx";
-    private const int SecondsUntilSwappable = 30;
+    private const int SecondsUntilSwappable = 60;
     private const string StartMessage = "Twintania channels energy to the Dreadknight...";
+
     private readonly List<uint> baitActionIds = [
         7538,  // interject
         7551,  // head graze
         7553,  // foot graze
         25880, // sleep
         16560, // repose
+        16,    // shield bash
+        139,   // holy
+        7540,  // low blow
+        7554,  // leg graze
+        7863,  // leg sweep
     ];
 
     private readonly List<uint> stunActionIds = [
         16,    // shield bash
         139,   // holy
         7540,  // low blow
+        7553,  // foot graze
         7554,  // leg graze
         7863,  // leg sweep
     ];
@@ -125,6 +132,7 @@ public class DreadknightInUCoB : Mechanic
         if (set.Action.Value.RowId == GenerateId)
         {
             oviformsOnField = neurolinksSpawned;
+            return;
         } else if (set.Action.Value.RowId == HatchId) {
             oviformsOnField--;
             if (oviformsOnField <= 0 && dreadknight.HasValue)
@@ -136,17 +144,30 @@ public class DreadknightInUCoB : Mechanic
                 }
                 Dreadknight.IncrementSpeed(dreadknight.Value, speedIncrement);
             }
+            return;
         } else if (baitActionIds.Contains(set.Action.Value.RowId)) {
             var timeDiff = DateTime.Now - lastTargetSwap;
-            if (timeDiff.TotalSeconds < SecondsUntilSwappable && Dreadknight.HasTarget(dreadknight.Value)) { return; }
-            if (set.Source == null) { return; }
+            if (!(timeDiff.TotalSeconds < SecondsUntilSwappable && Dreadknight.HasTarget(dreadknight.Value)))
+            {
+                if (set.Source != null)
+                {
+                    Dreadknight.ApplyTarget(dreadknight.Value, set.Source);
+                    lastTargetSwap = DateTime.Now;
+                    tetherVfxChanged = false;
+                }
+            }
+        }
 
-            Dreadknight.ApplyTarget(dreadknight.Value, set.Source);
-            lastTargetSwap = DateTime.Now;
-            tetherVfxChanged = false;
-        } else if (stunActionIds.Contains(set.Action.Value.RowId) && set.Target?.DataId == TwintaniaId)
+        if (stunActionIds.Contains(set.Action.Value.RowId) && set.Target?.DataId == TwintaniaId)
         {
             Conditions.Stun.ApplyToPlayer(dreadknight.Value, 2.5f);
+
+            if (tetherVfxChanged)
+            {
+                Dreadknight.ChangeTetherVfx(dreadknight.Value);
+                lastTargetSwap = DateTime.Now;
+                tetherVfxChanged = false;
+            }
         }
     }
 
