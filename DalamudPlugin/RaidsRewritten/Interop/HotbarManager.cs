@@ -8,8 +8,10 @@ using Dalamud.Hooking;
 using Dalamud.Utility.Signatures;
 using FFXIVClientStructs.Attributes;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+using static FFXIVClientStructs.FFXIV.Client.UI.Misc.RaptureHotbarModule;
 using RaidsRewritten.Extensions;
 using RaidsRewritten.Log;
 
@@ -91,21 +93,41 @@ public unsafe sealed class HotbarManager : IDisposable
 
     private void ProcessAllHotBars()
     {
+        int hotbarIndex = 0;
         foreach (var addonName in addonActionBarNames)
         {
             var addon = GetUnitBase<AddonActionBarBase>(addonName);
-            if (addon is null) { continue; }
+            if (addon is null) {
+                hotbarIndex++;
+                continue;
+            }
 
             this.logger.Debug($"Addon {addonName}");
+            uint slotIndex = 0;
             foreach (var slot in addon->ActionBarSlotVector)
             {
+                unsafe
+                {
+                    var raptureSlot = Framework.Instance()->GetUIModule()->GetRaptureHotbarModule()->Hotbars[hotbarIndex].GetHotbarSlot(slotIndex);
+                    if (raptureSlot is null)
+                    {
+                        if (raptureSlot->CommandType != HotbarSlotType.Action)
+                        {
+                            slotIndex++;
+                            continue;
+                        }
+                        //this.logger.Debug($"Hotbar: {hotbarIndex}\nSlot: {slotIndex}\nType: {raptureSlot->CommandType}\nAction: {raptureSlot->CommandId}");
+                    }
+                }
                 var action = GetAction((uint)slot.ActionId);
                 if (action != null)
                 {
                     this.logger.Debug($"Hotbar {slot.HotbarId} action {action.Value.Name}({slot.ActionId}) actionCategory:{action.Value.ActionCategory.Value.Name} behaviorType:{action.Value.BehaviourType}, isPlayerAction:{action.Value.IsPlayerAction}");
                     ApplyDarkening(&slot, DisableAllActions);
                 }
+                slotIndex++;
             }
+            hotbarIndex++;
         }
     }
 
