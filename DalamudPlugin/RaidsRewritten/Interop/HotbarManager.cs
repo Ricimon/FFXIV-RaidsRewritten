@@ -8,14 +8,16 @@ using Dalamud.Hooking;
 using Dalamud.Utility.Signatures;
 using FFXIVClientStructs.Attributes;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+using static FFXIVClientStructs.FFXIV.Client.UI.Misc.RaptureHotbarModule;
 using RaidsRewritten.Extensions;
 using RaidsRewritten.Log;
 
 namespace RaidsRewritten.Interop;
 
-public unsafe sealed class HotbarManager : IDisposable
+public unsafe sealed partial class HotbarManager : IDisposable
 {
     public bool DisableAllActions
     {
@@ -98,12 +100,17 @@ public unsafe sealed class HotbarManager : IDisposable
 
     private void ProcessAllHotBars()
     {
+        int hotbarIndex = 0;
         foreach (var addonName in addonActionBarNames)
         {
             var addon = GetUnitBase<AddonActionBarBase>(addonName);
-            if (addon is null) { continue; }
+            if (addon is null) {
+                hotbarIndex++;
+                continue;
+            }
 
             this.logger.Debug($"Addon {addonName}");
+            uint slotIndex = 0;
             foreach (var slot in addon->ActionBarSlotVector)
             {
                 if (!DisableAllActions)
@@ -121,7 +128,22 @@ public unsafe sealed class HotbarManager : IDisposable
                 //        ApplyDarkening(&slot, true);
                 //    }
                 //}
+                unsafe
+                {
+                    var raptureSlot = Framework.Instance()->GetUIModule()->GetRaptureHotbarModule()->Hotbars[hotbarIndex].GetHotbarSlot(slotIndex);
+                    if (raptureSlot is not null)
+                    {
+                        if (raptureSlot->CommandType != HotbarSlotType.Action || !DpsActions.Contains((uint)slot.ActionId))
+                        {
+                            slotIndex++;
+                            continue;
+                        }
+                        //this.logger.Debug($"Hotbar: {hotbarIndex}\nSlot: {slotIndex}\nType: {raptureSlot->CommandType}\nAction: {raptureSlot->CommandId}");
+                    }
+                }
+                slotIndex++;
             }
+            hotbarIndex++;
         }
     }
 
