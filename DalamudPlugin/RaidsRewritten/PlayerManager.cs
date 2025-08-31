@@ -60,10 +60,24 @@ public class PlayerManager(
         {
             if (!DisableAllActions && value)
             {
-                actionManager.CancelCast();
+                actionManager.CancelCast(false);
             }
             actionManager.DisableAllActions = value;
             hotbarManager.DisableAllActions = value;
+        }
+    }
+
+    public bool DisableDamagingActions
+    {
+        get => actionManager.DisableDamagingActions || hotbarManager.DisableDamagingActions;
+        set
+        {
+            if (!DisableDamagingActions && value)
+            {
+                actionManager.CancelCast(true);
+            }
+            actionManager.DisableDamagingActions = value;
+            hotbarManager.DisableDamagingActions = value;
         }
     }
 }

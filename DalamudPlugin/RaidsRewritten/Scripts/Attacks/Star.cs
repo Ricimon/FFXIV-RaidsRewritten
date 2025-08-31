@@ -174,7 +174,7 @@ public class Star(DalamudServices dalamud, CommonQueries commonQueries, ILogger 
                         {
                             onHit(e);
                         });
-                    }, DamageDelay).ChildOf(entity);
+                    }, DamageDelay, true).ChildOf(entity);
                 }
             }
         }

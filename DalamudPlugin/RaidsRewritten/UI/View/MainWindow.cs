@@ -89,6 +89,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
     private readonly Mechanic.Factory mechanicFactory;
     private readonly Configuration configuration;
     private readonly EcsContainer ecsContainer;
+    private readonly CommonQueries commonQueries;
     private readonly VfxSpawn vfxSpawn;
     private readonly ILogger logger;
 
@@ -115,6 +116,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         Mechanic.Factory mechanicFactory,
         Configuration configuration,
         EcsContainer ecsContainer,
+        CommonQueries commonQueries,
         VfxSpawn vfxSpawn,
         ILogger logger) : base(
         PluginInitializer.Name)
@@ -128,6 +130,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         this.mechanicFactory = mechanicFactory;
         this.configuration = configuration;
         this.ecsContainer = ecsContainer;
+        this.commonQueries = commonQueries;
         this.vfxSpawn = vfxSpawn;
         this.logger = logger;
 
@@ -284,8 +287,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
 
         if (ImGui.Button("Status Overlay"))
         {
-            using var q = ecsContainer.World.Query<Player.Component>();
-            q.Each((Entity e, ref Player.Component pc) =>
+            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
             {
                 ecsContainer.World.Entity().Set(new Condition.Component("test", 15.0f)).ChildOf(e);
             });
@@ -363,17 +365,15 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         ImGui.Text("Fake statuses");
         if (ImGui.Button("Bind"))
         {
-            using var q = ecsContainer.World.Query<Player.Component>();
-            q.Each((Entity e, ref Player.Component pc) =>
+            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
             {
-                Bind.ApplyToPlayer(e, 2.0f);
+                Bind.ApplyToPlayer(e, 3.0f);
             });
         }
         ImGui.SameLine();
         if (ImGui.Button("Knockback"))
         {
-            using var q = ecsContainer.World.Query<Player.Component>();
-            q.Each((Entity e, ref Player.Component pc) =>
+            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
             {
                 Knockback.ApplyToPlayer(e, new Vector3(1, 0, 0), 2.0f, true);
             });
@@ -381,17 +381,15 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         ImGui.SameLine();
         if (ImGui.Button("Stun"))
         {
-            using var q = ecsContainer.World.Query<Player.Component>();
-            q.Each((Entity e, ref Player.Component pc) =>
+            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
             {
-                Stun.ApplyToPlayer(e, 2.0f);
+                Stun.ApplyToPlayer(e, 3.0f);
             });
         }
         ImGui.SameLine();
         if (ImGui.Button("Paralysis"))
         {
-            using var q = ecsContainer.World.Query<Player.Component>();
-            q.Each((Entity e, ref Player.Component pc) =>
+            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
             {
                 Paralysis.ApplyToPlayer(e, 5.0f, 3.0f, 1.0f, -100);
             });
@@ -399,17 +397,23 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         ImGui.SameLine();
         if (ImGui.Button("Heavy"))
         {
-            using var q = ecsContainer.World.Query<Player.Component>();
-            q.Each((Entity e, ref Player.Component pc) =>
+            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
             {
                 Heavy.ApplyToPlayer(e, 5.0f);
             });
         }
         ImGui.SameLine();
+        if (ImGui.Button("Pacify"))
+        {
+            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+            {
+                Pacify.ApplyToTarget(e, 5.0f);
+            });
+        }
+
         if (ImGui.Button("Heavy (e)"))
         {
-            using var q = ecsContainer.World.Query<Player.Component>();
-            q.Each((Entity e, ref Player.Component pc) =>
+            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
             {
                 Heavy.ApplyToPlayer(e, 5.0f, -100, true);
             });
@@ -704,9 +708,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         ImGui.Text("Heat Stuff");
         if (ImGui.Button("Add Temperature"))
         {
-            var world = ecsContainer.World;
-            using var q = world.Query<Player.Component>();
-            q.Each((Entity e, ref Player.Component pc) =>
+            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
             {
                 Temperature.SetTemperature(e);
             });
@@ -714,9 +716,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         ImGui.SameLine();
         if (ImGui.Button("Incr Heat"))
         {
-            var world = ecsContainer.World;
-            using var q = world.Query<Player.Component>();
-            q.Each((Entity e, ref Player.Component pc) =>
+            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
             {
                 Temperature.HeatChangedEvent(e, 50);
             });
@@ -724,9 +724,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         ImGui.SameLine();
         if (ImGui.Button("Decr Heat"))
         {
-            var world = ecsContainer.World;
-            using var q = world.Query<Player.Component>();
-            q.Each((Entity e, ref Player.Component pc) =>
+            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
             {
                 Temperature.HeatChangedEvent(e, -50);
             });
