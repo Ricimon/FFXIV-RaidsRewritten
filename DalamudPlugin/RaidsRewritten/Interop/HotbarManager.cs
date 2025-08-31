@@ -25,6 +25,14 @@ public unsafe sealed class HotbarManager : IDisposable
             if (value != this.disableAllActions)
             {
                 this.disableAllActions = value;
+                if (value)
+                {
+                    this.onHotBarSlotUpdateHook.Enable();
+                }
+                else
+                {
+                    this.onHotBarSlotUpdateHook.Disable();
+                }
                 ProcessAllHotBars();
             }
         }
@@ -81,7 +89,6 @@ public unsafe sealed class HotbarManager : IDisposable
         this.logger = logger;
 
         dalamud.GameInteropProvider.InitializeFromAttributes(this);
-        this.onHotBarSlotUpdateHook.Enable();
     }
 
     public void Dispose()
@@ -99,12 +106,21 @@ public unsafe sealed class HotbarManager : IDisposable
             this.logger.Debug($"Addon {addonName}");
             foreach (var slot in addon->ActionBarSlotVector)
             {
-                var action = GetAction((uint)slot.ActionId);
-                if (action != null)
+                if (!DisableAllActions)
                 {
-                    this.logger.Debug($"Hotbar {slot.HotbarId} action {action.Value.Name}({slot.ActionId}) actionCategory:{action.Value.ActionCategory.Value.Name} behaviorType:{action.Value.BehaviourType}, isPlayerAction:{action.Value.IsPlayerAction}");
-                    ApplyDarkening(&slot, DisableAllActions);
+                    // Reset everything if turning off
+                    ApplyDarkening(&slot, false);
                 }
+                //else
+                //{
+                //    // Be picky if turning on
+                //    var action = GetAction((uint)slot.ActionId);
+                //    if (action != null)
+                //    {
+                //        this.logger.Debug($"Hotbar {slot.HotbarId} action {action.Value.Name}({slot.ActionId}) actionCategory:{action.Value.ActionCategory.Value.Name} behaviorType:{action.Value.BehaviourType}, isPlayerAction:{action.Value.IsPlayerAction}");
+                //        ApplyDarkening(&slot, true);
+                //    }
+                //}
             }
         }
     }
