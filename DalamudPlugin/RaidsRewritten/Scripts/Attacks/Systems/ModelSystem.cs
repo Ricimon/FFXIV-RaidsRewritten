@@ -63,7 +63,7 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
     public void Register(World world)
     {
         world.System<Model, Position, Rotation, UniformScale>()
-            .Each((ref Model model, ref Position position, ref Rotation rotation, ref UniformScale scale) =>
+            .Each((Iter it, int i, ref Model model, ref Position position, ref Rotation rotation, ref UniformScale scale) =>
             {
                 BattleChara* chara = null;
 
@@ -87,6 +87,11 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
                     chara->Position = position.Value;
                     chara->Rotation = rotation.Value;
                     chara->Scale = scale.Value;
+
+                    if (it.Entity(i).TryGet<AnimationState>(out var animationState))
+                    {
+                        chara->Timeline.AnimationState[0] = animationState.value;
+                    }
 
                     var modelData = &chara->ModelContainer;
                     modelData->ModelCharaId = model.ModelCharaId;
@@ -156,6 +161,32 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
                             it.Entity(i).Remove<OneTimeModelTimeline>();
                         }
                     }
+                }
+            });
+
+
+        // need to process AnimationState first before it's overwritten by default standing state in later system
+        world.System<Model, TimelineBase>()
+            .Each((Iter it, int i, ref Model model, ref TimelineBase animationState) =>
+            {
+                // set animation
+                unsafe
+                {
+                    var clientObjectManager = ClientObjectManager.Instance();
+                    if (clientObjectManager == null) { return; }
+
+                    var obj = clientObjectManager->GetObjectByIndex((ushort)model.GameObjectIndex);
+                    var chara = (Character*)obj;
+                    if (chara != null)
+                    {
+                        chara->Timeline.BaseOverride = animationState.Value;
+                        if (animationState.Interrupt) { chara->Timeline.TimelineSequencer.PlayTimeline(animationState.Value); }
+                    }
+                }
+                // only interrupt once
+                if (animationState.Interrupt)
+                {
+                    it.Entity(i).Set(new TimelineBase(animationState.Value));
                 }
             });
 

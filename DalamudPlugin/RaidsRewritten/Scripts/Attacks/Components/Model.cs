@@ -14,3 +14,8 @@ public record struct ModelFadeOut(uint GameObjectIndex, float Duration, float Ti
 public record struct OneTimeModelTimeline(ushort Id, bool Played = false);
 
 public record struct ModelTimelineSpeed(float Value);
+
+public record struct TimelineBase(ushort Value, bool Interrupt = false);
+
+// this only applies on model creation. will do more research if we ever need to update after model has already spawned
+public record struct AnimationState(byte value);
