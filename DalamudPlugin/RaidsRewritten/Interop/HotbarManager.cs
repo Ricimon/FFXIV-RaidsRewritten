@@ -83,11 +83,6 @@ public unsafe sealed class HotbarManager : IDisposable
         this.onHotBarSlotUpdateHook.Dispose();
     }
 
-    private bool ShouldEnableHook()
-    {
-        return DisableAllActions || DisableDamagingActions;
-    }
-
     private void ProcessAllHotBars()
     {
         foreach (var addonName in addonActionBarNames)
