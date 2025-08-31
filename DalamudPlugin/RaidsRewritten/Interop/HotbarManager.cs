@@ -111,7 +111,7 @@ public unsafe sealed partial class HotbarManager : IDisposable
                     var raptureSlot = Framework.Instance()->GetUIModule()->GetRaptureHotbarModule()->Hotbars[hotbarIndex].GetHotbarSlot(slotIndex);
                     if (raptureSlot is not null)
                     {
-                        if (raptureSlot->CommandType != HotbarSlotType.Action)
+                        if (raptureSlot->CommandType != HotbarSlotType.Action || !DpsActions.Contains((uint)slot.ActionId))
                         {
                             slotIndex++;
                             continue;
