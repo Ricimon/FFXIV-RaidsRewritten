@@ -27,16 +27,21 @@ public class DreadknightInUCoB : Mechanic
     private const string SwappableTetherVfx = "vfx/channeling/eff/chn_light01f.avfx";
     private const int SecondsUntilSwappable = 30;
     private const string StartMessage = "Twintania channels energy to the Dreadknight...";
-    private readonly List<uint> actionIds = [
+    private readonly List<uint> baitActionIds = [
         7538,  // interject
         7551,  // head graze
         7553,  // foot graze
-        7554,  // leg graze
-        7540,  // low blow
-        7863,  // leg sweep
         25880, // sleep
         16560, // repose
-    ]; 
+    ];
+
+    private readonly List<uint> stunActionIds = [
+        16,    // shield bash
+        139,   // holy
+        7540,  // low blow
+        7554,  // leg graze
+        7863,  // leg sweep
+    ];
 
     private Entity? dreadknight;
     private readonly List<Entity> attacks = [];
@@ -131,7 +136,7 @@ public class DreadknightInUCoB : Mechanic
                 }
                 Dreadknight.IncrementSpeed(dreadknight.Value, speedIncrement);
             }
-        } else if (actionIds.Contains(set.Action.Value.RowId)) {
+        } else if (baitActionIds.Contains(set.Action.Value.RowId)) {
             var timeDiff = DateTime.Now - lastTargetSwap;
             if (timeDiff.TotalSeconds < SecondsUntilSwappable && Dreadknight.HasTarget(dreadknight.Value)) { return; }
             if (set.Source == null) { return; }
@@ -139,6 +144,9 @@ public class DreadknightInUCoB : Mechanic
             Dreadknight.ApplyTarget(dreadknight.Value, set.Source);
             lastTargetSwap = DateTime.Now;
             tetherVfxChanged = false;
+        } else if (stunActionIds.Contains(set.Action.Value.RowId) && set.Target?.DataId == TwintaniaId)
+        {
+            Conditions.Stun.ApplyToPlayer(dreadknight.Value, 2.5f);
         }
     }
 
