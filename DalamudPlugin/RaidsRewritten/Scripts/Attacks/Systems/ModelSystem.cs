@@ -177,16 +177,14 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
 
                     var obj = clientObjectManager->GetObjectByIndex((ushort)model.GameObjectIndex);
                     var chara = (Character*)obj;
-                    if (chara != null)
-                    {
-                        chara->Timeline.BaseOverride = animationState.Value;
-                        if (animationState.Interrupt) { chara->Timeline.TimelineSequencer.PlayTimeline(animationState.Value); }
+                    if (chara == null) { return; }
+
+                    chara->Timeline.BaseOverride = animationState.Value;
+
+                    if (animationState.Interrupt) {
+                        chara->Timeline.TimelineSequencer.PlayTimeline(animationState.Value);
+                        animationState.Interrupt = false;
                     }
-                }
-                // only interrupt once
-                if (animationState.Interrupt)
-                {
-                    it.Entity(i).Set(new TimelineBase(animationState.Value));
                 }
             });
 
