@@ -416,7 +416,16 @@ public partial class HotbarManager
         37037, // Emergency Tactics
         // rogue
         // ninja
+        2240, // Spinning Edge
+        2241, // Shade Shift
+        2242, // Gust Slash
+        2245, // Hide
         2246, // Assassinate
+        2247, // Throwing Dagger
+        2248, // Mug
+        2254, // Death Blossom
+        2255, // Aeolian Edge
+        2258, // Trick Attack
         2259, // Ten
         2260, // Ninjutsu
         2261, // Chi
