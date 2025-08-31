@@ -56,7 +56,7 @@ public unsafe sealed class PlayerCameraOverride : IDisposable
     public void Dispose()
     {
         this.dalamud.GameConfig.UiControlChanged -= OnConfigChanged;
-        this._rmiCameraHook?.Dispose();
+        this._rmiCameraHook.Dispose();
     }
 
     private void RMICameraDetour(CameraEx* self, int inputMode, float speedH, float speedV)

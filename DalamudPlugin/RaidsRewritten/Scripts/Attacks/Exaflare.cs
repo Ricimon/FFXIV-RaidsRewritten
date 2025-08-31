@@ -145,7 +145,7 @@ public class Exaflare(DalamudServices dalamud, ILogger logger) : IAttack, ISyste
     {
         DelayedAction.Create(e.CsWorld(), () => {
             Stun.ApplyToPlayer(e, StunDuration, StunId);
-        }, StunDelay);
+        }, StunDelay, true);
     }
 
     private bool ShouldReturn(Component component) {
