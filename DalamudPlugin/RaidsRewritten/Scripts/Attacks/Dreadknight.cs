@@ -141,6 +141,11 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
                     component.BackupActive = false;
                     if (component.ElapsedTime < InitialDelay) { return; }  // only want to start looking at player and chasing when ready 
                     if (component.Enrage == -1) { return; }
+                    if (Stun.IsStunned(entity))
+                    {
+                        Stand(entity, animationState);
+                        return;
+                    }
 
                     component.StartEnrage = component.ElapsedTime + 5;
                     component.Enrage = component.ElapsedTime + 10;

@@ -582,6 +582,10 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                 {
                     dreadknight.Set(new Position(player.Position));
                     Dreadknight.ApplyTarget(dreadknight, player);
+                    DelayedAction.Create(dreadknight.CsWorld(), () =>
+                    {
+                        Stun.ApplyToPlayer(dreadknight, 1f);
+                    }, 4f);
                 }
             }
         }
