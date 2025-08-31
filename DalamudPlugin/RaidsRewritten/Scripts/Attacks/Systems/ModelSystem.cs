@@ -90,7 +90,8 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
 
                     if (it.Entity(i).TryGet<AnimationState>(out var animationState))
                     {
-                        chara->Timeline.AnimationState[0] = animationState.value;
+                        chara->Timeline.AnimationState[0] = animationState.Value1;
+                        chara->Timeline.AnimationState[1] = animationState.Value2;
                     }
 
                     var modelData = &chara->ModelContainer;
