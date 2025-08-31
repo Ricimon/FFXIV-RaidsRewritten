@@ -14,40 +14,40 @@ public partial class HotbarManager
         9, // Fast Blade
         15, // Riot Blade
         16, // Shield Bash
-        17, // Sentinel
+        //17, // Sentinel
         20, // Fight or Flight
         21, // Rage of Halone
-        22, // Bulwark
+        //22, // Bulwark
         23, // Circle of Scorn
         24, // Shield Lob
-        27, // Cover
-        28, // Iron Will
+        //27, // Cover
+        //28, // Iron Will
         29, // Spirits Within
-        30, // Hallowed Ground
+        //30, // Hallowed Ground
         3538, // Goring Blade
         3539, // Royal Authority
-        3540, // Divine Veil
-        3541, // Clemency
-        3542, // Sheltron
+        //3540, // Divine Veil
+        //3541, // Clemency
+        //3542, // Sheltron
         7381, // Total Eclipse
-        7382, // Intervention
+        //7382, // Intervention
         7383, // Requiescat
         7384, // Holy Spirit
-        7385, // Passage of Arms
+        //7385, // Passage of Arms
         16457, // Prominence
         16458, // Holy Circle
         16459, // Confiteor
         16460, // Atonement
         16461, // Intervene
-        25746, // Holy Sheltron
+        //25746, // Holy Sheltron
         25747, // Expiacion
         25748, // Blade of Faith
         25749, // Blade of Truth
         25750, // Blade of Valor
-        32065, // Release Iron Will
+        //32065, // Release Iron Will
         36918, // Supplication
         36919, // Sepulchre
-        36920, // Guardian
+        //36920, // Guardian
         36921, // Imperator
         36922, // Blade of Honor
         // monk
@@ -56,7 +56,7 @@ public partial class HotbarManager
         56, // Snap Punch
         61, // Twin Snakes
         62, // Arm of the Destroyer
-        65, // Mantra
+        //65, // Mantra
         66, // Demolish
         69, // Perfect Balance
         70, // Rockbreaker
@@ -65,7 +65,7 @@ public partial class HotbarManager
         3545, // Elixir Field
         3547, // the Forbidden Chakra
         4262, // Form Shift
-        7394, // Riddle of Earth
+        //7394, // Riddle of Earth
         7395, // Riddle of Fire
         7396, // Brotherhood
         16473, // Four-point Fury
@@ -85,7 +85,7 @@ public partial class HotbarManager
         36941, // Inspirited Meditation
         36942, // Forbidden Meditation
         36943, // Enlightened Meditation
-        36944, // Earth's Reply
+        //36944, // Earth's Reply
         36945, // Leaping Opo
         36946, // Rising Raptor
         36947, // Pouncing Coeurl
@@ -96,34 +96,34 @@ public partial class HotbarManager
         31, // Heavy Swing
         37, // Maim
         38, // Berserk
-        40, // Thrill of Battle
+        //40, // Thrill of Battle
         41, // Overpower
         42, // Storm's Path
-        43, // Holmgang
-        44, // Vengeance
+        //43, // Holmgang
+        //44, // Vengeance
         45, // Storm's Eye
         46, // Tomahawk
-        48, // Defiance
+        //48, // Defiance
         49, // Inner Beast
         51, // Steel Cyclone
         52, // Infuriate
         3549, // Fell Cleave
         3550, // Decimate
-        3551, // Raw Intuition
-        3552, // Equilibrium
+        //3551, // Raw Intuition
+        //3552, // Equilibrium
         7386, // Onslaught
         7387, // Upheaval
-        7388, // Shake It Off
+        //7388, // Shake It Off
         7389, // Inner Release
         16462, // Mythril Tempest
         16463, // Chaotic Cyclone
-        16464, // Nascent Flash
+        //16464, // Nascent Flash
         16465, // Inner Chaos
-        25751, // Bloodwhetting
+        //25751, // Bloodwhetting
         25752, // Orogeny
         25753, // Primal Rend
-        32066, // Release Defiance
-        36923, // Damnation
+        //32066, // Release Defiance
+        //36923, // Damnation
         36924, // Primal Wrath
         36925, // Primal Ruination
         // dragoon
@@ -180,10 +180,10 @@ public partial class HotbarManager
         3561, // the Warden's Paean
         3562, // Sidewinder
         7404, // Pitch Perfect
-        7405, // Troubadour
+        //7405, // Troubadour
         7406, // Caustic Bite
         7407, // Stormbite
-        7408, // Nature's Minne
+        //7408, // Nature's Minne
         7409, // Refulgent Arrow
         16494, // Shadowbite
         16495, // Burst Shot
@@ -197,44 +197,44 @@ public partial class HotbarManager
         36977, // Radiant Encore
         // white mage
         119, // Stone
-        120, // Cure
+        //120, // Cure
         121, // Aero
-        124, // Medica
+        //124, // Medica
         125, // Raise
         127, // Stone II
-        131, // Cure III
+        //131, // Cure III
         132, // Aero II
-        133, // Medica II
-        135, // Cure II
+        //133, // Medica II
+        //135, // Cure II
         136, // Presence of Mind
-        137, // Regen
+        //137, // Regen
         139, // Holy
-        140, // Benediction
+        //140, // Benediction
         3568, // Stone III
-        3569, // Asylum
-        3570, // Tetragrammaton
-        3571, // Assize
+        //3569, // Asylum
+        //3570, // Tetragrammaton
+        //3571, // Assize
         7430, // Thin Air
         7431, // Stone IV
-        7432, // Divine Benison
-        7433, // Plenary Indulgence
-        16531, // Afflatus Solace
+        //7432, // Divine Benison
+        //7433, // Plenary Indulgence
+        //16531, // Afflatus Solace
         16532, // Dia
         16533, // Glare
-        16534, // Afflatus Rapture
+        //16534, // Afflatus Rapture
         16535, // Afflatus Misery
-        16536, // Temperance
+        //16536, // Temperance
         25859, // Glare III
         25860, // Holy III
-        25861, // Aquaveil
-        25862, // Liturgy of the Bell
-        25863, // Liturgy of the Bell
-        25864, // Liturgy of the Bell
-        28509, // Liturgy of the Bell
+        //25861, // Aquaveil
+        //25862, // Liturgy of the Bell
+        //25863, // Liturgy of the Bell
+        //25864, // Liturgy of the Bell
+        //28509, // Liturgy of the Bell
         37008, // Aetherial Shift
         37009, // Glare IV
-        37010, // Medica III
-        37011, // Divine Caress
+        //37010, // Medica III
+        //37011, // Divine Caress
         // black mage
         141, // Fire
         142, // Blizzard
@@ -246,7 +246,7 @@ public partial class HotbarManager
         154, // Blizzard III
         155, // Aetherial Manipulation
         156, // Scathe
-        157, // Manaward
+        //157, // Manaward
         158, // Manafont
         159, // Freeze
         162, // Flare
@@ -284,18 +284,18 @@ public partial class HotbarManager
         7428, // Wyrmwave
         7429, // Enkindle Bahamut
         7449, // Akh Morn
-        16230, // Physick
+        //16230, // Physick
         16508, // Energy Drain
         16510, // Energy Siphon
         16511, // Outburst
         16514, // Fountain of Fire
         16515, // Brand of Purgatory
         16516, // Enkindle Phoenix
-        16517, // Everlasting Flight
+        //16517, // Everlasting Flight
         16518, // Revelation
         16519, // Scarlet Flame
         25798, // Summon Carbuncle
-        25799, // Radiant Aegis
+        //25799, // Radiant Aegis
         25800, // Aethercharge
         25801, // Searing Light
         25802, // Summon Ruby
@@ -360,64 +360,64 @@ public partial class HotbarManager
         36994, // Umbral Impulse
         36995, // Umbral Flare
         36996, // Sunflare
-        36997, // Lux Solaris
+        //36997, // Lux Solaris
         36998, // Enkindle Solar Bahamut
         36999, // Exodus
         // scholar
-        166, // Aetherflow
+        //166, // Aetherflow
         167, // Energy Drain
-        185, // Adloquium
-        186, // Succor
-        188, // Sacred Soil
-        189, // Lustrate
-        190, // Physick
-        802, // Embrace
-        803, // Whispering Dawn
-        805, // Fey Illumination
-        3583, // Indomitability
+        //185, // Adloquium
+        //186, // Succor
+        //188, // Sacred Soil
+        //189, // Lustrate
+        //190, // Physick
+        //802, // Embrace
+        //803, // Whispering Dawn
+        //805, // Fey Illumination
+        //3583, // Indomitability
         3584, // Broil
-        3585, // Deployment Tactics
-        3586, // Emergency Tactics
-        3587, // Dissipation
-        7434, // Excogitation
+        //3585, // Deployment Tactics
+        //3586, // Emergency Tactics
+        //3587, // Dissipation
+        //7434, // Excogitation
         7435, // Broil II
         7436, // Chain Stratagem
-        7437, // Aetherpact
-        7438, // Fey Union
-        7869, // Dissolve Union
-        16537, // Whispering Dawn
-        16538, // Fey Illumination
+        //7437, // Aetherpact
+        //7438, // Fey Union
+        //7869, // Dissolve Union
+        //16537, // Whispering Dawn
+        //16538, // Fey Illumination
         16539, // Art of War
         16540, // Biolysis
         16541, // Broil III
-        16542, // Recitation
-        16543, // Fey Blessing
-        16544, // Fey Blessing
-        16545, // Summon Seraph
-        16546, // Consolation
-        16547, // Consolation
-        16548, // Seraphic Veil
-        16550, // Angel's Whisper
-        16551, // Seraphic Illumination
-        17215, // Summon Eos
+        //16542, // Recitation
+        //16543, // Fey Blessing
+        //16544, // Fey Blessing
+        //16545, // Summon Seraph
+        //16546, // Consolation
+        //16547, // Consolation
+        //16548, // Seraphic Veil
+        //16550, // Angel's Whisper
+        //16551, // Seraphic Illumination
+        //17215, // Summon Eos
         17864, // Bio
         17865, // Bio II
         17869, // Ruin
         17870, // Ruin II
         25865, // Broil IV
         25866, // Art of War II
-        25867, // Protraction
-        25868, // Expedient
+        //25867, // Protraction
+        //25868, // Expedient
         37012, // Baneful Impaction
-        37013, // Concitation
-        37014, // Seraphism
-        37015, // Manifestation
-        37016, // Accession
-        37037, // Emergency Tactics
+        //37013, // Concitation
+        //37014, // Seraphism
+        //37015, // Manifestation
+        //37016, // Accession
+        //37037, // Emergency Tactics
         // rogue
         // ninja
         2240, // Spinning Edge
-        2241, // Shade Shift
+        //2241, // Shade Shift
         2242, // Gust Slash
         2245, // Hide
         2246, // Assassinate
@@ -491,7 +491,7 @@ public partial class HotbarManager
         2874, // Gauss Round
         2876, // Reassemble
         2878, // Wildfire
-        2887, // Dismantle
+        //2887, // Dismantle
         2890, // Ricochet
         7410, // Heat Blast
         7411, // Heated Split Shot
@@ -510,7 +510,7 @@ public partial class HotbarManager
         16503, // Pile Bunker
         16504, // Arm Punch
         16766, // Detonator
-        16889, // Tactician
+        //16889, // Tactician
         17206, // Roller Dash
         17209, // Hypercharge
         25786, // Scattergun
@@ -527,88 +527,88 @@ public partial class HotbarManager
         3623, // Syphon Strike
         3624, // Unmend
         3625, // Blood Weapon
-        3629, // Grit
+        //3629, // Grit
         3632, // Souleater
-        3634, // Dark Mind
-        3636, // Shadow Wall
-        3638, // Living Dead
+        //3634, // Dark Mind
+        //3636, // Shadow Wall
+        //3638, // Living Dead
         3639, // Salted Earth
         3641, // Abyssal Drain
         3643, // Carve and Spit
         7390, // Delirium
         7391, // Quietus
         7392, // Bloodspiller
-        7393, // The Blackest Night
+        //7393, // The Blackest Night
         16466, // Flood of Darkness
         16467, // Edge of Darkness
         16468, // Stalwart Soul
         16469, // Flood of Shadow
         16470, // Edge of Shadow
-        16471, // Dark Missionary
+        //16471, // Dark Missionary
         16472, // Living Shadow
-        25754, // Oblation
+        //25754, // Oblation
         25755, // Salt and Darkness
         25756, // Salt and Darkness
         25757, // Shadowbringer
-        32067, // Release Grit
+        //32067, // Release Grit
         36926, // Shadowstride
-        36927, // Shadowed Vigil
+        //36927, // Shadowed Vigil
         36928, // Scarlet Delirium
         36929, // Comeuppance
         36930, // Torcleaver
         36931, // Impalement
         36932, // Disesteem
         // astrologian
-        3594, // Benefic
-        3595, // Aspected Benefic
+        //3594, // Benefic
+        //3595, // Aspected Benefic
         3596, // Malefic
         3598, // Malefic II
         3599, // Combust
-        3600, // Helios
-        3601, // Aspected Helios
-        3603, // Ascend
-        3606, // Lightspeed
+        //3600, // Helios
+        //3601, // Aspected Helios
+        //3603, // Ascend
+        //3606, // Lightspeed
         3608, // Combust II
-        3610, // Benefic II
-        3612, // Synastry
-        3613, // Collective Unconscious
-        3614, // Essential Dignity
+        //3610, // Benefic II
+        //3612, // Synastry
+        //3613, // Collective Unconscious
+        //3614, // Essential Dignity
         3615, // Gravity
-        7439, // Earthly Star
-        7440, // Stellar Burst
-        7441, // Stellar Explosion
+        //7439, // Earthly Star
+        //7440, // Stellar Burst
+        //7441, // Stellar Explosion
         7442, // Malefic III
         7444, // Lord of Crowns
-        7445, // Lady of Crowns
-        8324, // Stellar Detonation
+        //7445, // Lady of Crowns
+        //8324, // Stellar Detonation
         16552, // Divination
-        16553, // Celestial Opposition
+        //16553, // Celestial Opposition
         16554, // Combust III
         16555, // Malefic IV
-        16556, // Celestial Intersection
-        16557, // Horoscope
-        16558, // Horoscope
-        16559, // Neutral Sect
+        //16556, // Celestial Intersection
+        //16557, // Horoscope
+        //16558, // Horoscope
+        //16559, // Neutral Sect
         25871, // Fall Malefic
         25872, // Gravity II
-        25873, // Exaltation
-        25874, // Macrocosmos
-        25875, // Microcosmos
-        37017, // Astral Draw
-        37018, // Umbral Draw
+        //25873, // Exaltation
+        //25874, // Macrocosmos
+        //25875, // Microcosmos
+        //37017, // Astral Draw
+        //37018, // Umbral Draw
         37019, // Play I
-        37020, // Play II
-        37021, // Play III
-        37022, // Minor Arcana
+        //37020, // Play II
+        //37021, // Play III
+        //37022, // Minor Arcana
         37023, // the Balance
-        37024, // the Arrow
-        37025, // the Spire
+        //37024, // the Arrow
+        //37025, // the Spire
         37026, // the Spear
-        37027, // the Bole
-        37028, // the Ewer
+        //37027, // the Bole
+        //37028, // the Ewer
         37029, // Oracle
-        37030, // Helios Conjunction
-        37031, // Sun Sign
+        //37030, // Helios Conjunction
+        //37031, // Sun Sign
         // samurai
         7477, // Hakaze
         7478, // Jinpu
@@ -630,7 +630,7 @@ public partial class HotbarManager
         7495, // Hagakure
         7496, // Hissatsu: Guren
         7497, // Meditate
-        7498, // Third Eye
+        //7498, // Third Eye
         7499, // Meikyo Shisui
         7867, // Iaijutsu
         16481, // Hissatsu: Senei
@@ -660,7 +660,7 @@ public partial class HotbarManager
         7511, // Verstone
         7512, // Zwerchhau
         7513, // Moulinet
-        7514, // Vercure
+        //7514, // Vercure
         7515, // Displacement
         7516, // Redoublement
         7517, // Fleche
@@ -685,7 +685,7 @@ public partial class HotbarManager
         16530, // Scorch
         25855, // Verthunder III
         25856, // Veraero III
-        25857, // Magick Barrier
+        //25857, // Magick Barrier
         25858, // Resolution
         37002, // Enchanted Moulinet Deux
         37003, // Enchanted Moulinet Trois
@@ -698,37 +698,37 @@ public partial class HotbarManager
         16137, // Keen Edge
         16138, // No Mercy
         16139, // Brutal Shell
-        16140, // Camouflage
+        //16140, // Camouflage
         16141, // Demon Slice
-        16142, // Royal Guard
+        //16142, // Royal Guard
         16143, // Lightning Shot
         16144, // Danger Zone
         16145, // Solid Barrel
         16146, // Gnashing Fang
         16147, // Savage Claw
-        16148, // Nebula
+        //16148, // Nebula
         16149, // Demon Slaughter
         16150, // Wicked Talon
-        16151, // Aurora
-        16152, // Superbolide
+        //16151, // Aurora
+        //16152, // Superbolide
         16153, // Sonic Break
         16155, // Continuation
         16156, // Jugular Rip
         16157, // Abdomen Tear
         16158, // Eye Gouge
         16159, // Bow Shock
-        16160, // Heart of Light
-        16161, // Heart of Stone
+        //16160, // Heart of Light
+        //16161, // Heart of Stone
         16162, // Burst Strike
         16163, // Fated Circle
         16164, // Bloodfest
         16165, // Blasting Zone
-        25758, // Heart of Corundum
+        //25758, // Heart of Corundum
         25759, // Hypervelocity
         25760, // Double Down
-        32068, // Release Royal Guard
+        //32068, // Release Royal Guard
         36934, // Trajectory
-        36935, // Great Nebula
+        //36935, // Great Nebula
         36936, // Fated Brand
         36937, // Reign of Beasts
         36938, // Noble Blood
@@ -757,10 +757,10 @@ public partial class HotbarManager
         16009, // Fan Dance III
         16010, // En Avant
         16011, // Devilment
-        16012, // Shield Samba
+        //16012, // Shield Samba
         16013, // Flourish
-        16014, // Improvisation
-        16015, // Curing Waltz
+        //16014, // Improvisation
+        //16015, // Curing Waltz
         16191, // Single Standard Finish
         16192, // Double Standard Finish
         16193, // Single Technical Finish
@@ -768,7 +768,7 @@ public partial class HotbarManager
         16195, // Triple Technical Finish
         16196, // Quadruple Technical Finish
         18073, // Ending
-        25789, // Improvised Finish
+        //25789, // Improvised Finish
         25790, // Tillana
         25791, // Fan Dance IV
         25792, // Starfall Dance
@@ -811,7 +811,7 @@ public partial class HotbarManager
         24401, // Hell's Ingress
         24402, // Hell's Egress
         24403, // Regress
-        24404, // Arcane Crest
+        //24404, // Arcane Crest
         24405, // Arcane Circle
         36969, // Sacrificium
         36970, // Executioner's Gibbet
@@ -820,48 +820,48 @@ public partial class HotbarManager
         36973, // Perfectio
         // sage
         24283, // Dosis
-        24284, // Diagnosis
-        24285, // Kardia
-        24286, // Prognosis
-        24287, // Egeiro
-        24288, // Physis
+        //24284, // Diagnosis
+        //24285, // Kardia
+        //24286, // Prognosis
+        //24287, // Egeiro
+        //24288, // Physis
         24289, // Phlegma
-        24290, // Eukrasia
-        24291, // Eukrasian Diagnosis
-        24292, // Eukrasian Prognosis
+        //24290, // Eukrasia
+        //24291, // Eukrasian Diagnosis
+        //24292, // Eukrasian Prognosis
         24293, // Eukrasian Dosis
-        24294, // Soteria
+        //24294, // Soteria
         24295, // Icarus
-        24296, // Druochole
+        //24296, // Druochole
         24297, // Dyskrasia
-        24298, // Kerachole
-        24299, // Ixochole
-        24300, // Zoe
-        24301, // Pepsis
-        24302, // Physis II
-        24303, // Taurochole
+        //24298, // Kerachole
+        //24299, // Ixochole
+        //24300, // Zoe
+        //24301, // Pepsis
+        //24302, // Physis II
+        //24303, // Taurochole
         24304, // Toxikon
-        24305, // Haima
+        //24305, // Haima
         24306, // Dosis II
         24307, // Phlegma II
         24308, // Eukrasian Dosis II
-        24309, // Rhizomata
-        24310, // Holos
-        24311, // Panhaima
+        //24309, // Rhizomata
+        //24310, // Holos
+        //24311, // Panhaima
         24312, // Dosis III
         24313, // Phlegma III
         24314, // Eukrasian Dosis III
         24315, // Dyskrasia II
         24316, // Toxikon II
-        24317, // Krasis
-        24318, // Pneuma
-        27524, // Pneuma
-        28119, // Kardia
+        //24317, // Krasis
+        //24318, // Pneuma
+        //27524, // Pneuma
+        //28119, // Kardia
         37032, // Eukrasian Dyskrasia
         37033, // Psyche
-        37034, // Eukrasian Prognosis II
-        37035, // Philosophia
-        37036, // Eudaimonia
+        //37034, // Eukrasian Prognosis II
+        //37035, // Philosophia
+        //37036, // Eudaimonia
         // viper
         34606, // Steel Fangs
         34607, // Reaving Fangs
@@ -944,8 +944,8 @@ public partial class HotbarManager
         34682, // Star Prism
         34683, // Subtractive Palette
         34684, // Smudge
-        34685, // Tempera Coat
-        34686, // Tempera Grassa
+        //34685, // Tempera Coat
+        //34686, // Tempera Grassa
         34688, // Rainbow Drip
         34689, // Creature Motif
         34690, // Weapon Motif
