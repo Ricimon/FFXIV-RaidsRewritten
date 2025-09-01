@@ -208,11 +208,12 @@ public class DreadknightInUCoB : Mechanic
         if (set.Action == null) { return; }
         if (!dreadknight.HasValue) { return; }
 
+        var isCancellingCC = Data.Actions.DamageActions.Contains(set.Action.Value.RowId) ||
+            Data.Actions.AutoAttacks.Contains(set.Action.Value.RowId);
+        var isTargetingTwintania = set.Target?.DataId == TwintaniaId;
+
         // don't want to keep looping over entity's children if not cancellable
-        if (ccCancellable &&
-            Data.Actions.DamageActions.Contains(set.Action.Value.RowId) ||
-            Data.Actions.AutoAttacks.Contains(set.Action.Value.RowId) &&
-            set.Target?.DataId == TwintaniaId)
+        if (ccCancellable && isCancellingCC && isTargetingTwintania)
         {
             Dreadknight.RemoveCancellableCC(dreadknight.Value);
             ccCancellable = false;
@@ -234,7 +235,7 @@ public class DreadknightInUCoB : Mechanic
                 Dreadknight.IncrementSpeed(dreadknight.Value, speedIncrement);
             }
             return;
-        } else if (baitActionIds.Contains(set.Action.Value.RowId)) {
+        } else if (baitActionIds.Contains(set.Action.Value.RowId) && isTargetingTwintania) {
             var timeDiff = DateTime.Now - lastTargetSwap;
             if (!(timeDiff.TotalSeconds < SecondsUntilSwappable && Dreadknight.HasTarget(dreadknight.Value)))
             {
@@ -247,7 +248,7 @@ public class DreadknightInUCoB : Mechanic
             }
         }
 
-        if (CrowdControlDict.TryGetValue(set.Action.Value.RowId, out var ccData) && set.Target?.DataId == TwintaniaId)
+        if (CrowdControlDict.TryGetValue(set.Action.Value.RowId, out var ccData) && isTargetingTwintania)
         {
             HandleCC(ccData);
         }
