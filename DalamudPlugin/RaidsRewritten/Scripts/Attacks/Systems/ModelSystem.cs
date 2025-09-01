@@ -165,27 +165,22 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
                 }
             });
 
-
-        // need to process AnimationState first before it's overwritten by default standing state in later system
         world.System<Model, TimelineBase>()
             .Each((Iter it, int i, ref Model model, ref TimelineBase animationState) =>
             {
                 // set animation
-                unsafe
-                {
-                    var clientObjectManager = ClientObjectManager.Instance();
-                    if (clientObjectManager == null) { return; }
+                var clientObjectManager = ClientObjectManager.Instance();
+                if (clientObjectManager == null) { return; }
 
-                    var obj = clientObjectManager->GetObjectByIndex((ushort)model.GameObjectIndex);
-                    var chara = (Character*)obj;
-                    if (chara == null) { return; }
+                var obj = clientObjectManager->GetObjectByIndex((ushort)model.GameObjectIndex);
+                var chara = (Character*)obj;
+                if (chara == null) { return; }
 
-                    chara->Timeline.BaseOverride = animationState.Value;
+                chara->Timeline.BaseOverride = animationState.Value;
 
-                    if (animationState.Interrupt) {
-                        chara->Timeline.TimelineSequencer.PlayTimeline(animationState.Value);
-                        animationState.Interrupt = false;
-                    }
+                if (animationState.Interrupt) {
+                    chara->Timeline.TimelineSequencer.PlayTimeline(animationState.Value);
+                    animationState.Interrupt = false;
                 }
             });
 
