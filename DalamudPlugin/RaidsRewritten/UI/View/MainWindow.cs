@@ -411,6 +411,16 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             });
         }
 
+        if (ImGui.Button("Sleep"))
+        {
+            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+            {
+                Sleep.ApplyToTarget(e, 3.0f);
+            });
+        }
+
+        ImGui.SameLine();
+
         if (ImGui.Button("Heavy (e)"))
         {
             commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
