@@ -26,8 +26,7 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries) : IAttack
     }
 
     public struct ADSEntity;
-    public record struct Action(float ElapsedTime, Phase Phase = Phase.Omen);
-    public record struct AnimationState(ushort Value, bool Interrupt = false);
+    public record struct Action(float Angle, float ElapsedTime = 0, Phase Phase = Phase.Omen);
 
     private const string ActionVfx = "vfx/monster/m0653/eff/m0653sp16_c0a1.avfx";
     private const string CastingVfx = "vfx/common/eff/mon_eisyo03t.avfx";
@@ -47,11 +46,12 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries) : IAttack
     {
         return world.Entity()
             .Set(new Model(316))
+            .Set(new AnimationState(1)) // ADS glow
             .Set(new Position())
             .Set(new Rotation(0))
             .Set(new Scale())
             .Set(new UniformScale(0.5f))
-            .Set(new AnimationState(IdleAnimation))
+            .Set(new TimelineBase(IdleAnimation))
             .Add<ADSEntity>()
             .Add<Attack>();
     }
@@ -63,30 +63,6 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries) : IAttack
 
     public void Register(World world)
     {
-        world.System<Model, AnimationState>()
-        .Each((Iter it, int i, ref Model model, ref AnimationState animationState) =>
-        {
-            // set animation
-            unsafe
-            {
-                var clientObjectManager = ClientObjectManager.Instance();
-                if (clientObjectManager == null) { return; }
-
-                var obj = clientObjectManager->GetObjectByIndex((ushort)model.GameObjectIndex);
-                var chara = (Character*)obj;
-                if (chara != null)
-                {
-                    chara->Timeline.BaseOverride = animationState.Value;
-                    if (animationState.Interrupt) { chara->Timeline.TimelineSequencer.PlayTimeline(animationState.Value); }
-                }
-            }
-            // only interrupt once
-            if (animationState.Interrupt)
-            {
-                it.Entity(i).Set(new AnimationState(animationState.Value));
-            }
-            });
-
         world.System<Action, Position, Rotation>().With<ADSEntity>().Each((Iter it, int i, ref Action component, ref Position position, ref Rotation rotation) =>
         {
             component.ElapsedTime += it.DeltaTime();
@@ -101,7 +77,7 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries) : IAttack
                     var omen = RectangleOmen.CreateEntity(world);
                     {
                         omen.Set(new Position(position.Value))
-                            .Set(new Rotation(rotation.Value))
+                            .Set(new Rotation(component.Angle))
                             .Set(new Scale(new Vector3(0.75f, 1, 44)))
                             .ChildOf(entity);
                     }
@@ -109,13 +85,14 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries) : IAttack
                     break;
                 case Phase.Animation:
                     if (ShouldReturn(component)) { return; }
-                    entity.Set(new AnimationState(AttackAnimation));
+                    entity.Set(new Rotation(component.Angle))
+                        .Set(new TimelineBase(AttackAnimation));
                     component.Phase = Phase.Snapshot;
                     break;
                 case Phase.Snapshot:
                     if (ShouldReturn(component))
                     {
-                        entity.Set(new AnimationState(IdleAnimation));
+                        entity.Set(new TimelineBase(IdleAnimation));
                         return;
                     }
                     entity.Children(child =>
@@ -154,8 +131,7 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries) : IAttack
     public static bool CastLineAoe(Entity entity, float angle)
     {
         if (entity.Has<Action>()) { return false; }
-        entity.Set(new Rotation(angle))
-            .Set(new Action());
+        entity.Set(new Action(angle));
         return true;
     }
 
