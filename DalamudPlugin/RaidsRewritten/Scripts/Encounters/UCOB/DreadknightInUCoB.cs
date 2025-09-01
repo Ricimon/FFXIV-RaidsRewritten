@@ -209,7 +209,7 @@ public class DreadknightInUCoB : Mechanic
         if (!dreadknight.HasValue) { return; }
 
         // don't want to keep looping over entity's children if not cancellable
-        if (ccCancellable && set.Target?.DataId == TwintaniaId)
+        if (ccCancellable && Data.Actions.DamageActions.Contains(set.Action.Value.RowId) && set.Target?.DataId == TwintaniaId)
         {
             Dreadknight.RemoveCancellableCC(dreadknight.Value);
             ccCancellable = false;
