@@ -30,14 +30,4 @@ public class Stun
 
         return entity;
     }
-
-    public static bool IsStunned(Entity playerEntity)
-    {
-        var ret = false;
-        playerEntity.Children(e =>
-        {
-            if (e.Has<Component>()) { ret = true; }
-        });
-        return ret;
-    }
 }

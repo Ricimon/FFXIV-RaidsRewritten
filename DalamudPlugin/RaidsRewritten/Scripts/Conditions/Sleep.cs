@@ -30,14 +30,4 @@ public class Sleep
 
         return entity;
     }
-
-    public static bool IsSlept(Entity playerEntity)
-    {
-        var ret = false;
-        playerEntity.Children(e =>
-        {
-            if (e.Has<Component>()) { ret = true; }
-        });
-        return ret;
-    }
 }
