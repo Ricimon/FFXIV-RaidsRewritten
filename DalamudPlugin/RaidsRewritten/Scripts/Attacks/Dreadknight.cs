@@ -25,7 +25,7 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
     public record struct Target(IGameObject? Value);
     public record struct BackupTarget(IGameObject? Value);
     public record struct Speed(float Value);
-    public record struct SpeedModifier(float Value, float Duration, float ElapsedTime = 0);
+    public record struct SpeedModifier(float Value);
 
     private const ushort WalkingAnimation = 41;
     private const ushort AttackAnimation = 1515;
@@ -76,17 +76,6 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
                 if (component.ElapsedTime > 300)
                 {
                     it.Entity(i).Destruct();
-                }
-            });
-
-        world.System<SpeedModifier>()
-            .Each((Iter it, int i, ref SpeedModifier speedModifier) =>
-            {
-                speedModifier.ElapsedTime += it.DeltaTime();
-
-                if (speedModifier.ElapsedTime > speedModifier.Duration)
-                {
-                    it.Entity(i).Remove<SpeedModifier>();
                 }
             });
 
@@ -191,7 +180,7 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
                         }
                         var velocity = speed.Value;
 
-                        if (entity.TryGet<SpeedModifier>(out var modifier))
+                        if (entity.HasStatus<Heavy.Component>() && entity.TryGet<SpeedModifier>(out var modifier))
                         {
                             velocity *= modifier.Value;
                         }
@@ -294,7 +283,7 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
         }
     }
 
-    public static void RelativeSpeedTemporary(Entity entity, float value, float duration) => entity.Set(new SpeedModifier(value, duration));
+    public static void SetTemporaryRelativeSpeed(Entity entity, float value) => entity.Set(new SpeedModifier(value));
 
     // maybe move this to a util class?
     private void ShowTextGimmick(string text, int seconds, RaptureAtkModule.TextGimmickHintStyle style = RaptureAtkModule.TextGimmickHintStyle.Warning)

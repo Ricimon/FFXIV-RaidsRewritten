@@ -598,17 +598,25 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                     }, 4f);
                     DelayedAction.Create(dreadknight.CsWorld(), () =>
                     {
-                        Bind.ApplyToTarget(dreadknight, 1f);
+                        Bind.ApplyToTarget(dreadknight, 3f);
                     }, 6f);
+                    DelayedAction.Create(dreadknight.CsWorld(), () =>
+                    {
+                        dreadknight.RemoveStatus<Bind.Component>();
+                    }, 7f);
                     DelayedAction.Create(dreadknight.CsWorld(), () =>
                     {
                         Sleep.ApplyToTarget(dreadknight, 1f);
                     }, 8f);
                     DelayedAction.Create(dreadknight.CsWorld(), () =>
                     {
-                        Heavy.ApplyToTarget(dreadknight, 3f);
-                        Dreadknight.RelativeSpeedTemporary(dreadknight, .5f, 3f);
+                        Heavy.ApplyToTarget(dreadknight, 5f);
+                        Dreadknight.SetTemporaryRelativeSpeed(dreadknight, .1f);
                     }, 10f);
+                    DelayedAction.Create(dreadknight.CsWorld(), () =>
+                    {
+                        dreadknight.RemoveStatus<Heavy.Component>();
+                    }, 12f);
                 }
             }
         }

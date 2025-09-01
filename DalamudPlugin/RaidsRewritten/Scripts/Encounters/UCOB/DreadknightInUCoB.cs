@@ -250,10 +250,9 @@ public class DreadknightInUCoB : Mechanic
                 break;
             case CrowdControlType.Heavy:
                 Conditions.Heavy.ApplyToTarget(dreadknight!.Value, ccData.duration * CrowdControlDurationMultiplier);
-                Dreadknight.RelativeSpeedTemporary(
+                Dreadknight.SetTemporaryRelativeSpeed(
                     dreadknight!.Value,
-                    ccData.effectiveness * CrowdControlEffectivenessMultiplier,
-                    ccData.duration * CrowdControlDurationMultiplier
+                    ccData.effectiveness * CrowdControlEffectivenessMultiplier
                 );
                 break;
             case CrowdControlType.Sleep:
