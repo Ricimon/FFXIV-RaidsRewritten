@@ -108,7 +108,7 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries) : IAttack
                         {
                             commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
                             {
-                                Paralysis.ApplyToPlayer(e, 30f, 3f, 1f, ParalysisId);
+                                Paralysis.ApplyToTarget(e, 30f, 3f, 1f, ParalysisId);
                             });
                         }
                         child.Destruct();

@@ -7,10 +7,10 @@ public class Heavy
 {
     public record struct Component(object _);
 
-    public static Entity ApplyToPlayer(Entity playerEntity, float duration, int id = 0, bool extendDuration = false)
+    public static Entity ApplyToTarget(Entity playerEntity, float duration, int id = 0, bool extendDuration = false)
     {
         var world = playerEntity.CsWorld();
-        var entity = Condition.ApplyToPlayer(playerEntity, "Slowed", duration, id, extendDuration);
+        var entity = Condition.ApplyToTarget(playerEntity, "Slowed", duration, id, extendDuration);
         if (!entity.Has<Component>())
         {
             entity.Set(new Component());

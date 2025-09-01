@@ -969,4 +969,10 @@ public class Actions
 
         // ================ BLUE MAGE ================
     ];
+
+    public static readonly HashSet<uint> AutoAttacks =
+    [
+        7, // attack
+        8, // shot
+    ];
 }

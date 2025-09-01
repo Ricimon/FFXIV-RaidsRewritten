@@ -34,7 +34,7 @@ public sealed class Knockback : IDalamudHook
     private readonly CommonQueries commonQueries;
     private readonly ILogger logger;
 
-    public static void ApplyToPlayer(Entity playerEntity, Vector3 knockbackDirection, float duration, bool canResist)
+    public static void ApplyToTarget(Entity playerEntity, Vector3 knockbackDirection, float duration, bool canResist)
     {
         if (!playerEntity.CsWorld().IsDeferred())
         {

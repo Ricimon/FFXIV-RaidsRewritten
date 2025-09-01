@@ -11,9 +11,9 @@ public class Paralysis(Random random, ILogger logger) : ISystem
     public record struct Component(float StunInterval, float StunDuration,
         float ElapsedTime = 0, float TimeOffset = 0, bool StunActive = false, int LastTimeIntervalEvaluation = -1);
 
-    public static Entity ApplyToPlayer(Entity playerEntity, float duration, float stunInterval, float stunDuration, int id = 0)
+    public static Entity ApplyToTarget(Entity playerEntity, float duration, float stunInterval, float stunDuration, int id = 0)
     {
-        var entity = Condition.ApplyToPlayer(playerEntity, "Paralyzed", duration, id);
+        var entity = Condition.ApplyToTarget(playerEntity, "Paralyzed", duration, id);
         if (!entity.Has<Component>())
         {
             entity.Set(new Component(stunInterval, stunDuration, TimeOffset: stunInterval));

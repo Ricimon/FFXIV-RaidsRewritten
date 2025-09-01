@@ -7,7 +7,7 @@ public class Bind
 {
     public record struct Component(object _);
 
-    public static void ApplyToPlayer(Entity playerEntity, float duration)
+    public static void ApplyToTarget(Entity playerEntity, float duration)
     {
         var world = playerEntity.CsWorld();
         var e = world.Entity()

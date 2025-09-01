@@ -161,7 +161,7 @@ public unsafe sealed class RollingBall(DalamudServices dalamud, CommonQueries co
 
                         commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
                         {
-                            Knockback.ApplyToPlayer(e, knockbackDirection, KnockbackDuration, true);
+                            Knockback.ApplyToTarget(e, knockbackDirection, KnockbackDuration, true);
                         });
                     }
                 }

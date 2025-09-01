@@ -109,7 +109,7 @@ public sealed class JumpableShockwave(DalamudServices dalamud, CommonQueries com
                         {
                             commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
                             {
-                                Stun.ApplyToPlayer(e, StunDuration, StunId);
+                                Stun.ApplyToTarget(e, StunDuration, StunId);
                             });
                         }
                     }

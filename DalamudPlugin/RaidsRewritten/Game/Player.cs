@@ -20,6 +20,7 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
     private Query<Condition.Component, Paralysis.Component> paralysisQuery;
     private Query<Condition.Component, Heavy.Component> heavyQuery;
     private Query<Condition.Component, Pacify.Component> pacifyQuery;
+    private Query<Condition.Component, Sleep.Component> sleepQuery;
     private Query<Condition.Component> overheatQuery;
     private Query<Condition.Component> deepfreezeQuery;
 
@@ -41,6 +42,7 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
         this.paralysisQuery.Dispose();
         this.heavyQuery.Dispose();
         this.pacifyQuery.Dispose();
+        this.sleepQuery.Dispose();
         this.overheatQuery.Dispose();
         this.deepfreezeQuery.Dispose();
     }
@@ -63,6 +65,8 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
         this.heavyQuery = world.QueryBuilder<Condition.Component, Heavy.Component>()
             .With<LocalPlayer>().Up().Cached().Build();
         this.pacifyQuery = world.QueryBuilder<Condition.Component, Pacify.Component>()
+            .With<LocalPlayer>().Up().Cached().Build();
+        this.sleepQuery = world.QueryBuilder<Condition.Component, Sleep.Component>()
             .With<LocalPlayer>().Up().Cached().Build();
         this.overheatQuery = world.QueryBuilder<Condition.Component>()
             .With<Overheat.Component>()
@@ -113,6 +117,8 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
                     bool stun = false;
                     Entity stunEntity = this.stunQuery.First();
                     stun |= stunEntity.IsValid();
+                    Entity sleepEntity = this.sleepQuery.First();
+                    stun |= sleepEntity.IsValid();
                     Entity deepfreezeEntity = this.deepfreezeQuery.First();
                     stun |= deepfreezeEntity.IsValid();
                     this.paralysisQuery.Each((Entity e, ref Condition.Component _, ref Paralysis.Component paralysis) =>

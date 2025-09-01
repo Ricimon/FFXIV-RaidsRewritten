@@ -124,7 +124,7 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
             });
         });
 
-        this.componentsQuery = ecsContainer.World.QueryBuilder<Condition.Component>().Without<Condition.Hidden>().Cached().Build();
+        this.componentsQuery = ecsContainer.World.QueryBuilder<Condition.Component>().Without<Condition.Hidden>().With<Player.LocalPlayer>().Up().Cached().Build();
         this.temperatureQuery = ecsContainer.World.QueryBuilder<Temperature.Component>().Cached().Build();
     }
 
@@ -150,7 +150,6 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
 
         using (font.Push())
         {
-            // matches all conditions that exist in the world
             this.componentsQuery.Each((ref Condition.Component status) =>
             {
                 AddStatus(toDraw, status.Name, Math.Round(status.TimeRemaining), ref offsetY, ref maxWidth);

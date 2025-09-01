@@ -25,6 +25,9 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
     public record struct Target(IGameObject? Value);
     public record struct BackupTarget(IGameObject? Value);
     public record struct Speed(float Value);
+    public record struct SpeedModifier(float Value);
+
+    public struct QueueCancelCC;
 
     private const ushort WalkingAnimation = 41;
     private const ushort AttackAnimation = 1515;
@@ -76,6 +79,14 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
                 {
                     it.Entity(i).Destruct();
                 }
+            });
+
+        world.System<Component>().With<QueueCancelCC>()
+            .Each((Entity entity, ref Component _) =>
+            {
+                entity.DestructChildEntity<Sleep.Component>();
+                entity.DestructChildEntity<Bind.Component>();
+                entity.Remove<QueueCancelCC>();
             });
 
         // no target
@@ -141,6 +152,11 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
                     component.BackupActive = false;
                     if (component.ElapsedTime < InitialDelay) { return; }  // only want to start looking at player and chasing when ready 
                     if (component.Enrage == -1) { return; }
+                    if (entity.HasChild<Stun.Component>() || entity.HasChild<Bind.Component>() || entity.HasChild<Sleep.Component>())
+                    {
+                        Stand(entity, animationState);
+                        return;
+                    }
 
                     component.StartEnrage = component.ElapsedTime + 5;
                     component.Enrage = component.ElapsedTime + 10;
@@ -172,10 +188,16 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
                         {
                             entity.Set(new TimelineBase(WalkingAnimation, true));
                         }
+                        var velocity = speed.Value;
+
+                        if (entity.HasChild<Heavy.Component>() && entity.TryGet<SpeedModifier>(out var modifier))
+                        {
+                            velocity *= modifier.Value;
+                        }
 
                         var newPosition = position.Value;
-                        newPosition.Z += speed.Value * it.DeltaTime() * MathF.Cos(angle);
-                        newPosition.X += speed.Value * it.DeltaTime() * MathF.Sin(angle);
+                        newPosition.Z += velocity * it.DeltaTime() * MathF.Cos(angle);
+                        newPosition.X += velocity * it.DeltaTime() * MathF.Sin(angle);
                         position.Value = newPosition;
                     }
                 } else
@@ -271,6 +293,8 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
         }
     }
 
+    public static void SetTemporaryRelativeSpeed(Entity entity, float value) => entity.Set(new SpeedModifier(value));
+
     // maybe move this to a util class?
     private void ShowTextGimmick(string text, int seconds, RaptureAtkModule.TextGimmickHintStyle style = RaptureAtkModule.TextGimmickHintStyle.Warning)
     {
@@ -291,12 +315,15 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
         entity.CsWorld().DeleteWith(flecs.EcsChildOf, entity);
     }
 
+    // can't directly remove components, instead schedule removal from a system
+    public static void RemoveCancellableCC(Entity entity) => entity.Add<QueueCancelCC>();
+
     private void StunPlayer(World world, float duration, float delay = StunDelay)
     {
         commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
         {
             DelayedAction.Create(world, () => {
-                Stun.ApplyToPlayer(e, duration, StunId);
+                Stun.ApplyToTarget(e, duration, StunId);
             }, delay);
         });
     }

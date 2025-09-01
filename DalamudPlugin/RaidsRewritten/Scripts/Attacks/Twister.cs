@@ -60,7 +60,7 @@ public sealed class Twister(DalamudServices dalamud, CommonQueries commonQueries
                         }
                         commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
                         {
-                            Knockback.ApplyToPlayer(e, knockbackDirection, KnockbackDuration, false);
+                            Knockback.ApplyToTarget(e, knockbackDirection, KnockbackDuration, false);
                         });
                     }
                 }
