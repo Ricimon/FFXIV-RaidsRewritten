@@ -590,6 +590,11 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                     {
                         Bind.ApplyToTarget(dreadknight, 1f);
                     }, 6f);
+                    DelayedAction.Create(dreadknight.CsWorld(), () =>
+                    {
+                        Heavy.ApplyToTarget(dreadknight, 3f);
+                        Dreadknight.RelativeSpeedTemporary(dreadknight, .5f, 3f);
+                    }, 8f);
 
                 }
             }

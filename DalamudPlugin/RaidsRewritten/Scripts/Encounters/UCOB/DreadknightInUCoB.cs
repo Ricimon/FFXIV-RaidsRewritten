@@ -28,6 +28,7 @@ public class DreadknightInUCoB : Mechanic
     {
         public CrowdControlType ccType;
         public float duration;
+        public float effectiveness;
     }
 
     private readonly Dictionary<uint, CrowdControlData> CrowdControlDict = new()
@@ -69,7 +70,8 @@ public class DreadknightInUCoB : Mechanic
             7554, new()
             {
                 ccType = CrowdControlType.Heavy,
-                duration = 10
+                duration = 10,
+                effectiveness = .4f
             }
         },
         {
@@ -248,7 +250,11 @@ public class DreadknightInUCoB : Mechanic
                 break;
             case CrowdControlType.Heavy:
                 Conditions.Heavy.ApplyToTarget(dreadknight!.Value, ccData.duration * CrowdControlDurationMultiplier);
-                // TODO: actually debuff speed
+                Dreadknight.RelativeSpeedTemporary(
+                    dreadknight!.Value,
+                    ccData.effectiveness * CrowdControlEffectivenessMultiplier,
+                    ccData.duration * CrowdControlDurationMultiplier
+                );
                 break;
             case CrowdControlType.Sleep:
                 // TODO: implement sleep

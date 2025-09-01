@@ -25,6 +25,7 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
     public record struct Target(IGameObject? Value);
     public record struct BackupTarget(IGameObject? Value);
     public record struct Speed(float Value);
+    public record struct SpeedModifier(float Value, float Duration, float ElapsedTime = 0);
 
     private const ushort WalkingAnimation = 41;
     private const ushort AttackAnimation = 1515;
@@ -75,6 +76,17 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
                 if (component.ElapsedTime > 300)
                 {
                     it.Entity(i).Destruct();
+                }
+            });
+
+        world.System<SpeedModifier>()
+            .Each((Iter it, int i, ref SpeedModifier speedModifier) =>
+            {
+                speedModifier.ElapsedTime += it.DeltaTime();
+
+                if (speedModifier.ElapsedTime > speedModifier.Duration)
+                {
+                    it.Entity(i).Remove<SpeedModifier>();
                 }
             });
 
@@ -177,10 +189,16 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
                         {
                             entity.Set(new TimelineBase(WalkingAnimation, true));
                         }
+                        var velocity = speed.Value;
+
+                        if (entity.TryGet<SpeedModifier>(out var modifier))
+                        {
+                            velocity *= modifier.Value;
+                        }
 
                         var newPosition = position.Value;
-                        newPosition.Z += speed.Value * it.DeltaTime() * MathF.Cos(angle);
-                        newPosition.X += speed.Value * it.DeltaTime() * MathF.Sin(angle);
+                        newPosition.Z += velocity * it.DeltaTime() * MathF.Cos(angle);
+                        newPosition.X += velocity * it.DeltaTime() * MathF.Sin(angle);
                         position.Value = newPosition;
                     }
                 } else
@@ -275,6 +293,8 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
                 .Set(new Speed(newSpeed));
         }
     }
+
+    public static void RelativeSpeedTemporary(Entity entity, float value, float duration) => entity.Set(new SpeedModifier(value, duration));
 
     // maybe move this to a util class?
     private void ShowTextGimmick(string text, int seconds, RaptureAtkModule.TextGimmickHintStyle style = RaptureAtkModule.TextGimmickHintStyle.Warning)
