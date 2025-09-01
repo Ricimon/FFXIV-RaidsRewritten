@@ -27,4 +27,14 @@ public class Bind
             },
             0.6f).ChildOf(e);
     }
+
+    public static bool IsBound(Entity playerEntity)
+    {
+        var ret = false;
+        playerEntity.Children(e =>
+        {
+            if (e.Has<Component>()) { ret = true; }
+        });
+        return ret;
+    }
 }

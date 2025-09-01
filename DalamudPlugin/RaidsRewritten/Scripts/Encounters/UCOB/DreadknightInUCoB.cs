@@ -16,6 +16,88 @@ namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
 public class DreadknightInUCoB : Mechanic
 {
+    private enum CrowdControlType
+    {
+        Stun,
+        Heavy,
+        Sleep,
+        Bind
+    }
+
+    private struct CrowdControlData
+    {
+        public CrowdControlType ccType;
+        public float duration;
+    }
+
+    private readonly Dictionary<uint, CrowdControlData> CrowdControlDict = new()
+    {
+        {
+            // shield bash
+            16, new()
+            {
+                ccType = CrowdControlType.Stun,
+                duration = 6,
+            }
+        },
+        {
+            // holy
+            139, new()
+            {
+                ccType = CrowdControlType.Stun,
+                duration = 4
+            }
+        },
+        {
+            // low blow
+            7540, new()
+            {
+                ccType = CrowdControlType.Stun,
+                duration = 5
+            }
+        },
+        {
+            // foot graze
+            7553, new()
+            {
+                ccType = CrowdControlType.Bind,
+                duration = 10
+            }
+        },
+        {
+            // leg graze
+            7554, new()
+            {
+                ccType = CrowdControlType.Heavy,
+                duration = 10
+            }
+        },
+        {
+            // leg sweep
+            7863, new()
+            {
+                ccType = CrowdControlType.Stun,
+                duration = 3
+            }
+        },
+        {
+            // repose
+            16560, new()
+            {
+                ccType = CrowdControlType.Sleep,
+                duration = 30
+            }
+        },
+        {
+            // sleep
+            25880, new()
+            {
+                ccType = CrowdControlType.Sleep,
+                duration = 30
+            }
+        }
+    };
+
     private const uint NeurolinkDataId = 0x1E88FF;
     private readonly Vector3 ArenaCenter = new(0,0,0);
     private const int GenerateId = 9902;
@@ -27,6 +109,8 @@ public class DreadknightInUCoB : Mechanic
     private const string SwappableTetherVfx = "vfx/channeling/eff/chn_light01f.avfx";
     private const int SecondsUntilSwappable = 60;
     private const string StartMessage = "Twintania channels energy to the Dreadknight...";
+    private const float CrowdControlDurationMultiplier = 0.5f;
+    private const float CrowdControlEffectivenessMultiplier = 0.5f;
 
     private readonly List<uint> baitActionIds = [
         7538,  // interject
@@ -37,15 +121,6 @@ public class DreadknightInUCoB : Mechanic
         16,    // shield bash
         139,   // holy
         7540,  // low blow
-        7554,  // leg graze
-        7863,  // leg sweep
-    ];
-
-    private readonly List<uint> stunActionIds = [
-        16,    // shield bash
-        139,   // holy
-        7540,  // low blow
-        7553,  // foot graze
         7554,  // leg graze
         7863,  // leg sweep
     ];
@@ -158,16 +233,36 @@ public class DreadknightInUCoB : Mechanic
             }
         }
 
-        if (stunActionIds.Contains(set.Action.Value.RowId) && set.Target?.DataId == TwintaniaId)
+        if (CrowdControlDict.TryGetValue(set.Action.Value.RowId, out var ccData) && set.Target?.DataId == TwintaniaId)
         {
-            Conditions.Stun.ApplyToTarget(dreadknight.Value, 2.5f);
+            HandleCC(ccData);
+        }
+    }
 
-            if (tetherVfxChanged)
-            {
-                Dreadknight.ChangeTetherVfx(dreadknight.Value);
-                lastTargetSwap = DateTime.Now;
-                tetherVfxChanged = false;
-            }
+    private void HandleCC(CrowdControlData ccData)
+    {
+        switch(ccData.ccType)
+        {
+            case CrowdControlType.Stun:
+                Conditions.Stun.ApplyToTarget(dreadknight!.Value, ccData.duration * CrowdControlDurationMultiplier);
+                break;
+            case CrowdControlType.Heavy:
+                Conditions.Heavy.ApplyToTarget(dreadknight!.Value, ccData.duration * CrowdControlDurationMultiplier);
+                // TODO: actually debuff speed
+                break;
+            case CrowdControlType.Sleep:
+                // TODO: implement sleep
+                break;
+            case CrowdControlType.Bind:
+                Conditions.Bind.ApplyToTarget(dreadknight!.Value, ccData.duration * CrowdControlDurationMultiplier);
+                break;
+        }
+
+        if (tetherVfxChanged)
+        {
+            Dreadknight.ChangeTetherVfx(dreadknight!.Value);
+            lastTargetSwap = DateTime.Now;
+            tetherVfxChanged = false;
         }
     }
 
