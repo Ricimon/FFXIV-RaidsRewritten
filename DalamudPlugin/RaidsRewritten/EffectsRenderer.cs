@@ -150,7 +150,6 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
 
         using (font.Push())
         {
-            // matches all conditions that exist in the world
             this.componentsQuery.Each((ref Condition.Component status) =>
             {
                 AddStatus(toDraw, status.Name, Math.Round(status.TimeRemaining), ref offsetY, ref maxWidth);
