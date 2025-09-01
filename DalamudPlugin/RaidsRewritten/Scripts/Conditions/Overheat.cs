@@ -7,10 +7,10 @@ public class Overheat
 {
     public record struct Component(object _);
 
-    public static Entity ApplyToPlayer(Entity playerEntity, float duration, int id = 0)
+    public static Entity ApplyToTarget(Entity playerEntity, float duration, int id = 0)
     {
         var world = playerEntity.CsWorld();
-        var entity = Condition.ApplyToPlayer(playerEntity, "Overheated", duration, id);
+        var entity = Condition.ApplyToTarget(playerEntity, "Overheated", duration, id);
         if (!entity.Has<Component>())
         {
             entity.Set(new Component());

@@ -94,7 +94,7 @@ public class Tethers : Mechanic
                     if (src == this.Dalamud.ClientState.LocalPlayer || target == this.Dalamud.ClientState.LocalPlayer)
                     {
                         onCondition1 = (e) => {
-                            Stun.ApplyToPlayer(e, 15);
+                            Stun.ApplyToTarget(e, 15);
                         };
                     }
 

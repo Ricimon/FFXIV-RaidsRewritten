@@ -54,7 +54,7 @@ public class EarthShakerStar : Mechanic
                 VfxPath: "vfx/monster/gimmick5/eff/x6r7_b3_g08_c0p.avfx",
                 OnHit: e =>
                 {
-                    Stun.ApplyToPlayer(e, 5.0f, StunId, true);
+                    Stun.ApplyToTarget(e, 5.0f, StunId, true);
                     Pacify.ApplyToTarget(e, 30.0f, PacifyId, true);
                 }));
             star.Set(new Position(newObject.Position));

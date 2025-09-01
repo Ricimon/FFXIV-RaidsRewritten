@@ -160,7 +160,7 @@ public class DreadknightInUCoB : Mechanic
 
         if (stunActionIds.Contains(set.Action.Value.RowId) && set.Target?.DataId == TwintaniaId)
         {
-            Conditions.Stun.ApplyToPlayer(dreadknight.Value, 2.5f);
+            Conditions.Stun.ApplyToTarget(dreadknight.Value, 2.5f);
 
             if (tetherVfxChanged)
             {

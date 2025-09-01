@@ -176,7 +176,7 @@ public sealed class LightningCorridor(DalamudServices dalamud, CommonQueries com
                             {
                                 commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
                                 {
-                                    Paralysis.ApplyToPlayer(e, 30.0f, 3.0f, 1.0f, ParalysisId);
+                                    Paralysis.ApplyToTarget(e, 30.0f, 3.0f, 1.0f, ParalysisId);
                                 });
                             }
                         }

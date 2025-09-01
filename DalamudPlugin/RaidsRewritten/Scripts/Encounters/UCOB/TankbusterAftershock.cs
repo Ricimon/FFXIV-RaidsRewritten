@@ -194,7 +194,7 @@ public class TankbusterAftershock : Mechanic
             {
                 DelayedAction.Create(e.CsWorld(), () =>
                 {
-                    Heavy.ApplyToPlayer(e, HeavyDurationSeconds, HeavyId, true);
+                    Heavy.ApplyToTarget(e, HeavyDurationSeconds, HeavyId, true);
                 }, aftershockData.StatusDelaySeconds);
             }
 

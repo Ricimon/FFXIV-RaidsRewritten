@@ -367,7 +367,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         {
             commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
             {
-                Bind.ApplyToPlayer(e, 3.0f);
+                Bind.ApplyToTarget(e, 3.0f);
             });
         }
         ImGui.SameLine();
@@ -375,7 +375,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         {
             commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
             {
-                Knockback.ApplyToPlayer(e, new Vector3(1, 0, 0), 2.0f, true);
+                Knockback.ApplyToTarget(e, new Vector3(1, 0, 0), 2.0f, true);
             });
         }
         ImGui.SameLine();
@@ -383,7 +383,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         {
             commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
             {
-                Stun.ApplyToPlayer(e, 3.0f);
+                Stun.ApplyToTarget(e, 3.0f);
             });
         }
         ImGui.SameLine();
@@ -391,7 +391,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         {
             commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
             {
-                Paralysis.ApplyToPlayer(e, 5.0f, 3.0f, 1.0f, -100);
+                Paralysis.ApplyToTarget(e, 5.0f, 3.0f, 1.0f, -100);
             });
         }
         ImGui.SameLine();
@@ -399,7 +399,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         {
             commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
             {
-                Heavy.ApplyToPlayer(e, 5.0f);
+                Heavy.ApplyToTarget(e, 5.0f);
             });
         }
         ImGui.SameLine();
@@ -415,7 +415,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         {
             commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
             {
-                Heavy.ApplyToPlayer(e, 5.0f, -100, true);
+                Heavy.ApplyToTarget(e, 5.0f, -100, true);
             });
         }
 
@@ -584,7 +584,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                     Dreadknight.ApplyTarget(dreadknight, player);
                     DelayedAction.Create(dreadknight.CsWorld(), () =>
                     {
-                        Stun.ApplyToPlayer(dreadknight, 1f);
+                        Stun.ApplyToTarget(dreadknight, 1f);
                     }, 4f);
                 }
             }
@@ -633,7 +633,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                     {
                         DistanceSnapshotTether.SetTetherVfx(tether, TetherOmen.TetherVfx.ActivatedClose, player, target)
                             .Set(new DistanceSnapshotTether.VfxOnFail(["vfx/monster/m0005/eff/m0005sp_15t0t.avfx"]))
-                            .Set(new DistanceSnapshotTether.Tether((e) => { Stun.ApplyToPlayer(e, 5); }))
+                            .Set(new DistanceSnapshotTether.Tether((e) => { Stun.ApplyToTarget(e, 5); }))
                             .Set(new DistanceSnapshotTether.FailWhenFurtherThan(10));
 
                         DelayedAction.Create(tether.CsWorld(), () =>
@@ -659,7 +659,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                     {
                         DistanceSnapshotTether.SetTetherVfx(tether, TetherOmen.TetherVfx.ActivatedFar, player, target)
                             .Set(new DistanceSnapshotTether.VfxOnFail(["vfx/monster/m0005/eff/m0005sp_15t0t.avfx"]))
-                            .Set(new DistanceSnapshotTether.Tether((e) => { Stun.ApplyToPlayer(e, 5); }))
+                            .Set(new DistanceSnapshotTether.Tether((e) => { Stun.ApplyToTarget(e, 5); }))
                             .Set(new DistanceSnapshotTether.FailWhenCloserThan(10));
 
                         DelayedAction.Create(tether.CsWorld(), () =>
@@ -702,7 +702,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                         Type: Star.Type.Long,
                         OmenTime: 2.75f,
                         VfxPath: "vfx/monster/gimmick5/eff/x6r7_b3_g08_c0p.avfx",
-                        OnHit: e => { Stun.ApplyToPlayer(e, 2.0f); }));
+                        OnHit: e => { Stun.ApplyToTarget(e, 2.0f); }));
                     star.Set(new Position(player.Position));
                     star.Set(new Rotation(player.Rotation));
                 }

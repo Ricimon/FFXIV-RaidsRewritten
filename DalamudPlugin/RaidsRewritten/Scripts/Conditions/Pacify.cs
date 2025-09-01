@@ -10,7 +10,7 @@ public class Pacify
     public static Entity ApplyToTarget(Entity target, float duration, int id = 0, bool extendDuration = false)
     {
         var world = target.CsWorld();
-        var entity = Condition.ApplyToPlayer(target, "Pacified", duration, id, extendDuration);
+        var entity = Condition.ApplyToTarget(target, "Pacified", duration, id, extendDuration);
         if (!entity.Has<Component>())
         {
             entity.Set(new Component());

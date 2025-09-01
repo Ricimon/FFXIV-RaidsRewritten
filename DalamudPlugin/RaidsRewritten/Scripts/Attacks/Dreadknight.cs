@@ -301,7 +301,7 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
         commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
         {
             DelayedAction.Create(world, () => {
-                Stun.ApplyToPlayer(e, duration, StunId);
+                Stun.ApplyToTarget(e, duration, StunId);
             }, delay);
         });
     }
