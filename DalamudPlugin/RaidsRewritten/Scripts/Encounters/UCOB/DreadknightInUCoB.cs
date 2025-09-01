@@ -134,6 +134,7 @@ public class DreadknightInUCoB : Mechanic
     private int oviformsOnField = 0;
     private DateTime lastTargetSwap = DateTime.MinValue;
     private bool tetherVfxChanged = true;
+    private bool ccCancellable = true;
 
     public override void Reset()
     {
@@ -153,6 +154,7 @@ public class DreadknightInUCoB : Mechanic
         oviformsOnField = 0;
         lastTargetSwap = DateTime.MinValue;
         tetherVfxChanged = true;
+        ccCancellable = false;
     }
 
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
@@ -206,6 +208,13 @@ public class DreadknightInUCoB : Mechanic
         if (set.Action == null) { return; }
         if (!dreadknight.HasValue) { return; }
 
+        // don't want to keep looping over entity's children if not cancellable
+        if (ccCancellable && set.Target?.DataId == TwintaniaId)
+        {
+            Dreadknight.RemoveCancellableCC(dreadknight.Value);
+            ccCancellable = false;
+        }
+
         if (set.Action.Value.RowId == GenerateId)
         {
             oviformsOnField = neurolinksSpawned;
@@ -257,9 +266,11 @@ public class DreadknightInUCoB : Mechanic
                 break;
             case CrowdControlType.Sleep:
                 Conditions.Sleep.ApplyToTarget(dreadknight!.Value, ccData.duration * CrowdControlDurationMultiplier);
+                ccCancellable = true;
                 break;
             case CrowdControlType.Bind:
                 Conditions.Bind.ApplyToTarget(dreadknight!.Value, ccData.duration * CrowdControlDurationMultiplier);
+                ccCancellable = true;
                 break;
         }
 

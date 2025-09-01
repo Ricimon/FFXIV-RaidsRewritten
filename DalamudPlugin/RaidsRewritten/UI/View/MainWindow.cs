@@ -602,7 +602,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                     }, 6f);
                     DelayedAction.Create(dreadknight.CsWorld(), () =>
                     {
-                        dreadknight.RemoveStatus<Bind.Component>();
+                        Dreadknight.RemoveCancellableCC(dreadknight);
                     }, 7f);
                     DelayedAction.Create(dreadknight.CsWorld(), () =>
                     {
