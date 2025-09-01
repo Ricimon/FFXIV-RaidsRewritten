@@ -58,4 +58,28 @@ public static class FlecsExtensions
         entity.Children(child => { childCount++; });
         return childCount > 0;
     }
+
+    public static bool HasStatus<T>(this Entity entity) where T : struct
+    {
+        var ret = false;
+        entity.Children(child =>
+        {
+            if (child.Has<T>())
+            {
+                ret = true;
+            }
+        });
+        return ret;
+    }
+
+    public static void RemoveStatus<T>(this Entity entity) where T : struct
+    {
+        entity.Children(child =>
+        {
+            if (child.Has<T>())
+            {
+                child.Destruct();
+            }
+        });
+    }
 }
