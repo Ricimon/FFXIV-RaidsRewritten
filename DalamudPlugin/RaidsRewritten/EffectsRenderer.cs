@@ -78,7 +78,7 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
     private readonly EcsContainer ecsContainer;
 
     private readonly IFontHandle font;
-    private readonly Query<Player.Component, Condition.Component> componentsQuery;
+    private readonly Query<Condition.Component> componentsQuery;
     private readonly Query<Temperature.Component> temperatureQuery;
 
     private const float PADDING_X = 10f;
@@ -124,7 +124,7 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
             });
         });
 
-        this.componentsQuery = ecsContainer.World.QueryBuilder<Player.Component, Condition.Component>().TermAt(0).Up().Without<Condition.Hidden>().Cached().Build();
+        this.componentsQuery = ecsContainer.World.QueryBuilder<Condition.Component>().Without<Condition.Hidden>().With<Player.LocalPlayer>().Up().Cached().Build();
         this.temperatureQuery = ecsContainer.World.QueryBuilder<Temperature.Component>().Cached().Build();
     }
 
@@ -151,7 +151,7 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
         using (font.Push())
         {
             // matches all conditions that exist in the world
-            this.componentsQuery.Each((ref Player.Component _, ref Condition.Component status) =>
+            this.componentsQuery.Each((ref Condition.Component status) =>
             {
                 AddStatus(toDraw, status.Name, Math.Round(status.TimeRemaining), ref offsetY, ref maxWidth);
             });
