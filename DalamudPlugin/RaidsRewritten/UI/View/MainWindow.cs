@@ -615,7 +615,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                     }, 10f);
                     DelayedAction.Create(dreadknight.CsWorld(), () =>
                     {
-                        dreadknight.RemoveStatus<Heavy.Component>();
+                        dreadknight.DestructChildEntity<Heavy.Component>();
                     }, 12f);
                 }
             }

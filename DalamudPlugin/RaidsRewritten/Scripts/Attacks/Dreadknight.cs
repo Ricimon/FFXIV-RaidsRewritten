@@ -84,8 +84,8 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
         world.System<Component>().With<QueueCancelCC>()
             .Each((Entity entity, ref Component _) =>
             {
-                entity.RemoveStatus<Sleep.Component>();
-                entity.RemoveStatus<Bind.Component>();
+                entity.DestructChildEntity<Sleep.Component>();
+                entity.DestructChildEntity<Bind.Component>();
                 entity.Remove<QueueCancelCC>();
             });
 
@@ -152,7 +152,7 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
                     component.BackupActive = false;
                     if (component.ElapsedTime < InitialDelay) { return; }  // only want to start looking at player and chasing when ready 
                     if (component.Enrage == -1) { return; }
-                    if (entity.HasStatus<Stun.Component>() || entity.HasStatus<Bind.Component>() || entity.HasStatus<Sleep.Component>())
+                    if (entity.HasChild<Stun.Component>() || entity.HasChild<Bind.Component>() || entity.HasChild<Sleep.Component>())
                     {
                         Stand(entity, animationState);
                         return;
@@ -190,7 +190,7 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
                         }
                         var velocity = speed.Value;
 
-                        if (entity.HasStatus<Heavy.Component>() && entity.TryGet<SpeedModifier>(out var modifier))
+                        if (entity.HasChild<Heavy.Component>() && entity.TryGet<SpeedModifier>(out var modifier))
                         {
                             velocity *= modifier.Value;
                         }
