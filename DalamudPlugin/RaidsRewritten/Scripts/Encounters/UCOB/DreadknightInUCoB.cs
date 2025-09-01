@@ -257,7 +257,7 @@ public class DreadknightInUCoB : Mechanic
                 );
                 break;
             case CrowdControlType.Sleep:
-                // TODO: implement sleep
+                Conditions.Sleep.ApplyToTarget(dreadknight!.Value, ccData.duration * CrowdControlDurationMultiplier);
                 break;
             case CrowdControlType.Bind:
                 Conditions.Bind.ApplyToTarget(dreadknight!.Value, ccData.duration * CrowdControlDurationMultiplier);

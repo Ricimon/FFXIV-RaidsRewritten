@@ -602,10 +602,13 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                     }, 6f);
                     DelayedAction.Create(dreadknight.CsWorld(), () =>
                     {
+                        Sleep.ApplyToTarget(dreadknight, 1f);
+                    }, 8f);
+                    DelayedAction.Create(dreadknight.CsWorld(), () =>
+                    {
                         Heavy.ApplyToTarget(dreadknight, 3f);
                         Dreadknight.RelativeSpeedTemporary(dreadknight, .5f, 3f);
-                    }, 8f);
-
+                    }, 10f);
                 }
             }
         }
