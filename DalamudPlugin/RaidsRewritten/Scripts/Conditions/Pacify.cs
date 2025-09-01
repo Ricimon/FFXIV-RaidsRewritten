@@ -7,10 +7,10 @@ public class Pacify
 {
     public record struct Component(object _);
 
-    public static Entity ApplyToTarget(Entity target, float duration, int id = 0)
+    public static Entity ApplyToTarget(Entity target, float duration, int id = 0, bool extendDuration = false)
     {
         var world = target.CsWorld();
-        var entity = Condition.ApplyToPlayer(target, "Pacified", duration, id);
+        var entity = Condition.ApplyToPlayer(target, "Pacified", duration, id, extendDuration);
         if (!entity.Has<Component>())
         {
             entity.Set(new Component());
