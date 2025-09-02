@@ -255,13 +255,13 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         using var mainTab = ImRaii.TabItem("Main");
         if (!mainTab) return;
 
-        if (ImGui.InputInt("Position X", ref effectsRendererPositionX))
+        if (ImGui.InputInt("Position X", ref effectsRendererPositionX, 5))
         {
             configuration.EffectsRendererPositionX = effectsRendererPositionX;
             configuration.Save();
         }
 
-        if (ImGui.InputInt("Position Y", ref effectsRendererPositionY))
+        if (ImGui.InputInt("Position Y", ref effectsRendererPositionY, 5))
         {
             configuration.EffectsRendererPositionY = effectsRendererPositionY;
             configuration.Save();
