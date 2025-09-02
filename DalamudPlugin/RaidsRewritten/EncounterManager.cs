@@ -145,7 +145,7 @@ public sealed class EncounterManager : IDalamudHook
         {
             actionName = action.Name.ExtractText();
         }
-        var text = $"CAST: {battleChara.Name} (0x{battleChara.EntityId:X}|{battleChara.Position}) starts casting {actionName} ({battleChara.NameId}>{battleChara.CastActionId})";
+        var text = $"CAST: {battleChara.Name} (0x{battleChara.EntityId:X}|{battleChara.NameId}|{battleChara.Position}) starts casting {actionName} ({battleChara.CastActionId})";
         this.logger.Debug(text);
 
         if (this.configuration.EverythingDisabled) { return; }

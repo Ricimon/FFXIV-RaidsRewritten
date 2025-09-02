@@ -30,6 +30,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
     private string ADSSquaredKey => $"{Name}.ADS^2";
     private string TethersKey => $"{Name}.Tethers";
     private string EarthShakerStarKey => $"{Name}.EarthShakerStar";
+    private string OctetCourseKey => $"{Name}.OctetCourse";
 
     private readonly List<Mechanic> mechanics = [];
     private readonly string[] moreExaflaresDifficulties = [
@@ -111,6 +112,11 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             this.mechanics.Add(mechanicFactory.Create<EarthShakerStar>());
         }
 
+        if (configuration.GetEncounterSetting(OctetCourseKey, true))
+        {
+            this.mechanics.Add(mechanicFactory.Create<OctetObstacleCourse>());
+        }
+
         if (configuration.GetEncounterSetting(PermanentTwistersKey, true))
         {
             this.mechanics.Add(mechanicFactory.Create<PermanentTwister>());
@@ -152,6 +158,11 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
         if (ImGui.Button("Apply Intended Difficulty"))
         {
             ApplyIntendedFightSettings();
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Disable Everything"))
+        {
+            DisableEverything();
         }
 
         ImGui.SetNextItemWidth(140);
@@ -230,6 +241,15 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             RefreshMechanics();
         }
 
+        bool octetCourse = configuration.GetEncounterSetting(OctetCourseKey, true);
+        if (ImGui.Checkbox("Octet Course (WIP)", ref octetCourse))
+        {
+            configuration.EncounterSettings[OctetCourseKey] =
+                octetCourse ? bool.TrueString : bool.FalseString;
+            configuration.Save();
+            RefreshMechanics();
+        }
+
         bool permanentTwisters = configuration.GetEncounterSetting(PermanentTwistersKey, false);
         if (ImGui.Checkbox("Permanent Twisters", ref permanentTwisters))
         {
@@ -287,12 +307,28 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
         {
             ImGui.PushItemWidth(120);
             int temperatureControlX = configuration.GetEncounterSetting(TemperatureControlXKey, 1);
+            int temperatureControlY = configuration.GetEncounterSetting(TemperatureControlYKey, 1);
+
+            // Auto-position
+            if (temperatureControlX == 0 && temperatureControlY == 0)
+            {
+                var viewport = ImGui.GetMainViewport();
+                int x = (int)(viewport.Pos.X + viewport.Size.X / 2.0f);
+                int y = (int)(viewport.Pos.Y + viewport.Size.Y / 2.0f);
+
+                temperatureControlX = x;
+                temperatureControlY = y;
+
+                configuration.EncounterSettings[TemperatureControlXKey] = temperatureControlX.ToString();
+                configuration.EncounterSettings[TemperatureControlYKey] = temperatureControlY.ToString();
+                configuration.Save();
+            }
+
             if (ImGui.InputInt("Gauge X", ref temperatureControlX))
             {
                 configuration.EncounterSettings[TemperatureControlXKey] = temperatureControlX.ToString();
                 configuration.Save();
             }
-            int temperatureControlY = configuration.GetEncounterSetting(TemperatureControlYKey, 1);
             if (ImGui.InputInt("Gauge Y", ref temperatureControlY))
             {
                 configuration.EncounterSettings[TemperatureControlYKey] = temperatureControlY.ToString();
@@ -340,7 +376,27 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
         configuration.EncounterSettings[ADSSquaredKey] = bool.TrueString;
         configuration.EncounterSettings[TethersKey] = bool.TrueString;
         configuration.EncounterSettings[EarthShakerStarKey] = bool.TrueString;
+        configuration.EncounterSettings[OctetCourseKey] = bool.TrueString;
 
+        configuration.EncounterSettings[PermanentTwistersKey] = bool.FalseString;
+        configuration.EncounterSettings[RollingBallKey] = bool.FalseString;
+
+        configuration.Save();
+        RefreshMechanics();
+    }
+
+    private void DisableEverything()
+    {
+        configuration.EncounterSettings[TankbusterAftershockKey] = bool.FalseString;
+        configuration.EncounterSettings[LightningCorridorKey] = bool.FalseString;
+        configuration.EncounterSettings[MoreExaflaresKey] = bool.FalseString;
+        configuration.EncounterSettings[JumpableShockwavesKey] = bool.FalseString;
+        configuration.EncounterSettings[TemperatureControlKey] = bool.FalseString;
+        configuration.EncounterSettings[DreadknightKey] = bool.FalseString;
+        configuration.EncounterSettings[ADSSquaredKey] = bool.FalseString;
+        configuration.EncounterSettings[TethersKey] = bool.FalseString;
+        configuration.EncounterSettings[EarthShakerStarKey] = bool.FalseString;
+        configuration.EncounterSettings[OctetCourseKey] = bool.FalseString;
         configuration.EncounterSettings[PermanentTwistersKey] = bool.FalseString;
         configuration.EncounterSettings[RollingBallKey] = bool.FalseString;
 

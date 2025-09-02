@@ -153,13 +153,12 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         this.effectsRendererPositionX = configuration.EffectsRendererPositionX;
         this.effectsRendererPositionY = configuration.EffectsRendererPositionY;
 
-
+        // Auto-position the effects renderer
         if (effectsRendererPositionX == 0 && effectsRendererPositionY == 0)
         {
             var viewport = ImGui.GetMainViewport();
             int x = (int)(viewport.Pos.X + viewport.Size.X / 2);
             int y = (int)(viewport.Pos.Y + viewport.Size.Y / 3);
-
 
             effectsRendererPositionX = x;
             effectsRendererPositionY = y;
@@ -168,7 +167,6 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             configuration.EffectsRendererPositionY = effectsRendererPositionY;
             configuration.Save();
         }
-
 
 #if DEBUG
         visible = true;
