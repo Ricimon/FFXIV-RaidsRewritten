@@ -65,4 +65,9 @@ public static class MathUtilities
         if (targetPos.X < sourcePos.X ) { return -angle; }
         return angle;
     }
+
+    public static Vector2 GetVector2FromXZ(Vector3 v)
+    {
+        return new Vector2(v.X, v.Z);
+    } 
 }
