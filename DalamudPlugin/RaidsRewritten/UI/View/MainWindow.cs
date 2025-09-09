@@ -470,6 +470,20 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             }
         }
 
+        if (ImGui.Button("One Third Donut Omen"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<OneThirdDonutOmen>(out var donut))
+                {
+                    donut.Set(new Position(player.Position));
+                    donut.Set(new Rotation(player.Rotation));
+                    donut.Set(new Scale(Vector3.One));
+                }
+            }
+        }
+
         ImGui.Text("Test Attacks");
 
         if (ImGui.Button("Spawn Twister"))
