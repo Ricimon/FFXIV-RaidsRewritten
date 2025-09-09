@@ -28,8 +28,8 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
     private readonly Dictionary<Phase, float> phaseTimings = new()
     {
         { Phase.Omen, 0 },
-        { Phase.Snapshot, 6f },
-        { Phase.SpawnObstacleCourse, 6.5f },
+        { Phase.Snapshot, 4.5f },
+        { Phase.SpawnObstacleCourse, 5f },
         { Phase.Destruct, 60f }
     };
 
