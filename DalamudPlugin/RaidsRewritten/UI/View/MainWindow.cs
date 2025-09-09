@@ -724,6 +724,23 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             }
         }
 
+        if (ImGui.Button("Tornado"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<Tornado>(out var tornado))
+                {
+                    tornado.Set(new Position(player.Position));
+                    DelayedAction.Create(tornado.CsWorld(), () =>
+                    {
+                        tornado.Destruct();
+                    }, 10f);
+                }
+            }
+        }
+
         ImGui.Text("Heat Stuff");
         if (ImGui.Button("Add Temperature"))
         {

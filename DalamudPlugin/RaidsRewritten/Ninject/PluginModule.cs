@@ -114,6 +114,7 @@ public class PluginModule : NinjectModule
         Bind<IAttack, ISystem>().To<DistanceSnapshotTether>();
         Bind<IAttack, ISystem>().To<ExpandingPuddle>();
         Bind<IAttack, ISystem>().To<Star>();
+        Bind<IAttack, ISystem>().To<Tornado>();
         Bind<ISystem>().To<Player>();
         Bind<ISystem>().To<DelayedAction>();
         Bind<ISystem>().To<VfxSystem>();
