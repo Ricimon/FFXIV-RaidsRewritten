@@ -101,9 +101,9 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
                     var randBool = random.Next() % 2 == 1;
                     var randAngle = MathHelper.DegToRad(random.Next(359));
                     var p1 = new Vector3(
-                            position.Value.X + OuterTornadoDistance * MathF.Sin(randAngle),
+                            position.Value.X + OuterTornadoDistance * MathF.Cos(randAngle),
                             position.Value.Y,
-                            position.Value.Z + OuterTornadoDistance * MathF.Cos(randAngle)
+                            position.Value.Z + OuterTornadoDistance * MathF.Sin(randAngle)
                         );
                     var tornado1 = Tornado.CreateEntity(world)
                         .Set(new Position(p1))
@@ -112,9 +112,9 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
 
                     randAngle = MathHelper.DegToRad(random.Next(359));
                     var p2 = new Vector3(
-                            position.Value.X + InnerTornadoDistance * MathF.Sin(randAngle),
+                            position.Value.X + InnerTornadoDistance * MathF.Cos(randAngle),
                             position.Value.Y,
-                            position.Value.Z + InnerTornadoDistance * MathF.Cos(randAngle)
+                            position.Value.Z + InnerTornadoDistance * MathF.Sin(randAngle)
                         );
                     var tornado2 = Tornado.CreateEntity(world)
                         .Set(new Position(p2))
@@ -140,7 +140,7 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
                 var entity = it.Entity(i);
 
                 var angle = MathUtilities.GetAbsoluteAngleFromSourceToTarget(arenaCenter.Value, position.Value);
-                angle = MathUtilities.ClampRadians(angle + MathF.PI / 2 * (direction.IsClockwise ? -1 : 1));
+                angle = MathUtilities.ClampRadians(angle + MathF.PI / 2 * (direction.IsClockwise ? 1 : -1));
 
                 // base * delta * angular velocity ratio
                 var velocity = BaseTornadoSpeed * it.DeltaTime();

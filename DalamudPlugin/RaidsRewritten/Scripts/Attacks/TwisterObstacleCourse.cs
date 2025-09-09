@@ -55,9 +55,9 @@ public class TwisterObstacleCourse : IAttack, ISystem
 
             var distanceFromCenter = component.OuterRadius - TwisterRadius - Spacing * i;
             var position = new Vector3(
-                    center.X + distanceFromCenter * MathF.Sin(angle),
+                    center.X + distanceFromCenter * MathF.Cos(angle),
                     center.Y,
-                    center.Z + distanceFromCenter * MathF.Cos(angle)
+                    center.Z + distanceFromCenter * MathF.Sin(angle)
                 );
 
             Twister.CreateEntity(parent.CsWorld())
