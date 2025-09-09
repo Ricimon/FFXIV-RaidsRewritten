@@ -33,7 +33,7 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
     };
 
     public record struct Component(float ElapsedTime, Phase Phase = Phase.Omen);
-    public record struct TornadoDirection(bool IsClockwise, bool IsInner, Vector3 ArenaCenter);
+    public record struct TornadoDirection(bool IsClockwise, bool IsInner);
 
     private const float BaseTornadoSpeed = 5.4f;
     private const float OuterTornadoDistance = 20.25f;
@@ -92,25 +92,27 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
                     break;
                 case Phase.SpawnTornado:
                     var randBool = random.Next() % 2 == 1;
-                    // TODO: randomize starting position
+                    var randAngle = MathHelper.DegToRad(random.Next(359));
                     var p1 = new Vector3(
-                            position.Value.X,
+                            position.Value.X + OuterTornadoDistance * MathF.Sin(randAngle),
                             position.Value.Y,
-                            position.Value.Z + OuterTornadoDistance
+                            position.Value.Z + OuterTornadoDistance * MathF.Cos(randAngle)
                         );
                     var tornado1 = Tornado.CreateEntity(world)
                         .Set(new Position(p1))
-                        .Set(new TornadoDirection(randBool, false, position.Value))
+                        .Set(new TornadoDirection(randBool, false))
                         .ChildOf(entity);
+                    randAngle = MathHelper.DegToRad(random.Next(359));
                     var p2 = new Vector3(
-                            position.Value.X,
+                            position.Value.X + InnerTornadoDistance * MathF.Sin(randAngle),
                             position.Value.Y,
-                            position.Value.Z + InnerTornadoDistance
+                            position.Value.Z + InnerTornadoDistance * MathF.Cos(randAngle)
                         );
                     var tornado2 = Tornado.CreateEntity(world)
                         .Set(new Position(p2))
-                        .Set(new TornadoDirection(!randBool, true, position.Value))
+                        .Set(new TornadoDirection(!randBool, true))
                         .ChildOf(entity);
+
                     component.Phase = Phase.Destruct;
                     break;
                 case Phase.Destruct:
@@ -120,12 +122,12 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
             }
         });
 
-        world.System<TornadoDirection, Position>()
-            .Each((Iter it, int i, ref TornadoDirection direction, ref Position position) =>
+        world.System<TornadoDirection, Position, Position>().TermAt(2).Up()
+            .Each((Iter it, int i, ref TornadoDirection direction, ref Position position, ref Position arenaCenter) =>
             {
                 var entity = it.Entity(i);
 
-                var angle = MathUtilities.GetAbsoluteAngleFromSourceToTarget(direction.ArenaCenter, position.Value);
+                var angle = MathUtilities.GetAbsoluteAngleFromSourceToTarget(arenaCenter.Value, position.Value);
                 angle = MathUtilities.ClampRadians(angle + MathF.PI / 2 * (direction.IsClockwise ? -1 : 1));
 
                 // base * delta * angular velocity ratio
@@ -141,10 +143,5 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
             });
     }
 
-    private bool ShouldReturn(Component component)
-    {
-        if (component.ElapsedTime < phaseTimings[component.Phase]) { return true; }
-
-        return false;
-    }
+    private bool ShouldReturn(Component component) => component.ElapsedTime < phaseTimings[component.Phase];
 }
