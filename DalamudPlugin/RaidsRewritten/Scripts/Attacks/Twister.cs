@@ -18,7 +18,7 @@ public sealed class Twister(DalamudServices dalamud, CommonQueries commonQueries
     private const float Radius = 0.9f;
     private const float KnockbackDuration = 5.0f;
 
-    public Entity Create(World world)
+    public static Entity CreateEntity(World world)
     {
         return world.Entity()
             .Set(new StaticVfx("bgcommon/world/common/vfx_for_btl/b0222/eff/b0222_twis_y.avfx"))
@@ -28,6 +28,8 @@ public sealed class Twister(DalamudServices dalamud, CommonQueries commonQueries
             .Set(new Component())
             .Add<Attack>();
     }
+
+    public Entity Create(World world) => CreateEntity(world);
 
     public void Register(World world)
     {

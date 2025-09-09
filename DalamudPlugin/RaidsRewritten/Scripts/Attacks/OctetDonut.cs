@@ -121,6 +121,10 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
                         .Set(new TornadoDirection(!randBool))
                         .ChildOf(entity);
 
+                    var twisterPachinko = TwisterObstacleCourse.CreateEntity(world)
+                        .Set(new Position(position.Value))
+                        .ChildOf(entity);
+
                     component.Phase = Phase.Destruct;
                     break;
                 case Phase.Destruct:
