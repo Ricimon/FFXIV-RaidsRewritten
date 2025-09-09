@@ -755,6 +755,25 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             }
         }
 
+        ImGui.SameLine();
+
+        if (ImGui.Button("Donut Tornado"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<OctetDonut>(out var tornado))
+                {
+                    tornado.Set(new Position(player.Position));
+                    DelayedAction.Create(tornado.CsWorld(), () =>
+                    {
+                        tornado.Destruct();
+                    }, 26f);
+                }
+            }
+        }
+
         ImGui.Text("Heat Stuff");
         if (ImGui.Button("Add Temperature"))
         {
