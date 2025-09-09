@@ -50,8 +50,8 @@ public class TwisterObstacleCourse : IAttack, ISystem
         for (int i = 0; i < TwisterSlots; i++)
         {
             // determines which "twister slot" to skip
-            // rowType == false => 3 twister row, true => 2 twister row
-            if (i % 2 == 0 ^ rowType) { continue; }
+            // rowType == true => 3 twister row, false => 2 twister row
+            if ((i % 2 == 0) == rowType) { continue; }
 
             var distanceFromCenter = component.OuterRadius - TwisterRadius - Spacing * i;
             var position = new Vector3(
