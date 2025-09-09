@@ -77,7 +77,8 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
 
                     var fakeActor = FakeActor.Create(world)
                         .Set(new Position(position.Value))
-                        .Set(new ActorVfx(AoEVfx));
+                        .Set(new ActorVfx(AoEVfx))
+                        .ChildOf(entity);
 
                     entity.Children((Entity child) =>
                     {
