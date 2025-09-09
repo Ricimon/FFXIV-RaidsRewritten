@@ -21,7 +21,7 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
     {
         Omen,
         Snapshot,
-        SpawnTornado,
+        SpawnObstacleCourse,
         Destruct
     }
 
@@ -29,20 +29,25 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
     {
         { Phase.Omen, 0 },
         { Phase.Snapshot, 6f },
-        { Phase.Destruct, 26f }
+        { Phase.SpawnObstacleCourse, 6.5f },
+        { Phase.Destruct, 60f }
     };
 
     public record struct Component(float ElapsedTime, Phase Phase = Phase.Omen);
-    public record struct TornadoDirection(bool IsClockwise, bool IsInner);
+    public record struct TornadoDirection(bool IsClockwise);
 
     private const float BaseTornadoSpeed = 5.4f;
     private const float OuterTornadoDistance = 20.25f;
     private const float InnerTornadoDistance = 14.25f;
+    private const string AoEVfx = "vfx/monster/gimmick4/eff/z5r2_b1_g01c0g.avfx";
+    private const float StunDuration = 30f;
+    private const int OmenScale = 40;
 
     public Entity Create(World world)
     {
         return world.Entity()
-            .Set(new Component());
+            .Set(new Component())
+            .Add<Attack>();
     }
 
     public void Register(World world)
@@ -59,7 +64,7 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
 
                     OneThirdDonutOmen.CreateEntity(world)
                         .Set(new Position(position.Value))
-                        .Set(new Scale(new Vector3(23)))
+                        .Set(new Scale(new Vector3(OmenScale)))
                         .ChildOf(entity);
 
                     component.Phase = Phase.Snapshot;
@@ -72,7 +77,7 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
 
                     var fakeActor = FakeActor.Create(world)
                         .Set(new Position(position.Value))
-                        .Set(new ActorVfx("vfx/monster/gimmick4/eff/z5r2_b1_g01c0g.avfx"));
+                        .Set(new ActorVfx(AoEVfx));
 
                     entity.Children((Entity child) =>
                     {
@@ -82,15 +87,17 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
                         {
                             commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
                             {
-                                Stun.ApplyToTarget(e, 30f);
+                                Stun.ApplyToTarget(e, StunDuration);
                             });
                         }
                         child.Destruct();
                     });
 
-                    component.Phase = Phase.SpawnTornado;
+                    component.Phase = Phase.SpawnObstacleCourse;
                     break;
-                case Phase.SpawnTornado:
+                case Phase.SpawnObstacleCourse:
+                    if (ShouldReturn(component)) { return; }
+
                     var randBool = random.Next() % 2 == 1;
                     var randAngle = MathHelper.DegToRad(random.Next(359));
                     var p1 = new Vector3(
@@ -100,8 +107,9 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
                         );
                     var tornado1 = Tornado.CreateEntity(world)
                         .Set(new Position(p1))
-                        .Set(new TornadoDirection(randBool, false))
+                        .Set(new TornadoDirection(randBool))
                         .ChildOf(entity);
+
                     randAngle = MathHelper.DegToRad(random.Next(359));
                     var p2 = new Vector3(
                             position.Value.X + InnerTornadoDistance * MathF.Sin(randAngle),
@@ -110,7 +118,7 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
                         );
                     var tornado2 = Tornado.CreateEntity(world)
                         .Set(new Position(p2))
-                        .Set(new TornadoDirection(!randBool, true))
+                        .Set(new TornadoDirection(!randBool))
                         .ChildOf(entity);
 
                     component.Phase = Phase.Destruct;
@@ -131,7 +139,7 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
                 angle = MathUtilities.ClampRadians(angle + MathF.PI / 2 * (direction.IsClockwise ? -1 : 1));
 
                 // base * delta * angular velocity ratio
-                var velocity = BaseTornadoSpeed * it.DeltaTime() * (direction.IsInner ? InnerTornadoDistance / OuterTornadoDistance : 1);
+                var velocity = BaseTornadoSpeed * it.DeltaTime();
 
                 var newPos = new Vector3(
                         position.Value.X + MathF.Sin(angle) * velocity,
