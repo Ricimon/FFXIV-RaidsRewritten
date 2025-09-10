@@ -22,7 +22,7 @@ public class OneThirdDonutOmen : IAttack
         var positionV2 = MathHelper.ToVector2(position);
         var distance = Vector2.Distance(centerV2, positionV2);
 
-        return 0.3 * s.Value.X < distance && distance < s.Value.X;
+        return 0.3 * s.Value.X <= distance && distance <= s.Value.X;
     }
 
     public static Entity CreateEntity(World world)
