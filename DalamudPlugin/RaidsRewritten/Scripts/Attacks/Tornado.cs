@@ -1,4 +1,5 @@
-﻿using Flecs.NET.Core;
+﻿using ECommons.MathHelpers;
+using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks.Components;
@@ -45,8 +46,8 @@ public class Tornado (DalamudServices dalamud, Random random, CommonQueries comm
                 var player = dalamud.ClientState.LocalPlayer;
                 if (player == null) { return; }
 
-                var playerPosV2 = MathUtilities.GetVector2FromXZ(player.Position);
-                var tornadoPosV2 = MathUtilities.GetVector2FromXZ(position.Value);
+                var playerPosV2 = MathHelper.ToVector2(player.Position);
+                var tornadoPosV2 = MathHelper.ToVector2(position.Value);
 
                 if (Vector2.Distance(playerPosV2, tornadoPosV2) < uniformScale.Value * 3)
                 {
