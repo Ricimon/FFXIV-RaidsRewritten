@@ -28,6 +28,8 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
     public record struct SpeedModifier(float Value);
 
     public struct QueueCancelCC;
+    public struct TetherVfxChild;
+
 
     private const ushort WalkingAnimation = 41;
     private const ushort AttackAnimation = 1515;
@@ -99,8 +101,9 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
                 {
                     if (backupTarget.Value != null && backupTarget.Value.IsValid() && !backupTarget.Value.IsDead)
                     {
-                        var tether = AddActorVfx(entity, BackupTetherVfx);
-                        tether.Set(new ActorVfxTarget(backupTarget.Value));
+                        AddActorVfx(entity, BackupTetherVfx)
+                            .Set(new ActorVfxTarget(backupTarget.Value))
+                            .Add<TetherVfxChild>();
                         component.BackupActive = true;
                     }
                 }
@@ -215,7 +218,7 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
         {
             if (component.Enrage == -1) { return; }
 
-            RemoveChildren(entity);
+            entity.DestructChildEntity<TetherVfxChild>();
 
             if (component.StartEnrage == -1)
             {
@@ -225,12 +228,13 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
 
         entity.Set(new Target(target));
         AddActorVfx(entity, TetherVfx)
-            .Set(new ActorVfxTarget(target));
+            .Set(new ActorVfxTarget(target))
+            .Add<TetherVfxChild>();
     }
 
     public static void RemoveTarget(Entity entity, TimelineBase animationState)
     {
-        RemoveChildren(entity);
+        entity.DestructChildEntity<TetherVfxChild>();
         Stand(entity, animationState);
         entity.Remove<Target>();
     }
@@ -239,10 +243,11 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
     {
         if (entity.TryGet<Target>(out var target))
         {
-            RemoveChildren(entity);
+            entity.DestructChildEntity<TetherVfxChild>();
 
             AddActorVfx(entity, VfxPath)
-                .Set(new ActorVfxTarget(target.Value));
+                .Set(new ActorVfxTarget(target.Value))
+                .Add<TetherVfxChild>();
         }
     }
 
