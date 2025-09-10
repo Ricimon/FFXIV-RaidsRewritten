@@ -28,6 +28,7 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
     public record struct SpeedModifier(float Value);
 
     public struct QueueCancelCC;
+    public struct TetherVfxChild;
 
     private const ushort WalkingAnimation = 41;
     private const ushort AttackAnimation = 1515;
@@ -99,8 +100,9 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
                 {
                     if (backupTarget.Value != null && backupTarget.Value.IsValid() && !backupTarget.Value.IsDead)
                     {
-                        var tether = AddActorVfx(entity, BackupTetherVfx);
-                        tether.Set(new ActorVfxTarget(backupTarget.Value));
+                        AddActorVfx(entity, BackupTetherVfx)
+                            .Set(new ActorVfxTarget(backupTarget.Value))
+                            .Add<TetherVfxChild>();
                         component.BackupActive = true;
                     }
                 }
@@ -211,39 +213,49 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
 
     public static void ApplyTarget(Entity entity, IGameObject target)
     {
-        if (entity.TryGet<Component>(out var component))
-        {
-            if (component.Enrage == -1) { return; }
-
-            RemoveChildren(entity);
-
-            if (component.StartEnrage == -1)
+        entity.CsWorld().Defer(() => {
+            if (entity.TryGet<Component>(out var component))
             {
-                AddActorVfx(entity, InterruptVfx);
-            }
-        }
+                if (component.Enrage == -1) { return; }
 
-        entity.Set(new Target(target));
-        AddActorVfx(entity, TetherVfx)
-            .Set(new ActorVfxTarget(target));
+                entity.DestructChildEntity<TetherVfxChild>();
+
+                if (component.StartEnrage == -1)
+                {
+                    AddActorVfx(entity, InterruptVfx);
+                }
+            }
+
+            entity.Set(new Target(target));
+            AddActorVfx(entity, TetherVfx)
+                .Set(new ActorVfxTarget(target))
+                .Add<TetherVfxChild>();
+        });
     }
 
     public static void RemoveTarget(Entity entity, TimelineBase animationState)
     {
-        RemoveChildren(entity);
-        Stand(entity, animationState);
-        entity.Remove<Target>();
+        entity.CsWorld().Defer(() =>
+        {
+            entity.DestructChildEntity<TetherVfxChild>();
+            Stand(entity, animationState);
+            entity.Remove<Target>();
+        });
     }
 
     public static void ChangeTetherVfx(Entity entity, string VfxPath = TetherVfx)
     {
-        if (entity.TryGet<Target>(out var target))
+        entity.CsWorld().Defer(() =>
         {
-            RemoveChildren(entity);
+            if (entity.TryGet<Target>(out var target))
+            {
+                entity.DestructChildEntity<TetherVfxChild>();
 
-            AddActorVfx(entity, VfxPath)
-                .Set(new ActorVfxTarget(target.Value));
-        }
+                AddActorVfx(entity, VfxPath)
+                    .Set(new ActorVfxTarget(target.Value))
+                    .Add<TetherVfxChild>();
+            }
+        });
     }
 
     public static void SetSpeed(Entity entity, float speed)
