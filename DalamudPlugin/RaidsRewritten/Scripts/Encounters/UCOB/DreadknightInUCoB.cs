@@ -236,13 +236,13 @@ public class DreadknightInUCoB : Mechanic
             }
             return;
         } else if (baitActionIds.Contains(set.Action.Value.RowId) && isTargetingTwintania) {
-            var timeDiff = DateTime.Now - lastTargetSwap;
+            var timeDiff = DateTime.UtcNow - lastTargetSwap;
             if (!(timeDiff.TotalSeconds < SecondsUntilSwappable && Dreadknight.HasTarget(dreadknight.Value)))
             {
                 if (set.Source != null)
                 {
                     Dreadknight.ApplyTarget(dreadknight.Value, set.Source);
-                    lastTargetSwap = DateTime.Now;
+                    lastTargetSwap = DateTime.UtcNow;
                     tetherVfxChanged = false;
                 }
             }
@@ -277,13 +277,6 @@ public class DreadknightInUCoB : Mechanic
                 ccCancellable = true;
                 break;
         }
-
-        if (tetherVfxChanged)
-        {
-            Dreadknight.ChangeTetherVfx(dreadknight!.Value);
-            lastTargetSwap = DateTime.Now;
-            tetherVfxChanged = false;
-        }
     }
 
     public override void OnVFXSpawn(IGameObject? target, string vfxPath)
@@ -296,7 +289,7 @@ public class DreadknightInUCoB : Mechanic
 
     public override void OnFrameworkUpdate(IFramework framework)
     {
-        if (dreadknight.HasValue && !tetherVfxChanged && (DateTime.Now - lastTargetSwap).Seconds > SecondsUntilSwappable)
+        if (dreadknight.HasValue && !tetherVfxChanged && (DateTime.UtcNow - lastTargetSwap).TotalSeconds > SecondsUntilSwappable)
         {
             Dreadknight.ChangeTetherVfx(dreadknight.Value, SwappableTetherVfx);
             tetherVfxChanged = true;
