@@ -101,7 +101,7 @@ public class DreadknightInUCoB : Mechanic
     };
 
     private const uint NeurolinkDataId = 0x1E88FF;
-    private readonly Vector3 ArenaCenter = new(0,0,0);
+    private readonly Vector3 ArenaCenter = new(100,0,100);
     private const int GenerateId = 9902;
     private const int HatchId = 9903;
     private const float BaseSpeedIncrement = 0.5f;
@@ -109,7 +109,7 @@ public class DreadknightInUCoB : Mechanic
     private const byte AddsWeather = 31;
     private const float AddsDreadknightSpawnDelay = 10f;
     private const string SwappableTetherVfx = "vfx/channeling/eff/chn_light01f.avfx";
-    private const int SecondsUntilSwappable = 60;
+    private const int SecondsUntilSwappable = 5;
     private const string StartMessage = "Twintania channels energy to the Dreadknight...";
     private const float CrowdControlDurationMultiplier = 0.5f;
     private const float CrowdControlEffectivenessMultiplier = 0.5f;
@@ -210,7 +210,7 @@ public class DreadknightInUCoB : Mechanic
 
         var isCancellingCC = Data.Actions.DamageActions.Contains(set.Action.Value.RowId) ||
             Data.Actions.AutoAttacks.Contains(set.Action.Value.RowId);
-        var isTargetingTwintania = set.Target?.DataId == TwintaniaId;
+        var isTargetingTwintania = true;//set.Target?.DataId == TwintaniaId;
 
         // don't want to keep looping over entity's children if not cancellable
         if (ccCancellable && isCancellingCC && isTargetingTwintania)

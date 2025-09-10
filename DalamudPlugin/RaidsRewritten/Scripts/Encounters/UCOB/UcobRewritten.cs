@@ -9,7 +9,7 @@ namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
 public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration configuration, EcsContainer ecsContainer) : IEncounter
 {
-    public ushort TerritoryId => 733;
+    public ushort TerritoryId => 805;
 
     public string Name => "UCOB Rewritten";
 
