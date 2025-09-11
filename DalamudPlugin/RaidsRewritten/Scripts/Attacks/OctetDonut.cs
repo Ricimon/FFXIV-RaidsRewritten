@@ -35,6 +35,7 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
 
     public record struct Component(float ElapsedTime, Phase Phase = Phase.Omen);
     public record struct TornadoDirection(bool IsClockwise);
+    public record struct SeededRandom(Random Random);
 
     private const float BaseTornadoSpeed = 5.4f;
     private const float OuterTornadoDistance = 20.25f;
@@ -99,8 +100,9 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
                 case Phase.SpawnObstacleCourse:
                     if (ShouldReturn(component)) { return; }
 
-                    var randBool = random.Next() % 2 == 1;
-                    var randAngle = MathHelper.DegToRad(random.Next(359));
+                    Random rand = entity.Has<SeededRandom>() ? entity.Get<SeededRandom>().Random : random;
+                    var randBool = rand.Next() % 2 == 1;
+                    var randAngle = MathHelper.DegToRad(rand.Next(359));
                     var p1 = new Vector3(
                             position.Value.X + OuterTornadoDistance * MathF.Cos(randAngle),
                             position.Value.Y,
@@ -111,7 +113,7 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
                         .Set(new TornadoDirection(randBool))
                         .ChildOf(entity);
 
-                    randAngle = MathHelper.DegToRad(random.Next(359));
+                    randAngle = MathHelper.DegToRad(rand.Next(359));
                     var p2 = new Vector3(
                             position.Value.X + InnerTornadoDistance * MathF.Cos(randAngle),
                             position.Value.Y,
