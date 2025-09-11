@@ -34,7 +34,7 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
     };
 
     public record struct Component(float ElapsedTime, Phase Phase = Phase.Omen);
-    public record struct TornadoDirection(bool IsClockwise);
+    public record struct TornadoDirection(bool IsClockwise, float Radius, float CurrentAngle);
     public record struct SeededRandom(Random Random);
 
     private const float BaseTornadoSpeed = 5.4f;
@@ -43,6 +43,9 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
     private const string AoEVfx = "vfx/monster/gimmick4/eff/z5r2_b1_g01c0g.avfx";
     private const float StunDuration = 30f;
     private const int OmenScale = 40;
+    private const float OuterTornadoAngularVelocity = BaseTornadoSpeed / OuterTornadoDistance;
+    private const float InnerTornadoAngularVelocity = BaseTornadoSpeed / InnerTornadoDistance;
+
 
     public Entity Create(World world)
     {
@@ -109,13 +112,13 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
                     var randBool = rand.Next() % 2 == 1;
                     var randAngle = MathHelper.DegToRad(rand.Next(360));
                     var p1 = new Vector3(
-                            position.Value.X + OuterTornadoDistance * MathF.Cos(randAngle),
+                            position.Value.X + OuterTornadoDistance * MathF.Sin(randAngle),
                             position.Value.Y,
-                            position.Value.Z + OuterTornadoDistance * MathF.Sin(randAngle)
+                            position.Value.Z + OuterTornadoDistance * MathF.Cos(randAngle)
                         );
                     var tornado1 = Tornado.CreateEntity(world)
                         .Set(new Position(p1))
-                        .Set(new TornadoDirection(randBool))
+                        .Set(new TornadoDirection(randBool, OuterTornadoDistance, randAngle))
                         .ChildOf(entity);
 
                     randAngle = MathHelper.DegToRad(rand.Next(360));
@@ -126,7 +129,7 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
                         );
                     var tornado2 = Tornado.CreateEntity(world)
                         .Set(new Position(p2))
-                        .Set(new TornadoDirection(!randBool))
+                        .Set(new TornadoDirection(!randBool, InnerTornadoDistance, randAngle))
                         .ChildOf(entity);
 
                     var twisterPachinko = TwisterObstacleCourse.CreateEntity(world)
@@ -147,17 +150,14 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
             .Each((Iter it, int i, ref TornadoDirection direction, ref Position position, ref Position arenaCenter) =>
             {
                 var entity = it.Entity(i);
-
-                var angle = MathUtilities.GetAbsoluteAngleFromSourceToTarget(arenaCenter.Value, position.Value);
-                angle = MathUtilities.ClampRadians(angle + MathF.PI / 2 * (direction.IsClockwise ? 1 : -1));
-
-                // base * delta * angular velocity ratio
-                var velocity = BaseTornadoSpeed * it.DeltaTime();
-
+                var deltaAngle = it.DeltaTime() * BaseTornadoSpeed / direction.Radius * (direction.IsClockwise ? 1 : -1);
+                var offsetX = direction.Radius * MathF.Sin(direction.CurrentAngle - deltaAngle);
+                var offsetZ = direction.Radius * MathF.Cos(direction.CurrentAngle - deltaAngle);
+                direction.CurrentAngle -= deltaAngle;
                 var newPos = new Vector3(
-                        position.Value.X + MathF.Sin(angle) * velocity,
+                        arenaCenter.Value.X + offsetX,
                         position.Value.Y,
-                        position.Value.Z + MathF.Cos(angle) * velocity
+                        arenaCenter.Value.Z + offsetZ
                     );
 
                 entity.Set(new Position(newPos));
