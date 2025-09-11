@@ -73,9 +73,6 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
                 case Phase.Snapshot:
                     if (ShouldReturn(component)) { return; }
 
-                    var player = dalamud.ClientState.LocalPlayer;
-                    if (player == null) { return; }
-
                     var fakeActor = FakeActor.Create(world)
                         .Set(new Position(position.Value))
                         .Set(new ActorVfx(AoEVfx))
@@ -85,13 +82,21 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
                     {
                         if (!child.Has<Omen>()) { return; }
 
-                        if (OneThirdDonutOmen.IsInOmen(child, player.Position))
+                        var player = dalamud.ClientState.LocalPlayer;
+                        if (player != null && !player.IsDead && !player.StatusList.Any(s => s.StatusId == GameConstants.TranscendanceStatusId))
                         {
-                            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
+                            if (OneThirdDonutOmen.IsInOmen(child, player.Position))
                             {
-                                Stun.ApplyToTarget(e, StunDuration);
-                            });
+                                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
+                                {
+                                    DelayedAction.Create(world, () =>
+                                    {
+                                        Stun.ApplyToTarget(e, StunDuration);
+                                    }, 0.5f);
+                                });
+                            }
                         }
+
                         child.Destruct();
                     });
 
