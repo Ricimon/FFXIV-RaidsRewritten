@@ -289,7 +289,7 @@ public class DreadknightInUCoB : Mechanic
 
     public override void OnFrameworkUpdate(IFramework framework)
     {
-        if (dreadknight.HasValue && !tetherVfxChanged && (DateTime.UtcNow - lastTargetSwap).TotalSeconds > SecondsUntilSwappable)
+        if (dreadknight.HasValue && !tetherVfxChanged && (DateTime.UtcNow - lastTargetSwap).TotalSeconds >= SecondsUntilSwappable)
         {
             Dreadknight.ChangeTetherVfx(dreadknight.Value, SwappableTetherVfx);
             tetherVfxChanged = true;
