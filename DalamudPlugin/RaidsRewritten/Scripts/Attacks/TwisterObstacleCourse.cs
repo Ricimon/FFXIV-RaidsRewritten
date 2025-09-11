@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public class TwisterObstacleCourse : IAttack, ISystem
+public class TwisterObstacleCourse (Random random) : IAttack, ISystem
 {
     public record struct Component(int Sets, float OuterRadius);
 
@@ -22,9 +22,6 @@ public class TwisterObstacleCourse : IAttack, ISystem
     private const float Spacing = 1.8f;
     private const int TwisterSlots = 5;
     private const int NumSets = 10;
-
-    // can't use Random from constructor in a static context
-    private readonly static Random random = new();
 
     public static Entity CreateEntity(World world)
     {
