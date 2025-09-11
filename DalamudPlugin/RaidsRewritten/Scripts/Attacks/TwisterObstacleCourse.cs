@@ -1,4 +1,5 @@
-﻿using Flecs.NET.Core;
+﻿using ECommons.MathHelpers;
+using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks.Components;
@@ -21,6 +22,10 @@ public class TwisterObstacleCourse : IAttack, ISystem
     private const float Spacing = 1.8f;
     private const int TwisterSlots = 5;
     private const int NumSets = 10;
+
+    // can't use Random from constructor in a static context
+    private readonly static Random random = new();
+
     public static Entity CreateEntity(World world)
     {
         return world.Entity()
@@ -37,15 +42,17 @@ public class TwisterObstacleCourse : IAttack, ISystem
             .Each((Iter it, int i, ref Component component, ref Position position) =>
             {
                 var entity = it.Entity(i);
+                Random rand = entity.Has<OctetDonut.SeededRandom>() ? entity.Get<OctetDonut.SeededRandom>().Random : random;
+                var offset = MathHelper.DegToRad(rand.Next(360));
                 for (int currentPartialSet = 0; currentPartialSet < component.Sets * 2; currentPartialSet++)
                 {
                     var currentAngle = currentPartialSet * MathF.PI / component.Sets;
-                    SpawnTwisters(entity, currentAngle, position.Value, component, currentPartialSet % 2 == 0);
+                    SpawnTwisters(entity, currentAngle, position.Value, component, currentPartialSet % 2 == 0, offset);
                 }
             });
     }
 
-    private static void SpawnTwisters(Entity parent, float angle, Vector3 center, Component component, bool rowType)
+    private static void SpawnTwisters(Entity parent, float angle, Vector3 center, Component component, bool rowType, float offset)
     {
         for (int i = 0; i < TwisterSlots; i++)
         {
@@ -55,9 +62,9 @@ public class TwisterObstacleCourse : IAttack, ISystem
 
             var distanceFromCenter = component.OuterRadius - TwisterRadius - Spacing * i;
             var position = new Vector3(
-                    center.X + distanceFromCenter * MathF.Cos(angle),
+                    center.X + distanceFromCenter * MathF.Cos(MathUtilities.ClampRadians(angle + offset)),
                     center.Y,
-                    center.Z + distanceFromCenter * MathF.Sin(angle)
+                    center.Z + distanceFromCenter * MathF.Sin(MathUtilities.ClampRadians(angle + offset))
                 );
 
             Twister.CreateEntity(parent.CsWorld())

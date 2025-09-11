@@ -107,7 +107,7 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
 
                     Random rand = entity.Has<SeededRandom>() ? entity.Get<SeededRandom>().Random : random;
                     var randBool = rand.Next() % 2 == 1;
-                    var randAngle = MathHelper.DegToRad(rand.Next(359));
+                    var randAngle = MathHelper.DegToRad(rand.Next(360));
                     var p1 = new Vector3(
                             position.Value.X + OuterTornadoDistance * MathF.Cos(randAngle),
                             position.Value.Y,
@@ -118,7 +118,7 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
                         .Set(new TornadoDirection(randBool))
                         .ChildOf(entity);
 
-                    randAngle = MathHelper.DegToRad(rand.Next(359));
+                    randAngle = MathHelper.DegToRad(rand.Next(360));
                     var p2 = new Vector3(
                             position.Value.X + InnerTornadoDistance * MathF.Cos(randAngle),
                             position.Value.Y,
@@ -131,6 +131,7 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
 
                     var twisterPachinko = TwisterObstacleCourse.CreateEntity(world)
                         .Set(new Position(position.Value))
+                        .Set(new SeededRandom(rand))
                         .ChildOf(entity);
 
                     component.Phase = Phase.Destruct;
