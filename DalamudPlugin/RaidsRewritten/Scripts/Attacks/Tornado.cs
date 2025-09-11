@@ -46,8 +46,8 @@ public class Tornado (DalamudServices dalamud, Random random, CommonQueries comm
                 var player = dalamud.ClientState.LocalPlayer;
                 if (player == null || player.IsDead) { return; }
 
-                var playerPosV2 = MathHelper.ToVector2(player.Position);
-                var tornadoPosV2 = MathHelper.ToVector2(position.Value);
+                var playerPosV2 = player.Position.ToVector2();
+                var tornadoPosV2 = position.Value.ToVector2();
 
                 if (Vector2.Distance(playerPosV2, tornadoPosV2) < uniformScale.Value * 3)
                 {

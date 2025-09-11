@@ -18,8 +18,8 @@ public class OneThirdDonutOmen : IAttack
         if (!omen.TryGet<Position>(out var p)) { return false; }
         if (!omen.TryGet<Scale>(out var s)) { return false; }
 
-        var centerV2 = MathHelper.ToVector2(p.Value);
-        var positionV2 = MathHelper.ToVector2(position);
+        var centerV2 = p.Value.ToVector2();
+        var positionV2 = position.ToVector2();
         var distance = Vector2.Distance(centerV2, positionV2);
 
         return 0.3 * s.Value.X <= distance && distance <= s.Value.X;
