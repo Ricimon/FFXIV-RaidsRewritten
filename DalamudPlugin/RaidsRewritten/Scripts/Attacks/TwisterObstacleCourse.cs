@@ -21,7 +21,7 @@ public class TwisterObstacleCourse (Random random) : IAttack, ISystem
     private const float TwisterRadius = 0.9f;
     private const float Spacing = 1.8f;
     private const int TwisterSlots = 5;
-    private const int NumSets = 10;
+    private const int NumSets = 12;
 
     public static Entity CreateEntity(World world)
     {
