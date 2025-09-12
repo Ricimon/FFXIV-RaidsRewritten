@@ -92,7 +92,10 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
                             {
                                 if (player.HasTranscendance())
                                 {
-                                    vfxSpawn.PlayInvulnerabilityEffect(player);
+                                    DelayedAction.Create(world, () =>
+                                    {
+                                        vfxSpawn.PlayInvulnerabilityEffect(player);
+                                    }, 0.5f);
                                 } else
                                 {
                                     commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
