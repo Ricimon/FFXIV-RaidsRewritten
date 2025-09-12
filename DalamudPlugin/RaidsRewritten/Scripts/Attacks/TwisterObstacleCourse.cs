@@ -40,16 +40,16 @@ public class TwisterObstacleCourse (Random random) : IAttack, ISystem
             {
                 var entity = it.Entity(i);
                 Random rand = entity.Has<OctetDonut.SeededRandom>() ? entity.Get<OctetDonut.SeededRandom>().Random : random;
-                var offset = MathHelper.DegToRad(rand.Next(360));
+                var angleOffset = MathHelper.DegToRad(rand.Next(360));
                 for (int currentPartialSet = 0; currentPartialSet < component.Sets * 2; currentPartialSet++)
                 {
-                    var currentAngle = currentPartialSet * MathF.PI / component.Sets;
-                    SpawnTwisters(entity, currentAngle, position.Value, component, currentPartialSet % 2 == 0, offset);
+                    var angle = MathUtilities.ClampRadians(currentPartialSet * MathF.PI / component.Sets + angleOffset);
+                    SpawnTwisters(entity, angle, position.Value, component, currentPartialSet % 2 == 0);
                 }
             });
     }
 
-    private static void SpawnTwisters(Entity parent, float angle, Vector3 center, Component component, bool rowType, float offset)
+    private static void SpawnTwisters(Entity parent, float angle, Vector3 center, Component component, bool rowType)
     {
         for (int i = 0; i < TwisterSlots; i++)
         {
@@ -59,9 +59,9 @@ public class TwisterObstacleCourse (Random random) : IAttack, ISystem
 
             var distanceFromCenter = component.OuterRadius - TwisterRadius - Spacing * i;
             var position = new Vector3(
-                    center.X + distanceFromCenter * MathF.Cos(MathUtilities.ClampRadians(angle + offset)),
+                    center.X + distanceFromCenter * MathF.Cos(angle),
                     center.Y,
-                    center.Z + distanceFromCenter * MathF.Sin(MathUtilities.ClampRadians(angle + offset))
+                    center.Z + distanceFromCenter * MathF.Sin(angle)
                 );
 
             Twister.CreateEntity(parent.CsWorld())

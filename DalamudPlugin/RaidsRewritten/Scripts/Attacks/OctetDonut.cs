@@ -43,8 +43,6 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
     private const string AoEVfx = "vfx/monster/gimmick4/eff/z5r2_b1_g01c0g.avfx";
     private const float StunDuration = 30f;
     private const int OmenScale = 40;
-    private const float OuterTornadoAngularVelocity = BaseTornadoSpeed / OuterTornadoDistance;
-    private const float InnerTornadoAngularVelocity = BaseTornadoSpeed / InnerTornadoDistance;
 
 
     public Entity Create(World world)
