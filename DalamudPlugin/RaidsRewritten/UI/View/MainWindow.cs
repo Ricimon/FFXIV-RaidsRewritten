@@ -1,4 +1,11 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using System;
+using System.Linq;
+using System.Numerics;
+using System.Reactive;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
+using System.Text;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
@@ -22,14 +29,6 @@ using RaidsRewritten.Spawn;
 using RaidsRewritten.UI.Util;
 using RaidsRewritten.Utility;
 using Reactive.Bindings;
-using System;
-using System.Diagnostics;
-using System.Linq;
-using System.Numerics;
-using System.Reactive;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
-using System.Text;
 
 namespace RaidsRewritten.UI.View;
 
@@ -55,19 +54,6 @@ public class MainWindow : Window, IPluginUIView, IDisposable
     public IReactiveProperty<Keybind> KeybindBeingEdited { get; } = new ReactiveProperty<Keybind>();
     public IObservable<Keybind> ClearKeybind => clearKeybind.AsObservable();
     private readonly Subject<Keybind> clearKeybind = new();
-
-    public IReactiveProperty<bool> EnableGroundPings { get; } = new ReactiveProperty<bool>();
-    public IReactiveProperty<bool> EnablePingWheel { get; } = new ReactiveProperty<bool>();
-    public IReactiveProperty<bool> EnableGuiPings { get; } = new ReactiveProperty<bool>();
-    public IReactiveProperty<bool> EnableHpMpPings { get; } = new ReactiveProperty<bool>();
-    public IReactiveProperty<bool> SendGuiPingsToCustomServer { get; } = new ReactiveProperty<bool>();
-    public IReactiveProperty<bool> SendGuiPingsToXivChat { get; } = new ReactiveProperty<bool>();
-    public IReactiveProperty<XivChatSendLocation> XivChatSendLocation { get; } = new ReactiveProperty<XivChatSendLocation>();
-
-    public IObservable<Unit> PrintNodeMap1 => printNodeMap1.AsObservable();
-    private readonly Subject<Unit> printNodeMap1 = new();
-    public IObservable<Unit> PrintNodeMap2 => printNodeMap2.AsObservable();
-    private readonly Subject<Unit> printNodeMap2 = new();
     public IObservable<Unit> PrintPartyStatuses => printPartyStatuses.AsObservable();
     private readonly Subject<Unit> printPartyStatuses = new();
     public IObservable<Unit> PrintTargetStatuses => printTargetStatuses.AsObservable();
@@ -247,7 +233,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         //DrawPublicTab();
         //DrawPrivateTab();
         //DrawConfigTab();
-        //DrawMiscTab();
+        DrawMiscTab();
     }
 
     private void DrawMainTab()
@@ -1041,93 +1027,10 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         {
         }
 
-        ImGui.Dummy(new Vector2(0.0f, 5.0f)); // ---------------
-
-        var enableGroundPings = this.EnableGroundPings.Value;
-        if (ImGui.Checkbox("Enable Ground Pings", ref enableGroundPings))
-        {
-            this.EnableGroundPings.Value = enableGroundPings;
-        }
-
-        using (ImRaii.PushIndent())
-        using (ImRaii.Disabled(!this.EnableGroundPings.Value))
-        {
-            var enablePingWheel = this.EnablePingWheel.Value;
-            if (ImGui.Checkbox("Enable Ping Wheel", ref enablePingWheel))
-            {
-                this.EnablePingWheel.Value = enablePingWheel;
-            }
-            ImGui.SameLine(); Common.HelpMarker("More ping types coming soon™");
-        }
-
-        ImGui.Dummy(new Vector2(0.0f, 5.0f)); // ---------------
-
-        var enableGuiPings = this.EnableGuiPings.Value;
-        if (ImGui.Checkbox("Enable UI Pings", ref enableGuiPings))
-        {
-            this.EnableGuiPings.Value = enableGuiPings;
-        }
-
-        using (ImRaii.PushIndent())
-        using (ImRaii.Disabled(!this.EnableGuiPings.Value))
-        {
-            var enableHpMpPings = this.EnableHpMpPings.Value;
-            if (ImGui.Checkbox("Enable HP/MP Pings", ref enableHpMpPings))
-            {
-                this.EnableHpMpPings.Value = enableHpMpPings;
-            }
-            if (ImGui.IsItemHovered())
-            {
-                ImGui.SetTooltip("Mouse input will be blocked if pinging HP/MP values, so disable this if this is not desired.");
-            }
-            ImGui.SameLine(); Common.HelpMarker("Only works on party list");
-
-            var sendGuiPingsToCustomServer = this.SendGuiPingsToCustomServer.Value;
-            if (ImGui.Checkbox("Send UI pings to joined room", ref sendGuiPingsToCustomServer))
-            {
-                this.SendGuiPingsToCustomServer.Value = sendGuiPingsToCustomServer;
-            }
-            if (ImGui.IsItemHovered())
-            {
-                ImGui.SetTooltip("Sends UI pings as /echo messages to other players in the same plugin room. This avoids sending traceable data to XIV servers.");
-            }
-
-            var sendGuiPingsToXivChat = this.SendGuiPingsToXivChat.Value;
-            if (ImGui.Checkbox("Send UI pings in game chat (!)", ref sendGuiPingsToXivChat))
-            {
-                this.SendGuiPingsToXivChat.Value = sendGuiPingsToXivChat;
-            }
-            if (ImGui.IsItemHovered())
-            {
-                ImGui.SetTooltip("Sending messages in game chat may be traceable as plugin usage. Use with caution!");
-            }
-
-            using (ImRaii.PushIndent())
-            using (ImRaii.Disabled(!this.SendGuiPingsToXivChat.Value))
-            using (ImRaii.ItemWidth(100))
-            {
-                var xivChatSendLocation = (int)this.XivChatSendLocation.Value;
-                if (ImGui.Combo("Send Chat To", ref xivChatSendLocation, this.xivChatSendLocations, this.xivChatSendLocations.Length))
-                {
-                    this.XivChatSendLocation.Value = (XivChatSendLocation)xivChatSendLocation;
-                }
-            }
-        }
-
 #if DEBUG
         ImGui.Dummy(new Vector2(0.0f, 5.0f)); // ---------------
 
         ImGui.Text("DEBUG");
-        if (ImGui.Button("Print Node Map 1"))
-        {
-            this.printNodeMap1.OnNext(Unit.Default);
-        }
-        ImGui.SameLine();
-        if (ImGui.Button("Print Node Map 2"))
-        {
-            this.printNodeMap2.OnNext(Unit.Default);
-        }
-
         if (ImGui.Button("Print Party Statuses"))
         {
             this.printPartyStatuses.OnNext(Unit.Default);
@@ -1174,32 +1077,42 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             }
         }
 
-        ImGui.Spacing();
+        ImGui.Dummy(new Vector2(0.0f, 5.0f)); // ---------------
 
-        ImGui.AlignTextToFramePadding();
-        ImGui.Text("Bugs or suggestions?");
-        ImGui.SameLine();
-        ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.35f, 0.40f, 0.95f, 1));
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.41f, 0.45f, 1.0f, 1));
-        ImGui.PushStyleColor(ImGuiCol.ButtonActive, new Vector4(0.32f, 0.36f, 0.88f, 1));
-        if (ImGui.Button("Discord"))
-        {
-            Process.Start(new ProcessStartInfo { FileName = "https://discord.gg/rSucAJ6A7u", UseShellExecute = true });
-        }
-        ImGui.PopStyleColor(3);
+        ImGui.TextWrapped(
+            "Thank you for trying out the pre-release version of RaidsRewritten!" +
+            "\n\nKeep in mind things are still undergoing development and may change from version to version without explicit patch notes." +
+            "\n\nI'll ask that you refrain from sharing installation instructions before everything is done." +
+            "\n\nBut feel free to share clips to spread interest!" +
+            "\n\nIf you encounter bugs please report them to me via Discord DMs to ricimon."
+        );
 
-        ImGui.SameLine();
-        ImGui.Text("|");
-        ImGui.SameLine();
+        //ImGui.Spacing();
 
-        ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(1.0f, 0.39f, 0.20f, 1));
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(1.0f, 0.49f, 0.30f, 1));
-        ImGui.PushStyleColor(ImGuiCol.ButtonActive, new Vector4(0.92f, 0.36f, 0.18f, 1));
-        if (ImGui.Button("Support on Ko-fi"))
-        {
-            Process.Start(new ProcessStartInfo { FileName = "https://ko-fi.com/ricimon", UseShellExecute = true });
-        }
-        ImGui.PopStyleColor(3);
+        //ImGui.AlignTextToFramePadding();
+        //ImGui.Text("Bugs or suggestions?");
+        //ImGui.SameLine();
+        //ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.35f, 0.40f, 0.95f, 1));
+        //ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.41f, 0.45f, 1.0f, 1));
+        //ImGui.PushStyleColor(ImGuiCol.ButtonActive, new Vector4(0.32f, 0.36f, 0.88f, 1));
+        //if (ImGui.Button("Discord"))
+        //{
+        //    Process.Start(new ProcessStartInfo { FileName = "https://discord.gg/rSucAJ6A7u", UseShellExecute = true });
+        //}
+        //ImGui.PopStyleColor(3);
+
+        //ImGui.SameLine();
+        //ImGui.Text("|");
+        //ImGui.SameLine();
+
+        //ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(1.0f, 0.39f, 0.20f, 1));
+        //ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(1.0f, 0.49f, 0.30f, 1));
+        //ImGui.PushStyleColor(ImGuiCol.ButtonActive, new Vector4(0.92f, 0.36f, 0.18f, 1));
+        //if (ImGui.Button("Support on Ko-fi"))
+        //{
+        //    Process.Start(new ProcessStartInfo { FileName = "https://ko-fi.com/ricimon", UseShellExecute = true });
+        //}
+        //ImGui.PopStyleColor(3);
     }
 
     private void DrawKeybindEdit(Keybind keybind, VirtualKey currentBinding, string label, string? tooltip = null)
