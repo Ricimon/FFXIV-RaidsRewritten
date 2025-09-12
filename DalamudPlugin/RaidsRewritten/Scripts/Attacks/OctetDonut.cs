@@ -1,10 +1,12 @@
 ﻿using ECommons.MathHelpers;
 using Flecs.NET.Core;
+using RaidsRewritten.Extensions;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Scripts.Attacks.Omens;
 using RaidsRewritten.Scripts.Conditions;
+using RaidsRewritten.Spawn;
 using RaidsRewritten.Utility;
 using System;
 using System.Collections.Generic;
@@ -15,7 +17,7 @@ using System.Threading.Tasks;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries commonQueries, ILogger logger) : IAttack, ISystem
+public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries commonQueries, VfxSpawn vfxSpawn, ILogger logger) : IAttack, ISystem
 {
     public enum Phase
     {
@@ -84,17 +86,23 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
                         if (!child.Has<Omen>()) { return; }
 
                         var player = dalamud.ClientState.LocalPlayer;
-                        if (player != null && !player.IsDead && !player.StatusList.Any(s => s.StatusId == GameConstants.TranscendanceStatusId))
+                        if (player != null && !player.IsDead)
                         {
                             if (OneThirdDonutOmen.IsInOmen(child, player.Position))
                             {
-                                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
+                                if (player.HasTranscendance())
                                 {
-                                    DelayedAction.Create(world, () =>
+                                    vfxSpawn.PlayInvulnerabilityEffect(player);
+                                } else
+                                {
+                                    commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
                                     {
-                                        Stun.ApplyToTarget(e, StunDuration);
-                                    }, 0.5f);
-                                });
+                                        DelayedAction.Create(world, () =>
+                                        {
+                                            Stun.ApplyToTarget(e, StunDuration);
+                                        }, 0.5f);
+                                    });
+                                }
                             }
                         }
 
