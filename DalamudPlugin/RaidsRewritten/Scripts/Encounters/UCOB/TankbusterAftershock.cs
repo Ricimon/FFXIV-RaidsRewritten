@@ -3,10 +3,12 @@ using ECommons;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using Flecs.NET.Core;
+using RaidsRewritten.Extensions;
 using RaidsRewritten.Scripts.Attacks;
 using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Scripts.Attacks.Omens;
 using RaidsRewritten.Scripts.Conditions;
+using RaidsRewritten.Spawn;
 using RaidsRewritten.Utility;
 using System;
 using System.Collections.Generic;
@@ -192,10 +194,22 @@ public class TankbusterAftershock : Mechanic
         {
             void OnHit(Entity e)
             {
-                DelayedAction.Create(e.CsWorld(), () =>
+                var player = this.Dalamud.ClientState.LocalPlayer;
+                if (player == null || player.IsDead) { return; }
+                if (player.HasTranscendance())
                 {
-                    Heavy.ApplyToTarget(e, HeavyDurationSeconds, HeavyId, true);
-                }, aftershockData.StatusDelaySeconds);
+                    DelayedAction.Create(e.CsWorld(), () =>
+                    {
+                        this.VfxSpawn.PlayInvulnerabilityEffect(player);
+                    }, aftershockData.StatusDelaySeconds);
+                }
+                else
+                {
+                    DelayedAction.Create(e.CsWorld(), () =>
+                    {
+                        Heavy.ApplyToTarget(e, HeavyDurationSeconds, HeavyId, true);
+                    }, aftershockData.StatusDelaySeconds);
+                }
             }
 
             AftershockAoE.Set(new Position(position))

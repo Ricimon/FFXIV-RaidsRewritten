@@ -1,10 +1,11 @@
-﻿using Dalamud.Game.ClientState.Objects.Enums;
-using Dalamud.Game.ClientState.Objects.SubKinds;
-using Dalamud.Plugin;
-using Dalamud.Plugin.Services;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Dalamud.Game.ClientState.Objects.Enums;
+using Dalamud.Game.ClientState.Objects.SubKinds;
+using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Plugin;
+using Dalamud.Plugin.Services;
 
 namespace RaidsRewritten.Extensions;
 
@@ -41,5 +42,11 @@ public static class DalamudExtensions
     {
         var resourcesDir = Path.Combine(pluginInterface.AssemblyLocation.Directory?.FullName!, "Resources");
         return Path.Combine(resourcesDir, fileName);
+    }
+
+    public static bool HasTranscendance(this IBattleChara battleChara)
+    {
+        // 418 = Transcendance status ID
+        return battleChara.StatusList.Any(s => s.StatusId == 418);
     }
 }

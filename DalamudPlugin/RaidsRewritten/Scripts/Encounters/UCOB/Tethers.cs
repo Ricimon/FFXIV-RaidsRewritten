@@ -4,10 +4,12 @@ using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using Flecs.NET.Core;
+using RaidsRewritten.Extensions;
 using RaidsRewritten.Scripts.Attacks;
 using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Scripts.Attacks.Omens;
 using RaidsRewritten.Scripts.Conditions;
+using RaidsRewritten.Spawn;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -89,12 +91,21 @@ public class Tethers : Mechanic
 
                 if (this.AttackManager.TryCreateAttackEntity<DistanceSnapshotTether>(out var tether))
                 {
-                    var onCondition1 = (Entity _) => { };
+                    Action<Entity>? onCondition1 = null;
 
-                    if (src == this.Dalamud.ClientState.LocalPlayer || target == this.Dalamud.ClientState.LocalPlayer)
+                    var localPlayer = this.Dalamud.ClientState.LocalPlayer;
+                    if (src == localPlayer || target == localPlayer)
                     {
                         onCondition1 = (e) => {
-                            Stun.ApplyToTarget(e, 15);
+                            if (localPlayer == null || localPlayer.IsDead) { return; }
+                            if (localPlayer.HasTranscendance())
+                            {
+                                this.VfxSpawn.PlayInvulnerabilityEffect(localPlayer);
+                            }
+                            else
+                            {
+                                Stun.ApplyToTarget(e, 15);
+                            }
                         };
                     }
 

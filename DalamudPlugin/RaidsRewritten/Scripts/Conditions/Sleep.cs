@@ -7,10 +7,10 @@ public class Sleep
 {
     public record struct Component(object _);
 
-    public static Entity ApplyToTarget(Entity playerEntity, float duration, int id = 0)
+    public static Entity ApplyToTarget(Entity target, float duration, int id = 0)
     {
-        var world = playerEntity.CsWorld();
-        var entity = Condition.ApplyToTarget(playerEntity, "Slept", duration, id);
+        var world = target.CsWorld();
+        var entity = Condition.ApplyToTarget(target, "Slept", duration, id);
         if (!entity.Has<Component>())
         {
             entity.Set(new Component());

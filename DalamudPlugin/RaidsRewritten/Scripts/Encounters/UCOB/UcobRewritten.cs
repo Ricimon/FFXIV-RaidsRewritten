@@ -117,7 +117,9 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             this.mechanics.Add(mechanicFactory.Create<OctetObstacleCourse>());
         }
 
-        if (configuration.GetEncounterSetting(PermanentTwistersKey, true))
+        // Meme mechanics
+
+        if (configuration.GetEncounterSetting(PermanentTwistersKey, false))
         {
             this.mechanics.Add(mechanicFactory.Create<PermanentTwister>());
         }
@@ -195,7 +197,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
         DrawMoreExaflaresConfig();
 
         bool jumpableShockwaves = configuration.GetEncounterSetting(JumpableShockwavesKey, true);
-        if (ImGui.Checkbox("J.S.", ref jumpableShockwaves))
+        if (ImGui.Checkbox("J. Shockwave", ref jumpableShockwaves))
         {
             configuration.EncounterSettings[JumpableShockwavesKey] =
                 jumpableShockwaves ? bool.TrueString : bool.FalseString;
@@ -306,8 +308,8 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
         using (ImRaii.Disabled(!temperatureControl))
         {
             ImGui.PushItemWidth(120);
-            int temperatureControlX = configuration.GetEncounterSetting(TemperatureControlXKey, 1);
-            int temperatureControlY = configuration.GetEncounterSetting(TemperatureControlYKey, 1);
+            int temperatureControlX = configuration.GetEncounterSetting(TemperatureControlXKey, 0);
+            int temperatureControlY = configuration.GetEncounterSetting(TemperatureControlYKey, 0);
 
             // Auto-position
             if (temperatureControlX == 0 && temperatureControlY == 0)
@@ -361,7 +363,6 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
                 RefreshMechanics();
             }
         }
-
     }
 
     private void ApplyIntendedFightSettings()

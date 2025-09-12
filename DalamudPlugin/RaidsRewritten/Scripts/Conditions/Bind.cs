@@ -7,13 +7,13 @@ public class Bind
 {
     public record struct Component(object _);
 
-    public static void ApplyToTarget(Entity playerEntity, float duration)
+    public static void ApplyToTarget(Entity target, float duration)
     {
-        var world = playerEntity.CsWorld();
+        var world = target.CsWorld();
         var e = world.Entity()
             .Set(new Condition.Component("Bound", duration))
             .Set(new Component())
-            .ChildOf(playerEntity);
+            .ChildOf(target);
 
         world.Entity()
             .Set(new ActorVfx("vfx/common/eff/dk05ht_bind0t.avfx"))

@@ -1,17 +1,18 @@
 ﻿using System;
-using System.Linq;
 using System.Numerics;
 using ECommons.MathHelpers;
 using Flecs.NET.Core;
+using RaidsRewritten.Extensions;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Scripts.Attacks.Omens;
+using RaidsRewritten.Spawn;
 using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public class Star(DalamudServices dalamud, CommonQueries commonQueries, ILogger logger) : IAttack, ISystem
+public class Star(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn vfxSpawn, ILogger logger) : IAttack, ISystem
 {
     public enum Type
     {
@@ -31,6 +32,7 @@ public class Star(DalamudServices dalamud, CommonQueries commonQueries, ILogger 
         float OmenTime,
         string VfxPath,
         Action<Entity> OnHit,
+        bool IgnoreTranscendance = false,
         float TimeElapsed = 0,
         Phase Phase = Phase.Omen,
         Entity OmenEntity = default);
@@ -159,14 +161,21 @@ public class Star(DalamudServices dalamud, CommonQueries commonQueries, ILogger 
     {
         var player = dalamud.ClientState.LocalPlayer;
 
-        if (player != null && !player.IsDead &&
-            // Transcendance, TODO: play invulnerable vfx
-            !player.StatusList.Any(s => s.StatusId == GameConstants.TranscendanceStatusId))
+        if (player == null || player.IsDead) { return; }
+
+        if (IsInAttack(entity, player.Position))
         {
-            if (IsInAttack(entity, player.Position))
+            var onHit = component.OnHit;
+            if (onHit != null)
             {
-                var onHit = component.OnHit;
-                if (onHit != null)
+                if (player.HasTranscendance() && !component.IgnoreTranscendance)
+                {
+                    DelayedAction.Create(entity.CsWorld(), () =>
+                    {
+                        vfxSpawn.PlayInvulnerabilityEffect(player);
+                    }, DamageDelay).ChildOf(entity);
+                }
+                else
                 {
                     DelayedAction.Create(entity.CsWorld(), () =>
                     {

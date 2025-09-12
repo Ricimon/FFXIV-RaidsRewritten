@@ -17,13 +17,13 @@ public class Condition(ILogger logger) : ISystem
     /// This method is used to refresh the duration of an existing condition with the same ID.
     /// An ID of 0 is treated as an unrefreshable condition.
     /// </summary>
-    public static Entity ApplyToTarget(Entity playerEntity, string name, float duration, int id = 0, bool extendDuration = false)
+    public static Entity ApplyToTarget(Entity target, string name, float duration, int id = 0, bool extendDuration = false)
     {
-        var world = playerEntity.CsWorld();
+        var world = target.CsWorld();
         if (id != 0)
         {
             Entity existingCondition = default;
-            using var q = world.QueryBuilder<Component, Id>().With(Ecs.ChildOf, playerEntity).Build();
+            using var q = world.QueryBuilder<Component, Id>().With(Ecs.ChildOf, target).Build();
             q.Each((Entity e, ref Component component, ref Id idx) =>
             {
                 if (idx.Value == id)
@@ -49,13 +49,13 @@ public class Condition(ILogger logger) : ISystem
                 return world.Entity()
                     .Set(new Component(name, duration))
                     .Set(new Id(id))
-                    .ChildOf(playerEntity);
+                    .ChildOf(target);
             }
         }
 
         return world.Entity()
             .Set(new Component(name, duration))
-            .ChildOf(playerEntity);
+            .ChildOf(target);
     }
 
     public void Register(World world)

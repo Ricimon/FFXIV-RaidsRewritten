@@ -34,16 +34,16 @@ public sealed class Knockback : IDalamudHook
     private readonly CommonQueries commonQueries;
     private readonly ILogger logger;
 
-    public static void ApplyToTarget(Entity playerEntity, Vector3 knockbackDirection, float duration, bool canResist)
+    public static void ApplyToTarget(Entity target, Vector3 knockbackDirection, float duration, bool canResist)
     {
-        if (!playerEntity.CsWorld().IsDeferred())
+        if (!target.CsWorld().IsDeferred())
         {
             Logger?.Warn("Knockback application must be done in a Deferred context.");
             return;
         }
 
         var apply = true;
-        playerEntity.Children(child =>
+        target.Children(child =>
         {
             // Don't apply if player is bound
             if (child.Has<Bind.Component>())
@@ -54,7 +54,7 @@ public sealed class Knockback : IDalamudHook
 
         if (apply && canResist)
         {
-            var player = playerEntity.TryGet<Player.Component>(out var pc) ? pc.PlayerCharacter : null;
+            var player = target.TryGet<Player.Component>(out var pc) ? pc.PlayerCharacter : null;
             if (player != null)
             {
                 foreach (var status in player.StatusList)
@@ -71,16 +71,16 @@ public sealed class Knockback : IDalamudHook
         if (!apply) { return; }
 
         // Remove existing knockback conditions
-        playerEntity.Children(child =>
+        target.Children(child =>
         {
             // This operation requires deferral
             if (child.Has<Component>()) { child.Destruct(); }
         });
 
-        playerEntity.CsWorld().Entity()
+        target.CsWorld().Entity()
             .Set(new Condition.Component("Knocked Back", duration))
             .Set(new Component(knockbackDirection))
-            .ChildOf(playerEntity);
+            .ChildOf(target);
     }
 
     public Knockback(DalamudServices dalamud, EcsContainer ecsContainer, CommonQueries commonQueries, ILogger logger)

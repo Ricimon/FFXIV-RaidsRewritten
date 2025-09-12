@@ -1,20 +1,18 @@
-﻿using Flecs.NET.Bindings;
+﻿using System;
+using System.Numerics;
+using Flecs.NET.Bindings;
 using Flecs.NET.Core;
+using RaidsRewritten.Extensions;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Scripts.Attacks.Omens;
 using RaidsRewritten.Scripts.Conditions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks; 
+using RaidsRewritten.Spawn;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public class Exaflare(DalamudServices dalamud, ILogger logger) : IAttack, ISystem
+public class Exaflare(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogger logger) : IAttack, ISystem
 {
     public enum Phase
     {
@@ -143,9 +141,20 @@ public class Exaflare(DalamudServices dalamud, ILogger logger) : IAttack, ISyste
 
     private void OnHit(Entity e)
     {
-        DelayedAction.Create(e.CsWorld(), () => {
-            Stun.ApplyToTarget(e, StunDuration, StunId);
-        }, StunDelay, true);
+        var player = dalamud.ClientState.LocalPlayer;
+        if (player == null || player.IsDead) { return; }
+        if (player.HasTranscendance())
+        {
+            DelayedAction.Create(e.CsWorld(), () => {
+                vfxSpawn.PlayInvulnerabilityEffect(player);
+            }, StunDelay);
+        }
+        else
+        {
+            DelayedAction.Create(e.CsWorld(), () => {
+                Stun.ApplyToTarget(e, StunDuration, StunId);
+            }, StunDelay, true);
+        }
     }
 
     private bool ShouldReturn(Component component) {

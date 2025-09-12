@@ -3,16 +3,18 @@ using System.Linq;
 using System.Numerics;
 using ECommons.MathHelpers;
 using Flecs.NET.Core;
+using RaidsRewritten.Extensions;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Scripts.Attacks.Omens;
 using RaidsRewritten.Scripts.Conditions;
+using RaidsRewritten.Spawn;
 using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public sealed class JumpableShockwave(DalamudServices dalamud, CommonQueries commonQueries, ILogger logger) : IAttack, ISystem
+public sealed class JumpableShockwave(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn vfxSpawn, ILogger logger) : IAttack, ISystem
 {
     public enum HitDetectionState
     {
@@ -92,29 +94,34 @@ public sealed class JumpableShockwave(DalamudServices dalamud, CommonQueries com
                 component.CurrentRadius = radius;
 
                 var player = dalamud.ClientState.LocalPlayer;
-
-                var distToPlayer = Vector2.DistanceSquared(p.ToVector2(), player.Position.ToVector2());
-                var newHitState = distToPlayer < radius * radius ?
-                    HitDetectionState.PlayerInside :
-                    HitDetectionState.PlayerOutside;
-
-                if (component.HitDetectionState != newHitState)
+                if (player != null)
                 {
-                    if (player != null && !player.IsDead &&
-                        // Transcendance, TODO: play invulnerable vfx
-                        !player.StatusList.Any(s => s.StatusId == GameConstants.TranscendanceStatusId))
+                    var distToPlayer = Vector2.DistanceSquared(p.ToVector2(), player.Position.ToVector2());
+                    var newHitState = distToPlayer < radius * radius ?
+                        HitDetectionState.PlayerInside :
+                        HitDetectionState.PlayerOutside;
+
+                    if (component.HitDetectionState != newHitState)
                     {
-                        if (component.HitDetectionState != HitDetectionState.None &&
+                        if (!player.IsDead &&
+                            component.HitDetectionState != HitDetectionState.None &&
                             player.Position.Y - p.Y <= JumpClearance)
                         {
-                            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+                            if (player.HasTranscendance())
                             {
-                                Stun.ApplyToTarget(e, StunDuration, StunId);
-                            });
+                                vfxSpawn.PlayInvulnerabilityEffect(player);
+                            }
+                            else
+                            {
+                                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+                                {
+                                    Stun.ApplyToTarget(e, StunDuration, StunId);
+                                });
+                            }
                         }
-                    }
 
-                    component.HitDetectionState = newHitState;
+                        component.HitDetectionState = newHitState;
+                    }
                 }
 
                 // Visualization

@@ -332,6 +332,8 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
 
     private void StunPlayer(World world, float duration, float delay = StunDelay)
     {
+        var player = dalamud.ClientState.LocalPlayer;
+        if (player == null || player.IsDead) { return; }
         commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
         {
             DelayedAction.Create(world, () => {

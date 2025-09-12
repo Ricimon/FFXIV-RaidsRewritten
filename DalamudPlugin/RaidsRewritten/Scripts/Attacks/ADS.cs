@@ -1,20 +1,16 @@
-﻿using FFXIVClientStructs.FFXIV.Client.Game.Character;
-using FFXIVClientStructs.FFXIV.Client.Game.Object;
+﻿using System.Collections.Generic;
+using System.Numerics;
 using Flecs.NET.Core;
+using RaidsRewritten.Extensions;
 using RaidsRewritten.Game;
 using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Scripts.Attacks.Omens;
 using RaidsRewritten.Scripts.Conditions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+using RaidsRewritten.Spawn;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public class ADS(DalamudServices dalamud, CommonQueries commonQueries) : IAttack, ISystem
+public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn vfxSpawn) : IAttack, ISystem
 {
     public enum Phase
     {
@@ -106,10 +102,17 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries) : IAttack
 
                         if (player != null && !player.IsDead && RectangleOmen.IsInOmen(child, player.Position))
                         {
-                            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
+                            if (player.HasTranscendance())
                             {
-                                Paralysis.ApplyToTarget(e, 30f, 3f, 1f, ParalysisId);
-                            });
+                                vfxSpawn.PlayInvulnerabilityEffect(player);
+                            }
+                            else
+                            {
+                                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
+                                {
+                                    Paralysis.ApplyToTarget(e, 30f, 3f, 1f, ParalysisId);
+                                });
+                            }
                         }
                         child.Destruct();
                     });
