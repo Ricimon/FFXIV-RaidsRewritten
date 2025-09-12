@@ -157,8 +157,9 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
             {
                 var entity = it.Entity(i);
                 var deltaAngle = it.DeltaTime() * BaseTornadoSpeed / direction.Radius * (direction.IsClockwise ? 1 : -1);
-                var offsetX = direction.Radius * MathF.Sin(direction.CurrentAngle - deltaAngle);
-                var offsetZ = direction.Radius * MathF.Cos(direction.CurrentAngle - deltaAngle);
+                var newAngle = direction.CurrentAngle - deltaAngle;
+                var offsetX = direction.Radius * MathF.Sin(newAngle);
+                var offsetZ = direction.Radius * MathF.Cos(newAngle);
                 direction.CurrentAngle -= deltaAngle;
                 var newPos = new Vector3(
                         arenaCenter.Value.X + offsetX,

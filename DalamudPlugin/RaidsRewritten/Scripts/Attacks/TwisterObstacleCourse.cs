@@ -44,12 +44,13 @@ public class TwisterObstacleCourse (Random random) : IAttack, ISystem
                 for (int currentPartialSet = 0; currentPartialSet < component.Sets * 2; currentPartialSet++)
                 {
                     var angle = MathUtilities.ClampRadians(currentPartialSet * MathF.PI / component.Sets + angleOffset);
-                    SpawnTwisters(entity, angle, position.Value, component, currentPartialSet % 2 == 0);
+                    var offset = rand.Next(-5, 5) / 10f;
+                    SpawnTwisters(entity, angle, position.Value, component, currentPartialSet % 2 == 0, offset);
                 }
             });
     }
 
-    private static void SpawnTwisters(Entity parent, float angle, Vector3 center, Component component, bool rowType)
+    private static void SpawnTwisters(Entity parent, float angle, Vector3 center, Component component, bool rowType, float offset)
     {
         for (int i = 0; i < TwisterSlots; i++)
         {
@@ -57,7 +58,7 @@ public class TwisterObstacleCourse (Random random) : IAttack, ISystem
             // rowType == true => 3 twister row, false => 2 twister row
             if ((i % 2 == 0) == rowType) { continue; }
 
-            var distanceFromCenter = component.OuterRadius - TwisterRadius - Spacing * i;
+            var distanceFromCenter = component.OuterRadius - TwisterRadius - Spacing * i + offset;
             var position = new Vector3(
                     center.X + distanceFromCenter * MathF.Cos(angle),
                     center.Y,
