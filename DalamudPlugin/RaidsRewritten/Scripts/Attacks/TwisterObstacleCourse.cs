@@ -44,7 +44,7 @@ public class TwisterObstacleCourse (Random random) : IAttack, ISystem
                 for (int currentPartialSet = 0; currentPartialSet < component.Sets * 2; currentPartialSet++)
                 {
                     var angle = MathUtilities.ClampRadians(currentPartialSet * MathF.PI / component.Sets + angleOffset);
-                    var offset = rand.Next(-5, 5) / 10f;
+                    var offset = rand.NextSingle() - 0.5f;
                     SpawnTwisters(entity, angle, position.Value, component, currentPartialSet % 2 == 0, offset);
                 }
             });
