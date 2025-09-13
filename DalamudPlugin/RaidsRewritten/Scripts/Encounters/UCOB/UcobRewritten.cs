@@ -46,6 +46,10 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
 
     public void RefreshMechanics()
     {
+        foreach(var mechanic in this.mechanics)
+        {
+            mechanic.Reset();
+        }
         this.mechanics.Clear();
 
         if (configuration.GetEncounterSetting(TankbusterAftershockKey, true))
@@ -244,7 +248,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
         }
 
         bool octetCourse = configuration.GetEncounterSetting(OctetCourseKey, true);
-        if (ImGui.Checkbox("Octet Course (WIP)", ref octetCourse))
+        if (ImGui.Checkbox("Octet Course", ref octetCourse))
         {
             configuration.EncounterSettings[OctetCourseKey] =
                 octetCourse ? bool.TrueString : bool.FalseString;
