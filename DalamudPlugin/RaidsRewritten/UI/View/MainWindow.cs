@@ -470,6 +470,20 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             }
         }
 
+        if (ImGui.Button("One Third Donut Omen"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<OneThirdDonutOmen>(out var donut))
+                {
+                    donut.Set(new Position(player.Position));
+                    donut.Set(new Rotation(player.Rotation));
+                    donut.Set(new Scale(Vector3.One));
+                }
+            }
+        }
+
         ImGui.Text("Test Attacks");
 
         if (ImGui.Button("Spawn Twister"))
@@ -720,6 +734,42 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                         OnHit: e => { Stun.ApplyToTarget(e, 2.0f); }));
                     star.Set(new Position(player.Position));
                     star.Set(new Rotation(player.Rotation));
+                }
+            }
+        }
+
+        if (ImGui.Button("Tornado"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<Tornado>(out var tornado))
+                {
+                    tornado.Set(new Position(player.Position));
+                    DelayedAction.Create(tornado.CsWorld(), () =>
+                    {
+                        tornado.Destruct();
+                    }, 10f);
+                }
+            }
+        }
+
+        ImGui.SameLine();
+
+        if (ImGui.Button("Donut Tornado"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<OctetDonut>(out var tornado))
+                {
+                    tornado.Set(new Position(player.Position));
+                    DelayedAction.Create(tornado.CsWorld(), () =>
+                    {
+                        tornado.Destruct();
+                    }, 26f);
                 }
             }
         }
