@@ -34,16 +34,16 @@ public sealed class Knockback : IDalamudHook
     private readonly CommonQueries commonQueries;
     private readonly ILogger logger;
 
-    public static void ApplyToPlayer(Entity playerEntity, Vector3 knockbackDirection, float duration, bool canResist)
+    public static void ApplyToTarget(Entity target, Vector3 knockbackDirection, float duration, bool canResist)
     {
-        if (!playerEntity.CsWorld().IsDeferred())
+        if (!target.CsWorld().IsDeferred())
         {
             Logger?.Warn("Knockback application must be done in a Deferred context.");
             return;
         }
 
         var apply = true;
-        playerEntity.Children(child =>
+        target.Children(child =>
         {
             // Don't apply if player is bound
             if (child.Has<Bind.Component>())
@@ -54,7 +54,7 @@ public sealed class Knockback : IDalamudHook
 
         if (apply && canResist)
         {
-            var player = playerEntity.TryGet<Player.Component>(out var pc) ? pc.PlayerCharacter : null;
+            var player = target.TryGet<Player.Component>(out var pc) ? pc.PlayerCharacter : null;
             if (player != null)
             {
                 foreach (var status in player.StatusList)
@@ -71,16 +71,16 @@ public sealed class Knockback : IDalamudHook
         if (!apply) { return; }
 
         // Remove existing knockback conditions
-        playerEntity.Children(child =>
+        target.Children(child =>
         {
             // This operation requires deferral
             if (child.Has<Component>()) { child.Destruct(); }
         });
 
-        playerEntity.CsWorld().Entity()
+        target.CsWorld().Entity()
             .Set(new Condition.Component("Knocked Back", duration))
             .Set(new Component(knockbackDirection))
-            .ChildOf(playerEntity);
+            .ChildOf(target);
     }
 
     public Knockback(DalamudServices dalamud, EcsContainer ecsContainer, CommonQueries commonQueries, ILogger logger)
@@ -110,32 +110,83 @@ public sealed class Knockback : IDalamudHook
         {
             var localPlayer = this.dalamud.ClientState.LocalPlayer;
             if (localPlayer == null) { return; }
+
+            // Remove any fake knockbacks if the player performs some movement action
+            if (set.Source != null && set.Source.GameObjectId == localPlayer.GameObjectId)
+            {
+                if (set.Action.HasValue && set.Action.Value.AffectsPosition)
+                {
+                    float delay = 0;
+                    // All actions have some amount of application delay, but I don't know where to find that
+                    // info, so these values are found through testing
+                    if (set.Action.Value.RowId == 2262) // Shukuchi
+                    {
+                        delay = 0.267f;
+                    }
+                    RemoveKnockback(delay);
+                }
+                return;
+            }
+
             foreach (var targetEffects in set.TargetEffects)
             {
-                if (targetEffects.TargetID == localPlayer.GameObjectId &&
-                    (targetEffects.GetSpecificTypeEffect(ActionEffectType.Knockback1, out _) ||
-                    targetEffects.GetSpecificTypeEffect(ActionEffectType.Knockback2, out _)))
+                if (targetEffects.TargetID == localPlayer.GameObjectId)
                 {
-                    // Remove any fake knockback conditions if a real knockback occurs
-                    this.world.DeferBegin();
-                    this.commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
+                    EffectEntry effect;
+                    if (targetEffects.GetSpecificTypeEffect(ActionEffectType.Knockback1, out var kb1))
                     {
-                        e.Children(child =>
-                        {
-                            // This operation requires deferral
-                            if (child.Has<Component>()) { child.Destruct(); }
-                        });
-                    });
-                    this.world.DeferEnd();
+                        effect = kb1;
+                    }
+                    else if (targetEffects.GetSpecificTypeEffect(ActionEffectType.Knockback2, out var kb2))
+                    {
+                        effect = kb2;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+
+                    float delay = 0;
+                    // All actions have some amount of application delay, but I don't know where to find that
+                    // info, so these values are found through testing
+                    if (set.Action?.RowId == 7571) // Rescue
+                    {
+                        delay = 0.433f;
+                    }
+
+                    // Remove any fake knockback conditions if a real knockback occurs
+                    RemoveKnockback(delay);
                     return;
                 }
             }
-
-            // TODO: Remove any fake knockback conditions if any movement abilities occur (Thunderclap, getting Rescued, etc)
         }
         catch (Exception e)
         {
             logger.Error(e.ToStringFull());
+        }
+    }
+
+    private void RemoveKnockback(float delay)
+    {
+        if (delay > 0)
+        {
+            DelayedAction.Create(this.world, () =>
+            {
+                this.commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
+                {
+                    e.DestructChildEntity<Component>();
+                });
+            }, delay);
+        }
+        else
+        {
+            this.world.DeferBegin();
+            this.commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
+            {
+                // This operation requires deferral
+                e.DestructChildEntity<Component>();
+            });
+            this.world.DeferEnd();
         }
     }
 }

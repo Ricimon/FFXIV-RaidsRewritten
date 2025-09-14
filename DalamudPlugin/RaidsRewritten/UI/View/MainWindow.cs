@@ -1,4 +1,11 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using System;
+using System.Linq;
+using System.Numerics;
+using System.Reactive;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
+using System.Text;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
@@ -22,14 +29,6 @@ using RaidsRewritten.Spawn;
 using RaidsRewritten.UI.Util;
 using RaidsRewritten.Utility;
 using Reactive.Bindings;
-using System;
-using System.Diagnostics;
-using System.Linq;
-using System.Numerics;
-using System.Reactive;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
-using System.Text;
 
 namespace RaidsRewritten.UI.View;
 
@@ -55,19 +54,6 @@ public class MainWindow : Window, IPluginUIView, IDisposable
     public IReactiveProperty<Keybind> KeybindBeingEdited { get; } = new ReactiveProperty<Keybind>();
     public IObservable<Keybind> ClearKeybind => clearKeybind.AsObservable();
     private readonly Subject<Keybind> clearKeybind = new();
-
-    public IReactiveProperty<bool> EnableGroundPings { get; } = new ReactiveProperty<bool>();
-    public IReactiveProperty<bool> EnablePingWheel { get; } = new ReactiveProperty<bool>();
-    public IReactiveProperty<bool> EnableGuiPings { get; } = new ReactiveProperty<bool>();
-    public IReactiveProperty<bool> EnableHpMpPings { get; } = new ReactiveProperty<bool>();
-    public IReactiveProperty<bool> SendGuiPingsToCustomServer { get; } = new ReactiveProperty<bool>();
-    public IReactiveProperty<bool> SendGuiPingsToXivChat { get; } = new ReactiveProperty<bool>();
-    public IReactiveProperty<XivChatSendLocation> XivChatSendLocation { get; } = new ReactiveProperty<XivChatSendLocation>();
-
-    public IObservable<Unit> PrintNodeMap1 => printNodeMap1.AsObservable();
-    private readonly Subject<Unit> printNodeMap1 = new();
-    public IObservable<Unit> PrintNodeMap2 => printNodeMap2.AsObservable();
-    private readonly Subject<Unit> printNodeMap2 = new();
     public IObservable<Unit> PrintPartyStatuses => printPartyStatuses.AsObservable();
     private readonly Subject<Unit> printPartyStatuses = new();
     public IObservable<Unit> PrintTargetStatuses => printTargetStatuses.AsObservable();
@@ -89,6 +75,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
     private readonly Mechanic.Factory mechanicFactory;
     private readonly Configuration configuration;
     private readonly EcsContainer ecsContainer;
+    private readonly CommonQueries commonQueries;
     private readonly VfxSpawn vfxSpawn;
     private readonly ILogger logger;
 
@@ -115,6 +102,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         Mechanic.Factory mechanicFactory,
         Configuration configuration,
         EcsContainer ecsContainer,
+        CommonQueries commonQueries,
         VfxSpawn vfxSpawn,
         ILogger logger) : base(
         PluginInitializer.Name)
@@ -128,6 +116,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         this.mechanicFactory = mechanicFactory;
         this.configuration = configuration;
         this.ecsContainer = ecsContainer;
+        this.commonQueries = commonQueries;
         this.vfxSpawn = vfxSpawn;
         this.logger = logger;
 
@@ -150,13 +139,12 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         this.effectsRendererPositionX = configuration.EffectsRendererPositionX;
         this.effectsRendererPositionY = configuration.EffectsRendererPositionY;
 
-
+        // Auto-position the effects renderer
         if (effectsRendererPositionX == 0 && effectsRendererPositionY == 0)
         {
             var viewport = ImGui.GetMainViewport();
             int x = (int)(viewport.Pos.X + viewport.Size.X / 2);
             int y = (int)(viewport.Pos.Y + viewport.Size.Y / 3);
-
 
             effectsRendererPositionX = x;
             effectsRendererPositionY = y;
@@ -165,7 +153,6 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             configuration.EffectsRendererPositionY = effectsRendererPositionY;
             configuration.Save();
         }
-
 
 #if DEBUG
         visible = true;
@@ -246,7 +233,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         //DrawPublicTab();
         //DrawPrivateTab();
         //DrawConfigTab();
-        //DrawMiscTab();
+        DrawMiscTab();
     }
 
     private void DrawMainTab()
@@ -254,13 +241,13 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         using var mainTab = ImRaii.TabItem("Main");
         if (!mainTab) return;
 
-        if (ImGui.InputInt("Position X", ref effectsRendererPositionX))
+        if (ImGui.InputInt("Position X", ref effectsRendererPositionX, 5))
         {
             configuration.EffectsRendererPositionX = effectsRendererPositionX;
             configuration.Save();
         }
 
-        if (ImGui.InputInt("Position Y", ref effectsRendererPositionY))
+        if (ImGui.InputInt("Position Y", ref effectsRendererPositionY, 5))
         {
             configuration.EffectsRendererPositionY = effectsRendererPositionY;
             configuration.Save();
@@ -284,8 +271,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
 
         if (ImGui.Button("Status Overlay"))
         {
-            using var q = ecsContainer.World.Query<Player.Component>();
-            q.Each((Entity e, ref Player.Component pc) =>
+            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
             {
                 ecsContainer.World.Entity().Set(new Condition.Component("test", 15.0f)).ChildOf(e);
             });
@@ -317,14 +303,14 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         using var debugTab = ImRaii.TabItem("Debug");
         if (!debugTab) return;
 
-        //#if DEBUG
+#if DEBUG
         bool punishmentImmunity = configuration.PunishmentImmunity;
         if (ImGui.Checkbox("Punishment Immunity", ref punishmentImmunity))
         {
             configuration.PunishmentImmunity = punishmentImmunity;
             configuration.Save();
         }
-        //#endif
+#endif
 
         if (ImGui.Button("Print Player Data"))
         {
@@ -363,55 +349,67 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         ImGui.Text("Fake statuses");
         if (ImGui.Button("Bind"))
         {
-            using var q = ecsContainer.World.Query<Player.Component>();
-            q.Each((Entity e, ref Player.Component pc) =>
+            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
             {
-                Bind.ApplyToPlayer(e, 2.0f);
+                Bind.ApplyToTarget(e, 3.0f);
             });
         }
         ImGui.SameLine();
         if (ImGui.Button("Knockback"))
         {
-            using var q = ecsContainer.World.Query<Player.Component>();
-            q.Each((Entity e, ref Player.Component pc) =>
+            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
             {
-                Knockback.ApplyToPlayer(e, new Vector3(1, 0, 0), 2.0f, true);
+                Knockback.ApplyToTarget(e, new Vector3(1, 0, 0), 2.0f, true);
             });
         }
         ImGui.SameLine();
         if (ImGui.Button("Stun"))
         {
-            using var q = ecsContainer.World.Query<Player.Component>();
-            q.Each((Entity e, ref Player.Component pc) =>
+            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
             {
-                Stun.ApplyToPlayer(e, 2.0f);
+                Stun.ApplyToTarget(e, 3.0f);
             });
         }
         ImGui.SameLine();
         if (ImGui.Button("Paralysis"))
         {
-            using var q = ecsContainer.World.Query<Player.Component>();
-            q.Each((Entity e, ref Player.Component pc) =>
+            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
             {
-                Paralysis.ApplyToPlayer(e, 5.0f, 3.0f, 1.0f, -100);
+                Paralysis.ApplyToTarget(e, 5.0f, 3.0f, 1.0f, -100);
             });
         }
         ImGui.SameLine();
         if (ImGui.Button("Heavy"))
         {
-            using var q = ecsContainer.World.Query<Player.Component>();
-            q.Each((Entity e, ref Player.Component pc) =>
+            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
             {
-                Heavy.ApplyToPlayer(e, 5.0f);
+                Heavy.ApplyToTarget(e, 5.0f);
             });
         }
         ImGui.SameLine();
+        if (ImGui.Button("Pacify"))
+        {
+            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+            {
+                Pacify.ApplyToTarget(e, 5.0f);
+            });
+        }
+
+        if (ImGui.Button("Sleep"))
+        {
+            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+            {
+                Sleep.ApplyToTarget(e, 3.0f);
+            });
+        }
+
+        ImGui.SameLine();
+
         if (ImGui.Button("Heavy (e)"))
         {
-            using var q = ecsContainer.World.Query<Player.Component>();
-            q.Each((Entity e, ref Player.Component pc) =>
+            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
             {
-                Heavy.ApplyToPlayer(e, 5.0f, -100, true);
+                Heavy.ApplyToTarget(e, 5.0f, -100, true);
             });
         }
 
@@ -468,6 +466,20 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                     star.Set(new Position(player.Position));
                     star.Set(new Rotation(player.Rotation));
                     star.Set(new Scale(ShortStarOmen.ScaleMultiplier * Vector3.One));
+                }
+            }
+        }
+
+        if (ImGui.Button("One Third Donut Omen"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<OneThirdDonutOmen>(out var donut))
+                {
+                    donut.Set(new Position(player.Position));
+                    donut.Set(new Rotation(player.Rotation));
+                    donut.Set(new Scale(Vector3.One));
                 }
             }
         }
@@ -578,6 +590,31 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                 {
                     dreadknight.Set(new Position(player.Position));
                     Dreadknight.ApplyTarget(dreadknight, player);
+                    DelayedAction.Create(dreadknight.CsWorld(), () =>
+                    {
+                        Stun.ApplyToTarget(dreadknight, 1f);
+                    }, 4f);
+                    DelayedAction.Create(dreadknight.CsWorld(), () =>
+                    {
+                        Bind.ApplyToTarget(dreadknight, 3f);
+                    }, 6f);
+                    DelayedAction.Create(dreadknight.CsWorld(), () =>
+                    {
+                        Dreadknight.RemoveCancellableCC(dreadknight);
+                    }, 7f);
+                    DelayedAction.Create(dreadknight.CsWorld(), () =>
+                    {
+                        Sleep.ApplyToTarget(dreadknight, 1f);
+                    }, 8f);
+                    DelayedAction.Create(dreadknight.CsWorld(), () =>
+                    {
+                        Heavy.ApplyToTarget(dreadknight, 5f);
+                        Dreadknight.SetTemporaryRelativeSpeed(dreadknight, .1f);
+                    }, 10f);
+                    DelayedAction.Create(dreadknight.CsWorld(), () =>
+                    {
+                        dreadknight.DestructChildEntity<Heavy.Component>();
+                    }, 12f);
                 }
             }
         }
@@ -625,7 +662,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                     {
                         DistanceSnapshotTether.SetTetherVfx(tether, TetherOmen.TetherVfx.ActivatedClose, player, target)
                             .Set(new DistanceSnapshotTether.VfxOnFail(["vfx/monster/m0005/eff/m0005sp_15t0t.avfx"]))
-                            .Set(new DistanceSnapshotTether.Tether((e) => { Stun.ApplyToPlayer(e, 5); }))
+                            .Set(new DistanceSnapshotTether.Tether((e) => { Stun.ApplyToTarget(e, 5); }))
                             .Set(new DistanceSnapshotTether.FailWhenFurtherThan(10));
 
                         DelayedAction.Create(tether.CsWorld(), () =>
@@ -651,7 +688,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                     {
                         DistanceSnapshotTether.SetTetherVfx(tether, TetherOmen.TetherVfx.ActivatedFar, player, target)
                             .Set(new DistanceSnapshotTether.VfxOnFail(["vfx/monster/m0005/eff/m0005sp_15t0t.avfx"]))
-                            .Set(new DistanceSnapshotTether.Tether((e) => { Stun.ApplyToPlayer(e, 5); }))
+                            .Set(new DistanceSnapshotTether.Tether((e) => { Stun.ApplyToTarget(e, 5); }))
                             .Set(new DistanceSnapshotTether.FailWhenCloserThan(10));
 
                         DelayedAction.Create(tether.CsWorld(), () =>
@@ -694,9 +731,45 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                         Type: Star.Type.Long,
                         OmenTime: 2.75f,
                         VfxPath: "vfx/monster/gimmick5/eff/x6r7_b3_g08_c0p.avfx",
-                        OnHit: e => { Stun.ApplyToPlayer(e, 2.0f); }));
+                        OnHit: e => { Stun.ApplyToTarget(e, 2.0f); }));
                     star.Set(new Position(player.Position));
                     star.Set(new Rotation(player.Rotation));
+                }
+            }
+        }
+
+        if (ImGui.Button("Tornado"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<Tornado>(out var tornado))
+                {
+                    tornado.Set(new Position(player.Position));
+                    DelayedAction.Create(tornado.CsWorld(), () =>
+                    {
+                        tornado.Destruct();
+                    }, 10f);
+                }
+            }
+        }
+
+        ImGui.SameLine();
+
+        if (ImGui.Button("Donut Tornado"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<OctetDonut>(out var tornado))
+                {
+                    tornado.Set(new Position(player.Position));
+                    DelayedAction.Create(tornado.CsWorld(), () =>
+                    {
+                        tornado.Destruct();
+                    }, 26f);
                 }
             }
         }
@@ -704,9 +777,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         ImGui.Text("Heat Stuff");
         if (ImGui.Button("Add Temperature"))
         {
-            var world = ecsContainer.World;
-            using var q = world.Query<Player.Component>();
-            q.Each((Entity e, ref Player.Component pc) =>
+            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
             {
                 Temperature.SetTemperature(e);
             });
@@ -714,9 +785,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         ImGui.SameLine();
         if (ImGui.Button("Incr Heat"))
         {
-            var world = ecsContainer.World;
-            using var q = world.Query<Player.Component>();
-            q.Each((Entity e, ref Player.Component pc) =>
+            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
             {
                 Temperature.HeatChangedEvent(e, 50);
             });
@@ -724,9 +793,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         ImGui.SameLine();
         if (ImGui.Button("Decr Heat"))
         {
-            var world = ecsContainer.World;
-            using var q = world.Query<Player.Component>();
-            q.Each((Entity e, ref Player.Component pc) =>
+            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
             {
                 Temperature.HeatChangedEvent(e, -50);
             });
@@ -1154,93 +1221,10 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         {
         }
 
-        ImGui.Dummy(new Vector2(0.0f, 5.0f)); // ---------------
-
-        var enableGroundPings = this.EnableGroundPings.Value;
-        if (ImGui.Checkbox("Enable Ground Pings", ref enableGroundPings))
-        {
-            this.EnableGroundPings.Value = enableGroundPings;
-        }
-
-        using (ImRaii.PushIndent())
-        using (ImRaii.Disabled(!this.EnableGroundPings.Value))
-        {
-            var enablePingWheel = this.EnablePingWheel.Value;
-            if (ImGui.Checkbox("Enable Ping Wheel", ref enablePingWheel))
-            {
-                this.EnablePingWheel.Value = enablePingWheel;
-            }
-            ImGui.SameLine(); Common.HelpMarker("More ping types coming soon™");
-        }
-
-        ImGui.Dummy(new Vector2(0.0f, 5.0f)); // ---------------
-
-        var enableGuiPings = this.EnableGuiPings.Value;
-        if (ImGui.Checkbox("Enable UI Pings", ref enableGuiPings))
-        {
-            this.EnableGuiPings.Value = enableGuiPings;
-        }
-
-        using (ImRaii.PushIndent())
-        using (ImRaii.Disabled(!this.EnableGuiPings.Value))
-        {
-            var enableHpMpPings = this.EnableHpMpPings.Value;
-            if (ImGui.Checkbox("Enable HP/MP Pings", ref enableHpMpPings))
-            {
-                this.EnableHpMpPings.Value = enableHpMpPings;
-            }
-            if (ImGui.IsItemHovered())
-            {
-                ImGui.SetTooltip("Mouse input will be blocked if pinging HP/MP values, so disable this if this is not desired.");
-            }
-            ImGui.SameLine(); Common.HelpMarker("Only works on party list");
-
-            var sendGuiPingsToCustomServer = this.SendGuiPingsToCustomServer.Value;
-            if (ImGui.Checkbox("Send UI pings to joined room", ref sendGuiPingsToCustomServer))
-            {
-                this.SendGuiPingsToCustomServer.Value = sendGuiPingsToCustomServer;
-            }
-            if (ImGui.IsItemHovered())
-            {
-                ImGui.SetTooltip("Sends UI pings as /echo messages to other players in the same plugin room. This avoids sending traceable data to XIV servers.");
-            }
-
-            var sendGuiPingsToXivChat = this.SendGuiPingsToXivChat.Value;
-            if (ImGui.Checkbox("Send UI pings in game chat (!)", ref sendGuiPingsToXivChat))
-            {
-                this.SendGuiPingsToXivChat.Value = sendGuiPingsToXivChat;
-            }
-            if (ImGui.IsItemHovered())
-            {
-                ImGui.SetTooltip("Sending messages in game chat may be traceable as plugin usage. Use with caution!");
-            }
-
-            using (ImRaii.PushIndent())
-            using (ImRaii.Disabled(!this.SendGuiPingsToXivChat.Value))
-            using (ImRaii.ItemWidth(100))
-            {
-                var xivChatSendLocation = (int)this.XivChatSendLocation.Value;
-                if (ImGui.Combo("Send Chat To", ref xivChatSendLocation, this.xivChatSendLocations, this.xivChatSendLocations.Length))
-                {
-                    this.XivChatSendLocation.Value = (XivChatSendLocation)xivChatSendLocation;
-                }
-            }
-        }
-
 #if DEBUG
         ImGui.Dummy(new Vector2(0.0f, 5.0f)); // ---------------
 
         ImGui.Text("DEBUG");
-        if (ImGui.Button("Print Node Map 1"))
-        {
-            this.printNodeMap1.OnNext(Unit.Default);
-        }
-        ImGui.SameLine();
-        if (ImGui.Button("Print Node Map 2"))
-        {
-            this.printNodeMap2.OnNext(Unit.Default);
-        }
-
         if (ImGui.Button("Print Party Statuses"))
         {
             this.printPartyStatuses.OnNext(Unit.Default);
@@ -1287,32 +1271,42 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             }
         }
 
-        ImGui.Spacing();
+        ImGui.Dummy(new Vector2(0.0f, 5.0f)); // ---------------
 
-        ImGui.AlignTextToFramePadding();
-        ImGui.Text("Bugs or suggestions?");
-        ImGui.SameLine();
-        ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.35f, 0.40f, 0.95f, 1));
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.41f, 0.45f, 1.0f, 1));
-        ImGui.PushStyleColor(ImGuiCol.ButtonActive, new Vector4(0.32f, 0.36f, 0.88f, 1));
-        if (ImGui.Button("Discord"))
-        {
-            Process.Start(new ProcessStartInfo { FileName = "https://discord.gg/rSucAJ6A7u", UseShellExecute = true });
-        }
-        ImGui.PopStyleColor(3);
+        ImGui.TextWrapped(
+            "Thank you for trying out the pre-release version of RaidsRewritten!" +
+            "\n\nKeep in mind things are still undergoing development and may change from version to version without explicit patch notes." +
+            "\n\nI'll ask that you refrain from sharing installation instructions before everything is done." +
+            "\n\nBut feel free to share clips to spread interest!" +
+            "\n\nIf you encounter bugs please report them to me via Discord DMs to ricimon."
+        );
 
-        ImGui.SameLine();
-        ImGui.Text("|");
-        ImGui.SameLine();
+        //ImGui.Spacing();
 
-        ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(1.0f, 0.39f, 0.20f, 1));
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(1.0f, 0.49f, 0.30f, 1));
-        ImGui.PushStyleColor(ImGuiCol.ButtonActive, new Vector4(0.92f, 0.36f, 0.18f, 1));
-        if (ImGui.Button("Support on Ko-fi"))
-        {
-            Process.Start(new ProcessStartInfo { FileName = "https://ko-fi.com/ricimon", UseShellExecute = true });
-        }
-        ImGui.PopStyleColor(3);
+        //ImGui.AlignTextToFramePadding();
+        //ImGui.Text("Bugs or suggestions?");
+        //ImGui.SameLine();
+        //ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.35f, 0.40f, 0.95f, 1));
+        //ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.41f, 0.45f, 1.0f, 1));
+        //ImGui.PushStyleColor(ImGuiCol.ButtonActive, new Vector4(0.32f, 0.36f, 0.88f, 1));
+        //if (ImGui.Button("Discord"))
+        //{
+        //    Process.Start(new ProcessStartInfo { FileName = "https://discord.gg/rSucAJ6A7u", UseShellExecute = true });
+        //}
+        //ImGui.PopStyleColor(3);
+
+        //ImGui.SameLine();
+        //ImGui.Text("|");
+        //ImGui.SameLine();
+
+        //ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(1.0f, 0.39f, 0.20f, 1));
+        //ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(1.0f, 0.49f, 0.30f, 1));
+        //ImGui.PushStyleColor(ImGuiCol.ButtonActive, new Vector4(0.92f, 0.36f, 0.18f, 1));
+        //if (ImGui.Button("Support on Ko-fi"))
+        //{
+        //    Process.Start(new ProcessStartInfo { FileName = "https://ko-fi.com/ricimon", UseShellExecute = true });
+        //}
+        //ImGui.PopStyleColor(3);
     }
 
     private void DrawKeybindEdit(Keybind keybind, VirtualKey currentBinding, string label, string? tooltip = null)

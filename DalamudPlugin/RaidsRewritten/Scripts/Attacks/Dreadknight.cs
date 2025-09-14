@@ -25,7 +25,10 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
     public record struct Target(IGameObject? Value);
     public record struct BackupTarget(IGameObject? Value);
     public record struct Speed(float Value);
-    public record struct AnimationState(ushort Value, bool Interrupt = false);
+    public record struct SpeedModifier(float Value);
+
+    public struct QueueCancelCC;
+    public struct TetherVfxChild;
 
     private const ushort WalkingAnimation = 41;
     private const ushort AttackAnimation = 1515;
@@ -61,37 +64,12 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
                 .Set(new Component(0, 0))
                 .Set(new Position())
                 .Set(new Speed(3))
-                .Set(new AnimationState(0))
+                .Set(new TimelineBase(0))
                 .Add<Attack>();
     }
 
     public void Register(World world)
     {
-        // need to process AnimationState first before it's overwritten by default standing state in later system
-        world.System<Model, AnimationState>()
-            .Each((Iter it, int i, ref Model model, ref AnimationState animationState) =>
-            {
-                // set animation
-                unsafe
-                {
-                    var clientObjectManager = ClientObjectManager.Instance();
-                    if (clientObjectManager == null) { return; }
-
-                    var obj = clientObjectManager->GetObjectByIndex((ushort)model.GameObjectIndex);
-                    var chara = (Character*)obj;
-                    if (chara != null)
-                    {
-                        chara->Timeline.BaseOverride = animationState.Value;
-                        if (animationState.Interrupt) { chara->Timeline.TimelineSequencer.PlayTimeline(animationState.Value); }
-                    }
-                }
-                // only interrupt once
-                if (animationState.Interrupt)
-                {
-                    it.Entity(i).Set(new AnimationState(animationState.Value));
-                }
-            });
-
         world.System<Component>()
             .Each((Iter it, int i, ref Component component) =>
             {
@@ -104,9 +82,17 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
                 }
             });
 
+        world.System<Component>().With<QueueCancelCC>()
+            .Each((Entity entity, ref Component _) =>
+            {
+                entity.DestructChildEntity<Sleep.Component>();
+                entity.DestructChildEntity<Bind.Component>();
+                entity.Remove<QueueCancelCC>();
+            });
+
         // no target
-        world.System<Component, AnimationState>().Without<Target>()
-            .Each((Iter it, int i, ref Component component, ref AnimationState animationState) =>
+        world.System<Component, TimelineBase>().Without<Target>()
+            .Each((Iter it, int i, ref Component component, ref TimelineBase animationState) =>
             {
                 var entity = it.Entity(i);
 
@@ -114,8 +100,9 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
                 {
                     if (backupTarget.Value != null && backupTarget.Value.IsValid() && !backupTarget.Value.IsDead)
                     {
-                        var tether = AddActorVfx(entity, BackupTetherVfx);
-                        tether.Set(new ActorVfxTarget(backupTarget.Value));
+                        AddActorVfx(entity, BackupTetherVfx)
+                            .Set(new ActorVfxTarget(backupTarget.Value))
+                            .Add<TetherVfxChild>();
                         component.BackupActive = true;
                     }
                 }
@@ -148,7 +135,7 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
                         ShowTextGimmick(EnrageMessage, EnrageNotificationDuration);
                         dalamud.ChatGui.Print(EnrageMessage);
                     }
-                    if (animationState.Value != CastingAnimation) { entity.Set(new AnimationState(CastingAnimation, true)); }
+                    if (animationState.Value != CastingAnimation) { entity.Set(new TimelineBase(CastingAnimation, true)); }
                     DelayedAction.Create(world, () => AddActorVfx(entity, EnrageVfx1), EnrageVfxDelay);
                     DelayedAction.Create(world, () => AddActorVfx(entity, EnrageVfx2), EnrageVfxDelay);
                     StunPlayer(world, EnrageStunDuration, EnrageStunDelay);
@@ -157,8 +144,8 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
                 }
             });
 
-        world.System<Component, Position, Rotation, Speed, AnimationState, Target>()
-            .Each((Iter it, int i, ref Component component, ref Position position, ref Rotation rotation, ref Speed speed, ref AnimationState animationState, ref Target target) =>
+        world.System<Component, Position, Rotation, Speed, TimelineBase, Target>()
+            .Each((Iter it, int i, ref Component component, ref Position position, ref Rotation rotation, ref Speed speed, ref TimelineBase animationState, ref Target target) =>
             {
                 var entity = it.Entity(i);
 
@@ -167,6 +154,11 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
                     component.BackupActive = false;
                     if (component.ElapsedTime < InitialDelay) { return; }  // only want to start looking at player and chasing when ready 
                     if (component.Enrage == -1) { return; }
+                    if (entity.HasChild<Stun.Component>() || entity.HasChild<Bind.Component>() || entity.HasChild<Sleep.Component>())
+                    {
+                        Stand(entity, animationState);
+                        return;
+                    }
 
                     component.StartEnrage = component.ElapsedTime + 5;
                     component.Enrage = component.ElapsedTime + 10;
@@ -185,7 +177,7 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
                     if (Vector2.Distance(sourcePosV2, targetPosV2) < HitboxRadius)
                     {
                         // attack
-                        if (animationState.Value != AttackAnimation) { entity.Set(new AnimationState(AttackAnimation)); }
+                        if (animationState.Value != AttackAnimation) { entity.Set(new TimelineBase(AttackAnimation)); }
                         if (dalamud.ClientState.LocalPlayer == target.Value)
                         {
                             StunPlayer(world, StunDuration);
@@ -196,12 +188,18 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
                         // follow
                         if (animationState.Value != WalkingAnimation)
                         {
-                            entity.Set(new AnimationState(WalkingAnimation, true));
+                            entity.Set(new TimelineBase(WalkingAnimation, true));
+                        }
+                        var velocity = speed.Value;
+
+                        if (entity.HasChild<Heavy.Component>() && entity.TryGet<SpeedModifier>(out var modifier))
+                        {
+                            velocity *= modifier.Value;
                         }
 
                         var newPosition = position.Value;
-                        newPosition.Z += speed.Value * it.DeltaTime() * MathF.Cos(angle);
-                        newPosition.X += speed.Value * it.DeltaTime() * MathF.Sin(angle);
+                        newPosition.Z += velocity * it.DeltaTime() * MathF.Cos(angle);
+                        newPosition.X += velocity * it.DeltaTime() * MathF.Sin(angle);
                         position.Value = newPosition;
                     }
                 } else
@@ -215,39 +213,49 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
 
     public static void ApplyTarget(Entity entity, IGameObject target)
     {
-        if (entity.TryGet<Component>(out var component))
-        {
-            if (component.Enrage == -1) { return; }
-
-            RemoveChildren(entity);
-
-            if (component.StartEnrage == -1)
+        entity.CsWorld().Defer(() => {
+            if (entity.TryGet<Component>(out var component))
             {
-                AddActorVfx(entity, InterruptVfx);
-            }
-        }
+                if (component.Enrage == -1) { return; }
 
-        entity.Set(new Target(target));
-        AddActorVfx(entity, TetherVfx)
-            .Set(new ActorVfxTarget(target));
+                entity.DestructChildEntity<TetherVfxChild>();
+
+                if (component.StartEnrage == -1)
+                {
+                    AddActorVfx(entity, InterruptVfx);
+                }
+            }
+
+            entity.Set(new Target(target));
+            AddActorVfx(entity, TetherVfx)
+                .Set(new ActorVfxTarget(target))
+                .Add<TetherVfxChild>();
+        });
     }
 
-    public static void RemoveTarget(Entity entity, AnimationState animationState)
+    public static void RemoveTarget(Entity entity, TimelineBase animationState)
     {
-        RemoveChildren(entity);
-        Stand(entity, animationState);
-        entity.Remove<Target>();
+        entity.CsWorld().Defer(() =>
+        {
+            entity.DestructChildEntity<TetherVfxChild>();
+            Stand(entity, animationState);
+            entity.Remove<Target>();
+        });
     }
 
     public static void ChangeTetherVfx(Entity entity, string VfxPath = TetherVfx)
     {
-        if (entity.TryGet<Target>(out var target))
+        entity.CsWorld().Defer(() =>
         {
-            RemoveChildren(entity);
+            if (entity.TryGet<Target>(out var target))
+            {
+                entity.DestructChildEntity<TetherVfxChild>();
 
-            AddActorVfx(entity, VfxPath)
-                .Set(new ActorVfxTarget(target.Value));
-        }
+                AddActorVfx(entity, VfxPath)
+                    .Set(new ActorVfxTarget(target.Value))
+                    .Add<TetherVfxChild>();
+            }
+        });
     }
 
     public static void SetSpeed(Entity entity, float speed)
@@ -266,7 +274,7 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
             }
 
             entity.Set(new Component(oldComponent.ElapsedTime, oldComponent.ElapsedTime + CastingAnimationDelay, oldComponent.StartEnrage, oldComponent.Enrage))
-                .Set(new AnimationState(CastingAnimation, true))
+                .Set(new TimelineBase(CastingAnimation, true))
                 .Set(new Speed(speed));
         }
     }
@@ -278,7 +286,7 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
             AddActorVfx(entity, SpeedBuffVfx);
 
             entity.Set(new Component(oldComponent.ElapsedTime, oldComponent.ElapsedTime + CastingAnimationDelay, oldComponent.StartEnrage, oldComponent.Enrage))
-                .Set(new AnimationState(CastingAnimation, true))
+                .Set(new TimelineBase(CastingAnimation, true))
                 .Set(new Speed(oldSpeed.Value + increment));
         }
     }
@@ -292,10 +300,12 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
             if (newSpeed < 0) newSpeed = 0;
             
             entity.Set(new Component(oldComponent.ElapsedTime, oldComponent.ElapsedTime + CastingAnimationDelay, oldComponent.StartEnrage, oldComponent.Enrage))
-                .Set(new AnimationState(CastingAnimation, true))
+                .Set(new TimelineBase(CastingAnimation, true))
                 .Set(new Speed(newSpeed));
         }
     }
+
+    public static void SetTemporaryRelativeSpeed(Entity entity, float value) => entity.Set(new SpeedModifier(value));
 
     // maybe move this to a util class?
     private void ShowTextGimmick(string text, int seconds, RaptureAtkModule.TextGimmickHintStyle style = RaptureAtkModule.TextGimmickHintStyle.Warning)
@@ -317,19 +327,24 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
         entity.CsWorld().DeleteWith(flecs.EcsChildOf, entity);
     }
 
+    // can't directly remove components, instead schedule removal from a system
+    public static void RemoveCancellableCC(Entity entity) => entity.Add<QueueCancelCC>();
+
     private void StunPlayer(World world, float duration, float delay = StunDelay)
     {
+        var player = dalamud.ClientState.LocalPlayer;
+        if (player == null || player.IsDead) { return; }
         commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
         {
             DelayedAction.Create(world, () => {
-                Stun.ApplyToPlayer(e, duration, StunId);
+                Stun.ApplyToTarget(e, duration, StunId);
             }, delay);
         });
     }
 
-    private static void Stand(Entity entity, AnimationState animationState)
+    private static void Stand(Entity entity, TimelineBase animationState)
     {
-        if (animationState.Value != 0) { entity.Set(new AnimationState(0)); }
+        if (animationState.Value != 0) { entity.Set(new TimelineBase(0)); }
     }
 
     private static Entity AddActorVfx(Entity entity, string vfxPath)

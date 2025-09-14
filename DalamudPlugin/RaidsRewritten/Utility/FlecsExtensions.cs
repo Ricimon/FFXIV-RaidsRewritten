@@ -1,4 +1,5 @@
-﻿using Flecs.NET.Core;
+﻿using System;
+using Flecs.NET.Core;
 
 namespace RaidsRewritten.Utility;
 
@@ -57,5 +58,34 @@ public static class FlecsExtensions
         var childCount = 0;
         entity.Children(child => { childCount++; });
         return childCount > 0;
+    }
+
+    public static bool HasChild<T>(this Entity entity) where T : struct
+    {
+        var ret = false;
+        entity.Children(child =>
+        {
+            if (child.Has<T>())
+            {
+                ret = true;
+            }
+        });
+        return ret;
+    }
+
+    public static void DestructChildEntity<T>(this Entity entity) where T : struct
+    {
+        if (!entity.CsWorld().IsDeferred())
+        {
+            throw new Exception("Destructing entities must be done in a deferred context.");
+        }
+
+        entity.Children(child =>
+        {
+            if (child.Has<T>())
+            {
+                child.Destruct();
+            }
+        });
     }
 }

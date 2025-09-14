@@ -1,16 +1,11 @@
-﻿using ECommons.MathHelpers;
+﻿using System;
+using System.Numerics;
+using ECommons.MathHelpers;
 using Flecs.NET.Core;
 using RaidsRewritten.Extensions;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks.Components;
-using RaidsRewritten.Utility;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
@@ -45,9 +40,7 @@ public class Circle(DalamudServices dalamud, CommonQueries commonQueries, ILogge
                 {
                     var player = this.dalamud.ClientState.LocalPlayer;
 
-                    if (player != null && !player.IsDead &&
-                        // Transcendance, TODO: play invulnerable vfx
-                        !player.StatusList.Any(s => s.StatusId == GameConstants.TranscendanceStatusId))
+                    if (player != null && !player.IsDead)
                     {
                         var distanceToCenter = Vector2.Distance(position.Value.ToVector2(), player.Position.ToVector2());
                         var onHit = component.OnHit;

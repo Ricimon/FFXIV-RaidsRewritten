@@ -77,6 +77,7 @@ public class PluginModule : NinjectModule
         Bind<PlayerMovementOverride>().ToSelf().WhenInjectedInto<PlayerManager>().InSingletonScope();
         Bind<PlayerCameraOverride>().ToSelf().WhenInjectedInto<PlayerManager>().InSingletonScope();
         Bind<ActionManagerEx>().ToSelf().WhenInjectedInto<PlayerManager>().InSingletonScope();
+        Bind<HotbarManager>().ToSelf().WhenInjectedInto<PlayerManager>().InSingletonScope();
 
         // Views and Presenters
         Bind<WindowSystem>().ToMethod(_ => new(PluginInitializer.Name)).InSingletonScope();
@@ -99,6 +100,8 @@ public class PluginModule : NinjectModule
         Bind<IAttack>().To<ShortStarOmen>();
         Bind<IAttack>().To<LongStarOmen>();
         Bind<IAttack>().To<ExaflareOmen>();
+        Bind<IAttack>().To<OneThirdDonutOmen>();
+        Bind<IAttack, ISystem>().To<TwisterObstacleCourse>();
         Bind<IAttack, ISystem>().To<Twister>();
         Bind<IAttack, ISystem>().To<RollingBall>();
         Bind<IAttack, ISystem>().To<Fan>();
@@ -113,6 +116,8 @@ public class PluginModule : NinjectModule
         Bind<IAttack, ISystem>().To<DistanceSnapshotTether>();
         Bind<IAttack, ISystem>().To<ExpandingPuddle>();
         Bind<IAttack, ISystem>().To<Star>();
+        Bind<IAttack, ISystem>().To<Tornado>();
+        Bind<IAttack, ISystem>().To<OctetDonut>();
         Bind<ISystem>().To<Player>();
         Bind<ISystem>().To<DelayedAction>();
         Bind<ISystem>().To<VfxSystem>();

@@ -155,7 +155,7 @@ public class Temperature(DalamudServices dalamud, CommonQueries commonQueries, I
                         commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
                         {
                             world.DeleteWith<Overheat.Component>();
-                            Deepfreeze.ApplyToPlayer(e, float.PositiveInfinity, TemperatureID);
+                            Deepfreeze.ApplyToTarget(e, float.PositiveInfinity, TemperatureID);
                         });
                         return;
                     }
@@ -165,7 +165,7 @@ public class Temperature(DalamudServices dalamud, CommonQueries commonQueries, I
                         commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
                         {
                             world.DeleteWith<Deepfreeze.Component>();
-                            Overheat.ApplyToPlayer(e, float.PositiveInfinity, TemperatureID);
+                            Overheat.ApplyToTarget(e, float.PositiveInfinity, TemperatureID);
                         });
                         return;
                     }

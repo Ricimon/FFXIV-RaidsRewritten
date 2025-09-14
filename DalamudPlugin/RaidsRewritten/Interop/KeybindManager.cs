@@ -408,19 +408,35 @@ public unsafe sealed class KeybindManager : IDisposable
 
     private static Keybind GetKeybind(string id)
     {
-        var outData = new UIInputData.Keybind();
+        var outData = new FFXIVClientStructs.FFXIV.Client.System.Input.Keybind();
         var idString = Utf8String.FromString(id);
-        UIInputData.Instance()->GetKeybind(idString, &outData);
+        UIInputData.Instance()->GetKeybindByName(idString, &outData);
         idString->Dtor(true);
 
-        var key1 = RemapInvalidVirtualKey((VirtualKey)outData.Key);
-        var key2 = RemapInvalidVirtualKey((VirtualKey)outData.AltKey);
+        var vkey1 = SeVirtualKey.NO_KEY;
+        var mkey1 = FFXIVClientStructs.FFXIV.Client.System.Input.KeyModifierFlag.None;
+        if (outData.KeySettings.Length > 0)
+        {
+            vkey1 = outData.KeySettings[0].Key;
+            mkey1 = outData.KeySettings[0].KeyModifier;
+        }
+
+        var vkey2 = SeVirtualKey.NO_KEY;
+        var mkey2 = FFXIVClientStructs.FFXIV.Client.System.Input.KeyModifierFlag.None;
+        if (outData.KeySettings.Length > 1)
+        {
+            vkey2 = outData.KeySettings[1].Key;
+            mkey2 = outData.KeySettings[1].KeyModifier;
+        }
+
+        var key1 = RemapInvalidVirtualKey((VirtualKey)vkey1);
+        var key2 = RemapInvalidVirtualKey((VirtualKey)vkey2);
         return new Keybind
         {
             Key1 = key1,
-            Modifier1 = (Structs.ModifierFlag)outData.Modifier,
+            Modifier1 = (Structs.ModifierFlag)mkey1,
             Key2 = key2,
-            Modifier2 = (Structs.ModifierFlag)outData.AltModifier,
+            Modifier2 = (Structs.ModifierFlag)mkey2,
         };
     }
 

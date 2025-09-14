@@ -4,6 +4,7 @@ using System.Numerics;
 using Dalamud.Hooking;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
+using RaidsRewritten.Data;
 using RaidsRewritten.Log;
 
 namespace RaidsRewritten.Interop;
@@ -11,6 +12,7 @@ namespace RaidsRewritten.Interop;
 public unsafe sealed class ActionManagerEx : IDisposable
 {
     public bool DisableAllActions { get; set; }
+    public bool DisableDamagingActions { get; set; }
 
     private readonly DalamudServices dalamud;
     private readonly ILogger logger;
@@ -45,7 +47,7 @@ public unsafe sealed class ActionManagerEx : IDisposable
         this.useActionLocationHook.Dispose();
     }
 
-    public void CancelCast()
+    public void CancelCast(bool onlyDamagingActions)
     {
         // Since the game API is sending a packet, there is some rate limiting here.
         var currentTime = this.dalamud.Framework.LastUpdateUTC;
@@ -55,6 +57,10 @@ public unsafe sealed class ActionManagerEx : IDisposable
         if (localPlayer != null &&
             localPlayer.IsCasting)
         {
+            if (onlyDamagingActions && !Actions.DamageActions.Contains(localPlayer.CastActionId))
+            {
+                return;
+            }
             UIState.Instance()->Hotbar.CancelCast();
             this.nextAllowedCancelCast = currentTime.AddSeconds(0.2f);
         }
@@ -64,6 +70,7 @@ public unsafe sealed class ActionManagerEx : IDisposable
     {
         updateHook.Original(self);
 
+        // Autos are allowed if damaging actions are disabled, because Paladin
         var autosEnabled = UIState.Instance()->WeaponState.AutoAttackState.IsAutoAttacking;
         if (DisableAllActions && autosEnabled)
         {
@@ -83,6 +90,11 @@ public unsafe sealed class ActionManagerEx : IDisposable
             if (!isStopAutosAction) { return false; }
         }
 
+        if (DisableDamagingActions)
+        {
+            if (Actions.DamageActions.Contains(actionId)) { return false; }
+        }
+
         var res = useActionHook.Original(self, actionType, actionId, targetId, extraParam, mode, comboRouteId, outOptAreaTargeted);
         this.logger.Debug($"USE_ACTION: type:{actionType}, actionId:{actionId}, targetId:{targetId}, mode:{mode}, comboRouteId:{comboRouteId}, ret:{res}");
         return res;
@@ -98,6 +110,12 @@ public unsafe sealed class ActionManagerEx : IDisposable
             var isStopAutosAction = actionType == ActionType.GeneralAction && actionId == 1;
             if (!isStopAutosAction) { return false; }
         }
+
+        if (DisableDamagingActions)
+        {
+            if (Actions.DamageActions.Contains(actionId)) { return false; }
+        }
+
         //var targetSystem = TargetSystem.Instance();
         //var player = GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
         //var prevSeq = _inst->LastUsedActionSequence;

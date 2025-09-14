@@ -40,9 +40,7 @@ public sealed class Fan(DalamudServices dalamud, CommonQueries commonQueries, IL
                 {
                     var player = this.dalamud.ClientState.LocalPlayer;
 
-                    if (player != null && !player.IsDead &&
-                        // Transcendance, TODO: play invulnerable vfx
-                        !player.StatusList.Any(s => s.StatusId == GameConstants.TranscendanceStatusId))
+                    if (player != null && !player.IsDead)
                     {
                         var distanceToBoss = Vector2.Distance(position.Value.ToVector2(), player.Position.ToVector2());
                         var bossPosition = position.Value.ToVector2();

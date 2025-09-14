@@ -24,7 +24,7 @@ public class DistanceSnapshotTether(CommonQueries commonQueries) : IAttack, ISys
         OnlyTarget
     }
 
-    public record struct Tether(Action<Entity> StatusOnCondition);
+    public record struct Tether(Action<Entity>? StatusOnCondition);
     public record struct VfxOnFail(List<string> Vfx, TetherConditionVfxTarget VfxTarget = TetherConditionVfxTarget.Both);
     public record struct VfxOnSuccess(List<string> Vfx, TetherConditionVfxTarget VfxTarget = TetherConditionVfxTarget.Both);
     public record struct FailWhenFurtherThan(float distance);
@@ -70,10 +70,13 @@ public class DistanceSnapshotTether(CommonQueries commonQueries) : IAttack, ISys
                     {
                         // anonymous functions hates refs from outside
                         var onCondition = tether.StatusOnCondition;
-                        commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
+                        if (onCondition != null)
                         {
-                            onCondition(e);
-                        });
+                            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
+                            {
+                                onCondition(e);
+                            });
+                        }
 
                         if (entity.TryGet<VfxOnFail>(out var vfxOnFail))
                         {

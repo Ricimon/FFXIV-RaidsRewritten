@@ -2,9 +2,7 @@
 using System.Reactive.Linq;
 using AsyncAwaitBestPractices;
 using Dalamud.Game.ClientState.Keys;
-using Dalamud.Plugin.Services;
 using RaidsRewritten.Audio;
-using RaidsRewritten.Data;
 using RaidsRewritten.Extensions;
 using RaidsRewritten.Input;
 using RaidsRewritten.Log;
@@ -16,27 +14,20 @@ namespace RaidsRewritten.UI.Presenter;
 
 public class MainWindowPresenter(
     MainWindow view,
+    DalamudServices dalamud,
     Configuration configuration,
-    IClientState clientState,
-    IFramework framework,
-    IDataManager dataManager,
     IAudioDeviceController audioDeviceController,
     ServerConnection serverConnection,
     KeyStateWrapper keyStateWrapper,
-    XivHudNodeMap hudNodeMap,
     ILogger logger) : IPluginUIPresenter
 {
     public IPluginUIView View => this.view;
 
     private readonly MainWindow view = view;
     private readonly Configuration configuration = configuration;
-    private readonly IClientState clientState = clientState;
-    private readonly IFramework framework = framework;
-    private readonly IDataManager dataManager = dataManager;
     private readonly IAudioDeviceController audioDeviceController = audioDeviceController;
     private readonly ServerConnection serverConection = serverConnection;
     private readonly KeyStateWrapper keyStateWrapper = keyStateWrapper;
-    private readonly XivHudNodeMap hudNodeMap = hudNodeMap;
     private readonly ILogger logger = logger;
 
     private bool keyDownListenerSubscribed;
@@ -86,7 +77,7 @@ public class MainWindowPresenter(
             {
                 if (string.IsNullOrEmpty(this.view.RoomName.Value))
                 {
-                    var playerName = this.clientState.GetLocalPlayerFullName();
+                    var playerName = dalamud.ClientState.GetLocalPlayerFullName();
                     if (playerName == null)
                     {
                         this.logger.Error("Player name is null, cannot autofill private room name.");
@@ -122,21 +113,6 @@ public class MainWindowPresenter(
             }
             this.configuration.Save();
         });
-
-        this.view.PrintNodeMap1.Subscribe(_ =>
-        {
-            foreach (var n in this.hudNodeMap.CollisionNodeMap)
-            {
-                this.logger.Info("Node {0} -> {1}:{2}", n.Key.ToString("X"), n.Value.HudSection, n.Value.Index);
-            }
-        });
-        this.view.PrintNodeMap2.Subscribe(_ =>
-        {
-            foreach (var n in this.hudNodeMap.ElementNodeMap)
-            {
-                this.logger.Info("HudSection {0} -> {1}", n.Key.HudSection, n.Value.ToString("X"));
-            }
-        });
     }
 
     private void Bind<T>(
@@ -158,7 +134,7 @@ public class MainWindowPresenter(
 
         // This callback can be called from a non-framework thread, and UI values should only be modified
         // on the framework thread (or else the game can crash)
-        this.framework.Run(() =>
+        dalamud.Framework.Run(() =>
         {
             var editedKeybind = this.view.KeybindBeingEdited.Value;
             this.view.KeybindBeingEdited.Value = Keybind.None;
