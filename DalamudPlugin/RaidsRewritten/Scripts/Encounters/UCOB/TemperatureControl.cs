@@ -52,20 +52,20 @@ public class TemperatureControl : Mechanic
             9942, new HeatData { HeatValue = 50.0f, ID = 9942, DelaySeconds = 3.6f} //Gigaflare
         },
         { 
-            9962, new HeatData { HeatValue = 20.0f, ID = 9962, DelaySeconds = 0.9f } //Ahk Morn (1st hit)
+            9962, new HeatData { HeatValue = 10.0f, ID = 9962, DelaySeconds = 0.9f } //Ahk Morn (1st hit)
         },
         { 
-            9963, new HeatData { HeatValue = 20.0f, ID = 9963, DelaySeconds = 0.9f } //Ahk Morn (2nd+ Hit)
+            9963, new HeatData { HeatValue = 10.0f, ID = 9963, DelaySeconds = 0.9f } //Ahk Morn (2nd+ Hit)
         },
         {
-            9964, new HeatData { HeatValue = 20.0f, ID = 9964, DelaySeconds = 0.9f } //Morn Afah
+            9964, new HeatData { HeatValue = 100.0f, ID = 9964, DelaySeconds = 0.9f } //Morn Afah
         }
         //9970 Flames of Rebirth (20s till targetable)
     };
 
     private readonly List<Entity> attacks = [];
     private Query<Player.Component, Temperature.Component>? playerTemperatureQuery;
-    private int AfahMultiplier = 1;
+    //private int AfahMultiplier = 1;
 
     public override void Reset()
     {
@@ -132,11 +132,11 @@ public class TemperatureControl : Mechanic
                         q.Each((Entity e, ref Player.Component pc) =>
                         {
                             float HeatDelta = Heat.HeatValue;
-                            if (Heat.ID == 9964)
-                            {
-                                HeatDelta *= AfahMultiplier++;
+                            //if (Heat.ID == 9964)
+                            //{
+                            //    HeatDelta *= AfahMultiplier++;
 
-                            }
+                            //}
                             Temperature.HeatChangedEvent(e, HeatDelta, 0, Heat.ID);
                         });
                         return;

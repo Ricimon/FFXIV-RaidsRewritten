@@ -12,9 +12,11 @@ public class JumpableShockwaves : Mechanic
     private static readonly Dictionary<uint, float> HookedActions = new()
     {
         {9941, 0.7f},  // Flatten
-        {9964, 0.7f},  // Morn Afah
         {9962, 0.7f},  // Akh Morn (big hit)
         {9963, 0.7f},  // Akh Morn (small hit)
+        {9964, 0.7f},  // Morn Afah
+        {9965, 0.7f},  // Morn Afah (enrage hit 1)
+        {9966, 0.7f},  // Morn Afah (enrage hit 2+)
     };
 
     private readonly List<Entity> attacks = [];

@@ -21,6 +21,7 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
     private Query<Condition.Component, Heavy.Component> heavyQuery;
     private Query<Condition.Component, Pacify.Component> pacifyQuery;
     private Query<Condition.Component, Sleep.Component> sleepQuery;
+    private Query<Condition.Component, Hysteria.Component> hysteriaQuery;
     private Query<Condition.Component> overheatQuery;
     private Query<Condition.Component> deepfreezeQuery;
 
@@ -43,6 +44,7 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
         this.heavyQuery.Dispose();
         this.pacifyQuery.Dispose();
         this.sleepQuery.Dispose();
+        this.hysteriaQuery.Dispose();
         this.overheatQuery.Dispose();
         this.deepfreezeQuery.Dispose();
     }
@@ -67,6 +69,8 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
         this.pacifyQuery = world.QueryBuilder<Condition.Component, Pacify.Component>()
             .With<LocalPlayer>().Up().Cached().Build();
         this.sleepQuery = world.QueryBuilder<Condition.Component, Sleep.Component>()
+            .With<LocalPlayer>().Up().Cached().Build();
+        this.hysteriaQuery = world.QueryBuilder<Condition.Component, Hysteria.Component>()
             .With<LocalPlayer>().Up().Cached().Build();
         this.overheatQuery = world.QueryBuilder<Condition.Component>()
             .With<Overheat.Component>()
@@ -112,22 +116,37 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
 #endif
 
                     // Handle each condition
-                    Entity knockbackEntity = this.knockbackQuery.First();
-                    Entity bindEntity = this.bindQuery.First();
                     bool stun = false;
+                    bool disableAllActions = false;
+
+                    Entity knockbackEntity = this.knockbackQuery.First();
+
+                    Entity bindEntity = this.bindQuery.First();
+
                     Entity stunEntity = this.stunQuery.First();
                     stun |= stunEntity.IsValid();
+
                     Entity sleepEntity = this.sleepQuery.First();
                     stun |= sleepEntity.IsValid();
+
                     Entity deepfreezeEntity = this.deepfreezeQuery.First();
                     stun |= deepfreezeEntity.IsValid();
+
+                    Entity hysteriaEntity = this.hysteriaQuery.First();
+                    disableAllActions |= hysteriaEntity.IsValid();
+
                     this.paralysisQuery.Each((Entity e, ref Condition.Component _, ref Paralysis.Component paralysis) =>
                     {
                         stun |= paralysis.StunActive;
                     });
+
                     Entity heavyEntity = this.heavyQuery.First();
+
                     Entity pacifyEntity = this.pacifyQuery.First();
+
                     Entity overheatEntity = this.overheatQuery.First();
+
+                    disableAllActions |= stun;
 
                     // Movement override
                     if (knockbackEntity.IsValid())
@@ -150,7 +169,14 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
                         }
                         else
                         {
-                            if (overheatEntity.IsValid())
+                            if (hysteriaEntity.IsValid())
+                            {
+                                var hysteria = hysteriaEntity.Get<Hysteria.Component>();
+
+                                playerManager.OverrideMovement = PlayerMovementOverride.OverrideMovementState.ForceMovementWorldDirection;
+                                playerManager.OverrideMovementWorldDirection = hysteria.MoveDirection;
+                            }
+                            else if (overheatEntity.IsValid())
                             {
                                 playerManager.OverrideMovement = PlayerMovementOverride.OverrideMovementState.ForceMovementCameraDirection;
                                 playerManager.OverrideMovementCameraDirection = Vector2.UnitY;
@@ -172,7 +198,7 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
                     }
 
                     // Action override
-                    playerManager.DisableAllActions = stun;
+                    playerManager.DisableAllActions = disableAllActions;
                     playerManager.DisableDamagingActions = pacifyEntity.IsValid();
                 }
                 catch (Exception e)

@@ -402,6 +402,14 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                 Sleep.ApplyToTarget(e, 3.0f);
             });
         }
+        ImGui.SameLine();
+        if (ImGui.Button("Hysteria"))
+        {
+            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+            {
+                Hysteria.ApplyToTarget(e, 8.0f, 3.0f);
+            });
+        }
 
         ImGui.SameLine();
 
