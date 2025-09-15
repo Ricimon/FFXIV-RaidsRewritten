@@ -118,7 +118,12 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
 
         if (configuration.GetEncounterSetting(OctetCourseKey, true))
         {
-            this.mechanics.Add(mechanicFactory.Create<OctetObstacleCourse>());
+            var octetCourse = mechanicFactory.Create<OctetObstacleCourse>();
+
+            var seed = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
+            octetCourse.RngSeed = RandomUtilities.HashToRngSeed(seed);
+
+            this.mechanics.Add(octetCourse);
         }
 
         // Meme mechanics

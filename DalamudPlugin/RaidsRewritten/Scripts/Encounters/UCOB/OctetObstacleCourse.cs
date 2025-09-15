@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons.Hooks;
@@ -17,6 +18,7 @@ public class OctetObstacleCourse : Mechanic
     private readonly Vector3 ArenaCenter = new(0, 0, 0);
 
     private readonly List<Entity> attacks = [];
+    public int RngSeed { get; set; }
 
     public override void Reset()
     {
@@ -41,13 +43,15 @@ public class OctetObstacleCourse : Mechanic
         Reset();
     }
 
-    public override void OnStartingCast(Action action, IBattleChara source)
+    public override void OnStartingCast(Lumina.Excel.Sheets.Action action, IBattleChara source)
     {
         if (action.RowId == GrandOctetCastId)
         {
             if (AttackManager.TryCreateAttackEntity<OctetDonut>(out var donut))
             {
-                donut.Set(new Position(ArenaCenter));
+                var random = new Random(RngSeed);
+                donut.Set(new Position(ArenaCenter))
+                    .Set(new OctetDonut.SeededRandom(random));
                 attacks.Add(donut);
             }
         }
