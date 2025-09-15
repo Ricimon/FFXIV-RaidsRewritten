@@ -148,7 +148,7 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
 
                     disableAllActions |= stun;
 
-                    // Movement override
+                    // Condition effects
                     if (knockbackEntity.IsValid())
                     {
                         var condition = knockbackEntity.Get<Condition.Component>();
