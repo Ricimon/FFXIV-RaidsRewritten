@@ -29,6 +29,7 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
 
     public struct QueueCancelCC;
     public struct TetherVfxChild;
+    public struct CastingVfxChild;
 
     private const ushort WalkingAnimation = 41;
     private const ushort AttackAnimation = 1515;
@@ -117,7 +118,8 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
                     }
 
                     // start casting enrage
-                    AddActorVfx(entity, CastingVfx);
+                    AddActorVfx(entity, CastingVfx)
+                        .Add<CastingVfxChild>();
                     component.StartEnrage = -1;
                 } else
                 {
@@ -219,6 +221,7 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
                 if (component.Enrage == -1) { return; }
 
                 entity.DestructChildEntity<TetherVfxChild>();
+                entity.DestructChildEntity<CastingVfxChild>();
 
                 if (component.StartEnrage == -1)
                 {
