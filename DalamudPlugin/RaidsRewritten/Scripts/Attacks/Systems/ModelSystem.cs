@@ -4,10 +4,13 @@ using ECommons.GameFunctions;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Flecs.NET.Core;
+using Lumina.Excel.Sheets;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Utility;
+using System.Linq;
+using World = Flecs.NET.Core.World;
 
 namespace RaidsRewritten.Scripts.Attacks.Systems;
 
@@ -69,6 +72,7 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
 
                 if (!model.Spawned)
                 {
+                    var entity = it.Entity(i);
                     var idx = ClientObjectManager.Instance()->CreateBattleCharacter();
                     if (idx == 0xFFFFFFFF)
                     {
@@ -88,10 +92,23 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
                     chara->Rotation = rotation.Value;
                     chara->Scale = scale.Value;
 
-                    if (it.Entity(i).TryGet<AnimationState>(out var animationState))
+                    if (entity.TryGet<AnimationState>(out var animationState))
                     {
                         chara->Timeline.AnimationState[0] = animationState.Value1;
                         chara->Timeline.AnimationState[1] = animationState.Value2;
+                    }
+
+                    if (entity.TryGet<NpcEquipRow>(out var npcEquip) && npcEquip.Value != 0)
+                    {
+                        var row = dalamud.DataManager.GetExcelSheet<NpcEquip>().Where(row => row.RowId == npcEquip.Value).FirstOrDefault();
+                        // from Brio https://github.com/Etheirys/Brio/blob/main/Brio/Game/Actor/ActorAppearanceService.cs
+                        var (mainHand, offHand, equipment) = FromNpcEquip(row);
+                        fixed (EquipmentModelId* ptr = chara->DrawData.EquipmentModelIds)
+                        {
+                            *(Interop.Structs.ActorEquipment*)ptr = equipment;
+                        }
+                        chara->DrawData.LoadWeapon(DrawDataContainer.WeaponSlot.MainHand, mainHand, 0, 0, 0, 0);
+                        chara->DrawData.LoadWeapon(DrawDataContainer.WeaponSlot.OffHand, offHand, 0, 0, 0, 0);
                     }
 
                     var modelData = &chara->ModelContainer;
@@ -245,5 +262,53 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
         var obj = (BattleChara*)ClientObjectManager.Instance()->GetObjectByIndex((ushort)gameObjectId);
         obj->DisableDraw();
         ClientObjectManager.Instance()->DeleteObjectByIndex((ushort)gameObjectId, 0);
+    }
+
+    // from Brio https://github.com/Etheirys/Brio/blob/main/Brio/Game/Actor/Appearance/ActorAppearance.cs
+    private static (WeaponModelId, WeaponModelId, Interop.Structs.ActorEquipment) FromNpcEquip(NpcEquip npcEquip)
+    {
+        var equipment = new Interop.Structs.ActorEquipment();
+        var mainHand = new WeaponModelId();
+        var offHand = new WeaponModelId();
+
+        equipment.Head.Value = npcEquip.ModelHead;
+        equipment.Head.Stain0 = (byte)npcEquip.DyeHead.RowId;
+        equipment.Head.Stain1 = (byte)npcEquip.Dye2Head.RowId;
+        equipment.Top.Value = npcEquip.ModelBody;
+        equipment.Top.Stain0 = (byte)npcEquip.DyeBody.RowId;
+        equipment.Top.Stain1 = (byte)npcEquip.Dye2Body.RowId;
+        equipment.Arms.Value = npcEquip.ModelHands;
+        equipment.Arms.Stain0 = (byte)npcEquip.DyeHands.RowId;
+        equipment.Arms.Stain1 = (byte)npcEquip.Dye2Hands.RowId;
+        equipment.Legs.Value = npcEquip.ModelLegs;
+        equipment.Legs.Stain0 = (byte)npcEquip.DyeLegs.RowId;
+        equipment.Legs.Stain1 = (byte)npcEquip.Dye2Legs.RowId;
+        equipment.Feet.Value = npcEquip.ModelFeet;
+        equipment.Feet.Stain0 = (byte)npcEquip.DyeFeet.RowId;
+        equipment.Feet.Stain1 = (byte)npcEquip.Dye2Feet.RowId;
+        equipment.Ear.Value = npcEquip.ModelEars;
+        equipment.Ear.Stain0 = (byte)npcEquip.DyeEars.RowId;
+        equipment.Ear.Stain1 = (byte)npcEquip.Dye2Ears.RowId;
+        equipment.Neck.Value = npcEquip.ModelNeck;
+        equipment.Neck.Stain0 = (byte)npcEquip.DyeNeck.RowId;
+        equipment.Neck.Stain1 = (byte)npcEquip.Dye2Neck.RowId;
+        equipment.Wrist.Value = npcEquip.ModelWrists;
+        equipment.Wrist.Stain0 = (byte)npcEquip.DyeWrists.RowId;
+        equipment.Wrist.Stain1 = (byte)npcEquip.Dye2Wrists.RowId;
+        equipment.RFinger.Value = npcEquip.ModelRightRing;
+        equipment.RFinger.Stain0 = (byte)npcEquip.DyeRightRing.RowId;
+        equipment.RFinger.Stain1 = (byte)npcEquip.Dye2RightRing.RowId;
+        equipment.LFinger.Value = npcEquip.ModelLeftRing;
+        equipment.LFinger.Stain0 = (byte)npcEquip.DyeLeftRing.RowId;
+        equipment.LFinger.Stain1 = (byte)npcEquip.Dye2LeftRing.RowId;
+
+        mainHand.Value = npcEquip.ModelMainHand;
+        mainHand.Stain0 = (byte)npcEquip.DyeMainHand.RowId;
+        mainHand.Stain1 = (byte)npcEquip.Dye2MainHand.RowId;
+        offHand.Value = npcEquip.ModelOffHand;
+        offHand.Stain0 = (byte)npcEquip.DyeOffHand.RowId;
+        offHand.Stain1 = (byte)npcEquip.Dye2OffHand.RowId;
+
+        return (mainHand, offHand, equipment);
     }
 }
