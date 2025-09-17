@@ -782,6 +782,19 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             }
         }
 
+        if (ImGui.Button("Transition ADS"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<TransitionADS>(out var ads))
+                {
+                    ads.Set(new Position(player.Position));
+                }
+            }
+        }
+
         ImGui.Text("Heat Stuff");
         if (ImGui.Button("Add Temperature"))
         {

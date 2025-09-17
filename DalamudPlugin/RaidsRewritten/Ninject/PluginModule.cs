@@ -118,6 +118,7 @@ public class PluginModule : NinjectModule
         Bind<IAttack, ISystem>().To<Star>();
         Bind<IAttack, ISystem>().To<Tornado>();
         Bind<IAttack, ISystem>().To<OctetDonut>();
+        Bind<IAttack, ISystem>().To<TransitionADS>();
         Bind<ISystem>().To<Player>();
         Bind<ISystem>().To<DelayedAction>();
         Bind<ISystem>().To<VfxSystem>();
