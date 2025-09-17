@@ -16,7 +16,7 @@ using Player = RaidsRewritten.Game.Player;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public class TransitionMelusine(DalamudServices dalamud, VfxSpawn vfxSpawn, CommonQueries commonQueries) : IAttack, ISystem
+public class CircleBladeMelusine(DalamudServices dalamud, VfxSpawn vfxSpawn, CommonQueries commonQueries) : IAttack, ISystem
 {
     public enum Phase
     {

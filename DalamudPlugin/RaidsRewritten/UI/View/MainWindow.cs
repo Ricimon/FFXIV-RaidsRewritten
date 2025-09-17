@@ -788,7 +788,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
 
             if (player != null)
             {
-                if (this.attackManager.TryCreateAttackEntity<TransitionADS>(out var ads))
+                if (this.attackManager.TryCreateAttackEntity<RepellingCannonADS>(out var ads))
                 {
                     ads.Set(new Position(player.Position));
                 }
@@ -803,7 +803,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
 
             if (player != null)
             {
-                if (this.attackManager.TryCreateAttackEntity<TransitionMelusine>(out var melusine))
+                if (this.attackManager.TryCreateAttackEntity<CircleBladeMelusine>(out var melusine))
                 {
                     melusine.Set(new Position(player.Position))
                         .Set(new Rotation(player.Rotation));
@@ -819,7 +819,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
 
             if (player != null)
             {
-                if (this.attackManager.TryCreateAttackEntity<TransitionKaliya>(out var kaliya))
+                if (this.attackManager.TryCreateAttackEntity<NerveGasKaliya>(out var kaliya))
                 {
                     kaliya.Set(new Position(player.Position))
                         .Set(new Rotation(player.Rotation));
