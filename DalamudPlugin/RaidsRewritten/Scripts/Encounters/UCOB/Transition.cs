@@ -1,17 +1,68 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reactive;
-using Dalamud.Plugin.Services;
+using System.Numerics;
+using ECommons;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using Flecs.NET.Core;
-using RaidsRewritten.Extensions;
-using RaidsRewritten.Game;
-using RaidsRewritten.Scripts.Conditions;
+
 namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
 internal class Transition : Mechanic
 {
+    public enum Phase
+    {
+        Octet,
+        Pheonix,
+        Resolution
+    }
+    private static readonly Dictionary<uint, Phase> HookedActions = new()
+    {
+        { 9999, Phase.Octet},       //Octet NEED NUMBER
+        { 9970, Phase.Pheonix },    //Pheonix
+        { 9999, Phase.Resolution }, //NEED NUMBER FOR RESOLUTION
+    };
+    private readonly Vector3 ArenaCenter = new(0, 0, 0);
+    private const int ArenaRadius = 22;
+    public int RngSeed { get; set; }
+    private Random? random;
+    private readonly List<Entity> attacks = [];
+    private List<int> telegraphs = [0, 1, 2, 3, 4, 5, 6, 7];
+    private static List<string> SymbolPaths = new List<string> {
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+    };
+    private int resolution;
+
+    public override void Reset()
+    {
+        foreach (var attack in this.attacks)
+        {
+            attack.Destruct();
+        }
+        this.attacks.Clear();
+    }
+
+    public override void OnDirectorUpdate(DirectorUpdateCategory a3)
+    {
+        if (a3 == DirectorUpdateCategory.Wipe ||
+            a3 == DirectorUpdateCategory.Recommence)
+        {
+            Reset();
+        }
+    }
+
+    public override void OnCombatEnd()
+    {
+        Reset();
+    }
+    
     private struct AddData
     {
         public int Kaliya;
@@ -50,7 +101,54 @@ internal class Transition : Mechanic
 
 
     public override void OnActionEffectEvent(ActionEffectSet set)
-    { 
-    
+    {
+        if (set.Action == null) { return; }
+        if (set.Target == null) { return; }
+        if (!HookedActions.TryGetValue(set.Action.Value.RowId, out var phase)) { return; }
+        switch (phase)
+        {
+            case Phase.Octet:
+                Logger.Debug("Starting Octet");
+                var seed = RngSeed;
+                random = new Random(seed);
+                Shuffle(random, telegraphs);
+                Shuffle(random, SymbolPaths);
+                resolution = random.Next(0, 7);
+                DebugOutput();
+                //Show Table[telegraphs[0]] during octet 
+                //Delay and execute telegraphs
+                break;
+            case Phase.Pheonix:
+                //find local player's location on list
+                //Show Table[telegraphs[LP]] with SymbolPaths[LP]
+                //Spawn Portals
+                break;
+            case Phase.Resolution:
+                //Show SymbolPath[resolution] on gates
+                //Spawn Table[telegraphs[resolution]] and execute attack
+                break;
+        }
+    }
+
+    private static void Shuffle<T>(Random rand, List<T> list)
+    {
+        for (int i = list.Count - 1; i > 0; i--)
+        {
+            int j = rand.Next(i + 1);
+            (list[i], list[j]) = (list[j], list[i]);
+        }
+    }
+
+    private void DebugOutput()
+    {
+        Logger.Debug($"Resolution: {resolution}");
+        telegraphs.Each(a =>
+        {
+            Logger.Debug(a.ToString());
+        });
+        SymbolPaths.Each(a => 
+        { 
+            Logger.Debug(a.ToString());
+        });
     }
 }
