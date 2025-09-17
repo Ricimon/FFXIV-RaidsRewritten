@@ -10,7 +10,6 @@ using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Utility;
 using System.Linq;
-using World = Flecs.NET.Core.World;
 
 namespace RaidsRewritten.Scripts.Attacks.Systems;
 
@@ -63,7 +62,7 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
         }
     }
 
-    public void Register(World world)
+    public void Register(Flecs.NET.Core.World world)
     {
         world.System<Model, Position, Rotation, UniformScale>()
             .Each((Iter it, int i, ref Model model, ref Position position, ref Rotation rotation, ref UniformScale scale) =>
