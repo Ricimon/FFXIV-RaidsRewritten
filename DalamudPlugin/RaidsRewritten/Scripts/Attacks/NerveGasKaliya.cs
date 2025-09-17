@@ -112,7 +112,7 @@ public class NerveGasKaliya(DalamudServices dalamud, VfxSpawn vfxSpawn, CommonQu
                                             DelayedAction.Create(world, () =>
                                             {
                                                 Hysteria.ApplyToTarget(e, HysteriaDuration, RedirectInterval, HysteriaId);
-                                            }, 0.7f);
+                                            }, 0.7f, true);
                                         });
                                     }
                                 }

@@ -115,7 +115,7 @@ public class CircleBladeMelusine(DalamudServices dalamud, VfxSpawn vfxSpawn, Com
                                             DelayedAction.Create(world, () =>
                                             {
                                                 Hysteria.ApplyToTarget(e, HysteriaDuration, RedirectInterval, HysteriaId);
-                                            }, 0.5f);
+                                            }, 0.5f, true);
                                         });
                                     }
                                 }
