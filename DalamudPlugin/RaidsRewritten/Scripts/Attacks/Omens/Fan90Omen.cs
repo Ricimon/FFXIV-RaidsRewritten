@@ -8,7 +8,7 @@ using System.Numerics;
 
 namespace RaidsRewritten.Scripts.Attacks.Omens;
 
-public class FanOmen : IAttack
+public class Fan90Omen : IAttack
 {
     private const float Degrees = 90;
     public static bool IsInOmen(Entity omen, Vector3 position)

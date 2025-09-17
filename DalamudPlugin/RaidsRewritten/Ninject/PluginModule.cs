@@ -95,7 +95,8 @@ public class PluginModule : NinjectModule
 
         // Attacks & Systems
         Bind<IAttack>().To<CircleOmen>();
-        Bind<IAttack>().To<FanOmen>();
+        Bind<IAttack>().To<Fan90Omen>();
+        Bind<IAttack>().To<Fan120Omen>();
         Bind<IAttack>().To<RectangleOmen>();
         Bind<IAttack>().To<ShortStarOmen>();
         Bind<IAttack>().To<LongStarOmen>();

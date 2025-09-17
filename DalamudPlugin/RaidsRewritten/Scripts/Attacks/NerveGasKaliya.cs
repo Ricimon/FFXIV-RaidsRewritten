@@ -78,7 +78,7 @@ public class NerveGasKaliya(DalamudServices dalamud, VfxSpawn vfxSpawn, CommonQu
                         break;
                     case Phase.Omen:
                         if (ShouldReturn(component)) { return; }
-                        FanOmen.CreateEntity(world)
+                        Fan90Omen.CreateEntity(world)
                             .Set(new Position(position.Value))
                             .Set(new Rotation(rotation.Value))
                             .Set(new Scale(new Vector3(AttackScale)))
@@ -97,7 +97,7 @@ public class NerveGasKaliya(DalamudServices dalamud, VfxSpawn vfxSpawn, CommonQu
                             var player = dalamud.ClientState.LocalPlayer;
                             if (player != null && !player.IsDead)
                             {
-                                if (FanOmen.IsInOmen(child, player.Position))
+                                if (Fan90Omen.IsInOmen(child, player.Position))
                                 {
                                     if (player.HasTranscendance())
                                     {

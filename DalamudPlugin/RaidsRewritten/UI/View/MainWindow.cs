@@ -441,7 +441,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             var player = this.dalamud.ClientState.LocalPlayer;
             if (player != null)
             {
-                if (this.attackManager.TryCreateAttackEntity<FanOmen>(out var fan))
+                if (this.attackManager.TryCreateAttackEntity<Fan90Omen>(out var fan))
                 {
                     fan.Set(new Position(player.Position));
                     fan.Set(new Rotation(player.Rotation));
