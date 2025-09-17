@@ -9,6 +9,8 @@ using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Scripts.Attacks.Omens;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Spawn;
+using System.Collections.Generic;
+using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
@@ -17,10 +19,18 @@ public class Exaflare(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogger logger
     public enum Phase
     {
         Omen,
+        OmenDestruct,
         Snapshot,
         Vfx,
         Destruct
     }
+
+    private readonly Dictionary<Phase, float> phaseTimings = new()
+    {
+        { Phase.Omen, 0 },
+        { Phase.OmenDestruct, 3.5f },
+        { Phase.Destruct, 3f }
+    };
 
     public record struct Component(float ElapsedTime, int CurrentExaNum = 0, Phase Phase = Phase.Omen);
 
@@ -39,7 +49,7 @@ public class Exaflare(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogger logger
         return CreateEntity(world);
     }
 
-    private const float OmenVisible = 3.8f;
+    private const float OmenPhase = 3.8f;
     private const float SnapshotOffset = 0.25f;
     private const float ExaflareInterval = 1.5f;
     private const float ExaflareSize = 6f;  // thanks tom
@@ -77,7 +87,7 @@ public class Exaflare(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogger logger
                 switch (component.Phase)
                 {
                     case Phase.Omen:
-                        component.Phase = Phase.Snapshot;
+                        component.Phase = Phase.OmenDestruct;
 
                         var omen = ExaflareOmen.CreateEntity(world);
                         omen.Set(new Position(position.Value))
@@ -85,18 +95,16 @@ public class Exaflare(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogger logger
                             .Set(new Scale(new Vector3(ExaflareSize)))
                             .ChildOf(entity);
                         break;
+                    case Phase.OmenDestruct:
+                        if (ShouldReturn(component)) { return; }
+                        component.Phase = Phase.Snapshot;
+
+                        entity.DestructChildEntity<Omen>();
+
+                        break;
                     case Phase.Snapshot:
                         if (ShouldReturn(component)) { return; }
                         component.Phase = Phase.Vfx;
-
-                        // destroy omen if exists
-                        {
-                            using var q = world.QueryBuilder().With(flecs.EcsChildOf, entity).With<Omen>().Build();
-                            q.Each((Entity e) =>
-                            {
-                                e.Destruct();
-                            });
-                        }
 
                         Vector3 newPos;
                         if (component.CurrentExaNum > 0)
@@ -158,13 +166,13 @@ public class Exaflare(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogger logger
     }
 
     private bool ShouldReturn(Component component) {
-        if (component.Phase == Phase.Destruct)
+        if (component.Phase == Phase.Vfx || component.Phase == Phase.Snapshot)
         {
-            return component.ElapsedTime < 3;
+            var ret = (component.ElapsedTime - OmenPhase) % ExaflareInterval < SnapshotOffset;
+            return component.Phase == Phase.Vfx == ret;
+        } else
+        {
+            return component.ElapsedTime < phaseTimings[component.Phase];
         }
-
-        if (component.ElapsedTime < OmenVisible) return true;
-        var ret = (component.ElapsedTime - OmenVisible) % ExaflareInterval < SnapshotOffset;
-        return component.Phase == Phase.Vfx == ret;
     }
 }
