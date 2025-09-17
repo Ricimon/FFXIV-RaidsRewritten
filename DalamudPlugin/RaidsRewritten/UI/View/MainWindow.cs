@@ -795,6 +795,22 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             }
         }
 
+        ImGui.SameLine();
+
+        if (ImGui.Button("Transition Kaliya"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<TransitionKaliya>(out var kaliya))
+                {
+                    kaliya.Set(new Position(player.Position))
+                        .Set(new Rotation(player.Rotation));
+                }
+            }
+        }
+
         ImGui.Text("Heat Stuff");
         if (ImGui.Button("Add Temperature"))
         {
