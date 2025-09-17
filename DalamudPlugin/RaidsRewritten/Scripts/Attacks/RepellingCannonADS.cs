@@ -41,7 +41,8 @@ public class RepellingCannonADS (DalamudServices dalamud, VfxSpawn vfxSpawn, Com
     private const ushort IdleAnimation = 34;
     private const ushort AttackAnimation = 2256;
     private const float AttackScale = 10f;
-    private const float StunDuration = 30f;
+    private const float HysteriaDuration = 30f;
+    private const float RedirectInterval = 15f;
     private const string AttackVfx1 = "vfx/monster/m0105/eff/m0105sp_03t0m.avfx";
     private const string AttackVfx2 = "vfx/monster/m0105/eff/m0105sp_03t1m.avfx";
 
@@ -112,7 +113,7 @@ public class RepellingCannonADS (DalamudServices dalamud, VfxSpawn vfxSpawn, Com
                                         {
                                             DelayedAction.Create(world, () =>
                                             {
-                                                Stun.ApplyToTarget(e, StunDuration);
+                                                Hysteria.ApplyToTarget(e, HysteriaDuration, RedirectInterval);
                                             }, 0.5f);
                                         });
                                     }

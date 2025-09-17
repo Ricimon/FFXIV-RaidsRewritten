@@ -41,7 +41,8 @@ public class CircleBladeMelusine(DalamudServices dalamud, VfxSpawn vfxSpawn, Com
     private const ushort IdleAnimation = 34;
     private const ushort AttackAnimation = 2863;
     private const float AttackScale = 15f;
-    private const float StunDuration = 30f;
+    private const float HysteriaDuration = 30f;
+    private const float RedirectInterval = 15f;
     private const string AttackVfx = "vfx/monster/d1014/eff/d1014sp04c0h.avfx";
 
     public static Entity CreateEntity(World world)
@@ -112,7 +113,7 @@ public class CircleBladeMelusine(DalamudServices dalamud, VfxSpawn vfxSpawn, Com
                                         {
                                             DelayedAction.Create(world, () =>
                                             {
-                                                Stun.ApplyToTarget(e, StunDuration);
+                                                Hysteria.ApplyToTarget(e, HysteriaDuration, RedirectInterval);
                                             }, 0.5f);
                                         });
                                     }
