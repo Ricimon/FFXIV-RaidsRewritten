@@ -26,13 +26,14 @@ public class NerveGasKaliya(DalamudServices dalamud, VfxSpawn vfxSpawn, CommonQu
     {
         { Phase.Animation, 1.9f },
         { Phase.Omen, 2f },
-        { Phase.Snapshot, 2.5f },
-        { Phase.Vfx, 2.7f },
+        { Phase.Snapshot, 2.75f },
+        { Phase.Vfx, 2.75f },
         { Phase.Reset, 6f },
     };
 
     public record struct Component(float ElapsedTime, Phase Phase = Phase.Animation);
 
+    private const float OmenDuration = 0.75f;
     private const ushort IdleAnimation = 34;
     private const ushort AttackAnimation = 3212;
     private const float AttackScale = 44f;
@@ -77,6 +78,7 @@ public class NerveGasKaliya(DalamudServices dalamud, VfxSpawn vfxSpawn, CommonQu
                             .Set(new Position(position.Value))
                             .Set(new Rotation(rotation.Value))
                             .Set(new Scale(new Vector3(AttackScale)))
+                            .Set(new OmenDuration(OmenDuration, false))
                             .ChildOf(entity);
                         component.Phase = Phase.Snapshot;
                         break;
@@ -99,7 +101,7 @@ public class NerveGasKaliya(DalamudServices dalamud, VfxSpawn vfxSpawn, CommonQu
                                         DelayedAction.Create(world, () =>
                                         {
                                             vfxSpawn.PlayInvulnerabilityEffect(player);
-                                        }, 0.7f);
+                                        }, 0.25f);
                                     } else
                                     {
                                         commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
@@ -107,7 +109,7 @@ public class NerveGasKaliya(DalamudServices dalamud, VfxSpawn vfxSpawn, CommonQu
                                             DelayedAction.Create(world, () =>
                                             {
                                                 Hysteria.ApplyToTarget(e, HysteriaDuration, RedirectInterval, HysteriaId);
-                                            }, 0.7f, true);
+                                            }, 0.25f, true);
                                         });
                                     }
                                 }
