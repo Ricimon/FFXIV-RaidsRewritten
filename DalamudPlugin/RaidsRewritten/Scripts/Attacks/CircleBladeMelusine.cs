@@ -5,13 +5,8 @@ using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Scripts.Attacks.Omens;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Spawn;
-using RaidsRewritten.Utility;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 using Player = RaidsRewritten.Game.Player;
 
 namespace RaidsRewritten.Scripts.Attacks;

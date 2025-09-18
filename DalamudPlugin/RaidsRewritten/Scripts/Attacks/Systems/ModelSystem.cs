@@ -9,7 +9,6 @@ using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Utility;
-using System.Linq;
 
 namespace RaidsRewritten.Scripts.Attacks.Systems;
 
@@ -99,7 +98,7 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
 
                     if (entity.TryGet<NpcEquipRow>(out var npcEquip) && npcEquip.Value != 0)
                     {
-                        var row = dalamud.DataManager.GetExcelSheet<NpcEquip>().Where(row => row.RowId == npcEquip.Value).FirstOrDefault();
+                        var row = dalamud.DataManager.GetExcelSheet<NpcEquip>().GetRow(npcEquip.Value);
                         // from Brio https://github.com/Etheirys/Brio/blob/main/Brio/Game/Actor/ActorAppearanceService.cs
                         var (mainHand, offHand, equipment) = FromNpcEquip(row);
                         fixed (EquipmentModelId* ptr = chara->DrawData.EquipmentModelIds)
