@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Plugin.Services;
@@ -15,7 +15,7 @@ using RaidsRewritten.Log;
 using RaidsRewritten.Memory;
 using RaidsRewritten.Scripts.Encounters;
 using RaidsRewritten.Utility;
-using Dalamud.Game.ClientState.Conditions;
+using ZLinq;
 
 namespace RaidsRewritten;
 
@@ -63,7 +63,7 @@ public sealed class EncounterManager : IDalamudHook
         this.configuration = configuration;
         this.logger = logger;
 
-        this.encounters = encounters.ToDictionary(e => e.TerritoryId, e => e);
+        this.encounters = encounters.AsValueEnumerable().ToDictionary(e => e.TerritoryId, e => e);
     }
 
     public void HookToDalamud()
@@ -161,7 +161,7 @@ public sealed class EncounterManager : IDalamudHook
 
     private void OnVFXSpawn(uint target, string vfxPath)
     {
-        if (Utils.BlacklistedVFX.Contains(vfxPath)) { return; }
+        if (Utils.BlacklistedVFX.AsValueEnumerable().Contains(vfxPath)) { return; }
 
         var text = new StringBuilder($"VFX: {vfxPath}");
 
@@ -234,7 +234,7 @@ public sealed class EncounterManager : IDalamudHook
         this.dalamud.Framework.Run(() =>
         {
             var text = new StringBuilder("OBJECT_CREATED: ");
-            var obj = this.dalamud.ObjectTable.FirstOrDefault(x => x.Address == newObjectPointer);
+            var obj = this.dalamud.ObjectTable.AsValueEnumerable().FirstOrDefault(x => x.Address == newObjectPointer);
             if (obj == null)
             {
                 text.Append($"0x{newObjectPointer:X}");

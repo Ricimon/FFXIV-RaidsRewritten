@@ -1,15 +1,12 @@
-﻿using Flecs.NET.Bindings;
+﻿using System;
+using System.Collections.Generic;
+using System.Numerics;
+using Flecs.NET.Bindings;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks.Components;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using static RaidsRewritten.Scripts.Attacks.RollingBall;
+using ZLinq;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
@@ -55,7 +52,7 @@ public class ExaflareRow(DalamudServices dalamud, Random random, ILogger logger)
                 {
                     // index = spawn order
                     // value = position of exa in line
-                    var list = Enumerable.Range(0, 6).ToList();
+                    var list = ValueEnumerable.Range(0, 6).ToList();
                     Random rand = entity.Has<SeededRandom>() ? entity.Get<SeededRandom>().Random : random;
 
                     // shuffle list

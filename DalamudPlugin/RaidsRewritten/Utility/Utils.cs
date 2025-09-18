@@ -1,22 +1,17 @@
-﻿using Dalamud.Game.ClientState.Objects.SubKinds;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
+using System.Numerics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Text;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.ClientState.Statuses;
 using Dalamud.Utility;
 using ECommons;
 using ECommons.MathHelpers;
-using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
-using Newtonsoft.Json;
-using RaidsRewritten.Utility;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.IO.Compression;
-using System.Linq;
-using System.Numerics;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Text;
+using ZLinq;
 
 namespace RaidsRewritten.Utility;
 
@@ -569,8 +564,9 @@ public static unsafe class Utils
 
     public static IEnumerable<(Vector2 v2, float angle)> GetPolygon(List<Vector2> coords)
     {
-        var medium = new Vector2(coords.Average(x => x.X), coords.Average(x => x.Y));
-        var array = coords.Select(x => x - medium).ToArray();
+        var coordsVE = coords.AsValueEnumerable();
+        var medium = new Vector2(coordsVE.Average(x => x.X), coordsVE.Average(x => x.Y));
+        var array = coordsVE.Select(x => x - medium).ToArray();
         Array.Sort(array, delegate (Vector2 a, Vector2 b)
         {
             var angleA = MathF.Atan2(a.Y, a.X);

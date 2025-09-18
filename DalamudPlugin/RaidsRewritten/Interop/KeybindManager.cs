@@ -1,7 +1,6 @@
 ﻿// Adapted from https://github.com/Infiziert90/ChatTwo/blob/main/ChatTwo/GameFunctions/KeybindManager.cs
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Keys;
@@ -12,6 +11,7 @@ using FFXIVClientStructs.FFXIV.Client.UI;
 using RaidsRewritten.Extensions;
 using RaidsRewritten.Interop.Structs;
 using RaidsRewritten.Log;
+using ZLinq;
 
 namespace RaidsRewritten.Interop;
 
@@ -383,7 +383,7 @@ public unsafe sealed class KeybindManager : IDisposable
         // When we're in an input, we don't want to process any keybinds that
         // don't have a modifier (or only use shift) and are not explicitly
         // whitelisted.
-        if (modifiersOnly && !ModifierlessChatKeys.Contains(key) && modifier is Structs.ModifierFlag.None or Structs.ModifierFlag.Shift)
+        if (modifiersOnly && !ModifierlessChatKeys.AsValueEnumerable().Contains(key) && modifier is Structs.ModifierFlag.None or Structs.ModifierFlag.Shift)
             return false;
 
         modifierState ??= GetModifiers(source);

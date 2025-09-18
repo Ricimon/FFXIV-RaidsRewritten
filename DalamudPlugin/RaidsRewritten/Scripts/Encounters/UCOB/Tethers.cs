@@ -1,20 +1,16 @@
-﻿using Dalamud.Game.ClientState.Objects.Types;
-using ECommons;
+﻿using System;
+using System.Collections.Generic;
+using Dalamud.Game.ClientState.Objects.Types;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using Flecs.NET.Core;
 using RaidsRewritten.Extensions;
 using RaidsRewritten.Scripts.Attacks;
-using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Scripts.Attacks.Omens;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Spawn;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using ZLinq;
 
 namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
@@ -82,7 +78,7 @@ public class Tethers : Mechanic
             });
 
             var random = new Random(RngSeed);
-            playerList = [.. playerList.OrderBy(o => random.Next())];
+            playerList = [.. playerList.AsValueEnumerable().OrderBy(o => random.Next())];
 
             for (int i = 0; i < playerList.Count; i += 2)
             {

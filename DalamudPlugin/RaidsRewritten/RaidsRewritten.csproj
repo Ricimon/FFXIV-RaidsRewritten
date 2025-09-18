@@ -37,6 +37,7 @@
     <PackageReference Include="SharpDX.D3DCompiler" Version="4.2.0" />
     <PackageReference Include="SocketIOClient" Version="3.1.2" />
     <PackageReference Include="YamlDotNet" Version="16.3.0" />
+    <PackageReference Include="ZLinq" Version="1.5.2" />
   </ItemGroup>
 
 	<ItemGroup>

@@ -1,7 +1,6 @@
 ﻿// Adapted from https://github.com/Caraxi/SimpleTweaksPlugin/blob/main/Tweaks/UiAdjustment/FadeUnavailableActions.cs
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using Dalamud.Hooking;
 using Dalamud.Utility.Signatures;
@@ -13,6 +12,7 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 using RaidsRewritten.Data;
 using RaidsRewritten.Extensions;
 using RaidsRewritten.Log;
+using ZLinq;
 
 namespace RaidsRewritten.Interop;
 
@@ -200,14 +200,14 @@ public unsafe sealed class HotbarManager : IDisposable
     }
 
     // Taken from https://github.com/Caraxi/SimpleTweaksPlugin/blob/main/Utility/Common.cs#L80
-    private T* GetUnitBase<T>(string name = null, int index = 1) where T : unmanaged
+    private T* GetUnitBase<T>(string? name = null, int index = 1) where T : unmanaged
     {
         if (string.IsNullOrEmpty(name))
         {
             var attr = (AddonAttribute)typeof(T).GetCustomAttribute(typeof(AddonAttribute));
             if (attr != null)
             {
-                name = attr.AddonIdentifiers.FirstOrDefault();
+                name = attr.AddonIdentifiers.AsValueEnumerable().FirstOrDefault();
             }
         }
 

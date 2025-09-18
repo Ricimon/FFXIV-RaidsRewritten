@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Numerics;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -29,6 +28,7 @@ using RaidsRewritten.Spawn;
 using RaidsRewritten.UI.Util;
 using RaidsRewritten.Utility;
 using Reactive.Bindings;
+using ZLinq;
 
 namespace RaidsRewritten.UI.View;
 
@@ -125,7 +125,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         if (version.Length > 0)
         {
             var versionArray = version.Split(".");
-            version = string.Join(".", versionArray.Take(3));
+            version = versionArray.AsValueEnumerable().Take(3).JoinToString(".");
             this.windowName += $" v{version}";
         }
 #if DEBUG
@@ -133,7 +133,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
 #endif
         this.xivChatSendLocations = Enum.GetNames<XivChatSendLocation>();
         this.falloffTypes = Enum.GetNames<AudioFalloffModel.FalloffType>();
-        this.allLoggingLevels = [.. LogLevel.AllLoggingLevels.Select(l => l.Name)];
+        this.allLoggingLevels = [.. LogLevel.AllLoggingLevels.AsValueEnumerable().Select(l => l.Name)];
         windowSystem.AddWindow(this);
 
         this.effectsRendererPositionX = configuration.EffectsRendererPositionX;
@@ -963,7 +963,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         var indent = 10;
         ImGui.Indent(indent);
 
-        foreach (var (playerName, index) in this.serverConnection.PlayersInRoom.Select((p, i) => (p, i)))
+        foreach (var (playerName, index) in this.serverConnection.PlayersInRoom.AsValueEnumerable().Select((p, i) => (p, i)))
         {
             Vector4 color = Vector4Colors.Red;
             string tooltip = "Connection Error";

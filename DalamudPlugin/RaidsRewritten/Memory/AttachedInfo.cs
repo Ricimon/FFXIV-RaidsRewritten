@@ -1,7 +1,6 @@
 ﻿// Adapted from https://github.com/PunishXIV/Splatoon/blob/main/Splatoon/Memory/AttachedInfo.cs
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
@@ -15,6 +14,7 @@ using RaidsRewritten.Log;
 using RaidsRewritten.Structures;
 using RaidsRewritten.Utility;
 using Reloaded.Hooks.Definitions.X64;
+using ZLinq;
 
 namespace RaidsRewritten.Memory;
 
@@ -216,7 +216,7 @@ public static unsafe class AttachedInfo
     {
         if (CastInfos.TryGetValue(ptr, out var info))
         {
-            if (castId.Contains(info.ID))
+            if (castId.AsValueEnumerable().Contains(info.ID))
             {
                 castTime = (float)(Environment.TickCount64 - info.StartTime) / 1000f;
                 return true;
