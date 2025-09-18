@@ -67,6 +67,7 @@ public class TankbusterAftershock : Mechanic
         }
     };
 
+    private const float OmenSnapshotDelay = 0.25f;
     private const float TurnDelaySeconds = 0.5f;
     private const float HeavyDurationSeconds = 20f;
     private const int HeavyId = 99409896;
@@ -133,13 +134,13 @@ public class TankbusterAftershock : Mechanic
         // check if player is in telegraph
         delayedAction = DelayedAction.Create(this.World, () => 
             Aftershock(aftershockData, fakeActorFront, originalPosition, originalRotation, ToDestruct),
-            aftershockData.DelaySeconds + aftershockData.OmenVisibleSeconds
+            aftershockData.DelaySeconds + aftershockData.OmenVisibleSeconds + OmenSnapshotDelay
         );
         ToDestruct.Add(delayedAction);
 
         delayedAction = DelayedAction.Create(this.World, () =>
             Aftershock(aftershockData, fakeActorBack, originalPosition, backAngle, ToDestruct),
-            aftershockData.DelaySeconds + aftershockData.OmenVisibleSeconds
+            aftershockData.DelaySeconds + aftershockData.OmenVisibleSeconds + OmenSnapshotDelay
         );
         ToDestruct.Add(delayedAction);
 
