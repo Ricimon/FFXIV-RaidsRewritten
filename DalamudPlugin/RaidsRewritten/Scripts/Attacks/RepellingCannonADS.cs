@@ -24,15 +24,16 @@ public class RepellingCannonADS (DalamudServices dalamud, VfxSpawn vfxSpawn, Com
 
     private readonly Dictionary<Phase, float> phaseTimings = new()
     {
-        { Phase.Animation, 1.7f },
+        { Phase.Animation, 1.95f },
         { Phase.Omen, 2f },
-        { Phase.Snapshot, 2.5f },
-        { Phase.Vfx, 2.5f },
+        { Phase.Snapshot, 2.75f },
+        { Phase.Vfx, 2.75f },
         { Phase.Reset, 6f },
     };
 
     public record struct Component(float ElapsedTime, Phase Phase = Phase.Animation);
 
+    private const float OmenDuration = 0.75f;
     private const ushort IdleAnimation = 34;
     private const ushort AttackAnimation = 2256;
     private const float AttackScale = 10f;
@@ -81,6 +82,7 @@ public class RepellingCannonADS (DalamudServices dalamud, VfxSpawn vfxSpawn, Com
                         CircleOmen.CreateEntity(world)
                             .Set(new Position(position.Value))
                             .Set(new Scale(new Vector3(AttackScale)))
+                            .Set(new OmenDuration(OmenDuration, false))
                             .ChildOf(entity);
                         component.Phase = Phase.Snapshot;
                         break;
@@ -102,7 +104,7 @@ public class RepellingCannonADS (DalamudServices dalamud, VfxSpawn vfxSpawn, Com
                                         DelayedAction.Create(world, () =>
                                         {
                                             vfxSpawn.PlayInvulnerabilityEffect(player);
-                                        }, 0.5f);
+                                        }, 0.2f);
                                     } else
                                     {
                                         commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
@@ -110,7 +112,7 @@ public class RepellingCannonADS (DalamudServices dalamud, VfxSpawn vfxSpawn, Com
                                             DelayedAction.Create(world, () =>
                                             {
                                                 Hysteria.ApplyToTarget(e, HysteriaDuration, RedirectInterval, HysteriaId);
-                                            }, 0.5f, true);
+                                            }, 0.2f, true);
                                         });
                                     }
                                 }
