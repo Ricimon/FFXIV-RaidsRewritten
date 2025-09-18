@@ -737,7 +737,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                 {
                     star.Set(new Star.Component(
                         Type: Star.Type.Long,
-                        OmenTime: 2.75f,
+                        OmenTime: 3.0f,
                         VfxPath: "vfx/monster/gimmick5/eff/x6r7_b3_g08_c0p.avfx",
                         OnHit: e => { Stun.ApplyToTarget(e, 2.0f); }));
                     star.Set(new Position(player.Position));

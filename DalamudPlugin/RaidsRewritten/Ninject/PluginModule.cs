@@ -121,6 +121,7 @@ public class PluginModule : NinjectModule
         Bind<ISystem>().To<Player>();
         Bind<ISystem>().To<DelayedAction>();
         Bind<ISystem>().To<VfxSystem>();
+        Bind<ISystem>().To<OmenSystem>();
         Bind<ISystem>().To<ModelSystem>();
 
         // Conditions

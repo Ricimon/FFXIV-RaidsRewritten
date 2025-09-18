@@ -50,7 +50,7 @@ public class EarthShakerStar : Mechanic
         {
             star.Set(new Star.Component(
                 Type: Star.Type.Long,
-                OmenTime: 4.75f,
+                OmenTime: 5.0f,
                 VfxPath: "vfx/monster/gimmick5/eff/x6r7_b3_g08_c0p.avfx",
                 OnHit: e =>
                 {
