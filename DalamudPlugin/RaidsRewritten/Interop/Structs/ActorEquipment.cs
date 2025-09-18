@@ -1,0 +1,24 @@
+﻿using FFXIVClientStructs.FFXIV.Client.Game.Character;
+using System.Runtime.InteropServices;
+
+namespace RaidsRewritten.Interop.Structs;
+
+// taken from Brio https://github.com/Etheirys/Brio/blob/main/Brio/Game/Actor/Appearance/ActorEquipment.cs
+
+[StructLayout(LayoutKind.Explicit, Size = Count)]
+public unsafe struct ActorEquipment
+{
+    public const int Count = 0x50;
+
+    [FieldOffset(0x00)] public fixed byte Data[Count];
+    [FieldOffset(0x00)] public EquipmentModelId Head;
+    [FieldOffset(0x08)] public EquipmentModelId Top;
+    [FieldOffset(0x10)] public EquipmentModelId Arms;
+    [FieldOffset(0x18)] public EquipmentModelId Legs;
+    [FieldOffset(0x20)] public EquipmentModelId Feet;
+    [FieldOffset(0x28)] public EquipmentModelId Ear;
+    [FieldOffset(0x30)] public EquipmentModelId Neck;
+    [FieldOffset(0x38)] public EquipmentModelId Wrist;
+    [FieldOffset(0x40)] public EquipmentModelId RFinger;
+    [FieldOffset(0x48)] public EquipmentModelId LFinger;
+}

@@ -95,7 +95,8 @@ public class PluginModule : NinjectModule
 
         // Attacks & Systems
         Bind<IAttack>().To<CircleOmen>();
-        Bind<IAttack>().To<FanOmen>();
+        Bind<IAttack>().To<Fan90Omen>();
+        Bind<IAttack>().To<Fan120Omen>();
         Bind<IAttack>().To<RectangleOmen>();
         Bind<IAttack>().To<ShortStarOmen>();
         Bind<IAttack>().To<LongStarOmen>();
@@ -118,6 +119,9 @@ public class PluginModule : NinjectModule
         Bind<IAttack, ISystem>().To<Star>();
         Bind<IAttack, ISystem>().To<Tornado>();
         Bind<IAttack, ISystem>().To<OctetDonut>();
+        Bind<IAttack, ISystem>().To<RepellingCannonADS>();
+        Bind<IAttack, ISystem>().To<CircleBladeMelusine>();
+        Bind<IAttack, ISystem>().To<NerveGasKaliya>();
         Bind<ISystem>().To<Player>();
         Bind<ISystem>().To<DelayedAction>();
         Bind<ISystem>().To<VfxSystem>();
