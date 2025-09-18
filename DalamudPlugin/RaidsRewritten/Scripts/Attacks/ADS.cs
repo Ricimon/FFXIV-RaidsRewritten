@@ -24,17 +24,19 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
     public struct ADSEntity;
     public record struct Action(float Angle, float ElapsedTime = 0, Phase Phase = Phase.Omen);
 
+    private const float OmenDuration = 2.45f;
     private const string ActionVfx = "vfx/monster/m0653/eff/m0653sp16_c0a1.avfx";
     private const string CastingVfx = "vfx/common/eff/mon_eisyo03t.avfx";
     private const ushort IdleAnimation = 34;
     private const ushort AttackAnimation = 2262;
     private const int ParalysisId = 0xBAD;
+    private const float SnapshotEffectDelay = 0.55f;
     private readonly Dictionary<Phase, float> phaseTimings = new()
     {
         { Phase.Omen, 0f },
-        { Phase.Animation, 1.5f },
+        { Phase.Animation, 1.85f },
         { Phase.Snapshot, 2.2f },
-        { Phase.Vfx, 2.2f },
+        { Phase.Vfx, 2.55f },
         { Phase.Reset, 2.4f },
     };
 
@@ -75,6 +77,7 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
                         omen.Set(new Position(position.Value))
                             .Set(new Rotation(component.Angle))
                             .Set(new Scale(new Vector3(0.75f, 1, 44)))
+                            .Set(new OmenDuration(OmenDuration, false))
                             .ChildOf(entity);
                     }
                     component.Phase = Phase.Animation;
@@ -104,13 +107,19 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
                         {
                             if (player.HasTranscendance())
                             {
-                                vfxSpawn.PlayInvulnerabilityEffect(player);
+                                DelayedAction.Create(world, () =>
+                                {
+                                    vfxSpawn.PlayInvulnerabilityEffect(player);
+                                }, SnapshotEffectDelay);
                             }
                             else
                             {
                                 commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
                                 {
-                                    Paralysis.ApplyToTarget(e, 30f, 3f, 1f, ParalysisId);
+                                    DelayedAction.Create(e.CsWorld(), () =>
+                                    {
+                                        Paralysis.ApplyToTarget(e, 30f, 3f, 1f, ParalysisId);
+                                    }, SnapshotEffectDelay);
                                 });
                             }
                         }
