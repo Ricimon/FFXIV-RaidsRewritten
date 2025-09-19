@@ -34,6 +34,6 @@ public class Sleep
                         .ChildOf(condition);
                 }, 0.6f).ChildOf(condition);
             }
-        }, 0, true);
+        }, 0, true).ChildOf(target);
     }
 }

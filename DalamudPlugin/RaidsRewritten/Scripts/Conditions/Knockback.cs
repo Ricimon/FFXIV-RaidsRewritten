@@ -82,7 +82,7 @@ public sealed class Knockback : IDalamudHook
                 .Set(new Condition.Component("Knocked Back", duration))
                 .Set(new Component(knockbackDirection))
                 .ChildOf(target);
-        }, 0, true);
+        }, 0, true).ChildOf(target);
     }
 
     public Knockback(DalamudServices dalamud, EcsContainer ecsContainer, CommonQueries commonQueries, ILogger logger)

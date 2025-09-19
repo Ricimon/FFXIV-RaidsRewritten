@@ -30,7 +30,7 @@ public class Hysteria(Random random, ILogger logger) : ISystem
             {
                 condition.Set(new Component(redirectionInterval));
             }
-        }, 0, true);
+        }, 0, true).ChildOf(target);
     }
 
     public void Register(World world)

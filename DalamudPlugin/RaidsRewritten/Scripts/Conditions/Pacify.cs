@@ -25,6 +25,6 @@ public class Pacify
             {
                 condition.Set(new Component());
             }
-        }, 0, true);
+        }, 0, true).ChildOf(target);
     }
 }
