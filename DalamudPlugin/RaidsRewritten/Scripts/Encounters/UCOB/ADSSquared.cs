@@ -19,6 +19,7 @@ public class ADSSquared : Mechanic
     {
         public int NumADS;
         public float IntervalMilliseconds;
+        public int LineGap;
     }
 
     private readonly Vector3 ArenaCenter = new(0, 0, 0);
@@ -41,21 +42,24 @@ public class ADSSquared : Mechanic
             0, new MechanicInfoPair
             {
                 NumADS = 16,
-                IntervalMilliseconds = 220f
+                IntervalMilliseconds = 220f,
+                LineGap = 3
             }
         },
         {
             1, new MechanicInfoPair
             {
                 NumADS = 24,
-                IntervalMilliseconds = 165f
+                IntervalMilliseconds = 165f,
+                LineGap = 4
             }
         },
         {
             2, new MechanicInfoPair
             {
                 NumADS = 32,
-                IntervalMilliseconds = 110f
+                IntervalMilliseconds = 130f,
+                LineGap = 5
             }
         }
     };
@@ -206,7 +210,7 @@ public class ADSSquared : Mechanic
         var source = sourcePair.Item2;
 
         // avoid targeting self and adjacent (up to 2) ADSes 
-        var numAvoid = NumAdjacentToAvoid * 2 + 1;
+        var numAvoid = NumAdjacentToAvoid * MechanicInfo[difficulty].LineGap + 1;
         var randNum = random.Next(totalADS.Count - numAvoid);
         if (randNum > sourceNum - 2) { randNum += numAvoid; }
         var targetPair = totalADS[randNum];
