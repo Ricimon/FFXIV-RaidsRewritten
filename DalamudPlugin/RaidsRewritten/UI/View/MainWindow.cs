@@ -441,7 +441,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             var player = this.dalamud.ClientState.LocalPlayer;
             if (player != null)
             {
-                if (this.attackManager.TryCreateAttackEntity<FanOmen>(out var fan))
+                if (this.attackManager.TryCreateAttackEntity<Fan90Omen>(out var fan))
                 {
                     fan.Set(new Position(player.Position));
                     fan.Set(new Rotation(player.Rotation));
@@ -811,6 +811,51 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                     {
                         tornado.Destruct();
                     }, 26f);
+                }
+            }
+        }
+
+        if (ImGui.Button("Transition ADS"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<RepellingCannonADS>(out var ads))
+                {
+                    ads.Set(new Position(player.Position));
+                }
+            }
+        }
+
+        ImGui.SameLine();
+
+        if (ImGui.Button("Transition Melusine"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<CircleBladeMelusine>(out var melusine))
+                {
+                    melusine.Set(new Position(player.Position))
+                        .Set(new Rotation(player.Rotation));
+                }
+            }
+        }
+
+        ImGui.SameLine();
+
+        if (ImGui.Button("Transition Kaliya"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<NerveGasKaliya>(out var kaliya))
+                {
+                    kaliya.Set(new Position(player.Position))
+                        .Set(new Rotation(player.Rotation));
                 }
             }
         }
