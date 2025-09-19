@@ -33,7 +33,12 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
     private const ushort LineAttackAnimation = 2262;
     private const ushort CircleAttackAnimation = 2260;
     private const int ParalysisId = 0xBAD;
+    private const int PacifyId = 0xBAE;
     private const float SnapshotEffectDelay = 0.25f;
+    private const float ParalysisDuration = 30f;
+    private const float PacifyDuration = 20f;
+    private const float StunInterval = 3f;
+    private const float StunDuration = 1f;
     private readonly Dictionary<Phase, float> phaseTimings = new()
     {
         { Phase.Omen, 0f },
@@ -121,7 +126,8 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
                                 {
                                     DelayedAction.Create(e.CsWorld(), () =>
                                     {
-                                        Paralysis.ApplyToTarget(e, 30f, 3f, 1f, ParalysisId);
+                                        Paralysis.ApplyToTarget(e, ParalysisDuration, StunInterval, StunDuration, ParalysisId);
+                                        Pacify.ApplyToTarget(e, PacifyDuration, PacifyId);
                                     }, SnapshotEffectDelay);
                                 });
                             }
@@ -206,7 +212,8 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
                                     {
                                         DelayedAction.Create(e.CsWorld(), () =>
                                         {
-                                            Paralysis.ApplyToTarget(e, 30f, 3f, 1f, ParalysisId);
+                                            Paralysis.ApplyToTarget(e, ParalysisDuration, StunInterval, StunDuration, ParalysisId);
+                                            Pacify.ApplyToTarget(e, PacifyDuration, PacifyId);
                                         }, SnapshotEffectDelay);
                                     });
                                 }

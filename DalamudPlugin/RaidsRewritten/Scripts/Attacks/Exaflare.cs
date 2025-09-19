@@ -56,8 +56,10 @@ public class Exaflare(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogger logger
     private const string ExaflareVfxPath = "vfx/monster/gimmick2/eff/f1bz_b0_g02c0i.avfx";
 
     private const float StunDuration = 10f;
-    private const float StunDelay = 0.2f;
+    private const float StatusDelay = 0.2f;
     private const int StunId = 213152;
+    private const int PacifyId = 213153;
+    private const float PacifyDuration = 20f;
 
     public void Register(World world)
     {
@@ -155,13 +157,14 @@ public class Exaflare(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogger logger
         {
             DelayedAction.Create(e.CsWorld(), () => {
                 vfxSpawn.PlayInvulnerabilityEffect(player);
-            }, StunDelay);
+            }, StatusDelay);
         }
         else
         {
             DelayedAction.Create(e.CsWorld(), () => {
                 Stun.ApplyToTarget(e, StunDuration, StunId);
-            }, StunDelay, true);
+                Pacify.ApplyToTarget(e, PacifyDuration, PacifyId);
+            }, StatusDelay, true);
         }
     }
 
