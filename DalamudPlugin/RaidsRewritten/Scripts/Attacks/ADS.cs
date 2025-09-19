@@ -33,12 +33,12 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
     private const ushort LineAttackAnimation = 2262;
     private const ushort CircleAttackAnimation = 2260;
     private const int ParalysisId = 0xBAD;
-    private const float SnapshotEffectDelay = 0.55f;
+    private const float SnapshotEffectDelay = 0.25f;
     private readonly Dictionary<Phase, float> phaseTimings = new()
     {
         { Phase.Omen, 0f },
         { Phase.Animation, 1.85f },
-        { Phase.Snapshot, 2.2f },
+        { Phase.Snapshot, 2.45f },
         { Phase.Vfx, 2.55f },
         { Phase.Reset, 2.55f },
     };
@@ -196,12 +196,18 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
                             {
                                 if (player.HasTranscendance())
                                 {
-                                    vfxSpawn.PlayInvulnerabilityEffect(player);
+                                    DelayedAction.Create(world, () =>
+                                    {
+                                        vfxSpawn.PlayInvulnerabilityEffect(player);
+                                    }, SnapshotEffectDelay);
                                 } else
                                 {
                                     commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
                                     {
-                                        Paralysis.ApplyToTarget(e, 30f, 3f, 1f, ParalysisId);
+                                        DelayedAction.Create(e.CsWorld(), () =>
+                                        {
+                                            Paralysis.ApplyToTarget(e, 30f, 3f, 1f, ParalysisId);
+                                        }, SnapshotEffectDelay);
                                     });
                                 }
                             }
