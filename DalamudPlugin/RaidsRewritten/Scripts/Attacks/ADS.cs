@@ -22,15 +22,15 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
     }
 
     public struct ADSEntity;
-    public record struct Action(float Angle, float ElapsedTime = 0, Phase Phase = Phase.Omen);
+    public record struct LineAction(float Angle, float ElapsedTime = 0, Phase Phase = Phase.Omen);
     public record struct CircleAction(Vector3 TargetPosition1, Vector3? TargetPosition2, float ElapsedTime = 0, Phase Phase = Phase.Omen);
 
     private const float OmenDuration = 2.45f;
-    private const string ActionVfx = "vfx/monster/m0653/eff/m0653sp16_c0a1.avfx";
+    private const string LineActionVfx = "vfx/monster/m0653/eff/m0653sp16_c0a1.avfx";
     private const string CastingVfx = "vfx/common/eff/mon_eisyo03t.avfx";
     private const string CircleActionVfx = "vfx/monster/gimmick2/eff/e3fa_b_g05c0j.avfx";
     private const ushort IdleAnimation = 34;
-    private const ushort AttackAnimation = 2262;
+    private const ushort LineAttackAnimation = 2262;
     private const ushort CircleAttackAnimation = 2260;
     private const int ParalysisId = 0xBAD;
     private const float SnapshotEffectDelay = 0.55f;
@@ -64,7 +64,7 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
 
     public void Register(World world)
     {
-        world.System<Action, Position, Rotation>().With<ADSEntity>().Each((Iter it, int i, ref Action component, ref Position position, ref Rotation rotation) =>
+        world.System<LineAction, Position, Rotation>().With<ADSEntity>().Each((Iter it, int i, ref LineAction component, ref Position position, ref Rotation rotation) =>
         {
             component.ElapsedTime += it.DeltaTime();
 
@@ -88,7 +88,7 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
                 case Phase.Animation:
                     if (ShouldReturn(component)) { return; }
                     entity.Set(new Rotation(component.Angle))
-                        .Set(new TimelineBase(AttackAnimation));
+                        .Set(new TimelineBase(LineAttackAnimation));
                     component.Phase = Phase.Snapshot;
                     break;
                 case Phase.Snapshot:
@@ -132,12 +132,12 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
                     break;
                 case Phase.Vfx:
                     if (ShouldReturn(component)) { return; }
-                    AddActorVfx(entity, ActionVfx);
+                    AddActorVfx(entity, LineActionVfx);
                     component.Phase = Phase.Reset;
                     break;
                 case Phase.Reset:
                     if (ShouldReturn(component)) { return; }
-                    it.Entity(i).Remove<Action>();
+                    it.Entity(i).Remove<LineAction>();
                     break;
             }
         });
@@ -234,19 +234,19 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
 
     public static bool CastLineAoe(Entity entity, float angle)
     {
-        if (entity.Has<Action>() || entity.Has<CircleAction>()) { return false; }
-        entity.Set(new Action(angle));
+        if (entity.Has<LineAction>() || entity.Has<CircleAction>()) { return false; }
+        entity.Set(new LineAction(angle));
         return true;
     }
 
     public static bool CastSteppedLeader(Entity entity, Vector3 targetPosition1, Vector3? targetPosition2 = null)
     {
-        if (entity.Has<Action>() || entity.Has<CircleAction>()) { return false; }
+        if (entity.Has<LineAction>() || entity.Has<CircleAction>()) { return false; }
         entity.Set(new CircleAction(targetPosition1, targetPosition2));
         return true;
     }
 
-    public bool ShouldReturn(Action component)
+    public bool ShouldReturn(LineAction component)
     {
         if (phaseTimings.TryGetValue(component.Phase, out var phaseTiming))
         {
