@@ -18,9 +18,9 @@ internal class Transition : Mechanic
     }
     private static readonly Dictionary<uint, Phase> HookedActions = new()
     {
-        { 9999, Phase.Octet},       //Octet NEED NUMBER
+        { 41, Phase.Octet},       //Octet NEED NUMBER
         { 9970, Phase.Pheonix },    //Pheonix
-        { 9999, Phase.Resolution }, //NEED NUMBER FOR RESOLUTION
+        { 1646, Phase.Resolution }, //NEED NUMBER FOR RESOLUTION
     };
     private readonly Vector3 ArenaCenter = new(0, 0, 0);
     private const int ArenaRadius = 22;
@@ -70,7 +70,7 @@ internal class Transition : Mechanic
         public int[] Ads;
     }
 
-    private readonly Dictionary<uint, AddData> Table = new Dictionary<uint, AddData>
+    private readonly Dictionary<int, AddData> Table = new Dictionary<int, AddData>
     {
         { 
             0, new AddData { Kaliya = 0, Melusine = 7, Ads = new int[] { 2, 4, 6 } } 
@@ -108,7 +108,6 @@ internal class Transition : Mechanic
         switch (phase)
         {
             case Phase.Octet:
-                Logger.Debug("Starting Octet");
                 var seed = RngSeed;
                 random = new Random(seed);
                 Shuffle(random, telegraphs);
@@ -141,14 +140,26 @@ internal class Transition : Mechanic
 
     private void DebugOutput()
     {
-        Logger.Debug($"Resolution: {resolution}");
+        Table.TryGetValue(telegraphs[resolution], out var data);
+        Logger.Debug($"Resolution Number: {resolution}");
+        Logger.Debug($"Resolution Actual: {telegraphs[resolution]}");
+        Logger.Debug($"Symbol: {SymbolPaths[resolution]}");
+        Logger.Debug($"Kaliya: {data.Kaliya.ToString()} ");
+        Logger.Debug($"Melusine: {data.Melusine.ToString()} ");
+        Logger.Debug($"ADS: {data.Ads[0].ToString()}, {data.Ads[1].ToString()}, {data.Ads[2].ToString()}");
+        string str = "";
+        Logger.Debug($"Octet Telegraph: {telegraphs[0]}");
         telegraphs.Each(a =>
         {
-            Logger.Debug(a.ToString());
+            str += a.ToString();
         });
+        Logger.Debug(str);
+        str = "";
         SymbolPaths.Each(a => 
-        { 
-            Logger.Debug(a.ToString());
+        {
+            str += a.ToString();
         });
+        Logger.Debug(str);
+        str = "";
     }
 }
