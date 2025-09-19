@@ -57,8 +57,6 @@ public class Exaflare(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogger logger
 
     private const float StunDuration = 10f;
     private const float StatusDelay = 0.4f;
-    private const int StunId = 213152;
-    private const int PacifyId = 213153;
     private const float PacifyDuration = 20f;
 
     public void Register(World world)
@@ -162,9 +160,9 @@ public class Exaflare(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogger logger
         else
         {
             DelayedAction.Create(e.CsWorld(), () => {
-                Stun.ApplyToTarget(e, StunDuration, StunId);
-                Pacify.ApplyToTarget(e, PacifyDuration, PacifyId);
-            }, StatusDelay, true);
+                Stun.ApplyToTarget(e, StunDuration);
+                Pacify.ApplyToTarget(e, PacifyDuration);
+            }, StatusDelay);
         }
     }
 

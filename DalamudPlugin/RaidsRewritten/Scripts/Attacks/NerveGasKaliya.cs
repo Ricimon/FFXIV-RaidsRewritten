@@ -37,7 +37,6 @@ public class NerveGasKaliya(DalamudServices dalamud, VfxSpawn vfxSpawn, CommonQu
     private const ushort IdleAnimation = 34;
     private const ushort AttackAnimation = 3212;
     private const float AttackScale = 44f;
-    private const int HysteriaId = 0xF1B1;
     private const float HysteriaDuration = 30f;
     private const float RedirectInterval = 15f;
     private const string AttackVfx = "vfx/monster/m0070/eff/m0070sp12c0h.avfx";
@@ -108,8 +107,8 @@ public class NerveGasKaliya(DalamudServices dalamud, VfxSpawn vfxSpawn, CommonQu
                                         {
                                             DelayedAction.Create(world, () =>
                                             {
-                                                Hysteria.ApplyToTarget(e, HysteriaDuration, RedirectInterval, HysteriaId);
-                                            }, 0.25f, true);
+                                                Hysteria.ApplyToTarget(e, HysteriaDuration, RedirectInterval);
+                                            }, 0.25f);
                                         });
                                     }
                                 }

@@ -77,6 +77,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
     private readonly EcsContainer ecsContainer;
     private readonly CommonQueries commonQueries;
     private readonly VfxSpawn vfxSpawn;
+    private readonly Random random;
     private readonly ILogger logger;
 
     private readonly string windowName;
@@ -104,6 +105,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         EcsContainer ecsContainer,
         CommonQueries commonQueries,
         VfxSpawn vfxSpawn,
+        Random random,
         ILogger logger) : base(
         PluginInitializer.Name)
     {
@@ -118,6 +120,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         this.ecsContainer = ecsContainer;
         this.commonQueries = commonQueries;
         this.vfxSpawn = vfxSpawn;
+        this.random = random;
         this.logger = logger;
 
         var version = GetType().Assembly.GetName().Version?.ToString() ?? string.Empty;
@@ -359,7 +362,9 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         {
             commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
             {
-                Knockback.ApplyToTarget(e, new Vector3(1, 0, 0), 2.0f, true);
+                var angle = random.NextSingle() * 2 * MathF.PI;
+                var direction = new Vector3(MathF.Cos(angle), 0, MathF.Sin(angle));
+                Knockback.ApplyToTarget(e, direction, 2.0f, true);
             });
         }
         ImGui.SameLine();
@@ -375,7 +380,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         {
             commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
             {
-                Paralysis.ApplyToTarget(e, 5.0f, 3.0f, 1.0f, -100);
+                Paralysis.ApplyToTarget(e, 5.0f, 3.0f, 1.0f);
             });
         }
         ImGui.SameLine();
@@ -417,7 +422,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         {
             commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
             {
-                Heavy.ApplyToTarget(e, 5.0f, -100, true);
+                Heavy.ApplyToTarget(e, 5.0f, true);
             });
         }
 

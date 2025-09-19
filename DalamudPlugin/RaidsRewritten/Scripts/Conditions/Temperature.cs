@@ -29,15 +29,15 @@ public class Temperature(DalamudServices dalamud, CommonQueries commonQueries, I
     public static void SetTemperature(Entity playerEntity)
     {
         var world = playerEntity.CsWorld();
-        using Query<Temperature.Component> q = playerEntity.CsWorld().QueryBuilder<Temperature.Component>().With(Ecs.ChildOf, playerEntity).Build();
+        using Query<Temperature.Component> q = world.QueryBuilder<Temperature.Component>().With(Ecs.ChildOf, playerEntity).Build();
         if (q.IsTrue()) { return; }
 
-        playerEntity.CsWorld().Entity()
-                .Set(new Temperature.Component())
-                .Set(new Condition.Component("", float.PositiveInfinity))
-                .Add<Condition.Hidden>()
-                .Add<Condition.IgnoreOnDeath>()
-                .ChildOf(playerEntity);
+        world.Entity()
+            .Set(new Temperature.Component())
+            .Set(new Condition.Component("", float.PositiveInfinity))
+            .Add<Condition.Hidden>()
+            .Add<Condition.IgnoreOnDeath>()
+            .ChildOf(playerEntity);
     }
     public static void HeatChangedEvent(Entity playerEntity, float delta, float duration = 0, int id = 0)
     {

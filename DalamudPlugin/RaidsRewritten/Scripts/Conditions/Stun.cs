@@ -5,29 +5,35 @@ namespace RaidsRewritten.Scripts.Conditions;
 
 public class Stun
 {
+    public const int Id = 0x5709;
+
     public record struct Component(object _);
 
-    public static Entity ApplyToTarget(Entity target, float duration, int id = 0, bool extendDuration = false)
+    public static void ApplyToTarget(Entity target, float duration, bool extendDuration = false, bool overrideExistingDuration = false)
     {
-        var world = target.CsWorld();
-        var entity = Condition.ApplyToTarget(target, "Stunned", duration, id, extendDuration);
-        if (!entity.Has<Component>())
+        DelayedAction.Create(target.CsWorld(), (ref Iter it) =>
         {
-            entity.Set(new Component());
-        }
+            var world = it.World();
 
-        world.Entity()
-            .Set(new ActorVfx("vfx/common/eff/dk05ht_sta0h.avfx"))
-            .ChildOf(entity);
-        DelayedAction.Create(world,
-            () =>
+            var condition = Condition.ApplyToTarget(target, "Stunned", duration, Id, extendDuration, overrideExistingDuration);
+
+            // Application VFX
+            world.Entity()
+                .Set(new ActorVfx("vfx/common/eff/dk05ht_sta0h.avfx"))
+                .ChildOf(condition);
+
+            if (!condition.Has<Component>())
             {
-                world.Entity()
-                    .Set(new ActorVfx("vfx/common/eff/dk10ht_sta0f.avfx"))
-                    .ChildOf(entity);
-            },
-            0.6f).ChildOf(entity);
+                condition.Set(new Component());
 
-        return entity;
+                DelayedAction.Create(world, (ref Iter it) =>
+                {
+                    // Looped VFX
+                    it.World().Entity()
+                        .Set(new ActorVfx("vfx/common/eff/dk10ht_sta0f.avfx"))
+                        .ChildOf(condition);
+                }, 0.6f).ChildOf(condition);
+            }
+        }, 0, true);
     }
 }

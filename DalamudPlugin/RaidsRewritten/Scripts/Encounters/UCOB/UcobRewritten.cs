@@ -3,6 +3,7 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 using RaidsRewritten.Game;
 using RaidsRewritten.Scripts.Conditions;
+using RaidsRewritten.UI.Util;
 using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Encounters.UCOB;
@@ -184,6 +185,8 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             configuration.Save();
             RefreshMechanics();
         }
+        ImGui.SameLine();
+        Common.HelpMarker("Make sure all players are on the same RNG seed!");
 
         bool tankbusterAftershock = configuration.GetEncounterSetting(TankbusterAftershockKey, true);
         if (ImGui.Checkbox("Tankbuster Aftershocks", ref tankbusterAftershock))
@@ -260,6 +263,8 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             configuration.Save();
             RefreshMechanics();
         }
+
+        ImGui.Text("Fun Extras");
 
         bool permanentTwisters = configuration.GetEncounterSetting(PermanentTwistersKey, false);
         if (ImGui.Checkbox("Permanent Twisters", ref permanentTwisters))

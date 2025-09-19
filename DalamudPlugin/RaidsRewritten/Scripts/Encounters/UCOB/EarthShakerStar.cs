@@ -13,8 +13,6 @@ public class EarthShakerStar : Mechanic
     public const string VfxPath = "bgcommon/world/common/vfx_for_btl/b0801/eff/b0801_yuka_o.avfx";
 
     private const uint EarthShakerPuddleDataId = 0x1E9663;
-    private const int StunId = 0x1E96631;
-    private const int PacifyId = 0x1E96632;
 
     private readonly List<Entity> attacks = [];
 
@@ -54,8 +52,8 @@ public class EarthShakerStar : Mechanic
                 VfxPath: "vfx/monster/gimmick5/eff/x6r7_b3_g08_c0p.avfx",
                 OnHit: e =>
                 {
-                    Stun.ApplyToTarget(e, 5.0f, StunId, true);
-                    Pacify.ApplyToTarget(e, 30.0f, PacifyId, true);
+                    Stun.ApplyToTarget(e, 5.0f, true);
+                    Pacify.ApplyToTarget(e, 30.0f, true);
                 }));
             star.Set(new Position(newObject.Position));
             attacks.Add(star);

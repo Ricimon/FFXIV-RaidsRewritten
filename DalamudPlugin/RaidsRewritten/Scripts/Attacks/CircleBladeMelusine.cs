@@ -37,7 +37,6 @@ public class CircleBladeMelusine(DalamudServices dalamud, VfxSpawn vfxSpawn, Com
     private const ushort IdleAnimation = 34;
     private const ushort AttackAnimation = 2863;
     private const float AttackScale = 15f;
-    private const int HysteriaId = 0xF1B1;
     private const float HysteriaDuration = 30f;
     private const float RedirectInterval = 15f;
     private const string AttackVfx = "vfx/monster/d1014/eff/d1014sp04c0h.avfx";
@@ -111,8 +110,8 @@ public class CircleBladeMelusine(DalamudServices dalamud, VfxSpawn vfxSpawn, Com
                                         {
                                             DelayedAction.Create(world, () =>
                                             {
-                                                Hysteria.ApplyToTarget(e, HysteriaDuration, RedirectInterval, HysteriaId);
-                                            }, 0.2f, true);
+                                                Hysteria.ApplyToTarget(e, HysteriaDuration, RedirectInterval);
+                                            }, 0.2f);
                                         });
                                     }
                                 }

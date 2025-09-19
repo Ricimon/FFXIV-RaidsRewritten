@@ -28,7 +28,6 @@ public sealed class JumpableShockwave(DalamudServices dalamud, CommonQueries com
     private const float Speed = 4.0f;
     private const float JumpClearance = 1.0f;
     private const float StunDuration = 10.0f;
-    private const int StunId = 42140;
 
     public Entity Create(World world)
     {
@@ -114,7 +113,7 @@ public sealed class JumpableShockwave(DalamudServices dalamud, CommonQueries com
                             {
                                 commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
                                 {
-                                    Stun.ApplyToTarget(e, StunDuration, StunId);
+                                    Stun.ApplyToTarget(e, StunDuration);
                                 });
                             }
                         }

@@ -32,8 +32,6 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
     private const ushort IdleAnimation = 34;
     private const ushort LineAttackAnimation = 2262;
     private const ushort CircleAttackAnimation = 2260;
-    private const int ParalysisId = 0xBAD;
-    private const int PacifyId = 0xBAE;
     private const float SnapshotEffectDelay = 0.25f;
     private const float ParalysisDuration = 30f;
     private const float PacifyDuration = 20f;
@@ -126,8 +124,8 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
                                 {
                                     DelayedAction.Create(e.CsWorld(), () =>
                                     {
-                                        Paralysis.ApplyToTarget(e, ParalysisDuration, StunInterval, StunDuration, ParalysisId);
-                                        Pacify.ApplyToTarget(e, PacifyDuration, PacifyId);
+                                        Paralysis.ApplyToTarget(e, ParalysisDuration, StunInterval, StunDuration);
+                                        Pacify.ApplyToTarget(e, PacifyDuration);
                                     }, SnapshotEffectDelay);
                                 });
                             }
@@ -212,8 +210,8 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
                                     {
                                         DelayedAction.Create(e.CsWorld(), () =>
                                         {
-                                            Paralysis.ApplyToTarget(e, ParalysisDuration, StunInterval, StunDuration, ParalysisId);
-                                            Pacify.ApplyToTarget(e, PacifyDuration, PacifyId);
+                                            Paralysis.ApplyToTarget(e, ParalysisDuration, StunInterval, StunDuration);
+                                            Pacify.ApplyToTarget(e, PacifyDuration);
                                         }, SnapshotEffectDelay);
                                     });
                                 }

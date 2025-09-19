@@ -9,15 +9,15 @@ namespace RaidsRewritten.Scripts.Conditions;
 public class Condition(ILogger logger) : ISystem
 {
     public record struct Component(string Name, float TimeRemaining);
+    public record struct Id(int Value);
     public struct Hidden;
     public struct IgnoreOnDeath;
-    private record struct Id(int Value);
 
     /// <summary>
     /// This method is used to refresh the duration of an existing condition with the same ID.
     /// An ID of 0 is treated as an unrefreshable condition.
     /// </summary>
-    public static Entity ApplyToTarget(Entity target, string name, float duration, int id = 0, bool extendDuration = false)
+    public static Entity ApplyToTarget(Entity target, string name, float duration, int id, bool extendDuration, bool overrideExistingDuration)
     {
         var world = target.CsWorld();
         if (id != 0)
@@ -32,7 +32,7 @@ public class Condition(ILogger logger) : ISystem
                     {
                         component.TimeRemaining += duration;
                     }
-                    else
+                    else if (duration > component.TimeRemaining || overrideExistingDuration)
                     {
                         component.TimeRemaining = duration;
                     }

@@ -8,17 +8,23 @@ namespace RaidsRewritten.Scripts.Conditions;
 
 public class Paralysis(Random random, ILogger logger) : ISystem
 {
+    public const int Id = 0x91FA;
+
     public record struct Component(float StunInterval, float StunDuration,
         float ElapsedTime = 0, float TimeOffset = 0, bool StunActive = false, int LastTimeIntervalEvaluation = -1);
 
-    public static Entity ApplyToTarget(Entity target, float duration, float stunInterval, float stunDuration, int id = 0)
+    public static void ApplyToTarget(Entity target, float duration, float stunInterval, float stunDuration, int id = Id, bool extendDuration = false)
     {
-        var entity = Condition.ApplyToTarget(target, "Paralyzed", duration, id);
-        if (!entity.Has<Component>())
+        DelayedAction.Create(target.CsWorld(), (ref Iter it) =>
         {
-            entity.Set(new Component(stunInterval, stunDuration, TimeOffset: stunInterval));
-        }
-        return entity;
+            var world = it.World();
+
+            var condition = Condition.ApplyToTarget(target, "Paralyzed", duration, id, extendDuration, false);
+            if (!condition.Has<Component>())
+            {
+                condition.Set(new Component(stunInterval, stunDuration, TimeOffset: stunInterval));
+            }
+        }, 0, true);
     }
 
     public void Register(World world)
