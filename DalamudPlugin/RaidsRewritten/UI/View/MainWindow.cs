@@ -658,6 +658,39 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             }
         }
 
+        ImGui.SameLine();
+
+        if (ImGui.Button("ADS Stepped Leader"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<ADS>(out var ads))
+                {
+                    var originalPosition = player.Position;
+                    ads.Set(new Position(player.Position))
+                        .Set(new Rotation(player.Rotation));
+                    DelayedAction.Create(ads.CsWorld(), () =>
+                    {
+                        var player = this.dalamud.ClientState.LocalPlayer;
+                        if (player != null)
+                        {
+                            ADS.CastSteppedLeader(ads, player.Position);
+                        }
+                    }, 3f);
+                    DelayedAction.Create(ads.CsWorld(), () =>
+                    {
+                        var player = this.dalamud.ClientState.LocalPlayer;
+                        if (player != null)
+                        {
+                            ADS.CastSteppedLeader(ads, player.Position);
+                        }
+                    }, 9f);
+                    DelayedAction.Create(ads.CsWorld(), ads.Destruct, 15f);
+                }
+            }
+        } 
+
         if (ImGui.Button("Close Tether to Target"))
         {
             var player = this.dalamud.ClientState.LocalPlayer;

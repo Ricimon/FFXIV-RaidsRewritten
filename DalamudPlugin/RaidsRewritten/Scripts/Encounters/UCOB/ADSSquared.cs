@@ -2,6 +2,7 @@
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using Flecs.NET.Core;
+using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks;
 using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Utility;
@@ -36,6 +37,7 @@ public class ADSSquared : Mechanic
     private const int TenstrikeTrio = 9958;
     private const int NumAdjacentToAvoid = 2;
     private const int AethericProfusion = 9905;
+    private const float ADSReuseDelay = 2.6f;
     private readonly Dictionary<int, MechanicInfoPair> MechanicInfo = new Dictionary<int, MechanicInfoPair>
     {
         {
@@ -76,12 +78,14 @@ public class ADSSquared : Mechanic
     private int flareBreathCounter = 0;
     private DateTime lastFlareBreath = DateTime.MinValue;
     private int dalamudDiveCounter = 0;
+    private bool isLine = true;
 
     public override void Reset()
     {
         SoftReset();
         difficulty = 0;
         dalamudDiveCounter = 0;
+        isLine = true;
     }
 
     private void SoftReset()
@@ -144,6 +148,7 @@ public class ADSSquared : Mechanic
             case CalamitiousBlaze:
                 SoftReset();
                 difficulty = 1;
+                isLine = false;
                 break;
             case FellruinTrio:
                 attacks.Add(DelayedAction.Create(World, () =>
@@ -168,7 +173,24 @@ public class ADSSquared : Mechanic
     public override void OnFrameworkUpdate(IFramework framework)
     {
         ProcessFlareBreathCounter();
-        ShootRandomADS();
+
+        if (attacks.Count == 0) { return; }
+        if (stopCasting) { return; }
+        if ((DateTime.Now - lastProc).TotalMilliseconds < MechanicInfo[difficulty].IntervalMilliseconds) { return; }
+
+        if (isLine)
+        {
+            ShootRandomADSLine();
+        } else
+        {
+            ShootRandomADSCircle();
+            // shoot 2 at once pre tenstrike
+            if (difficulty == 2) { ShootRandomADSCircle(); }
+        }
+
+        if (difficulty == 2) { isLine = !isLine; }
+        
+        //Logger.Debug($"Avail: {availableADS.Count}");
     }
 
     private void SpawnADSes()
@@ -199,12 +221,8 @@ public class ADSSquared : Mechanic
         }
     }
 
-    private void ShootRandomADS()
+    private void ShootRandomADSLine()
     {
-        if (attacks.Count == 0) { return; }
-        if (stopCasting) { return; }
-        if ((DateTime.Now - lastProc).TotalMilliseconds < MechanicInfo[difficulty].IntervalMilliseconds) { return; }
-
         var sourcePair = availableADS[random.Next(availableADS.Count)];
         var sourceNum = sourcePair.Item1;
         var source = sourcePair.Item2;
@@ -217,11 +235,7 @@ public class ADSSquared : Mechanic
         var targetNum = targetPair.Item1;
         var target = targetPair.Item2;
 
-        availableADS.Remove(sourcePair);
-        attacks.Add(DelayedAction.Create(World, () =>
-        {
-            availableADS.Add(sourcePair);
-        }, 2.6f));
+        RemoveADSFromAvailablePool(sourcePair);
 
         if (source.TryGet<Position>(out var sourcePos) && target.TryGet<Position>(out var targetPos))
         {
@@ -231,6 +245,42 @@ public class ADSSquared : Mechanic
             }
             lastProc = DateTime.Now;
         }
+    }
+
+    private void ShootRandomADSCircle()
+    {
+        var sourcePair = availableADS[random.Next(availableADS.Count)];
+        var sourceNum = sourcePair.Item1;
+        var source = sourcePair.Item2;
+
+        var pos1 = RandomPointInArena();
+        var pos2 = RandomPointInArena();
+
+        RemoveADSFromAvailablePool(sourcePair);
+
+        if (!ADS.CastSteppedLeader(source, pos1, pos2))
+        {
+            this.Logger.Debug("ADS tried to cast before it was ready");
+        }
+        lastProc = DateTime.Now;
+    }
+
+    private Vector3 RandomPointInArena()
+    {
+        var distanceFromCenter = ArenaRadius * MathF.Sqrt(random.NextSingle());
+        var angle = random.NextSingle() * 2 * MathF.PI;
+        var X = MathF.Cos(angle) * distanceFromCenter + ArenaCenter.X;
+        var Z = MathF.Sin(angle) * distanceFromCenter + ArenaCenter.Z;
+        return new Vector3(X, ArenaCenter.Y, Z);
+    }
+
+    private void RemoveADSFromAvailablePool((int, Entity) pair)
+    {
+        availableADS.Remove(pair);
+        attacks.Add(DelayedAction.Create(World, () =>
+        {
+            availableADS.Add(pair);
+        }, ADSReuseDelay));
     }
 
     private void ProcessFlareBreathCounter()
