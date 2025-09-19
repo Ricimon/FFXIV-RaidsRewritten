@@ -45,8 +45,8 @@ public class TankbusterAftershock : Mechanic
                 OmenVisibleSeconds = 0.65f,
                 VfxPath = "vfx/monster/m0117/eff/baha_earth_90c0s.avfx",
                 DelaySeconds = 0.65f,
-                VfxDelaySeconds = 0.4f,
-                StatusDelaySeconds = 0.5f
+                VfxDelaySeconds = 0.15f,
+                StatusDelaySeconds = 0.25f
             }
         },
         // plummet
@@ -58,8 +58,8 @@ public class TankbusterAftershock : Mechanic
                 OmenVisibleSeconds = 0.5f,
                 VfxPath = "vfx/monster/m0389/eff/m389sp_05c0n.avfx",
                 DelaySeconds = 0.8f,
-                VfxDelaySeconds = 0.3f,
-                StatusDelaySeconds = 0.4f
+                VfxDelaySeconds = 0.05f,
+                StatusDelaySeconds = 0.15f
             }
         }
     };

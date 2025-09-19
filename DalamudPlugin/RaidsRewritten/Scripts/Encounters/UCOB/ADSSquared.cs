@@ -200,7 +200,7 @@ public class ADSSquared : Mechanic
         {
             seed += difficulty * 733;
         }
-        var random = new Random(seed);
+        random = new Random(seed);
 
         for (int i = 0; i < MechanicInfo[difficulty].NumADS; i++)
         {

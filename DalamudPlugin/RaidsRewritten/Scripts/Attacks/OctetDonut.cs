@@ -30,7 +30,7 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
     {
         { Phase.Omen, 0 },
         { Phase.Snapshot, 4.75f },
-        { Phase.SpawnObstacleCourse, 5.25f },
+        { Phase.SpawnObstacleCourse, 5f },
         { Phase.Destruct, 60f }
     };
 
