@@ -29,7 +29,7 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
     private readonly Dictionary<Phase, float> phaseTimings = new()
     {
         { Phase.Omen, 0 },
-        { Phase.Snapshot, 4.5f },
+        { Phase.Snapshot, 4.75f },
         { Phase.SpawnObstacleCourse, 5f },
         { Phase.Destruct, 60f }
     };
@@ -38,6 +38,7 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
     public record struct TornadoDirection(bool IsClockwise, float Radius, float CurrentAngle);
     public record struct SeededRandom(Random Random);
 
+    private const float OmenDuration = 4.75f;
     private const float BaseTornadoSpeed = 5.4f;
     private const float OuterTornadoDistance = 20.25f;
     private const float InnerTornadoDistance = 14.25f;
@@ -68,6 +69,7 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
                     OneThirdDonutOmen.CreateEntity(world)
                         .Set(new Position(position.Value))
                         .Set(new Scale(new Vector3(OmenScale)))
+                        .Set(new OmenDuration(OmenDuration, false))
                         .ChildOf(entity);
 
                     component.Phase = Phase.Snapshot;

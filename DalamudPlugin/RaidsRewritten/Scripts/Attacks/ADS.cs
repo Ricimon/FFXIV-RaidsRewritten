@@ -22,20 +22,25 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
     }
 
     public struct ADSEntity;
-    public record struct Action(float Angle, float ElapsedTime = 0, Phase Phase = Phase.Omen);
+    public record struct LineAction(float Angle, float ElapsedTime = 0, Phase Phase = Phase.Omen);
+    public record struct CircleAction(Vector3 TargetPosition1, Vector3? TargetPosition2, float ElapsedTime = 0, Phase Phase = Phase.Omen);
 
-    private const string ActionVfx = "vfx/monster/m0653/eff/m0653sp16_c0a1.avfx";
+    private const float OmenDuration = 2.45f;
+    private const string LineActionVfx = "vfx/monster/m0653/eff/m0653sp16_c0a1.avfx";
     private const string CastingVfx = "vfx/common/eff/mon_eisyo03t.avfx";
+    private const string CircleActionVfx = "vfx/monster/gimmick2/eff/e3fa_b_g05c0j.avfx";
     private const ushort IdleAnimation = 34;
-    private const ushort AttackAnimation = 2262;
+    private const ushort LineAttackAnimation = 2262;
+    private const ushort CircleAttackAnimation = 2260;
     private const int ParalysisId = 0xBAD;
+    private const float SnapshotEffectDelay = 0.25f;
     private readonly Dictionary<Phase, float> phaseTimings = new()
     {
         { Phase.Omen, 0f },
-        { Phase.Animation, 1.5f },
-        { Phase.Snapshot, 2.2f },
-        { Phase.Vfx, 2.2f },
-        { Phase.Reset, 2.4f },
+        { Phase.Animation, 1.85f },
+        { Phase.Snapshot, 2.45f },
+        { Phase.Vfx, 2.55f },
+        { Phase.Reset, 2.55f },
     };
 
     public static Entity CreateEntity(World world)
@@ -59,7 +64,7 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
 
     public void Register(World world)
     {
-        world.System<Action, Position, Rotation>().With<ADSEntity>().Each((Iter it, int i, ref Action component, ref Position position, ref Rotation rotation) =>
+        world.System<LineAction, Position, Rotation>().With<ADSEntity>().Each((Iter it, int i, ref LineAction component, ref Position position, ref Rotation rotation) =>
         {
             component.ElapsedTime += it.DeltaTime();
 
@@ -75,6 +80,7 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
                         omen.Set(new Position(position.Value))
                             .Set(new Rotation(component.Angle))
                             .Set(new Scale(new Vector3(0.75f, 1, 44)))
+                            .Set(new OmenDuration(OmenDuration, false))
                             .ChildOf(entity);
                     }
                     component.Phase = Phase.Animation;
@@ -82,7 +88,7 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
                 case Phase.Animation:
                     if (ShouldReturn(component)) { return; }
                     entity.Set(new Rotation(component.Angle))
-                        .Set(new TimelineBase(AttackAnimation));
+                        .Set(new TimelineBase(LineAttackAnimation));
                     component.Phase = Phase.Snapshot;
                     break;
                 case Phase.Snapshot:
@@ -104,13 +110,19 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
                         {
                             if (player.HasTranscendance())
                             {
-                                vfxSpawn.PlayInvulnerabilityEffect(player);
+                                DelayedAction.Create(world, () =>
+                                {
+                                    vfxSpawn.PlayInvulnerabilityEffect(player);
+                                }, SnapshotEffectDelay);
                             }
                             else
                             {
                                 commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
                                 {
-                                    Paralysis.ApplyToTarget(e, 30f, 3f, 1f, ParalysisId);
+                                    DelayedAction.Create(e.CsWorld(), () =>
+                                    {
+                                        Paralysis.ApplyToTarget(e, 30f, 3f, 1f, ParalysisId);
+                                    }, SnapshotEffectDelay);
                                 });
                             }
                         }
@@ -120,25 +132,135 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
                     break;
                 case Phase.Vfx:
                     if (ShouldReturn(component)) { return; }
-                    AddActorVfx(entity, ActionVfx);
+                    AddActorVfx(entity, LineActionVfx);
                     component.Phase = Phase.Reset;
                     break;
                 case Phase.Reset:
                     if (ShouldReturn(component)) { return; }
-                    it.Entity(i).Remove<Action>();
+                    it.Entity(i).Remove<LineAction>();
                     break;
             }
         });
+
+        world.System<CircleAction, Position>().With<ADSEntity>()
+            .Each((Iter it, int i, ref CircleAction component, ref Position _) =>
+            {
+                component.ElapsedTime += it.DeltaTime();
+
+                var entity = it.Entity(i);
+
+                switch (component.Phase)
+                {
+                    case Phase.Omen:
+                        if (ShouldReturn(component)) { return; }
+                        AddActorVfx(entity, CastingVfx);
+                        CircleOmen.CreateEntity(world)
+                            .Set(new Position(component.TargetPosition1))
+                            .Set(new Scale(new Vector3(2f)))
+                            .Set(new OmenDuration(OmenDuration, false))
+                            .ChildOf(entity);
+
+                        if (component.TargetPosition2.HasValue)
+                        {
+                            CircleOmen.CreateEntity(world)
+                                .Set(new Position(component.TargetPosition2.Value))
+                                .Set(new Scale(new Vector3(2f)))
+                                .Set(new OmenDuration(OmenDuration, false))
+                                .ChildOf(entity);
+                        }
+
+                        component.Phase = Phase.Animation;
+                        break;
+                    case Phase.Animation:
+                        if (ShouldReturn(component)) { return; }
+                        entity.Set(new TimelineBase(CircleAttackAnimation));
+                        component.Phase = Phase.Snapshot;
+                        break;
+                    case Phase.Snapshot:
+                        if (ShouldReturn(component))
+                        {
+                            entity.Set(new TimelineBase(IdleAnimation));
+                            return;
+                        }
+                        entity.Children(child =>
+                        {
+                            if (!child.Has<Omen>())
+                            {
+                                child.Destruct();
+                                return;
+                            }
+
+                            var player = dalamud.ClientState.LocalPlayer;
+
+                            if (player != null && !player.IsDead && CircleOmen.IsInOmen(child, player.Position))
+                            {
+                                if (player.HasTranscendance())
+                                {
+                                    DelayedAction.Create(world, () =>
+                                    {
+                                        vfxSpawn.PlayInvulnerabilityEffect(player);
+                                    }, SnapshotEffectDelay);
+                                } else
+                                {
+                                    commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
+                                    {
+                                        DelayedAction.Create(e.CsWorld(), () =>
+                                        {
+                                            Paralysis.ApplyToTarget(e, 30f, 3f, 1f, ParalysisId);
+                                        }, SnapshotEffectDelay);
+                                    });
+                                }
+                            }
+                            child.Destruct();
+                        });
+                        component.Phase = Phase.Vfx;
+                        break;
+                    case Phase.Vfx:
+                        if (ShouldReturn(component)) { return; }
+                        FakeActor.Create(world)
+                            .Set(new Position(component.TargetPosition1))
+                            .Set(new ActorVfx(CircleActionVfx))
+                            .ChildOf(entity);
+                        if (component.TargetPosition2.HasValue)
+                        {
+                            FakeActor.Create(world)
+                                .Set(new Position(component.TargetPosition2.Value))
+                                .Set(new ActorVfx(CircleActionVfx))
+                                .ChildOf(entity);
+                        }
+                        component.Phase = Phase.Reset;
+                        break;
+                    case Phase.Reset:
+                        if (ShouldReturn(component)) { return; }
+                        it.Entity(i).Remove<CircleAction>();
+                        break;
+                }
+            });
     }
 
     public static bool CastLineAoe(Entity entity, float angle)
     {
-        if (entity.Has<Action>()) { return false; }
-        entity.Set(new Action(angle));
+        if (entity.Has<LineAction>() || entity.Has<CircleAction>()) { return false; }
+        entity.Set(new LineAction(angle));
         return true;
     }
 
-    public bool ShouldReturn(Action component)
+    public static bool CastSteppedLeader(Entity entity, Vector3 targetPosition1, Vector3? targetPosition2 = null)
+    {
+        if (entity.Has<LineAction>() || entity.Has<CircleAction>()) { return false; }
+        entity.Set(new CircleAction(targetPosition1, targetPosition2));
+        return true;
+    }
+
+    public bool ShouldReturn(LineAction component)
+    {
+        if (phaseTimings.TryGetValue(component.Phase, out var phaseTiming))
+        {
+            if (component.ElapsedTime < phaseTiming) { return true; }
+        }
+        return false;
+    } 
+    public bool ShouldReturn(CircleAction component)
     {
         if (phaseTimings.TryGetValue(component.Phase, out var phaseTiming))
         {

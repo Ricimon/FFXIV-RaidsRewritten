@@ -45,8 +45,8 @@ public class TankbusterAftershock : Mechanic
                 OmenVisibleSeconds = 0.65f,
                 VfxPath = "vfx/monster/m0117/eff/baha_earth_90c0s.avfx",
                 DelaySeconds = 0.65f,
-                VfxDelaySeconds = 0.4f,
-                StatusDelaySeconds = 0.5f
+                VfxDelaySeconds = 0.15f,
+                StatusDelaySeconds = 0.25f
             }
         },
         // plummet
@@ -58,12 +58,13 @@ public class TankbusterAftershock : Mechanic
                 OmenVisibleSeconds = 0.5f,
                 VfxPath = "vfx/monster/m0389/eff/m389sp_05c0n.avfx",
                 DelaySeconds = 0.8f,
-                VfxDelaySeconds = 0.3f,
-                StatusDelaySeconds = 0.4f
+                VfxDelaySeconds = 0.05f,
+                StatusDelaySeconds = 0.15f
             }
         }
     };
 
+    private const float OmenSnapshotDelay = 0.25f;
     private const float TurnDelaySeconds = 0.5f;
     private const float HeavyDurationSeconds = 20f;
     private const int HeavyId = 99409896;
@@ -130,13 +131,13 @@ public class TankbusterAftershock : Mechanic
         // check if player is in telegraph
         delayedAction = DelayedAction.Create(this.World, () => 
             Aftershock(aftershockData, fakeActorFront, originalPosition, originalRotation, ToDestruct),
-            aftershockData.DelaySeconds + aftershockData.OmenVisibleSeconds
+            aftershockData.DelaySeconds + aftershockData.OmenVisibleSeconds + OmenSnapshotDelay
         );
         ToDestruct.Add(delayedAction);
 
         delayedAction = DelayedAction.Create(this.World, () =>
             Aftershock(aftershockData, fakeActorBack, originalPosition, backAngle, ToDestruct),
-            aftershockData.DelaySeconds + aftershockData.OmenVisibleSeconds
+            aftershockData.DelaySeconds + aftershockData.OmenVisibleSeconds + OmenSnapshotDelay
         );
         ToDestruct.Add(delayedAction);
 
