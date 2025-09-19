@@ -192,7 +192,7 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
 
                             var player = dalamud.ClientState.LocalPlayer;
 
-                            if (player != null && !player.IsDead && RectangleOmen.IsInOmen(child, player.Position))
+                            if (player != null && !player.IsDead && CircleOmen.IsInOmen(child, player.Position))
                             {
                                 if (player.HasTranscendance())
                                 {
