@@ -37,7 +37,7 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
         { Phase.Animation, 1.85f },
         { Phase.Snapshot, 2.2f },
         { Phase.Vfx, 2.55f },
-        { Phase.Reset, 2.4f },
+        { Phase.Reset, 2.55f },
     };
 
     public static Entity CreateEntity(World world)

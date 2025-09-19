@@ -218,7 +218,7 @@ public class ADSSquared : Mechanic
         attacks.Add(DelayedAction.Create(World, () =>
         {
             availableADS.Add(sourcePair);
-        }, 2.5f));
+        }, 2.6f));
 
         if (source.TryGet<Position>(out var sourcePos) && target.TryGet<Position>(out var targetPos))
         {
