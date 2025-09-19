@@ -67,8 +67,9 @@ public class TankbusterAftershock : Mechanic
     private const float OmenSnapshotDelay = 0.25f;
     private const float TurnDelaySeconds = 0.5f;
     private const float HeavyDurationSeconds = 20f;
+    private const float PacifyDurationSeconds = 20f;
     private const int HeavyId = 99409896;
-
+    private const int PacifyId = 99409897;
     private readonly List<List<Entity>> attacks = [];
 
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
@@ -218,6 +219,7 @@ public class TankbusterAftershock : Mechanic
                     DelayedAction.Create(e.CsWorld(), () =>
                     {
                         Heavy.ApplyToTarget(e, HeavyDurationSeconds, HeavyId, true);
+                        Pacify.ApplyToTarget(e, PacifyDurationSeconds, PacifyId, true);
                     }, aftershockData.StatusDelaySeconds);
                 }
             }
