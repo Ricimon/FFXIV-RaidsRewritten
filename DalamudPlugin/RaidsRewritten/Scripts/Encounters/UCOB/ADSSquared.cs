@@ -62,6 +62,7 @@ public class ADSSquared : Mechanic
 
     public int RngSeed { get; set; }
 
+    Random random = new Random();
     private readonly List<Entity> attacks = [];
     private readonly List<(int, Entity)> totalADS = [];
     private readonly List<(int, Entity)> availableADS = [];
@@ -71,14 +72,12 @@ public class ADSSquared : Mechanic
     private int flareBreathCounter = 0;
     private DateTime lastFlareBreath = DateTime.MinValue;
     private int dalamudDiveCounter = 0;
-    private int numADSShot = 0;
 
     public override void Reset()
     {
         SoftReset();
         difficulty = 0;
         dalamudDiveCounter = 0;
-        numADSShot = 0;
     }
 
     private void SoftReset()
@@ -170,6 +169,13 @@ public class ADSSquared : Mechanic
 
     private void SpawnADSes()
     {
+        var seed = RngSeed;
+        unchecked
+        {
+            seed += difficulty * 733;
+        }
+        var random = new Random(seed);
+
         for (int i = 0; i < MechanicInfo[difficulty].NumADS; i++)
         {
             if (this.AttackManager.TryCreateAttackEntity<ADS>(out var ads))
@@ -195,13 +201,6 @@ public class ADSSquared : Mechanic
         if (stopCasting) { return; }
         if ((DateTime.Now - lastProc).TotalMilliseconds < MechanicInfo[difficulty].IntervalMilliseconds) { return; }
 
-        var seed = RngSeed;
-        unchecked
-        {
-            seed += numADSShot * 733;
-        }
-        var random = new Random(seed);
-
         var sourcePair = availableADS[random.Next(availableADS.Count)];
         var sourceNum = sourcePair.Item1;
         var source = sourcePair.Item2;
@@ -225,9 +224,6 @@ public class ADSSquared : Mechanic
             if (!ADS.CastLineAoe(source, MathUtilities.GetAbsoluteAngleFromSourceToTarget(sourcePos.Value, targetPos.Value)))
             {
                 this.Logger.Debug("ADS tried to cast before it was ready");
-            } else
-            {
-                numADSShot++;
             }
             lastProc = DateTime.Now;
         }
