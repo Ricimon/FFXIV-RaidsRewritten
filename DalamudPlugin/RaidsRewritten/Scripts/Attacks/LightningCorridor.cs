@@ -34,8 +34,8 @@ public sealed class LightningCorridor(DalamudServices dalamud, CommonQueries com
     private readonly Dictionary<Phase, float> phaseTimings = new()
     {
         { Phase.Start, 0.0f },
-        { Phase.Omen, 0.5f },
-        { Phase.Snapshot, 0.2f },
+        { Phase.Omen, 0.7f },
+        { Phase.Snapshot, 0.0f },
         { Phase.Attack, 5.0f },
     };
 
@@ -63,6 +63,7 @@ public sealed class LightningCorridor(DalamudServices dalamud, CommonQueries com
                     if (component.ElapsedTime < totalPhaseDuration) { break; }
                     component.Phase = Phase.Omen;
 
+                    var omenDuration = this.phaseTimings[Phase.Omen];
                     var omen1 = RectangleOmen.CreateEntity(it.World());
                     {
                         var r = MathUtilities.ClampRadians(rotation.Value + 0.5f * MathF.PI);
@@ -70,6 +71,7 @@ public sealed class LightningCorridor(DalamudServices dalamud, CommonQueries com
                         omen1.Set(new Position(p))
                             .Set(new Rotation(r))
                             .Set(new Scale(40.0f * Vector3.One))
+                            .Set(new OmenDuration(omenDuration, false))
                             .ChildOf(entity);
                     }
                     var omen2 = RectangleOmen.CreateEntity(it.World());
@@ -79,6 +81,7 @@ public sealed class LightningCorridor(DalamudServices dalamud, CommonQueries com
                         omen2.Set(new Position(p))
                             .Set(new Rotation(r))
                             .Set(new Scale(40.0f * Vector3.One))
+                            .Set(new OmenDuration(omenDuration, false))
                             .ChildOf(entity);
                     }
                     break;
@@ -170,7 +173,7 @@ public sealed class LightningCorridor(DalamudServices dalamud, CommonQueries com
                             {
                                 commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
                                 {
-                                    Paralysis.ApplyToTarget(e, 30.0f, 3.0f, 1.0f, ParalysisId);
+                                    Paralysis.ApplyToTarget(e, 30.0f, 3.0f, 1.0f);
                                 });
                             }
                         }

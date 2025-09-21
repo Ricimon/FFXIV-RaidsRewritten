@@ -5,21 +5,26 @@ namespace RaidsRewritten.Scripts.Conditions;
 
 public class Pacify
 {
+    public const int Id = 0x9AC1F1;
+
     public record struct Component(object _);
 
-    public static Entity ApplyToTarget(Entity target, float duration, int id = 0, bool extendDuration = false)
+    public static void ApplyToTarget(Entity target, float duration, bool extendDuration = false, bool overrideExistingDuration = false)
     {
-        var world = target.CsWorld();
-        var entity = Condition.ApplyToTarget(target, "Pacified", duration, id, extendDuration);
-        if (!entity.Has<Component>())
+        DelayedAction.Create(target.CsWorld(), (ref Iter it) =>
         {
-            entity.Set(new Component());
-        }
+            var world = it.World();
 
-        world.Entity()
-            .Set(new ActorVfx("vfx/common/eff/dk05ht_ipws0t.avfx"))
-            .ChildOf(entity);
+            var condition = Condition.ApplyToTarget(target, "Pacified", duration, Id, extendDuration, overrideExistingDuration);
 
-        return entity;
+            world.Entity()
+                .Set(new ActorVfx("vfx/common/eff/dk05ht_ipws0t.avfx"))
+                .ChildOf(condition);
+
+            if (!condition.Has<Component>())
+            {
+                condition.Set(new Component());
+            }
+        }, 0, true).ChildOf(target);
     }
 }

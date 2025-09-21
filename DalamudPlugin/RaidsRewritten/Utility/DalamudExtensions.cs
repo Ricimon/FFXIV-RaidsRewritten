@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
+using ZLinq;
 
 namespace RaidsRewritten.Extensions;
 
@@ -35,7 +35,8 @@ public static class DalamudExtensions
 
     public static IEnumerable<IPlayerCharacter> GetPlayers(this IObjectTable objectTable)
     {
-        return objectTable.Where(go => go.ObjectKind == ObjectKind.Player).OfType<IPlayerCharacter>();
+        using var array = objectTable.AsValueEnumerable().Where(go => go.ObjectKind == ObjectKind.Player).OfType<IPlayerCharacter>().ToArrayPool();
+        return array.AsEnumerable();
     }
 
     public static string GetResourcePath(this IDalamudPluginInterface pluginInterface, string fileName)
@@ -47,6 +48,6 @@ public static class DalamudExtensions
     public static bool HasTranscendance(this IBattleChara battleChara)
     {
         // 418 = Transcendance status ID
-        return battleChara.StatusList.Any(s => s.StatusId == 418);
+        return battleChara.StatusList.AsValueEnumerable().Any(s => s.StatusId == 418);
     }
 }

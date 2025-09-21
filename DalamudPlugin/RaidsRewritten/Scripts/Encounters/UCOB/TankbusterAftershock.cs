@@ -12,7 +12,6 @@ using RaidsRewritten.Spawn;
 using RaidsRewritten.Utility;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading;
@@ -28,7 +27,6 @@ public class TankbusterAftershock : Mechanic
         public float TelegraphScale;
         public int TelegraphDegrees;
         public float OmenVisibleSeconds;
-        public string OmenPath;
         public string VfxPath;
 
         public float DelaySeconds;
@@ -45,11 +43,10 @@ public class TankbusterAftershock : Mechanic
                 TelegraphDegrees = 90,
                 TelegraphScale = 30f,
                 OmenVisibleSeconds = 0.65f,
-                OmenPath = "",
                 VfxPath = "vfx/monster/m0117/eff/baha_earth_90c0s.avfx",
                 DelaySeconds = 0.65f,
-                VfxDelaySeconds = 0.4f,
-                StatusDelaySeconds = 0.5f
+                VfxDelaySeconds = 0.15f,
+                StatusDelaySeconds = 0.25f
             }
         },
         // plummet
@@ -59,19 +56,18 @@ public class TankbusterAftershock : Mechanic
                 TelegraphDegrees = 120,
                 TelegraphScale = 10f,
                 OmenVisibleSeconds = 0.5f,
-                OmenPath = "vfx/omen/eff/gl_fan120_1bf.avfx",
                 VfxPath = "vfx/monster/m0389/eff/m389sp_05c0n.avfx",
                 DelaySeconds = 0.8f,
-                VfxDelaySeconds = 0.3f,
-                StatusDelaySeconds = 0.4f
+                VfxDelaySeconds = 0.05f,
+                StatusDelaySeconds = 0.15f
             }
         }
     };
 
+    private const float OmenSnapshotDelay = 0.25f;
     private const float TurnDelaySeconds = 0.5f;
     private const float HeavyDurationSeconds = 20f;
-    private const int HeavyId = 99409896;
-
+    private const float PacifyDurationSeconds = 20f;
     private readonly List<List<Entity>> attacks = [];
 
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
@@ -134,13 +130,13 @@ public class TankbusterAftershock : Mechanic
         // check if player is in telegraph
         delayedAction = DelayedAction.Create(this.World, () => 
             Aftershock(aftershockData, fakeActorFront, originalPosition, originalRotation, ToDestruct),
-            aftershockData.DelaySeconds + aftershockData.OmenVisibleSeconds
+            aftershockData.DelaySeconds + aftershockData.OmenVisibleSeconds + OmenSnapshotDelay
         );
         ToDestruct.Add(delayedAction);
 
         delayedAction = DelayedAction.Create(this.World, () =>
             Aftershock(aftershockData, fakeActorBack, originalPosition, backAngle, ToDestruct),
-            aftershockData.DelaySeconds + aftershockData.OmenVisibleSeconds
+            aftershockData.DelaySeconds + aftershockData.OmenVisibleSeconds + OmenSnapshotDelay
         );
         ToDestruct.Add(delayedAction);
 
@@ -161,23 +157,17 @@ public class TankbusterAftershock : Mechanic
 
     private void Telegraph(AftershockData aftershockData, Vector3 position, float rotation, List<Entity> ToDestruct)
     {
-        if (this.AttackManager.TryCreateAttackEntity<FanOmen>(out var FanOmen))
+        Entity FanOmen;
+        bool ret = false;
+        if (aftershockData.TelegraphDegrees == 90)
         {
-            FanOmen.Set(new Position(position))
-                   .Set(new Rotation(rotation))
-                   .Set(new Scale(new Vector3(aftershockData.TelegraphScale)));
-
-            if (!String.IsNullOrEmpty(aftershockData.OmenPath))
-            {
-                FanOmen.Set(new StaticVfx(aftershockData.OmenPath));
-            }
-
-            ToDestruct.Add(FanOmen);
+            ret = SpawnOmen<Fan90Omen>(out FanOmen, aftershockData, position, rotation, ToDestruct);
         } else
         {
-            Reset(ToDestruct);
-            return;
+            ret = SpawnOmen<Fan120Omen>(out FanOmen, aftershockData, position, rotation, ToDestruct);
         }
+
+        if (!ret) { return; }
 
         void DestroyTelegraph()
         {
@@ -186,6 +176,25 @@ public class TankbusterAftershock : Mechanic
         }
 
         var delayedAction = DelayedAction.Create(this.World, DestroyTelegraph, aftershockData.OmenVisibleSeconds);
+    }
+
+    private bool SpawnOmen<T>(out Entity FanOmen, AftershockData aftershockData, Vector3 position, float rotation, List<Entity> ToDestruct)
+    {
+        if (this.AttackManager.TryCreateAttackEntity<T>(out Entity tempFanOmen))
+        {
+            tempFanOmen.Set(new Position(position))
+                   .Set(new Rotation(rotation))
+                   .Set(new Scale(new Vector3(aftershockData.TelegraphScale)));
+
+            ToDestruct.Add(tempFanOmen);
+        } else
+        {
+            Reset(ToDestruct);
+            FanOmen = default;
+            return false;
+        }
+        FanOmen = tempFanOmen;
+        return true;
     }
 
     void Aftershock(AftershockData aftershockData, Entity fakeActor, Vector3 position, float rotation, List<Entity> ToDestruct)
@@ -207,7 +216,8 @@ public class TankbusterAftershock : Mechanic
                 {
                     DelayedAction.Create(e.CsWorld(), () =>
                     {
-                        Heavy.ApplyToTarget(e, HeavyDurationSeconds, HeavyId, true);
+                        Heavy.ApplyToTarget(e, HeavyDurationSeconds, true);
+                        Pacify.ApplyToTarget(e, PacifyDurationSeconds, true);
                     }, aftershockData.StatusDelaySeconds);
                 }
             }

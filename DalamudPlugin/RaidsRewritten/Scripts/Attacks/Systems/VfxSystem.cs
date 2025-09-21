@@ -66,21 +66,35 @@ public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogge
                 var vfx = e.Get<StaticVfx>();
                 if (vfx.VfxPtr != null && vfx.VfxPtr.Vfx != null)
                 {
+                    float a = 1.0f;
+                    if (e.TryGet(out Alpha alpha))
+                    {
+                        a = alpha.Value;
+                        if (a == 0)
+                        {
+                            vfx.VfxPtr.Remove();
+                            return;
+                        }
+                    }
+
                     Entity fadeOutEntity;
                     if (e.Has<Omen>())
                     {
+                        // Finish the fade
+                        var duration = 0.25f * a / 1.0f;
                         fadeOutEntity = e.CsWorld().Entity()
-                            .Set(new VfxFadeOut(vfx.VfxPtr, 0.25f, 0.25f));
+                            .Set(new VfxFadeOut(vfx.VfxPtr, duration, duration));
                     }
                     else
                     {
+                        // Non-omen VFX may be intentionally transparent, so use the full fadeout duration
                         fadeOutEntity = e.CsWorld().Entity()
                             .Set(new VfxFadeOut(vfx.VfxPtr, 1.0f, 1.0f));
                     }
 
-                    if (e.TryGet(out Alpha alpha))
+                    if (a != 1.0f)
                     {
-                        fadeOutEntity.Set(new Alpha(alpha.Value));
+                        fadeOutEntity.Set(new Alpha(a));
                     }
                 }
             });
@@ -138,13 +152,15 @@ public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogge
             {
                 var entity = it.Entity(i);
                 vfxFade.TimeRemaining -= it.DeltaTime();
-                if (vfxFade.TimeRemaining > 0)
+
+                float a = 1.0f;
+                if (entity.TryGet(out Alpha alpha))
                 {
-                    float a = 1.0f;
-                    if (entity.TryGet(out Alpha alpha))
-                    {
-                        a = alpha.Value;
-                    }
+                    a = alpha.Value;
+                }
+
+                if (vfxFade.TimeRemaining > 0 && a > 0)
+                {
                     vfxFade.VfxPtr.UpdateAlpha(a * vfxFade.TimeRemaining / vfxFade.Duration);
                 }
                 else

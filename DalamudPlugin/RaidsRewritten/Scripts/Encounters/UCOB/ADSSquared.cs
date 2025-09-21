@@ -2,12 +2,12 @@
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using Flecs.NET.Core;
+using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks;
 using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Utility;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,6 +20,7 @@ public class ADSSquared : Mechanic
     {
         public int NumADS;
         public float IntervalMilliseconds;
+        public int LineGap;
     }
 
     private readonly Vector3 ArenaCenter = new(0, 0, 0);
@@ -36,33 +37,38 @@ public class ADSSquared : Mechanic
     private const int TenstrikeTrio = 9958;
     private const int NumAdjacentToAvoid = 2;
     private const int AethericProfusion = 9905;
+    private const float ADSReuseDelay = 2.6f;
     private readonly Dictionary<int, MechanicInfoPair> MechanicInfo = new Dictionary<int, MechanicInfoPair>
     {
         {
             0, new MechanicInfoPair
             {
                 NumADS = 16,
-                IntervalMilliseconds = 220f
+                IntervalMilliseconds = 220f,
+                LineGap = 3
             }
         },
         {
             1, new MechanicInfoPair
             {
                 NumADS = 24,
-                IntervalMilliseconds = 165f
+                IntervalMilliseconds = 165f,
+                LineGap = 4
             }
         },
         {
             2, new MechanicInfoPair
             {
                 NumADS = 32,
-                IntervalMilliseconds = 110f
+                IntervalMilliseconds = 130f,
+                LineGap = 5
             }
         }
     };
 
     public int RngSeed { get; set; }
 
+    Random random = new Random();
     private readonly List<Entity> attacks = [];
     private readonly List<(int, Entity)> totalADS = [];
     private readonly List<(int, Entity)> availableADS = [];
@@ -72,14 +78,14 @@ public class ADSSquared : Mechanic
     private int flareBreathCounter = 0;
     private DateTime lastFlareBreath = DateTime.MinValue;
     private int dalamudDiveCounter = 0;
-    private int numADSShot = 0;
+    private bool isLine = true;
 
     public override void Reset()
     {
         SoftReset();
         difficulty = 0;
         dalamudDiveCounter = 0;
-        numADSShot = 0;
+        isLine = true;
     }
 
     private void SoftReset()
@@ -142,6 +148,7 @@ public class ADSSquared : Mechanic
             case CalamitiousBlaze:
                 SoftReset();
                 difficulty = 1;
+                isLine = false;
                 break;
             case FellruinTrio:
                 attacks.Add(DelayedAction.Create(World, () =>
@@ -166,11 +173,35 @@ public class ADSSquared : Mechanic
     public override void OnFrameworkUpdate(IFramework framework)
     {
         ProcessFlareBreathCounter();
-        ShootRandomADS();
+
+        if (attacks.Count == 0) { return; }
+        if (stopCasting) { return; }
+        if ((DateTime.Now - lastProc).TotalMilliseconds < MechanicInfo[difficulty].IntervalMilliseconds) { return; }
+
+        if (isLine)
+        {
+            ShootRandomADSLine();
+        } else
+        {
+            ShootRandomADSCircle();
+            // shoot 2 at once pre tenstrike
+            if (difficulty == 2) { ShootRandomADSCircle(); }
+        }
+
+        if (difficulty == 2) { isLine = !isLine; }
+        
+        //Logger.Debug($"Avail: {availableADS.Count}");
     }
 
     private void SpawnADSes()
     {
+        var seed = RngSeed;
+        unchecked
+        {
+            seed += difficulty * 733;
+        }
+        random = new Random(seed);
+
         for (int i = 0; i < MechanicInfo[difficulty].NumADS; i++)
         {
             if (this.AttackManager.TryCreateAttackEntity<ADS>(out var ads))
@@ -190,48 +221,66 @@ public class ADSSquared : Mechanic
         }
     }
 
-    private void ShootRandomADS()
+    private void ShootRandomADSLine()
     {
-        if (attacks.Count == 0) { return; }
-        if (stopCasting) { return; }
-        if ((DateTime.Now - lastProc).TotalMilliseconds < MechanicInfo[difficulty].IntervalMilliseconds) { return; }
-
-        var seed = RngSeed;
-        unchecked
-        {
-            seed += numADSShot * 733;
-        }
-        var random = new Random(seed);
-
         var sourcePair = availableADS[random.Next(availableADS.Count)];
         var sourceNum = sourcePair.Item1;
         var source = sourcePair.Item2;
 
         // avoid targeting self and adjacent (up to 2) ADSes 
-        var numAvoid = NumAdjacentToAvoid * 2 + 1;
+        var numAvoid = NumAdjacentToAvoid * MechanicInfo[difficulty].LineGap + 1;
         var randNum = random.Next(totalADS.Count - numAvoid);
         if (randNum > sourceNum - 2) { randNum += numAvoid; }
         var targetPair = totalADS[randNum];
         var targetNum = targetPair.Item1;
         var target = targetPair.Item2;
 
-        availableADS.Remove(sourcePair);
-        attacks.Add(DelayedAction.Create(World, () =>
-        {
-            availableADS.Add(sourcePair);
-        }, 2.5f));
+        RemoveADSFromAvailablePool(sourcePair);
 
         if (source.TryGet<Position>(out var sourcePos) && target.TryGet<Position>(out var targetPos))
         {
             if (!ADS.CastLineAoe(source, MathUtilities.GetAbsoluteAngleFromSourceToTarget(sourcePos.Value, targetPos.Value)))
             {
                 this.Logger.Debug("ADS tried to cast before it was ready");
-            } else
-            {
-                numADSShot++;
             }
             lastProc = DateTime.Now;
         }
+    }
+
+    private void ShootRandomADSCircle()
+    {
+        var sourcePair = availableADS[random.Next(availableADS.Count)];
+        var sourceNum = sourcePair.Item1;
+        var source = sourcePair.Item2;
+
+        var pos1 = RandomPointInArena();
+        var pos2 = RandomPointInArena();
+
+        RemoveADSFromAvailablePool(sourcePair);
+
+        if (!ADS.CastSteppedLeader(source, pos1, pos2))
+        {
+            this.Logger.Debug("ADS tried to cast before it was ready");
+        }
+        lastProc = DateTime.Now;
+    }
+
+    private Vector3 RandomPointInArena()
+    {
+        var distanceFromCenter = ArenaRadius * MathF.Sqrt(random.NextSingle());
+        var angle = random.NextSingle() * 2 * MathF.PI;
+        var X = MathF.Cos(angle) * distanceFromCenter + ArenaCenter.X;
+        var Z = MathF.Sin(angle) * distanceFromCenter + ArenaCenter.Z;
+        return new Vector3(X, ArenaCenter.Y, Z);
+    }
+
+    private void RemoveADSFromAvailablePool((int, Entity) pair)
+    {
+        availableADS.Remove(pair);
+        attacks.Add(DelayedAction.Create(World, () =>
+        {
+            availableADS.Add(pair);
+        }, ADSReuseDelay));
     }
 
     private void ProcessFlareBreathCounter()

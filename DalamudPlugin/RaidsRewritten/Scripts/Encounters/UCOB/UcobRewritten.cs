@@ -3,14 +3,15 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 using RaidsRewritten.Game;
 using RaidsRewritten.Scripts.Conditions;
+using RaidsRewritten.UI.Util;
 using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
 public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration configuration, EcsContainer ecsContainer) : IEncounter
 {
-    //public ushort TerritoryId => 733;
-    public ushort TerritoryId => 801;
+    public ushort TerritoryId => 733;
+
     public string Name => "UCOB Rewritten";
 
     // Config
@@ -31,7 +32,6 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
     private string TethersKey => $"{Name}.Tethers";
     private string EarthShakerStarKey => $"{Name}.EarthShakerStar";
     private string OctetCourseKey => $"{Name}.OctetCourse";
-    private string TransitionKey => $"{Name}.Transition";
 
     private readonly List<Mechanic> mechanics = [];
     private readonly string[] moreExaflaresDifficulties = [
@@ -127,15 +127,6 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             this.mechanics.Add(octetCourse);
         }
 
-        if (configuration.GetEncounterSetting(TransitionKey, true))
-        {
-            var transition = mechanicFactory.Create<Transition>();
-
-            var seed = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
-            transition.RngSeed = RandomUtilities.HashToRngSeed(seed);
-
-            this.mechanics.Add(transition);
-        }
         // Meme mechanics
 
         if (configuration.GetEncounterSetting(PermanentTwistersKey, false))
@@ -194,6 +185,8 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             configuration.Save();
             RefreshMechanics();
         }
+        ImGui.SameLine();
+        Common.HelpMarker("Make sure all players are on the same RNG seed!");
 
         bool tankbusterAftershock = configuration.GetEncounterSetting(TankbusterAftershockKey, true);
         if (ImGui.Checkbox("Tankbuster Aftershocks", ref tankbusterAftershock))
@@ -271,14 +264,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             RefreshMechanics();
         }
 
-        bool transition = configuration.GetEncounterSetting(TransitionKey, true);
-        if (ImGui.Checkbox("Transition Mechanic", ref transition))
-        {
-            configuration.EncounterSettings[TransitionKey] =
-                transition ? bool.TrueString : bool.FalseString;
-            configuration.Save();
-            RefreshMechanics();
-        }
+        ImGui.Text("Fun Extras");
 
         bool permanentTwisters = configuration.GetEncounterSetting(PermanentTwistersKey, false);
         if (ImGui.Checkbox("Permanent Twisters", ref permanentTwisters))
@@ -406,7 +392,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
         configuration.EncounterSettings[TethersKey] = bool.TrueString;
         configuration.EncounterSettings[EarthShakerStarKey] = bool.TrueString;
         configuration.EncounterSettings[OctetCourseKey] = bool.TrueString;
-        configuration.EncounterSettings[TransitionKey] = bool.TrueString;
+
         configuration.EncounterSettings[PermanentTwistersKey] = bool.FalseString;
         configuration.EncounterSettings[RollingBallKey] = bool.FalseString;
 
@@ -426,7 +412,6 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
         configuration.EncounterSettings[TethersKey] = bool.FalseString;
         configuration.EncounterSettings[EarthShakerStarKey] = bool.FalseString;
         configuration.EncounterSettings[OctetCourseKey] = bool.FalseString;
-        configuration.EncounterSettings[TransitionKey] = bool.FalseString;
         configuration.EncounterSettings[PermanentTwistersKey] = bool.FalseString;
         configuration.EncounterSettings[RollingBallKey] = bool.FalseString;
 

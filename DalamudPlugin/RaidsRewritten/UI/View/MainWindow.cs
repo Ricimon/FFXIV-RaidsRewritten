@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Numerics;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -29,6 +28,7 @@ using RaidsRewritten.Spawn;
 using RaidsRewritten.UI.Util;
 using RaidsRewritten.Utility;
 using Reactive.Bindings;
+using ZLinq;
 
 namespace RaidsRewritten.UI.View;
 
@@ -77,6 +77,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
     private readonly EcsContainer ecsContainer;
     private readonly CommonQueries commonQueries;
     private readonly VfxSpawn vfxSpawn;
+    private readonly Random random;
     private readonly ILogger logger;
 
     private readonly string windowName;
@@ -104,6 +105,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         EcsContainer ecsContainer,
         CommonQueries commonQueries,
         VfxSpawn vfxSpawn,
+        Random random,
         ILogger logger) : base(
         PluginInitializer.Name)
     {
@@ -118,6 +120,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         this.ecsContainer = ecsContainer;
         this.commonQueries = commonQueries;
         this.vfxSpawn = vfxSpawn;
+        this.random = random;
         this.logger = logger;
 
         var version = GetType().Assembly.GetName().Version?.ToString() ?? string.Empty;
@@ -125,7 +128,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         if (version.Length > 0)
         {
             var versionArray = version.Split(".");
-            version = string.Join(".", versionArray.Take(3));
+            version = versionArray.AsValueEnumerable().Take(3).JoinToString(".");
             this.windowName += $" v{version}";
         }
 #if DEBUG
@@ -133,7 +136,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
 #endif
         this.xivChatSendLocations = Enum.GetNames<XivChatSendLocation>();
         this.falloffTypes = Enum.GetNames<AudioFalloffModel.FalloffType>();
-        this.allLoggingLevels = [.. LogLevel.AllLoggingLevels.Select(l => l.Name)];
+        this.allLoggingLevels = [.. LogLevel.AllLoggingLevels.AsValueEnumerable().Select(l => l.Name)];
         windowSystem.AddWindow(this);
 
         this.effectsRendererPositionX = configuration.EffectsRendererPositionX;
@@ -359,7 +362,9 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         {
             commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
             {
-                Knockback.ApplyToTarget(e, new Vector3(1, 0, 0), 2.0f, true);
+                var angle = random.NextSingle() * 2 * MathF.PI;
+                var direction = new Vector3(MathF.Cos(angle), 0, MathF.Sin(angle));
+                Knockback.ApplyToTarget(e, direction, 2.0f, true);
             });
         }
         ImGui.SameLine();
@@ -375,7 +380,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         {
             commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
             {
-                Paralysis.ApplyToTarget(e, 5.0f, 3.0f, 1.0f, -100);
+                Paralysis.ApplyToTarget(e, 5.0f, 3.0f, 1.0f);
             });
         }
         ImGui.SameLine();
@@ -417,7 +422,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         {
             commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
             {
-                Heavy.ApplyToTarget(e, 5.0f, -100, true);
+                Heavy.ApplyToTarget(e, 5.0f, true);
             });
         }
 
@@ -441,7 +446,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             var player = this.dalamud.ClientState.LocalPlayer;
             if (player != null)
             {
-                if (this.attackManager.TryCreateAttackEntity<FanOmen>(out var fan))
+                if (this.attackManager.TryCreateAttackEntity<Fan90Omen>(out var fan))
                 {
                     fan.Set(new Position(player.Position));
                     fan.Set(new Rotation(player.Rotation));
@@ -658,6 +663,39 @@ public class MainWindow : Window, IPluginUIView, IDisposable
             }
         }
 
+        ImGui.SameLine();
+
+        if (ImGui.Button("ADS Stepped Leader"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<ADS>(out var ads))
+                {
+                    var originalPosition = player.Position;
+                    ads.Set(new Position(player.Position))
+                        .Set(new Rotation(player.Rotation));
+                    DelayedAction.Create(ads.CsWorld(), () =>
+                    {
+                        var player = this.dalamud.ClientState.LocalPlayer;
+                        if (player != null)
+                        {
+                            ADS.CastSteppedLeader(ads, player.Position);
+                        }
+                    }, 3f);
+                    DelayedAction.Create(ads.CsWorld(), () =>
+                    {
+                        var player = this.dalamud.ClientState.LocalPlayer;
+                        if (player != null)
+                        {
+                            ADS.CastSteppedLeader(ads, player.Position);
+                        }
+                    }, 9f);
+                    DelayedAction.Create(ads.CsWorld(), ads.Destruct, 15f);
+                }
+            }
+        } 
+
         if (ImGui.Button("Close Tether to Target"))
         {
             var player = this.dalamud.ClientState.LocalPlayer;
@@ -737,7 +775,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                 {
                     star.Set(new Star.Component(
                         Type: Star.Type.Long,
-                        OmenTime: 2.75f,
+                        OmenTime: 3.0f,
                         VfxPath: "vfx/monster/gimmick5/eff/x6r7_b3_g08_c0p.avfx",
                         OnHit: e => { Stun.ApplyToTarget(e, 2.0f); }));
                     star.Set(new Position(player.Position));
@@ -778,6 +816,51 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                     {
                         tornado.Destruct();
                     }, 26f);
+                }
+            }
+        }
+
+        if (ImGui.Button("Transition ADS"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<RepellingCannonADS>(out var ads))
+                {
+                    ads.Set(new Position(player.Position));
+                }
+            }
+        }
+
+        ImGui.SameLine();
+
+        if (ImGui.Button("Transition Melusine"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<CircleBladeMelusine>(out var melusine))
+                {
+                    melusine.Set(new Position(player.Position))
+                        .Set(new Rotation(player.Rotation));
+                }
+            }
+        }
+
+        ImGui.SameLine();
+
+        if (ImGui.Button("Transition Kaliya"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+
+            if (player != null)
+            {
+                if (this.attackManager.TryCreateAttackEntity<NerveGasKaliya>(out var kaliya))
+                {
+                    kaliya.Set(new Position(player.Position))
+                        .Set(new Rotation(player.Rotation));
                 }
             }
         }
@@ -963,7 +1046,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         var indent = 10;
         ImGui.Indent(indent);
 
-        foreach (var (playerName, index) in this.serverConnection.PlayersInRoom.Select((p, i) => (p, i)))
+        foreach (var (playerName, index) in this.serverConnection.PlayersInRoom.AsValueEnumerable().Select((p, i) => (p, i)))
         {
             Vector4 color = Vector4Colors.Red;
             string tooltip = "Connection Error";

@@ -5,30 +5,35 @@ namespace RaidsRewritten.Scripts.Conditions;
 
 public class Heavy
 {
+    public const int Id = 0x8EA11;
+
     public record struct Component(object _);
 
-    public static Entity ApplyToTarget(Entity target, float duration, int id = 0, bool extendDuration = false)
+    public static void ApplyToTarget(Entity target, float duration, bool extendDuration = false, bool overrideExistingDuration = false)
     {
-        var world = target.CsWorld();
-        var entity = Condition.ApplyToTarget(target, "Slowed", duration, id, extendDuration);
-        if (!entity.Has<Component>())
+        DelayedAction.Create(target.CsWorld(), (ref Iter it) =>
         {
-            entity.Set(new Component());
+            var world = it.World();
 
-            DelayedAction.Create(world,
-                () =>
+            var condition = Condition.ApplyToTarget(target, "Slowed", duration, Id, extendDuration, overrideExistingDuration);
+
+            // Application VFX
+            world.Entity()
+                .Set(new ActorVfx("vfx/common/eff/dk05ht_grv0h.avfx"))
+                .ChildOf(condition);
+
+            if (!condition.Has<Component>())
+            {
+                condition.Set(new Component());
+
+                DelayedAction.Create(world, (ref Iter it) =>
                 {
-                    world.Entity()
+                    // Looped VFX
+                    it.World().Entity()
                         .Set(new ActorVfx("vfx/common/eff/dk10ht_grv0h.avfx"))
-                        .ChildOf(entity);
-                },
-                0.6f).ChildOf(entity);
-        }
-
-        world.Entity()
-            .Set(new ActorVfx("vfx/common/eff/dk05ht_grv0h.avfx"))
-            .ChildOf(entity);
-
-        return entity;
+                        .ChildOf(condition);
+                }, 0.6f).ChildOf(condition);
+            }
+        }, 0, true).ChildOf(target);
     }
 }

@@ -10,15 +10,16 @@ public class Deepfreeze
     public static Entity ApplyToTarget(Entity target, float duration, int id = 0)
     {
         var world = target.CsWorld();
-        var entity = Condition.ApplyToTarget(target, "Frozen", duration, id);
+        var entity = Condition.ApplyToTarget(target, "Frozen", duration, id, false, false);
         if (!entity.Has<Component>())
         {
             entity.Set(new Component());
+
+            world.Entity()
+                .Set(new ActorVfx("vfx/common/eff/hyouketu0f.avfx"))
+                .ChildOf(entity);
         }
 
-        world.Entity()
-            .Set(new ActorVfx("vfx/common/eff/hyouketu0f.avfx"))
-            .ChildOf(entity);
         return entity;
     }
 }

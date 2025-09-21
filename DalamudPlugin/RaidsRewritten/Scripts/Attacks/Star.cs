@@ -37,39 +37,7 @@ public class Star(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn
         Phase Phase = Phase.Omen,
         Entity OmenEntity = default);
 
-    private const float DamageDelay = 0.5f;
-
-    public static bool IsInAttack(Entity attack, Vector3 position)
-    {
-        if (!attack.TryGet<Position>(out var p)) { return false; }
-        if (!attack.TryGet<Rotation>(out var r)) { return false; }
-        if (!attack.TryGet<Scale>(out var s)) { return false; }
-
-        var width = 4 * s.Value.X;
-
-        bool inAttack = false;
-
-        for (var i = 0; i < 8; i++)
-        {
-            var rotation = r.Value + i * 0.25f * MathF.PI;
-            var forward = MathUtilities.RotationToUnitVector(rotation);
-            var right = MathUtilities.RotationToUnitVector(rotation - 0.5f * MathF.PI);
-
-            var originToPosition = position.ToVector2() - p.Value.ToVector2();
-            var amountForward = Vector2.Dot(forward, originToPosition);
-            var amountRight = Vector2.Dot(right, originToPosition);
-
-            if (amountForward >= 0 &&
-                amountRight >= -0.5f * width &&
-                amountRight <= 0.5f * width)
-            {
-                inAttack = true;
-                break;
-            }
-        }
-
-        return inAttack;
-    }
+    private const float DamageDelay = 0.25f;
 
     public Entity Create(World world)
     {
@@ -111,6 +79,7 @@ public class Star(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn
                                 component.OmenEntity
                                     .Set(new Position(position.Value))
                                     .Set(new Rotation(rotation.Value))
+                                    .Set(new OmenDuration(component.OmenTime, false))
                                     .ChildOf(entity);
                             }
                         }
@@ -187,5 +156,37 @@ public class Star(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn
                 }
             }
         }
+    }
+
+    private static bool IsInAttack(Entity attack, Vector3 position)
+    {
+        if (!attack.TryGet<Position>(out var p)) { return false; }
+        if (!attack.TryGet<Rotation>(out var r)) { return false; }
+        if (!attack.TryGet<Scale>(out var s)) { return false; }
+
+        var width = 4 * s.Value.X;
+
+        bool inAttack = false;
+
+        for (var i = 0; i < 8; i++)
+        {
+            var rotation = r.Value + i * 0.25f * MathF.PI;
+            var forward = MathUtilities.RotationToUnitVector(rotation);
+            var right = MathUtilities.RotationToUnitVector(rotation - 0.5f * MathF.PI);
+
+            var originToPosition = position.ToVector2() - p.Value.ToVector2();
+            var amountForward = Vector2.Dot(forward, originToPosition);
+            var amountRight = Vector2.Dot(right, originToPosition);
+
+            if (amountForward >= 0 &&
+                amountRight >= -0.5f * width &&
+                amountRight <= 0.5f * width)
+            {
+                inAttack = true;
+                break;
+            }
+        }
+
+        return inAttack;
     }
 }

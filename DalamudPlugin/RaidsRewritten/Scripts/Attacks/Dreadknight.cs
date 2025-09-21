@@ -10,7 +10,6 @@ using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Utility;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
@@ -45,7 +44,6 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
 
     private const float HitboxRadius = 1.75f;
     private const float StunDuration = 8f;
-    private const int StunId = 0xDEAD;
     private const float StunDelay = 0.4f;
     private const int EnrageNotificationDuration = 4;
     private const float EnrageStunDuration = 60f;
@@ -340,7 +338,7 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
         commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
         {
             DelayedAction.Create(world, () => {
-                Stun.ApplyToTarget(e, duration, StunId);
+                Stun.ApplyToTarget(e, duration);
             }, delay);
         });
     }

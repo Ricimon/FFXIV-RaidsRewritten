@@ -9,23 +9,28 @@ namespace RaidsRewritten.Scripts.Conditions;
 
 public class Hysteria(Random random, ILogger logger) : ISystem
 {
+    public const int Id = 0x5CA6E;
+
     public record struct Component(float RedirectionInterval,
         float TimeUntilRedirection = 0, Vector3 MoveDirection = default);
 
-    public static Entity ApplyToTarget(Entity target, float duration, float redirectionInterval, int id = 0)
+    public static void ApplyToTarget(Entity target, float duration, float redirectionInterval, bool extendDuration = false, bool overrideExistingDuration = false)
     {
-        var world = target.CsWorld();
-        var entity = Condition.ApplyToTarget(target, "Hysteria", duration, id);
-        if (!entity.Has<Component>())
+        DelayedAction.Create(target.CsWorld(), (ref Iter it) =>
         {
-            entity.Set(new Component(redirectionInterval));
-        }
+            var world = it.World();
 
-        world.Entity()
-            .Set(new ActorVfx("vfx/common/eff/dk05th_stdn0t.avfx"))
-            .ChildOf(entity);
+            var condition = Condition.ApplyToTarget(target, "Hysteria", duration, Id, extendDuration, overrideExistingDuration);
 
-        return entity;
+            world.Entity()
+                .Set(new ActorVfx("vfx/common/eff/dk05th_stdn0t.avfx"))
+                .ChildOf(condition);
+
+            if (!condition.Has<Component>())
+            {
+                condition.Set(new Component(redirectionInterval));
+            }
+        }, 0, true).ChildOf(target);
     }
 
     public void Register(World world)
