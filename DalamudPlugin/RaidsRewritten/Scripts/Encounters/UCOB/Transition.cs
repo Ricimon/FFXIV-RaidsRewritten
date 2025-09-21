@@ -5,6 +5,8 @@ using ECommons;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using Flecs.NET.Core;
+using RaidsRewritten.Scripts.Attacks;
+using RaidsRewritten.Scripts.Attacks.Components;
 
 namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
@@ -22,7 +24,7 @@ internal class Transition : Mechanic
         { 9970, Phase.Pheonix },    //Pheonix
         { 1646, Phase.Resolution }, //NEED NUMBER FOR RESOLUTION
     };
-    private readonly Vector3 ArenaCenter = new(0, 0, 0);
+    private readonly Vector3 ArenaCenter = new(100, 0, 100);
     private const int ArenaRadius = 22;
     public int RngSeed { get; set; }
     private Random? random;
@@ -114,6 +116,48 @@ internal class Transition : Mechanic
                 Shuffle(random, SymbolPaths);
                 resolution = random.Next(0, 7);
                 DebugOutput();
+
+                //Kaliya
+                if (this.AttackManager.TryCreateAttackEntity<ADS>(out var kaliya))
+                {
+                    var angle = 2 * MathF.PI / 8 * Table[telegraphs[0]].Kaliya;
+                    var pos = new Vector3(
+                    ArenaCenter.X - ArenaRadius * MathF.Sin(angle),
+                    ArenaCenter.Y,
+                    ArenaCenter.Z - ArenaRadius * MathF.Cos(angle)
+                    );
+                    kaliya.Set(new Position(pos));
+                    attacks.Add(kaliya);
+                }
+
+                //Melusine
+                if (this.AttackManager.TryCreateAttackEntity<ADS>(out var melusine))
+                {
+                    var angle = 2 * MathF.PI / 8 * Table[telegraphs[0]].Melusine;
+                    var pos = new Vector3(
+                    ArenaCenter.X - ArenaRadius * MathF.Sin(angle),
+                    ArenaCenter.Y,
+                    ArenaCenter.Z - ArenaRadius * MathF.Cos(angle)
+                    );
+                    melusine.Set(new Position(pos));
+                    attacks.Add(melusine);
+                }
+
+                //ADS
+                for (int i = 0; i < 3; i++)
+                {
+                    if (this.AttackManager.TryCreateAttackEntity<ADS>(out var ads))
+                    {
+                        var angle = 2 * MathF.PI / 8 * Table[telegraphs[0]].Ads[i];
+                        var pos = new Vector3(
+                        ArenaCenter.X - ArenaRadius * MathF.Sin(angle),
+                        ArenaCenter.Y,
+                        ArenaCenter.Z - ArenaRadius * MathF.Cos(angle)
+                        );
+                        ads.Set(new Position(pos));
+                        attacks.Add(ads);
+                    }
+                }
                 //Show Table[telegraphs[0]] during octet 
                 //Delay and execute telegraphs
                 break;
