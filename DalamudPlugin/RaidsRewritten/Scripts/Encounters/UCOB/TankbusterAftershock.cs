@@ -110,14 +110,12 @@ public class TankbusterAftershock : Mechanic
         // create fake actors to keep vfxes in place if boss turns/moves
         var fakeActorFront = FakeActor.Create(this.World)
             .Set(new Position(originalPosition))
-            .Set(new Rotation(originalRotation))
-            .Set(new Scale(new Vector3(1f)));
+            .Set(new Rotation(originalRotation));
         ToDestruct.Add(fakeActorFront);
-        
+
         var fakeActorBack = FakeActor.Create(this.World)
             .Set(new Position(originalPosition))
-            .Set(new Rotation(backAngle))
-            .Set(new Scale(new Vector3(1f)));
+            .Set(new Rotation(backAngle));
         ToDestruct.Add(fakeActorBack);
 
 

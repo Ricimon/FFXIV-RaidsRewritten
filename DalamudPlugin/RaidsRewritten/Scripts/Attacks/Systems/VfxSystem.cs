@@ -133,6 +133,13 @@ public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogge
                 }
             });
 
+        world.System<ActorVfx, Scale>()
+            .Each((Iter it, int i, ref ActorVfx vfx, ref Scale scale) =>
+            {
+                if (!it.Changed()) { return; }
+                vfx.VfxPtr?.UpdateScale(scale.Value);
+            });
+
         world.Observer<ActorVfx>()
             .Event(Ecs.OnRemove)
             .Each((Entity e, ref ActorVfx _) =>
