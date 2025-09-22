@@ -27,9 +27,18 @@ public class LimitCutNumber
         if (!entity.Has<Component>())
         {
             entity.Set(new Component());
-            world.Entity()
+            var e = world.Entity()
                 .Set(new ActorVfx(SymbolPaths[number]))
                 .ChildOf(entity);
+            float fadeTimer = duration - 1;
+            if (duration < 1)
+            {
+                fadeTimer = duration / 2;
+            }
+            DelayedAction.Create(world, () => 
+            { 
+                
+            }, fadeTimer);
         }
     }
 }
