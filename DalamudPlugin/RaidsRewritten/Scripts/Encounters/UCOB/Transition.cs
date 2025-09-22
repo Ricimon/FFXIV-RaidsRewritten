@@ -1,12 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
+using ECommons.MathHelpers;
+using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using Flecs.NET.Core;
+using RaidsRewritten.Extensions;
+using RaidsRewritten.Game;
+using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks;
 using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Scripts.Attacks.Omens;
+using RaidsRewritten.Scripts.Conditions;
+using RaidsRewritten.Spawn;
+using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
@@ -21,25 +31,19 @@ internal class Transition : Mechanic
     private static readonly Dictionary<uint, Phase> HookedActions = new()
     {
         { 41, Phase.Octet},       //Octet NEED NUMBER
-        { 9970, Phase.Pheonix },    //Pheonix
-        { 1646, Phase.Resolution }, //NEED NUMBER FOR RESOLUTION
+        { 25752, Phase.Pheonix },    //Pheonix
+        { 16462, Phase.Resolution }, //NEED NUMBER FOR RESOLUTION
     };
     private readonly Vector3 ArenaCenter = new(100, 0, 100);
     private const int ArenaRadius = 22;
     public int RngSeed { get; set; }
     private Random? random;
     private readonly List<Entity> attacks = [];
+    private readonly List<Entity> gates = [];
+    private List<IBattleChara> playerList = [];
+    private IBattleChara? localPlayer;
     private List<int> telegraphs = [0, 1, 2, 3, 4, 5, 6, 7];
-    private static List<string> SymbolPaths = new List<string> {
-        "0",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-    };
+    private List<int> SymbolPaths = [0, 1, 2, 3, 4, 5, 6, 7];
     private int resolution;
 
     public override void Reset()
@@ -48,7 +52,12 @@ internal class Transition : Mechanic
         {
             attack.Destruct();
         }
+        foreach (var gate in this.gates)
+        { 
+            gate.Destruct();
+        }
         this.attacks.Clear();
+        this.gates.Clear();
     }
 
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
@@ -100,10 +109,57 @@ internal class Transition : Mechanic
         },
     };
 
+    private void ShowAds(int value)
+    {
+        //Kaliya
+        if (this.AttackManager.TryCreateAttackEntity<NerveGasKaliya>(out var kaliya))
+        {
+            var angle = 2 * MathF.PI / 8 * Table[value].Kaliya;
+            var pos = new Vector3(
+            ArenaCenter.X - ArenaRadius * MathF.Sin(angle),
+            ArenaCenter.Y,
+            ArenaCenter.Z - ArenaRadius * MathF.Cos(angle)
+            );
+            kaliya.Set(new Position(pos));
+            kaliya.Set(new Rotation(angle));
+            attacks.Add(kaliya);
+        }
 
+        //Melusine
+        if (this.AttackManager.TryCreateAttackEntity<CircleBladeMelusine>(out var melusine))
+        {
+            var angle = 2 * MathF.PI / 8 * Table[value].Melusine;
+            var pos = new Vector3(
+            ArenaCenter.X - ArenaRadius * MathF.Sin(angle),
+            ArenaCenter.Y,
+            ArenaCenter.Z - ArenaRadius * MathF.Cos(angle)
+            );
+            melusine.Set(new Position(pos));
+            melusine.Set(new Rotation(angle));
+            attacks.Add(melusine);
+        }
+
+        //ADS
+        for (int i = 0; i < 3; i++)
+        {
+            if (this.AttackManager.TryCreateAttackEntity<RepellingCannonADS>(out var ads))
+            {
+                var angle = 2 * MathF.PI / 8 * Table[value].Ads[i];
+                var pos = new Vector3(
+                ArenaCenter.X - ArenaRadius * MathF.Sin(angle),
+                ArenaCenter.Y,
+                ArenaCenter.Z - ArenaRadius * MathF.Cos(angle)
+                );
+                ads.Set(new Position(pos));
+                ads.Set(new Rotation(angle));
+                attacks.Add(ads);
+            }
+        }
+    }
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
+        
         if (set.Action == null) { return; }
         if (set.Target == null) { return; }
         if (!HookedActions.TryGetValue(set.Action.Value.RowId, out var phase)) { return; }
@@ -111,64 +167,82 @@ internal class Transition : Mechanic
         {
             case Phase.Octet:
                 var seed = RngSeed;
+                localPlayer = this.Dalamud.ClientState.LocalPlayer;
                 random = new Random(seed);
                 Shuffle(random, telegraphs);
                 Shuffle(random, SymbolPaths);
                 resolution = random.Next(0, 7);
-                DebugOutput();
-
-                //Kaliya
-                if (this.AttackManager.TryCreateAttackEntity<ADS>(out var kaliya))
+                ShowAds(telegraphs[0]);
+                
+                foreach (var player in this.Dalamud.ObjectTable.PlayerObjects)
                 {
-                    var angle = 2 * MathF.PI / 8 * Table[telegraphs[0]].Kaliya;
-                    var pos = new Vector3(
-                    ArenaCenter.X - ArenaRadius * MathF.Sin(angle),
-                    ArenaCenter.Y,
-                    ArenaCenter.Z - ArenaRadius * MathF.Cos(angle)
-                    );
-                    kaliya.Set(new Position(pos));
-                    attacks.Add(kaliya);
+                    playerList.Add(player);
+
+                }
+                if (playerList.Count != 8)
+                {
+                    this.Logger.Debug($"uh oh, unexpected number of players: {playerList.Count}");
+                    //return;
                 }
 
-                //Melusine
-                if (this.AttackManager.TryCreateAttackEntity<ADS>(out var melusine))
-                {
-                    var angle = 2 * MathF.PI / 8 * Table[telegraphs[0]].Melusine;
-                    var pos = new Vector3(
-                    ArenaCenter.X - ArenaRadius * MathF.Sin(angle),
-                    ArenaCenter.Y,
-                    ArenaCenter.Z - ArenaRadius * MathF.Cos(angle)
-                    );
-                    melusine.Set(new Position(pos));
-                    attacks.Add(melusine);
-                }
-
-                //ADS
-                for (int i = 0; i < 3; i++)
-                {
-                    if (this.AttackManager.TryCreateAttackEntity<ADS>(out var ads))
+                // ensure same order before randomizing list
+                playerList.Sort((a, b) => {
+                    BattleChara aCs;
+                    BattleChara bCs;
+                    unsafe
                     {
-                        var angle = 2 * MathF.PI / 8 * Table[telegraphs[0]].Ads[i];
-                        var pos = new Vector3(
-                        ArenaCenter.X - ArenaRadius * MathF.Sin(angle),
-                        ArenaCenter.Y,
-                        ArenaCenter.Z - ArenaRadius * MathF.Cos(angle)
-                        );
-                        ads.Set(new Position(pos));
-                        attacks.Add(ads);
+                        aCs = *(BattleChara*)a.Address;
+                        bCs = *(BattleChara*)b.Address;
                     }
-                }
-                //Show Table[telegraphs[0]] during octet 
-                //Delay and execute telegraphs
+                    return aCs.ContentId.CompareTo(bCs.ContentId);
+                });
+
+                DebugOutput();
                 break;
             case Phase.Pheonix:
-                //find local player's location on list
-                //Show Table[telegraphs[LP]] with SymbolPaths[LP]
-                //Spawn Portals
+                int playerNumber = playerList.IndexOf(localPlayer);
+
+                ShowAds(telegraphs[playerNumber]);
+
+                DelayedAction.Create(World, () => 
+                {
+                    for (int i = 0; i < 8; i++)
+                    {
+                        if (this.AttackManager.TryCreateAttackEntity<ADS>(out var ads))
+                        {
+                            var angle = 2 * MathF.PI / 8 * i;
+                            var pos = new Vector3(
+                            ArenaCenter.X - ArenaRadius * MathF.Sin(angle),
+                            ArenaCenter.Y,
+                            ArenaCenter.Z - ArenaRadius * MathF.Cos(angle)
+                            );
+                            ads.Set(new Position(pos));
+                            ads.Set(new Rotation(angle));
+                            gates.Add(ads);
+                        }
+                    }
+
+                    CommonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+                    {
+                        LimitCutNumber.ApplyToTarget(e, 5, SymbolPaths[playerNumber]);
+                    });
+                }, 5);
+
                 break;
             case Phase.Resolution:
-                //Show SymbolPath[resolution] on gates
-                //Spawn Table[telegraphs[resolution]] and execute attack
+
+                gates.ForEach(e => 
+                {
+                    LimitCutNumber.ApplyToTarget(e, 5, SymbolPaths[resolution]);
+                });
+                DelayedAction.Create(World, () =>
+                {
+                    foreach (var gate in this.gates)
+                    {
+                        gate.Destruct();
+                    }
+                    ShowAds(telegraphs[resolution]);
+                }, 5);
                 break;
         }
     }
