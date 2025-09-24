@@ -1,4 +1,5 @@
-﻿using Flecs.NET.Core;
+﻿using System.Numerics;
+using Flecs.NET.Core;
 
 namespace RaidsRewritten.Scripts.Attacks.Components;
 
@@ -12,7 +13,7 @@ public class FakeActor
             .Set(new Model(-1))
             .Set(new Position())
             .Set(new Rotation())
-            .Set(new Scale())
+            .Set(new Scale(Vector3.One))
             .Set(new UniformScale(1f))
             .Set(new Component())
             .Add<Attack>();

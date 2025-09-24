@@ -44,7 +44,7 @@ public class VfxLoopItem
     }
 }
 
-public unsafe class VfxSpawn : IDisposable
+public unsafe sealed class VfxSpawn : IDisposable
 {
     public readonly Dictionary<BaseVfx, VfxSpawnItem> Vfxs = [];
     public readonly List<VfxLoopItem> ToLoop = [];
@@ -97,18 +97,24 @@ public unsafe class VfxSpawn : IDisposable
     public void InteropRemoved(IntPtr data)
     {
         if (!GetVfx(data, out var vfx)) { return; }
-        var item = Vfxs[vfx];
 
         Vfxs.Remove(vfx);
         // When a VFX pointer is auto removed by this interop (because it finished playing),
         // doing anything else with its pointer value will crash the game.
-        vfx.Vfx = null;
+        if (vfx is ActorVfx actorVfx)
+        {
+            actorVfx.Vfx = null;
+        }
+        else if (vfx is StaticVfx staticVfx)
+        {
+            staticVfx.Vfx = null;
+        }
     }
 
     public bool GetVfx(IntPtr data, out BaseVfx vfx)
     {
-        vfx = null;
+        vfx = null!;
         if (data == IntPtr.Zero || Vfxs.Count == 0) { return false; }
-        return Vfxs.Keys.FindFirst(x => data == (IntPtr)x.Vfx, out vfx);
+        return Vfxs.Keys.FindFirst(x => data == x.GetVfxPointer(), out vfx!);
     }
 }

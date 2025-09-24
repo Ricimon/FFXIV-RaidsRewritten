@@ -80,6 +80,8 @@ public unsafe sealed class HotbarManager : IDisposable
 
     public void Dispose()
     {
+        this.disableAllActions = this.disableDamagingActions = false;
+        ProcessAllHotBars();
         this.onHotBarSlotUpdateHook.Dispose();
     }
 

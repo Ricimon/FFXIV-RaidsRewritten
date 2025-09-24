@@ -107,7 +107,6 @@ public class Star(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn
                                     var fakeActor = FakeActor.Create(it.World())
                                         .Set(new Position(position.Value))
                                         .Set(new Rotation(rotation.Value + j * 0.25f * MathF.PI))
-                                        .Set(new Scale(Vector3.One))
                                         .ChildOf(entity);
                                     fakeActor.Set(new ActorVfx(component.VfxPath));
                                 }

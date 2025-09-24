@@ -1,8 +1,7 @@
 ﻿// Adapted from https://github.com/0ceal0t/Dalamud-VFXEditor/blob/main/VFXEditor/Interop/Structs/Vfx/BaseVfx.cs
 // and https://git.anna.lgbt/anna/OrangeGuidanceTomestone/src/branch/main/client/Vfx.cs
+using System;
 using System.Numerics;
-using System.Runtime.InteropServices;
-using Dalamud.Game.ClientState.Objects.Types;
 
 namespace RaidsRewritten.Interop.Structs.Vfx;
 
@@ -27,32 +26,8 @@ namespace RaidsRewritten.Interop.Structs.Vfx;
     * 
  */
 
-
-[StructLayout(LayoutKind.Explicit)]
-public unsafe struct VfxStruct
-{
-    [FieldOffset(0x38)] public byte Flags;
-    [FieldOffset(0x50)] public Vector3 Position;
-    [FieldOffset(0x60)] public Quat Rotation;
-    [FieldOffset(0x70)] public Vector3 Scale;
-
-    [FieldOffset(0x128)] public int ActorCaster;
-    [FieldOffset(0x130)] public int ActorTarget;
-
-    [FieldOffset(0x1B8)] public int StaticCaster;
-    [FieldOffset(0x1C0)] public int StaticTarget;
-
-    [FieldOffset(0x248)] public byte SomeFlags;
-
-    [FieldOffset(0x260)] public byte Red;
-    [FieldOffset(0x264)] public byte Green;
-    [FieldOffset(0x268)] public byte Blue;
-    [FieldOffset(0x26C)] public float Alpha;
-}
-
 public abstract unsafe class BaseVfx
 {
-    public VfxStruct* Vfx;
     public string Path;
 
     public BaseVfx(string path)
@@ -60,61 +35,9 @@ public abstract unsafe class BaseVfx
         Path = path;
     }
 
+    public abstract IntPtr GetVfxPointer();
+
     public abstract void Remove();
 
-    public void Update()
-    {
-        if (Vfx == null) { return; }
-        Vfx->Flags |= 0x2;
-        // Remove flag that sometimes causes vfx to not appear?
-        Vfx->SomeFlags &= 0xF7;
-    }
-
-    public void UpdatePosition(Vector3 position)
-    {
-        if (Vfx == null) { return; }
-        Vfx->Position = new Vector3
-        {
-            X = position.X,
-            Y = position.Y,
-            Z = position.Z
-        };
-    }
-
-    public void UpdatePosition(IGameObject actor)
-    {
-        if (Vfx == null) { return; }
-        Vfx->Position = actor.Position;
-    }
-
-    public void UpdateScale(Vector3 scale)
-    {
-        if (Vfx == null) { return; }
-        Vfx->Scale = new Vector3
-        {
-            X = scale.X,
-            Y = scale.Y,
-            Z = scale.Z
-        };
-    }
-
-    public void UpdateRotation(Vector3 rotation)
-    {
-        if (Vfx == null) { return; }
-
-        var q = Quaternion.CreateFromYawPitchRoll(rotation.X, rotation.Y, rotation.Z);
-        Vfx->Rotation = new Quat
-        {
-            X = q.X,
-            Y = q.Y,
-            Z = q.Z,
-            W = q.W
-        };
-    }
-
-    public void UpdateAlpha(float alpha)
-    {
-        if (Vfx == null) { return; }
-        Vfx->Alpha = alpha;
-    }
+    public abstract void UpdateScale(Vector3 scale);
 }
