@@ -203,6 +203,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                     this.attackManager.ClearAllAttacks();
                     this.ecsContainer.World.DeleteWith<Condition.Component>();
                     this.ecsContainer.World.DeleteWith<DelayedAction.Component>();
+                    this.ecsContainer.World.DeleteWith<Model>();
                     this.vfxSpawn.Clear();
                 }
             }
@@ -347,6 +348,11 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         if (ImGui.Button("Clear All Statuses"))
         {
             this.ecsContainer.World.DeleteWith<Condition.Component>();
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Clear All Models"))
+        {
+            this.ecsContainer.World.DeleteWith<Model>();
         }
 
         ImGui.Text("Fake statuses");
@@ -899,6 +905,22 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                     LiquidHeaven.Set(new Position(player.Position))
                                 .Set(new Rotation(player.Rotation));
                 }
+            }
+        }
+
+        ImGui.Text("Models");
+        if (ImGui.Button("Chefbingus"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                var carby = this.ecsContainer.World.Entity()
+                    .Set(new Model(411))
+                    .Set(new Model(0))
+                    .Set(new Prop(0x2329_0171_0004_0000))
+                    .Set(new Position(player.Position))
+                    .Set(new Rotation(player.Rotation))
+                    .Set(new UniformScale(1));
             }
         }
 #endif

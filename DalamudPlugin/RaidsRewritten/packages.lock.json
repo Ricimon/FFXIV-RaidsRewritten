@@ -53,6 +53,17 @@
           "System.Threading.Tasks.Parallel": "4.3.0"
         }
       },
+      "MessagePack": {
+        "type": "Direct",
+        "requested": "[3.1.4, )",
+        "resolved": "3.1.4",
+        "contentHash": "BH0wlHWmVoZpbAPyyt2Awbq30C+ZsS3eHSkYdnyUAbqVJ22fAJDzn2xTieBeoT5QlcBzp61vHcv878YJGfi3mg==",
+        "dependencies": {
+          "MessagePack.Annotations": "3.1.4",
+          "MessagePackAnalyzer": "3.1.4",
+          "Microsoft.NET.StringTools": "17.11.4"
+        }
+      },
       "Microsoft.Extensions.Logging": {
         "type": "Direct",
         "requested": "[9.0.9, )",
@@ -103,6 +114,12 @@
         "requested": "[6.0.4, )",
         "resolved": "6.0.4",
         "contentHash": "Xr+lIk1ZlTTFXEqnxQVLxrDqZlt2tm5X+/AhJbaY2emb/dVtGDiU5QuEtj3gHtwV/SWlP/rJ922I/BPuOJXlRw=="
+      },
+      "OneOf": {
+        "type": "Direct",
+        "requested": "[3.0.271, )",
+        "resolved": "3.0.271",
+        "contentHash": "pqpqeK8xQGggExhr4tesVgJkjdn+9HQAO0QgrYV2hFjE3y90okzk1kQMntMiUOGfV7FrCUfKPaVvPBD4IANqKg=="
       },
       "ReactiveProperty": {
         "type": "Direct",
@@ -190,6 +207,16 @@
           "Microsoft.Extensions.Logging.Abstractions": "6.0.0"
         }
       },
+      "MessagePack.Annotations": {
+        "type": "Transitive",
+        "resolved": "3.1.4",
+        "contentHash": "aVWrDAkCdqxwQsz/q0ldPh2EFn48M99YUzE9OvZjMq2RNLKz4o2z88iGFvSvbMqOWRweRvKPHBJZe22PRqzslQ=="
+      },
+      "MessagePackAnalyzer": {
+        "type": "Transitive",
+        "resolved": "3.1.4",
+        "contentHash": "CTaSsN/liJ7MhLCAB7Z4ZLBNuVGCq9lt2BT/cbrc9vzGv89yK3CqIA+z9T19a11eQYl9etZHL6MQJgCqECRVpg=="
+      },
       "Microsoft.Extensions.DependencyInjection": {
         "type": "Transitive",
         "resolved": "9.0.9",
@@ -224,6 +251,11 @@
         "type": "Transitive",
         "resolved": "9.0.9",
         "contentHash": "z4pyMePOrl733ltTowbN565PxBw1oAr8IHmIXNDiDqd22nFpYltX9KhrNC/qBWAG1/Zx5MHX+cOYhWJQYCO/iw=="
+      },
+      "Microsoft.NET.StringTools": {
+        "type": "Transitive",
+        "resolved": "17.11.4",
+        "contentHash": "mudqUHhNpeqIdJoUx2YDWZO/I9uEDYVowan89R6wsomfnUJQk6HteoQTlNjZDixhT2B4IXMkMtgZtoceIjLRmA=="
       },
       "Microsoft.NETCore.Platforms": {
         "type": "Transitive",

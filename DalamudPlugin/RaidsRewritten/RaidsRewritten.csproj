@@ -28,11 +28,13 @@
     <PackageReference Include="Flecs.NET.Debug" Version="4.0.3" Condition="'$(Configuration)' == 'Debug'" />
     <PackageReference Include="Flecs.NET.Release" Version="4.0.3" Condition="'$(Configuration)' == 'Release'" />
     <PackageReference Include="HelixToolkit.SharpDX.Core" Version="2.27.3" />
+    <PackageReference Include="MessagePack" Version="3.1.4" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.9" />
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="Ninject" Version="3.3.6" />
     <PackageReference Include="Ninject.Extensions.Factory" Version="3.3.3" />
     <PackageReference Include="NLog" Version="6.0.4" />
+    <PackageReference Include="OneOf" Version="3.0.271" />
     <PackageReference Include="ReactiveProperty" Version="9.7.0" />
     <PackageReference Include="SharpDX.D3DCompiler" Version="4.2.0" />
     <PackageReference Include="SocketIOClient" Version="3.1.2" />
@@ -55,6 +57,9 @@
     <Content Include="Resources\**\*.*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Remove="Resources\Embedded\Data\BoneCategories.json" />
+    <Content Remove="Resources\Embedded\Data\BrioPropChar.chara" />
+    <Content Remove="Resources\Embedded\Data\BrioPropPose.pose" />
     <Content Include="config.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -62,5 +67,13 @@
     <Content Include="RaidsRewritten.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Embedded\Data\BoneCategories.json" />
+    <EmbeddedResource Include="Resources\Embedded\Data\BrioPropChar.chara" />
+    <EmbeddedResource Include="Resources\Embedded\Data\BrioPropPose.pose">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
 </Project>

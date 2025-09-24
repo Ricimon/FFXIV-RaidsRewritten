@@ -1,4 +1,5 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
+using RaidsRewritten.Structures;
 
 namespace RaidsRewritten.Scripts.Attacks.Components;
 
@@ -21,3 +22,5 @@ public record struct TimelineBase(ushort Value, bool Interrupt = false);
 
 // this only applies on model creation. will do more research if we ever need to update after model has already spawned
 public record struct AnimationState(byte Value1, byte Value2 = 0);
+
+public record struct Prop(ulong Id, uint VisibleFramesElapsed = 0, CharacterSkeletonContainer? CharacterSkeletonContainer = null);

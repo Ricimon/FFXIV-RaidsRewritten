@@ -1,0 +1,96 @@
+﻿using Dalamud.Interface.Textures.TextureWraps;
+using Dalamud.Plugin.Services;
+using RaidsRewritten.Utility;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
+
+namespace RaidsRewritten.Services;
+
+public class ResourceProvider : IDisposable
+{
+    private readonly Dictionary<string, object> _cachedDocuments = [];
+    private readonly Dictionary<string, IDalamudTextureWrap> _cachedImages = [];
+
+    private readonly ITextureProvider _textureProvider;
+
+    public ResourceProvider(DalamudServices dalamud)
+    {
+        _textureProvider = dalamud.TextureProvider;
+
+        //Localize.Load(this);
+    }
+
+    public T GetResourceDocument<T>(string name)
+    {
+        if(_cachedDocuments.TryGetValue(name, out var cached))
+            return (T)cached;
+
+        using var stream = GetRawResourceStream(name);
+        using var reader = new StreamReader(stream);
+        var txt = reader.ReadToEnd();
+        var document = JsonSerializer.Deserialize<T>(txt);
+        _cachedDocuments[name] = document!;
+        return document;
+    }
+
+    public IDalamudTextureWrap GetResourceImage(string name)
+    {
+        if(_cachedImages.TryGetValue(name, out var cached))
+            return cached;
+
+        using var stream = GetRawResourceStream(name);
+        using var reader = new BinaryReader(stream);
+        var imgBin = reader.ReadBytes((int)stream.Length);
+        var imgTask = _textureProvider.CreateFromImageAsync(imgBin);
+        imgTask.Wait(); // TODO: Don't block
+        var img = imgTask.Result;
+        _cachedImages[name] = img;
+        return img;
+    }
+
+    public Stream GetRawResourceStream(string name)
+    {
+        var assembly = Assembly.GetExecutingAssembly();
+        var resourceName = $"{PluginInitializer.Name}.Resources.Embedded.{name}";
+        var stream = assembly.GetManifestResourceStream(resourceName);
+        return stream ?? throw new Exception($"Resource {name} not found.");
+    }
+
+    public string GetRawResourceString(string name)
+    {
+        using var stream = GetRawResourceStream(name);
+        using var reader = new StreamReader(stream);
+        return reader.ReadToEnd();
+    }
+
+    public T GetFileDocument<T>(string path)
+    {
+        using var stream = GetFileStream(path);
+        using var reader = new StreamReader(stream);
+        var txt = reader.ReadToEnd();
+        var document = JsonSerializer.Deserialize<T>(txt);
+        return document;
+    }
+
+    public void SaveFileDocument<T>(string path, T doc)
+        where T : notnull
+    {
+        var txt = JsonSerializer.Serialize(doc);
+        File.WriteAllText(path, txt);
+    }
+
+    public Stream GetFileStream(string path) => File.OpenRead(path);
+
+    public void Dispose()
+    {
+        foreach(var img in _cachedImages.Values)
+            img?.Dispose();
+
+        _cachedImages?.Clear();
+        _cachedDocuments?.Clear();
+
+        GC.SuppressFinalize(this);
+    }
+}

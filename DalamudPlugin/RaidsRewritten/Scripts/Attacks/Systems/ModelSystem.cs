@@ -1,6 +1,7 @@
 ﻿using System;
+using AsyncAwaitBestPractices;
+using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Hooking;
-using ECommons.GameFunctions;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Flecs.NET.Core;
@@ -8,6 +9,10 @@ using Lumina.Excel.Sheets;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Services;
+using RaidsRewritten.Services.Posing;
+using RaidsRewritten.Structures;
+using RaidsRewritten.Structures.Files;
 using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Attacks.Systems;
@@ -16,6 +21,10 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
 {
     private readonly DalamudServices dalamud;
     private readonly Lazy<EcsContainer> ecsContainer;
+    private readonly ResourceProvider resourceProvider;
+    private readonly ActorAppearanceService actorAppearanceService;
+    private readonly SkeletonService skeletonService;
+    private readonly PosingService posingService;
     private readonly ILogger logger;
 
     private const string CalculateAndApplyOverallSpeedSig = "E8 ?? ?? ?? ?? 48 8D 8B ?? ?? ?? ?? 48 8B 01 FF 50 ?? 48 8D 8B ?? ?? ?? ?? 48 8B 01 FF 50 ?? F6 83";
@@ -24,10 +33,21 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
 
     private Query<Model, ModelTimelineSpeed> modelTimelineSpeedQuery;
 
-    public ModelSystem(DalamudServices dalamud, Lazy<EcsContainer> ecsContainer, ILogger logger)
+    public ModelSystem(
+        DalamudServices dalamud,
+        Lazy<EcsContainer> ecsContainer,
+        ResourceProvider resourceProvider,
+        ActorAppearanceService actorAppearanceService,
+        SkeletonService skeletonService,
+        PosingService posingService,
+        ILogger logger)
     {
         this.dalamud = dalamud;
         this.ecsContainer = ecsContainer;
+        this.resourceProvider = resourceProvider;
+        this.actorAppearanceService = actorAppearanceService;
+        this.skeletonService = skeletonService;
+        this.posingService = posingService;
         this.logger = logger;
 
         var calculateAndApplyAddress = dalamud.SigScanner.ScanText(CalculateAndApplyOverallSpeedSig);
@@ -197,6 +217,59 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
                     chara->Timeline.TimelineSequencer.PlayTimeline(animationState.Value);
                     animationState.Interrupt = false;
                 }
+            });
+
+        world.System<Model, Prop>()
+            .Each((Iter it, int i, ref Model model, ref Prop prop) =>
+            {
+                if (!model.Spawned || model.GameObject == null) { return; }
+
+                if (model.DrawEnabled)
+                {
+                    prop.VisibleFramesElapsed = Math.Min(prop.VisibleFramesElapsed + 1, uint.MaxValue);
+                }
+
+                var character = (ICharacter)model.GameObject;
+
+                if (prop.VisibleFramesElapsed == 1)
+                {
+                    //var chara = (BattleChara*)ClientObjectManager.Instance()->GetObjectByIndex((ushort)model.GameObjectIndex);
+                    //var weaponModelId =  new WeaponModelId { Value = prop.Id };
+                    //chara->DrawData.LoadWeapon(DrawDataContainer.WeaponSlot.OffHand, weaponModelId, 0, 0, 0, 0);
+                    //chara->DrawData.Weapon(DrawDataContainer.WeaponSlot.OffHand).ModelId = weaponModelId;
+                    //chara->DrawData.Weapon(DrawDataContainer.WeaponSlot.OffHand).IsHidden = false;
+
+                    var acf = JsonSerializer.Deserialize<AnamnesisCharaFile>(resourceProvider.GetRawResourceString("Data.BrioPropChar.chara"));
+                    this.actorAppearanceService.SetCharacterAppearance(character, acf, AppearanceImportOptions.Default).SafeFireAndForget();
+
+                    var native = model.GameObject.Native();
+                    native->DisableDraw();
+                    model.DrawEnabled = false;
+                }
+                else if (prop.VisibleFramesElapsed == 6)
+                {
+                    // Maybe have some framework delay
+                    var poseFile = JsonSerializer.Deserialize<PoseFile>(resourceProvider.GetRawResourceString("Data.BrioPropPose.pose"));
+                    poseFile.SanitizeBoneNames();
+
+                    var characterSkeleton = new CharacterSkeletonContainer(character, this.skeletonService);
+                    characterSkeleton.ImportSkeletonPose(poseFile, this.posingService.DefaultImporterOptions);
+                    prop.CharacterSkeletonContainer = characterSkeleton;
+                }
+                else if (prop.VisibleFramesElapsed == 8)
+                {
+                    var native = model.GameObject.Native();
+                    native->DisableDraw();
+                    model.DrawEnabled = false;
+                }
+            });
+
+        world.Observer<Prop>()
+            .Event(Ecs.Remove)
+            .Each((Entity e, ref Prop _) =>
+            {
+                var prop = e.Get<Prop>();
+                prop.CharacterSkeletonContainer?.Dispose();
             });
 
         world.Observer<Model>()

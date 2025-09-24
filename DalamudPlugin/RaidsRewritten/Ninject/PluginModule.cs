@@ -19,6 +19,8 @@ using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Scripts.Encounters;
 using RaidsRewritten.Scripts.Encounters.E1S;
 using RaidsRewritten.Scripts.Encounters.UCOB;
+using RaidsRewritten.Services;
+using RaidsRewritten.Services.Posing;
 using RaidsRewritten.Spawn;
 using RaidsRewritten.UI;
 using RaidsRewritten.UI.Presenter;
@@ -72,6 +74,11 @@ public class PluginModule : NinjectModule
         Bind<Mechanic.Factory>().ToSelf();
         Bind<EcsContainer>().ToSelf().InSingletonScope();
         Bind<CommonQueries>().ToSelf().InSingletonScope();
+        Bind<ResourceProvider>().ToSelf().InSingletonScope();
+        Bind<ActorAppearanceService>().ToSelf().InSingletonScope();
+        Bind<ObjectMonitorService>().ToSelf().InSingletonScope();
+        Bind<PosingService>().ToSelf().InSingletonScope();
+        Bind<SkeletonService>().ToSelf().InSingletonScope();
         // Native control overrides
         Bind<PlayerManager>().ToSelf().InSingletonScope();
         Bind<PlayerMovementOverride>().ToSelf().WhenInjectedInto<PlayerManager>().InSingletonScope();
