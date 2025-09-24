@@ -10,8 +10,6 @@ namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
 public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration configuration, EcsContainer ecsContainer) : IEncounter
 {
-    public ushort TerritoryId => 733;
-
     public string Name => "UCOB Rewritten";
 
     // Config
@@ -32,6 +30,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
     private string TethersKey => $"{Name}.Tethers";
     private string EarthShakerStarKey => $"{Name}.EarthShakerStar";
     private string OctetCourseKey => $"{Name}.OctetCourse";
+    private string CobTransitionKey => $"{Name}.CobTransition";
 
     private readonly List<Mechanic> mechanics = [];
     private readonly string[] moreExaflaresDifficulties = [
@@ -127,6 +126,16 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             this.mechanics.Add(octetCourse);
         }
 
+        if (configuration.GetEncounterSetting(CobTransitionKey, true))
+        {
+            var CobTransition = mechanicFactory.Create<Transition>();
+
+            var seed = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
+            CobTransition.RngSeed = RandomUtilities.HashToRngSeed(seed);
+
+            this.mechanics.Add(CobTransition);
+        }
+        
         // Meme mechanics
 
         if (configuration.GetEncounterSetting(PermanentTwistersKey, false))
@@ -264,6 +273,15 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             RefreshMechanics();
         }
 
+        bool cobTransition = configuration.GetEncounterSetting(CobTransitionKey, true);
+        if (ImGui.Checkbox("Transition", ref cobTransition))
+        {
+            configuration.EncounterSettings[CobTransitionKey] =
+                cobTransition ? bool.TrueString : bool.FalseString;
+            configuration.Save();
+            RefreshMechanics();
+        }
+
         ImGui.Text("Fun Extras");
 
         bool permanentTwisters = configuration.GetEncounterSetting(PermanentTwistersKey, false);
@@ -392,7 +410,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
         configuration.EncounterSettings[TethersKey] = bool.TrueString;
         configuration.EncounterSettings[EarthShakerStarKey] = bool.TrueString;
         configuration.EncounterSettings[OctetCourseKey] = bool.TrueString;
-
+        configuration.EncounterSettings[CobTransitionKey] = bool.TrueString;
         configuration.EncounterSettings[PermanentTwistersKey] = bool.FalseString;
         configuration.EncounterSettings[RollingBallKey] = bool.FalseString;
 
@@ -414,7 +432,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
         configuration.EncounterSettings[OctetCourseKey] = bool.FalseString;
         configuration.EncounterSettings[PermanentTwistersKey] = bool.FalseString;
         configuration.EncounterSettings[RollingBallKey] = bool.FalseString;
-
+        configuration.EncounterSettings[CobTransitionKey] = bool.FalseString;
         configuration.Save();
         RefreshMechanics();
     }
