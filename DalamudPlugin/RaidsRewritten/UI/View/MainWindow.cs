@@ -32,7 +32,7 @@ using ZLinq;
 
 namespace RaidsRewritten.UI.View;
 
-public class MainWindow : Window, IPluginUIView, IDisposable
+public sealed class MainWindow : Window, IPluginUIView, IDisposable
 {
     // this extra bool exists for ImGui, since you can't ref a property
     private bool visible = false;
@@ -185,7 +185,6 @@ public class MainWindow : Window, IPluginUIView, IDisposable
     public void Dispose()
     {
         windowSystem.RemoveWindow(this);
-        GC.SuppressFinalize(this);
     }
 
     private void DrawContents()
@@ -203,6 +202,7 @@ public class MainWindow : Window, IPluginUIView, IDisposable
                     this.attackManager.ClearAllAttacks();
                     this.ecsContainer.World.DeleteWith<Condition.Component>();
                     this.ecsContainer.World.DeleteWith<DelayedAction.Component>();
+                    this.ecsContainer.World.DeleteWith<Model>();
                     this.vfxSpawn.Clear();
                 }
             }
@@ -347,6 +347,11 @@ public class MainWindow : Window, IPluginUIView, IDisposable
         if (ImGui.Button("Clear All Statuses"))
         {
             this.ecsContainer.World.DeleteWith<Condition.Component>();
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Clear All Models"))
+        {
+            this.ecsContainer.World.DeleteWith<Model>();
         }
 
         ImGui.Text("Fake statuses");
