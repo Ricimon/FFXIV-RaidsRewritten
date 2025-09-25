@@ -24,21 +24,13 @@ public class LimitCutNumber
     {
         var world = target.CsWorld();
         var entity = Condition.ApplyToTarget(target, "Limit Cut", duration, Id, extendDuration, overrideExistingDuration);
+        entity.Add<Condition.Hidden>();
         if (!entity.Has<Component>())
         {
             entity.Set(new Component());
             var e = world.Entity()
                 .Set(new ActorVfx(SymbolPaths[number]))
                 .ChildOf(entity);
-            float fadeTimer = duration - 1;
-            if (duration < 1)
-            {
-                fadeTimer = duration / 2;
-            }
-            DelayedAction.Create(world, () => 
-            { 
-                
-            }, fadeTimer);
         }
     }
 }

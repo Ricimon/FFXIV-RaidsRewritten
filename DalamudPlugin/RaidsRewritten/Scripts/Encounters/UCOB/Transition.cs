@@ -26,14 +26,14 @@ internal class Transition : Mechanic
     {
         Octet,
         Pheonix,
-        Resolution
     }
+
     private static readonly Dictionary<uint, Phase> HookedActions = new()
     {
         { 41, Phase.Octet},       //Octet NEED NUMBER
-        { 25752, Phase.Pheonix },    //Pheonix
-        { 16462, Phase.Resolution }, //NEED NUMBER FOR RESOLUTION
+        { 16462, Phase.Pheonix },    //Pheonix NEED NUMBER
     };
+
     private readonly Vector3 ArenaCenter = new(100, 0, 100);
     private const int ArenaRadius = 22;
     public int RngSeed { get; set; }
@@ -42,6 +42,11 @@ internal class Transition : Mechanic
     private readonly List<Entity> gates = [];
     private List<IBattleChara> playerList = [];
     private IBattleChara? localPlayer;
+    private static float PheonixDelay = 3.6f;
+    private static float PlayerLimitCutDelay = 5.5f;
+    private static float GateLimitCutDelay = 10.0f;
+    private static float PlayerMarkerDelay = 15.0f;
+    private static float ResolutionDelay = PlayerMarkerDelay + 1.0f;
     private List<int> telegraphs = [0, 1, 2, 3, 4, 5, 6, 7];
     private List<int> SymbolPaths = [0, 1, 2, 3, 4, 5, 6, 7];
     private int resolution;
@@ -52,7 +57,7 @@ internal class Transition : Mechanic
         {
             attack.Destruct();
         }
-        foreach (var gate in this.gates)
+        foreach (var gate in this.gates) 
         { 
             gate.Destruct();
         }
@@ -204,45 +209,45 @@ internal class Transition : Mechanic
 
                 ShowAds(telegraphs[playerNumber]);
 
-                DelayedAction.Create(World, () => 
+                for (int i = 0; i < 8; i++)
                 {
-                    for (int i = 0; i < 8; i++)
+                    if (this.AttackManager.TryCreateAttackEntity<VoidGate>(out var voidgate))
                     {
-                        if (this.AttackManager.TryCreateAttackEntity<ADS>(out var ads))
-                        {
-                            var angle = 2 * MathF.PI / 8 * i;
-                            var pos = new Vector3(
-                            ArenaCenter.X - ArenaRadius * MathF.Sin(angle),
-                            ArenaCenter.Y,
-                            ArenaCenter.Z - ArenaRadius * MathF.Cos(angle)
-                            );
-                            ads.Set(new Position(pos));
-                            ads.Set(new Rotation(angle));
-                            gates.Add(ads);
-                        }
+                        var angle = 2 * MathF.PI / 8 * i;
+                        var pos = new Vector3(
+                        ArenaCenter.X - ArenaRadius * MathF.Sin(angle),
+                        ArenaCenter.Y + 1.5f,
+                        ArenaCenter.Z - ArenaRadius * MathF.Cos(angle)
+                        );
+                        voidgate.Set(new Position(pos));
+                        voidgate.Set(new Rotation(angle));
+                        gates.Add(voidgate);
                     }
+                }
 
+                var da1 = DelayedAction.Create(World, () => 
+                {
                     CommonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
                     {
-                        LimitCutNumber.ApplyToTarget(e, 5, SymbolPaths[playerNumber]);
+                        LimitCutNumber.ApplyToTarget(e, 10, SymbolPaths[playerNumber]);
                     });
-                }, 5);
+                }, PlayerLimitCutDelay);
 
-                break;
-            case Phase.Resolution:
-
-                gates.ForEach(e => 
+                attacks.Add(da1);
+                var da2 = DelayedAction.Create(World, () =>
                 {
-                    LimitCutNumber.ApplyToTarget(e, 5, SymbolPaths[resolution]);
-                });
-                DelayedAction.Create(World, () =>
-                {
-                    foreach (var gate in this.gates)
+                    gates.ForEach(e =>
                     {
-                        gate.Destruct();
-                    }
+                        LimitCutNumber.ApplyToTarget(e, 10, SymbolPaths[resolution]);
+                    });
+                }, GateLimitCutDelay);
+                attacks.Add(da2);
+
+                var da4 = DelayedAction.Create(World, () =>
+                {
                     ShowAds(telegraphs[resolution]);
-                }, 5);
+                }, ResolutionDelay);
+                attacks.Add(da4);
                 break;
         }
     }
