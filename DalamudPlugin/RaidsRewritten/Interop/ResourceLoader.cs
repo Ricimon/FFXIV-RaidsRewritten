@@ -56,7 +56,6 @@ public unsafe sealed partial class ResourceLoader : IDisposable
 
         hooks.InitializeFromAttributes(this);
 
-        InitReplacements();
         // Replace
 
         ReadSqPackHook = hooks.HookFromSignature<ReadSqPackPrototype>(ReadSqPackSig, ReadSqPackDetour);

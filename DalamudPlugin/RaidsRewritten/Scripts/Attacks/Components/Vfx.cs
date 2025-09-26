@@ -1,5 +1,4 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
-using RaidsRewritten.Interop.Structs.Vfx;
 
 namespace RaidsRewritten.Scripts.Attacks.Components;
 

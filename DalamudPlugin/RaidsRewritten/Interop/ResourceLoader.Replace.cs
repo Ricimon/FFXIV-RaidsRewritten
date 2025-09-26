@@ -37,29 +37,23 @@ public unsafe partial class ResourceLoader
     public Hook<ReadSqPackPrototype> ReadSqPackHook { get; private set; }
     public ReadFilePrototype ReadFile { get; private set; }
 
-    private Dictionary<string, string> Replacements = [];
+    public IReadOnlyDictionary<string, string> FileReplacements => fileReplacements;
 
-    // TODO: move this whenever the system for replacements is implemented
-    private void InitReplacements()
+    private readonly Dictionary<string, string> fileReplacements = [];
+
+    public void AddFileReplacement(string originalPath, string replacementPath)
     {
-        Replacements["chara/monster/m0001/obj/body/b0002/model/m0001b0002.mdl"] = this.dalamud.PluginInterface.GetResourcePath("m0001b0002.mdl");
-        Replacements["chara/monster/m0001/obj/body/b0002/material/v0001/mt_m0001b0002_a.mtrl"] = this.dalamud.PluginInterface.GetResourcePath("mt_m0001b0002_a.mtrl");
-        Replacements["chara/monster/m0001/obj/body/b0002/material/v0001/mt_m0001b0002_b.mtrl"] = this.dalamud.PluginInterface.GetResourcePath("mt_m0001b0002_b.mtrl");
-        Replacements["chara/monster/m0001/obj/body/b0002/material/v0001/mt_m0001b0002_c.mtrl"] = this.dalamud.PluginInterface.GetResourcePath("mt_m0001b0002_c.mtrl");
-        Replacements["chara/monster/m0001/obj/body/b0002/material/v0001/mt_m0001b0002_d.mtrl"] = this.dalamud.PluginInterface.GetResourcePath("mt_m0001b0002_d.mtrl");
-        Replacements["chara/monster/m0001/obj/body/b0002/material/v0001/mt_m0001b0002_e.mtrl"] = this.dalamud.PluginInterface.GetResourcePath("mt_m0001b0002_e.mtrl");
-        Replacements["chara/monster/m0001/obj/body/b0002/texture/unknown_n_359651549.tex"] = this.dalamud.PluginInterface.GetResourcePath("unknown_n_359651549.tex");
-        Replacements["chara/monster/m0001/obj/body/b0002/texture/unknown_m_359651549.tex"] = this.dalamud.PluginInterface.GetResourcePath("unknown_m_359651549.tex");
-        Replacements["chara/monster/m0001/obj/body/b0002/texture/unknown_id_359651549.tex"] = this.dalamud.PluginInterface.GetResourcePath("unknown_id_359651549.tex");
-        Replacements["chara/monster/m0001/animation/a0001/bt_common/resident/monster.pap"] = "chara/monster/m7002/animation/a0001/bt_common/resident/monster.pap";
-        Replacements["chara/monster/m0001/skeleton/base/b0001/skl_m0001b0001.sklb"] = "chara/monster/m7002/skeleton/base/b0001/skl_m7002b0001.sklb";
+        this.fileReplacements[originalPath] = replacementPath;
     }
 
-    private bool GetReplacePath(string gamePath, out string? localPath)
+    public void RemoveFileReplacement(string originalPath)
     {
-        localPath = null;
+        this.fileReplacements.Remove(originalPath);
+    }
 
-        return Replacements.TryGetValue(gamePath, out localPath);
+    private bool GetReplacePath(string gamePath, out string localPath)
+    {
+        return FileReplacements.TryGetValue(gamePath, out localPath);
     }
 
     private void* GetResourceSyncDetour(
