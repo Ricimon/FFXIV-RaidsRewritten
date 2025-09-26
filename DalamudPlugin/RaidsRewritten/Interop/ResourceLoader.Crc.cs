@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Adapted from https://github.com/0ceal0t/Dalamud-VFXEditor/blob/main/VFXEditor/Interop/ResourceLoader.Crc.cs
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using Dalamud.Hooking;

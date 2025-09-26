@@ -1,5 +1,5 @@
-﻿using System.Runtime.InteropServices;
-using FileMode = FFXIVClientStructs.FFXIV.Client.System.File.FileMode;
+﻿// Adapted from https://github.com/xivdev/Penumbra/blob/master/Penumbra/Interop/Structs/SeFileDescriptor.cs
+using System.Runtime.InteropServices;
 
 namespace RaidsRewritten.Interop.Structs;
 
@@ -17,14 +17,18 @@ public unsafe struct SeFileDescriptor
 
     [FieldOffset(0x70)]
     public char Utf16FileName;
-}
 
-public enum SeFileMode : byte
-{
-    LoadUnpackedResource = 0,
-    LoadFileResource = 1, // The config files in MyGames use this.
+    public FFXIVClientStructs.FFXIV.Client.System.Resource.Handle.ResourceHandle* CsResourceHandele
+        => (FFXIVClientStructs.FFXIV.Client.System.Resource.Handle.ResourceHandle*)ResourceHandle;
 
-    // Probably debug options only.
-    LoadIndexResource = 0xA, // load index/index2
-    LoadSqPackResource = 0xB,
+    public string FileName
+    {
+        get
+        {
+            fixed (char* ptr = &Utf16FileName)
+            {
+                return MemoryMarshal.CreateReadOnlySpanFromNullTerminated(ptr).ToString();
+            }
+        }
+    }
 }

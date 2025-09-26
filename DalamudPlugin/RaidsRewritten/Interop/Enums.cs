@@ -1,4 +1,5 @@
-﻿namespace RaidsRewritten.Interop;
+﻿// https://github.com/0ceal0t/Dalamud-VFXEditor/blob/main/VFXEditor/Interop/Enums.cs
+namespace RaidsRewritten.Interop;
 
 public enum ResourceType : uint {
     Unknown = 0,

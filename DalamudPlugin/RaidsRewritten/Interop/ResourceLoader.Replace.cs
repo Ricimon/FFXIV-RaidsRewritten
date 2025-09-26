@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Adapted from https://github.com/0ceal0t/Dalamud-VFXEditor/blob/main/VFXEditor/Interop/ResourceLoader.Replace.cs
+using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -164,7 +165,7 @@ public unsafe partial class ResourceLoader
 
         //this.logger.Debug($"swap: {originalPath} -> {gameFsPath}");
 
-        fileDescriptor->FileMode = FFXIVClientStructs.FFXIV.Client.System.File.FileMode.LoadUnpackedResource;
+        fileDescriptor->FileMode = Structs.FileMode.LoadUnpackedResource;
 
         ByteString.FromString(gameFsPath, out var gamePath);
 
