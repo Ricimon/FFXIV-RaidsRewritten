@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 using Dalamud.Bindings.ImGui;
 
-namespace RaidsRewritten.Extensions;
+namespace RaidsRewritten.Utility;
 
 public static class ColorExtensions
 {

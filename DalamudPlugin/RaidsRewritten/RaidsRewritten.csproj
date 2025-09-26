@@ -40,6 +40,10 @@
     <PackageReference Include="ZLinq" Version="1.5.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Penumbra.String\Penumbra.String.csproj" />
+  </ItemGroup>
+
 	<ItemGroup>
 		<Reference Include="Reloaded.Hooks.Definitions">
 			<HintPath>$(DalamudLibPath)Reloaded.Hooks.Definitions.dll</HintPath>

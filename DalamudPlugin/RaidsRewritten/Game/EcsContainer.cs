@@ -2,8 +2,8 @@
 using Dalamud.Plugin.Services;
 using Flecs.NET.Bindings;
 using Flecs.NET.Core;
-using RaidsRewritten.Extensions;
 using RaidsRewritten.Log;
+using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Game;
 

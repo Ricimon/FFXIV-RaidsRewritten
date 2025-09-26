@@ -1,6 +1,6 @@
 ﻿// Adapted from https://github.com/NightmareXIV/ECommons/blob/master/ECommons/GenericHelpers/LogHelpers.cs
 using ECommons.Logging;
-using RaidsRewritten.Extensions;
+using RaidsRewritten.Utility;
 using System;
 using System.Text;
 

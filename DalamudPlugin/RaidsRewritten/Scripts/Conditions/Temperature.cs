@@ -1,8 +1,8 @@
 ﻿using System;
 using Flecs.NET.Core;
-using RaidsRewritten.Extensions;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
+using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Conditions;
 

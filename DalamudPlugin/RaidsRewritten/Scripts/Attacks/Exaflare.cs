@@ -2,7 +2,6 @@
 using System.Numerics;
 using Flecs.NET.Bindings;
 using Flecs.NET.Core;
-using RaidsRewritten.Extensions;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks.Components;

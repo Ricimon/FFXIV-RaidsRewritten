@@ -2,10 +2,10 @@
 using System.Numerics;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Flecs.NET.Core;
-using RaidsRewritten.Extensions;
 using RaidsRewritten.Interop;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Conditions;
+using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Game;
 

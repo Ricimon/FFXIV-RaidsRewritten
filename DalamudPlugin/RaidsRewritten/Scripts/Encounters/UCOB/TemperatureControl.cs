@@ -4,9 +4,9 @@ using Dalamud.Plugin.Services;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using Flecs.NET.Core;
-using RaidsRewritten.Extensions;
 using RaidsRewritten.Game;
 using RaidsRewritten.Scripts.Conditions;
+using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Encounters.UCOB;
 

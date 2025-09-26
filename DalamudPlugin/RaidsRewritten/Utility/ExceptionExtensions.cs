@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 
-namespace RaidsRewritten.Extensions;
+namespace RaidsRewritten.Utility;
 
 public static class ExceptionExtensions
 {

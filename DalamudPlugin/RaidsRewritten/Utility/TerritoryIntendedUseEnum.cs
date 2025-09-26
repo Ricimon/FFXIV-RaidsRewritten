@@ -1,7 +1,7 @@
 ﻿// Taken from https://github.com/MidoriKami/KamiLib/blob/master/Classes/TerritoryIntendedUseEnum.cs
 using System.ComponentModel;
 
-namespace RaidsRewritten.Extensions;
+namespace RaidsRewritten.Utility;
 
 public enum TerritoryIntendedUseEnum
 {

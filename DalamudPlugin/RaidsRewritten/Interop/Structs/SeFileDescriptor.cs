@@ -1,11 +1,10 @@
 ﻿using System.Runtime.InteropServices;
-using FFXIVClientStructs.FFXIV.Client.System.Resource.Handle;
 using FileMode = FFXIVClientStructs.FFXIV.Client.System.File.FileMode;
 
 namespace RaidsRewritten.Interop.Structs;
 
 [StructLayout(LayoutKind.Explicit)]
-internal unsafe struct SeFileDescriptor
+public unsafe struct SeFileDescriptor
 {
     [FieldOffset(0x00)]
     public FileMode FileMode;
@@ -20,7 +19,7 @@ internal unsafe struct SeFileDescriptor
     public char Utf16FileName;
 }
 
-internal enum SeFileMode : byte
+public enum SeFileMode : byte
 {
     LoadUnpackedResource = 0,
     LoadFileResource = 1, // The config files in MyGames use this.

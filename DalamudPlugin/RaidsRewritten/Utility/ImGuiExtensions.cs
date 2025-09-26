@@ -1,7 +1,7 @@
 ﻿using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Keys;
 
-namespace RaidsRewritten.Extensions;
+namespace RaidsRewritten.Utility;
 
 public static class ImGuiExtensions
 {

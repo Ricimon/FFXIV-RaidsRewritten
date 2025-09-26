@@ -3,11 +3,11 @@ using System.Reactive.Linq;
 using AsyncAwaitBestPractices;
 using Dalamud.Game.ClientState.Keys;
 using RaidsRewritten.Audio;
-using RaidsRewritten.Extensions;
 using RaidsRewritten.Input;
 using RaidsRewritten.Log;
 using RaidsRewritten.Network;
 using RaidsRewritten.UI.View;
+using RaidsRewritten.Utility;
 using Reactive.Bindings;
 
 namespace RaidsRewritten.UI.Presenter;

@@ -14,7 +14,6 @@ using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using Flecs.NET.Core;
 using RaidsRewritten.Audio;
 using RaidsRewritten.Data;
-using RaidsRewritten.Extensions;
 using RaidsRewritten.Game;
 using RaidsRewritten.Input;
 using RaidsRewritten.Log;
