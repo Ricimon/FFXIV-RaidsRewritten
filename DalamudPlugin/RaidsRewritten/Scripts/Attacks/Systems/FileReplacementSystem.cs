@@ -37,8 +37,9 @@ public class FileReplacementSystem(ResourceLoader resourceLoader) : ISystem
 
         world.Observer<FileReplacement>()
             .Event(Ecs.OnRemove)
-            .Each((ref FileReplacement replace) =>
+            .Each((Entity e, ref FileReplacement _) =>
             {
+                var replace = e.Get<FileReplacement>();
                 if (replace.FramesSinceApplication >= 0)
                 {
                     resourceLoader.RemoveFileReplacement(replace.OriginalPath);

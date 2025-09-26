@@ -206,11 +206,12 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
 
         world.Observer<Model>()
             .Event(Ecs.OnRemove)
-            .Each((Iter it, int i, ref Model model) =>
+            .Each((Entity e, ref Model _) =>
             {
+                var model = e.Get<Model>();
                 if (model.Spawned)
                 {
-                    it.World().Entity()
+                    e.CsWorld().Entity()
                         .Set(new ModelFadeOut(model.GameObjectIndex, 1.0f, 1.0f));
                 }
             });
