@@ -924,28 +924,16 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
 
                 var replacements = new Dictionary<string, string>
                 {
-                    // Carbuncle
                     { "chara/monster/m7002/obj/body/b0001/model/m7002b0001.mdl", "m0001b0002.mdl" },
                     { "chara/monster/m7002/obj/body/b0001/material/v0005/mt_m0001b0002_a.mtrl", "mt_m0001b0002_a.mtrl" },
                     { "chara/monster/m7002/obj/body/b0001/material/v0005/mt_m0001b0002_b.mtrl", "mt_m0001b0002_b.mtrl" },
                     { "chara/monster/m7002/obj/body/b0001/material/v0005/mt_m0001b0002_c.mtrl", "mt_m0001b0002_c.mtrl" },
                     { "chara/monster/m7002/obj/body/b0001/material/v0005/mt_m0001b0002_d.mtrl", "mt_m0001b0002_d.mtrl" },
                     { "chara/monster/m7002/obj/body/b0001/material/v0005/mt_m0001b0002_e.mtrl", "mt_m0001b0002_e.mtrl" },
-                    //{ "chara/monster/m7002/obj/body/b0001/texture/v01_m7002b0001_n.tex", "unknown_n_359651549.tex" },
-                    //{ "chara/monster/m7002/obj/body/b0001/texture/v01_m7002b0001_m.tex", "unknown_m_359651549.tex" },
-                    //{ "chara/monster/m7002/obj/body/b0001/texture/v01_m7002b0001_id.tex", "unknown_id_359651549.tex" },
-                    { "chara/monster/m7002/obj/body/b0001/vfx/eff/vm0001.avfx", "" },
-
-                    // Diremite testing
-                    //{ "chara/monster/m0001/obj/body/b0002/model/m0001b0002.mdl", "m0001b0002.mdl" },
-                    //{ "chara/monster/m0001/obj/body/b0002/material/v0001/mt_m0001b0002_a.mtrl", "mt_m0001b0002_a.mtrl" },
-                    //{ "chara/monster/m0001/obj/body/b0002/material/v0001/mt_m0001b0002_b.mtrl", "mt_m0001b0002_b.mtrl" },
-                    //{ "chara/monster/m0001/obj/body/b0002/material/v0001/mt_m0001b0002_c.mtrl", "mt_m0001b0002_c.mtrl" },
-                    //{ "chara/monster/m0001/obj/body/b0002/material/v0001/mt_m0001b0002_d.mtrl", "mt_m0001b0002_d.mtrl" },
-                    //{ "chara/monster/m0001/obj/body/b0002/material/v0001/mt_m0001b0002_e.mtrl", "mt_m0001b0002_e.mtrl" },
                     { "chara/monster/m0001/obj/body/b0002/texture/unknown_n_359651549.tex", "unknown_n_359651549.tex" },
                     { "chara/monster/m0001/obj/body/b0002/texture/unknown_m_359651549.tex", "unknown_m_359651549.tex" },
                     { "chara/monster/m0001/obj/body/b0002/texture/unknown_id_359651549.tex", "unknown_id_359651549.tex" },
+                    { "chara/monster/m7002/obj/body/b0001/vfx/eff/vm0001.avfx", "" },
                 };
 
                 foreach (var r in replacements)
