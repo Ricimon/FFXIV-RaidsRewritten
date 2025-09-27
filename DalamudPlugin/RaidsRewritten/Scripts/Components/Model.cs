@@ -1,6 +1,6 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
 
-namespace RaidsRewritten.Scripts.Attacks.Components;
+namespace RaidsRewritten.Scripts.Components;
 
 public record struct Model(
     int ModelCharaId,

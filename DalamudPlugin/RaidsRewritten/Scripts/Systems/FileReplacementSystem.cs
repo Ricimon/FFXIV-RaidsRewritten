@@ -1,9 +1,9 @@
 ﻿using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Interop;
-using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Scripts.Components;
 
-namespace RaidsRewritten.Scripts.Attacks.Systems;
+namespace RaidsRewritten.Scripts.Systems;
 
 public class FileReplacementSystem(ResourceLoader resourceLoader) : ISystem
 {

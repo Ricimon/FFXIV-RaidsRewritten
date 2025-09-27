@@ -1,9 +1,9 @@
 ﻿using Flecs.NET.Core;
-using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Scripts.Components;
 
 namespace RaidsRewritten.Scripts.Attacks.Omens;
 
-public class ExaflareOmen : IAttack
+public class ExaflareOmen : IEntity
 {
     public static Entity CreateEntity(World world)
     {

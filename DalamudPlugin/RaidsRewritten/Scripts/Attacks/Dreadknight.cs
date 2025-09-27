@@ -1,24 +1,18 @@
-﻿using Dalamud.Game.ClientState.Objects.Types;
-using FFXIVClientStructs.FFXIV.Client.Game.Character;
-using FFXIVClientStructs.FFXIV.Client.Game.Object;
+﻿using System;
+using System.Numerics;
+using Dalamud.Game.ClientState.Objects.Types;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using Flecs.NET.Bindings;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
-using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Utility;
-using System;
-using System.Collections.Generic;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using static RaidsRewritten.Scripts.Attacks.Dreadknight;
 using Player = RaidsRewritten.Game.Player;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) : IAttack, ISystem
+public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) : IEntity, ISystem
 {
     public record struct Component(float ElapsedTime, float NextRefresh, float StartEnrage = 7f, float Enrage = 12f, bool EnrageLoop = false, bool BackupActive = false);
     public record struct Target(IGameObject? Value);

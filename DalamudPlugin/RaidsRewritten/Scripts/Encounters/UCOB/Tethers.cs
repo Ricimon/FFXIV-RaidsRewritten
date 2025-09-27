@@ -85,7 +85,7 @@ public class Tethers : Mechanic
                 var src = playerList[i];
                 var target = playerList[i + 1];
 
-                if (this.AttackManager.TryCreateAttackEntity<DistanceSnapshotTether>(out var tether))
+                if (this.EntityManager.TryCreateEntity<DistanceSnapshotTether>(out var tether))
                 {
                     Action<Entity>? onCondition1 = null;
 

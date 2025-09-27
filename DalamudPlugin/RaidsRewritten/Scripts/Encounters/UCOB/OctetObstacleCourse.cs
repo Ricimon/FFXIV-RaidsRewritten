@@ -7,7 +7,7 @@ using ECommons.Hooks.ActionEffectTypes;
 using Flecs.NET.Core;
 using Lumina.Excel.Sheets;
 using RaidsRewritten.Scripts.Attacks;
-using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Scripts.Components;
 
 namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
@@ -47,7 +47,7 @@ public class OctetObstacleCourse : Mechanic
     {
         if (action.RowId == GrandOctetCastId)
         {
-            if (AttackManager.TryCreateAttackEntity<OctetDonut>(out var donut))
+            if (EntityManager.TryCreateEntity<OctetDonut>(out var donut))
             {
                 var random = new Random(RngSeed);
                 donut.Set(new Position(ArenaCenter))

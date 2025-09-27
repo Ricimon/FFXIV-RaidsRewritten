@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
-using RaidsRewritten.Scripts.Attacks;
-using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Scripts;
+using RaidsRewritten.Scripts.Components;
 
 namespace RaidsRewritten;
 
-public sealed class AttackManager : IDalamudHook
+public sealed class EntityManager : IDalamudHook
 {
     private readonly DalamudServices dalamud;
     private readonly World world;
@@ -17,11 +17,11 @@ public sealed class AttackManager : IDalamudHook
 
     private readonly Dictionary<Type, Func<World, Entity>> entityCreationFunctions = [];
 
-    public AttackManager(
+    public EntityManager(
         DalamudServices dalamud,
         EcsContainer container,
         Configuration configuration,
-        IAttack[] attacks,
+        IEntity[] entities,
         ILogger logger)
     {
         this.dalamud = dalamud;
@@ -29,10 +29,10 @@ public sealed class AttackManager : IDalamudHook
         this.configuration = configuration;
         this.logger = logger;
 
-        // Register all attacks
-        foreach (var attack in attacks)
+        // Register all entities
+        foreach (var entity in entities)
         {
-            entityCreationFunctions.Add(attack.GetType(), attack.Create);
+            entityCreationFunctions[entity.GetType()] = entity.Create;
         }
     }
 
@@ -46,7 +46,7 @@ public sealed class AttackManager : IDalamudHook
         this.dalamud.ClientState.TerritoryChanged -= OnTerritoryChanged;
     }
 
-    public bool TryCreateAttackEntity<T>(out Entity entity)
+    public bool TryCreateEntity<T>(out Entity entity)
     {
         if (this.configuration.EverythingDisabled) { entity = default; return false; }
 
@@ -55,18 +55,19 @@ public sealed class AttackManager : IDalamudHook
             entity = createFunc.Invoke(this.world);
             return true;
         }
-        this.logger.Error("Attack of type {0} is not registered, cannot create attack entity", typeof(T));
+        this.logger.Error("Entity of type {0} is not registered, cannot create entity", typeof(T));
         entity = default;
         return false;
     }
 
-    public void ClearAllAttacks()
+    public void ClearAllManagedEntities()
     {
+        this.world.DeleteWith<Model>();
         this.world.DeleteWith<Attack>();
     }
 
     private void OnTerritoryChanged(ushort obj)
     {
-        ClearAllAttacks();
+        ClearAllManagedEntities();
     }
 }

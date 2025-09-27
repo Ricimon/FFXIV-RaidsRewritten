@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 using Flecs.NET.Core;
 
-namespace RaidsRewritten.Scripts.Attacks.Components;
+namespace RaidsRewritten.Scripts.Components;
 
 public class FakeActor
 {

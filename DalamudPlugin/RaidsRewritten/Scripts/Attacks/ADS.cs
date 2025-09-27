@@ -2,15 +2,15 @@
 using System.Numerics;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
-using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Scripts.Attacks.Omens;
+using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Spawn;
 using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn vfxSpawn) : IAttack, ISystem
+public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn vfxSpawn) : IEntity, ISystem
 {
     public enum Phase
     {

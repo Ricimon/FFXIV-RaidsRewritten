@@ -6,10 +6,10 @@ using Flecs.NET.Core;
 using Lumina.Excel.Sheets;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
-using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Utility;
 
-namespace RaidsRewritten.Scripts.Attacks.Systems;
+namespace RaidsRewritten.Scripts.Systems;
 
 public unsafe sealed class ModelSystem : ISystem, IDisposable
 {

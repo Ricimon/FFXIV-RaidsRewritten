@@ -1,14 +1,13 @@
-﻿using ECommons.MathHelpers;
-using Flecs.NET.Core;
-using RaidsRewritten.Game;
-using RaidsRewritten.Scripts.Attacks.Components;
-using RaidsRewritten.Utility;
-using System;
+﻿using System;
 using System.Numerics;
+using ECommons.MathHelpers;
+using Flecs.NET.Core;
+using RaidsRewritten.Scripts.Components;
+using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Attacks.Omens;
 
-public class Fan120Omen: IAttack
+public class Fan120Omen: IEntity
 {
     private const float Degrees = 120;
     public static bool IsInOmen(Entity omen, Vector3 position)

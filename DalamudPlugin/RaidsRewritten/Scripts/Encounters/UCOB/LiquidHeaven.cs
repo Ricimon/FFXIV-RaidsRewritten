@@ -3,7 +3,7 @@ using Dalamud.Game.ClientState.Objects.Types;
 using ECommons.Hooks;
 using Flecs.NET.Core;
 using RaidsRewritten.Scripts.Attacks;
-using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Scripts.Components;
 
 namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
@@ -44,7 +44,7 @@ public class LiquidHeaven : Mechanic
         var player = this.Dalamud.ClientState.LocalPlayer;
         if (player != null)
         {
-            if (this.AttackManager.TryCreateAttackEntity<Attacks.LiquidHeaven>(out var liquidHeaven))
+            if (this.EntityManager.TryCreateEntity<Attacks.LiquidHeaven>(out var liquidHeaven))
             {
                 liquidHeaven.Set(new Position(newObject.Position));
                 liquidHeaven.Set(new Rotation(newObject.Rotation));

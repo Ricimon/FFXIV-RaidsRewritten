@@ -1,17 +1,17 @@
-﻿using Flecs.NET.Core;
+﻿using System.Collections.Generic;
+using System.Numerics;
+using Flecs.NET.Core;
 using RaidsRewritten.Game;
-using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Scripts.Attacks.Omens;
+using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Spawn;
 using RaidsRewritten.Utility;
-using System.Collections.Generic;
-using System.Numerics;
 using Player = RaidsRewritten.Game.Player;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public class NerveGasKaliya(DalamudServices dalamud, VfxSpawn vfxSpawn, CommonQueries commonQueries) : IAttack, ISystem
+public class NerveGasKaliya(DalamudServices dalamud, VfxSpawn vfxSpawn, CommonQueries commonQueries) : IEntity, ISystem
 {
     public enum Phase
     {

@@ -6,15 +6,15 @@ using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
-using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Scripts.Attacks.Omens;
+using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Spawn;
 using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public unsafe sealed class RollingBall(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn vfxSpawn, Random random, ILogger logger) : IAttack, ISystem
+public unsafe sealed class RollingBall(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn vfxSpawn, Random random, ILogger logger) : IEntity, ISystem
 {
     public record struct Component(float TimeUntilRolling, bool EntryAnimationPlayed = false, float TargetYPosition = default, float Cooldown = default);
     public record struct Movement(Vector2 Direction, float Speed = 0, double SimulationBufferTime = 0);

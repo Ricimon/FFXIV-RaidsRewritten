@@ -4,7 +4,7 @@ using ECommons.Hooks.ActionEffectTypes;
 using ECommons.MathHelpers;
 using Flecs.NET.Core;
 using RaidsRewritten.Scripts.Attacks;
-using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Scripts.Components;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -228,7 +228,7 @@ public class MoreExaflares : Mechanic
         var X = Center.X - Radius * MathF.Sin(MathHelper.DegToRad(deg));
         var Z = Center.Z - Radius * MathF.Cos(MathHelper.DegToRad(deg));
 
-        if (this.AttackManager.TryCreateAttackEntity<ExaflareRow>(out var exaflareRow))
+        if (this.EntityManager.TryCreateEntity<ExaflareRow>(out var exaflareRow))
         {
             exaflareRow.Set(new Position(new Vector3(X, Center.Y, Z)))
                 .Set(new Rotation(MathHelper.DegToRad(deg)))

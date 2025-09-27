@@ -1,8 +1,8 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
-using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Scripts.Attacks.Omens;
+using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Utility;
 using System;
 using System.Collections.Generic;
@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public class DistanceSnapshotTether(CommonQueries commonQueries) : IAttack, ISystem
+public class DistanceSnapshotTether(CommonQueries commonQueries) : IEntity, ISystem
 {
     private const string DebuffVfx = "vfx/common/eff/dk05th_stdn0t.avfx";
 

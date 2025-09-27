@@ -2,7 +2,7 @@
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
-using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Utility;
 using System;
@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public class Tornado (DalamudServices dalamud, Random random, CommonQueries commonQueries, ILogger logger) : IAttack, ISystem
+public class Tornado (DalamudServices dalamud, Random random, CommonQueries commonQueries, ILogger logger) : IEntity, ISystem
 {
     public record struct Component(float ElapsedTime, float CooldownTime);
 

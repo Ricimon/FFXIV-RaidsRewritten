@@ -6,13 +6,13 @@ using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
-using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public class LiquidHeaven(DalamudServices dalamud, CommonQueries commonQueries, ILogger logger) : IAttack, ISystem
+public class LiquidHeaven(DalamudServices dalamud, CommonQueries commonQueries, ILogger logger) : IEntity, ISystem
 {
     public record struct Component(float Cooldown);
 

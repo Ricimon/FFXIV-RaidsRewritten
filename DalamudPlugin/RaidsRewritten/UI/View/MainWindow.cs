@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Numerics;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -22,9 +20,10 @@ using RaidsRewritten.Log;
 using RaidsRewritten.Network;
 using RaidsRewritten.Scripts;
 using RaidsRewritten.Scripts.Attacks;
-using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Scripts.Attacks.Omens;
+using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
+using RaidsRewritten.Scripts.Models;
 using RaidsRewritten.Spawn;
 using RaidsRewritten.UI.Util;
 using RaidsRewritten.Utility;
@@ -74,7 +73,7 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
     private readonly ServerConnection serverConnection;
     private readonly MapManager mapChangeHandler;
     private readonly EncounterManager encounterManager;
-    private readonly AttackManager attackManager;
+    private readonly EntityManager entityManager;
     private readonly Mechanic.Factory mechanicFactory;
     private readonly Configuration configuration;
     private readonly EcsContainer ecsContainer;
@@ -102,7 +101,7 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
         ServerConnection serverConnection,
         MapManager mapChangeHandler,
         EncounterManager encounterManager,
-        AttackManager attackManager,
+        EntityManager entityManager,
         Mechanic.Factory mechanicFactory,
         Configuration configuration,
         EcsContainer ecsContainer,
@@ -117,7 +116,7 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
         this.serverConnection = serverConnection;
         this.mapChangeHandler = mapChangeHandler;
         this.encounterManager = encounterManager;
-        this.attackManager = attackManager;
+        this.entityManager = entityManager;
         this.mechanicFactory = mechanicFactory;
         this.configuration = configuration;
         this.ecsContainer = ecsContainer;
@@ -178,9 +177,9 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
         ImGui.SetNextWindowSizeConstraints(new Vector2(width, 250), new Vector2(float.MaxValue, float.MaxValue));
         if (ImGui.Begin(this.windowName, ref this.visible))
         {
-            this.ecsContainer.World.DeferBegin();
+            this.World.DeferBegin();
             DrawContents();
-            this.ecsContainer.World.DeferEnd();
+            this.World.DeferEnd();
         }
         ImGui.End();
     }
@@ -202,10 +201,9 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
                     this.configuration.EverythingDisabled = true;
                     this.configuration.Save();
                     // Delete everything
-                    this.attackManager.ClearAllAttacks();
-                    this.ecsContainer.World.DeleteWith<Condition.Component>();
-                    this.ecsContainer.World.DeleteWith<DelayedAction.Component>();
-                    this.ecsContainer.World.DeleteWith<Model>();
+                    this.entityManager.ClearAllManagedEntities();
+                    this.World.DeleteWith<Condition.Component>();
+                    this.World.DeleteWith<DelayedAction.Component>();
                     this.vfxSpawn.Clear();
                 }
             }
@@ -279,7 +277,7 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
         {
             commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
             {
-                ecsContainer.World.Entity().Set(new Condition.Component("test", 15.0f)).ChildOf(e);
+                this.World.Entity().Set(new Condition.Component("test", 15.0f)).ChildOf(e);
             });
         }
 
@@ -344,17 +342,17 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
 
         if (ImGui.Button("Clear All Attacks"))
         {
-            this.attackManager.ClearAllAttacks();
+            this.World.DeleteWith<Attack>();
         }
         ImGui.SameLine();
         if (ImGui.Button("Clear All Statuses"))
         {
-            this.ecsContainer.World.DeleteWith<Condition.Component>();
+            this.World.DeleteWith<Condition.Component>();
         }
         ImGui.SameLine();
         if (ImGui.Button("Clear All Models"))
         {
-            this.ecsContainer.World.DeleteWith<Model>();
+            this.World.DeleteWith<Model>();
         }
 
         ImGui.Text("Fake statuses");
@@ -440,7 +438,7 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
             var player = this.dalamud.ClientState.LocalPlayer;
             if (player != null)
             {
-                if (this.attackManager.TryCreateAttackEntity<CircleOmen>(out var circle))
+                if (this.entityManager.TryCreateEntity<CircleOmen>(out var circle))
                 {
                     circle.Set(new Position(player.Position));
                     circle.Set(new Rotation(player.Rotation));
@@ -454,7 +452,7 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
             var player = this.dalamud.ClientState.LocalPlayer;
             if (player != null)
             {
-                if (this.attackManager.TryCreateAttackEntity<Fan90Omen>(out var fan))
+                if (this.entityManager.TryCreateEntity<Fan90Omen>(out var fan))
                 {
                     fan.Set(new Position(player.Position));
                     fan.Set(new Rotation(player.Rotation));
@@ -468,7 +466,7 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
             var player = this.dalamud.ClientState.LocalPlayer;
             if (player != null)
             {
-                if (this.attackManager.TryCreateAttackEntity<RectangleOmen>(out var rect))
+                if (this.entityManager.TryCreateEntity<RectangleOmen>(out var rect))
                 {
                     rect.Set(new Position(player.Position));
                     rect.Set(new Rotation(player.Rotation));
@@ -482,7 +480,7 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
             var player = this.dalamud.ClientState.LocalPlayer;
             if (player != null)
             {
-                if (this.attackManager.TryCreateAttackEntity<ShortStarOmen>(out var star))
+                if (this.entityManager.TryCreateEntity<ShortStarOmen>(out var star))
                 {
                     star.Set(new Position(player.Position));
                     star.Set(new Rotation(player.Rotation));
@@ -496,7 +494,7 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
             var player = this.dalamud.ClientState.LocalPlayer;
             if (player != null)
             {
-                if (this.attackManager.TryCreateAttackEntity<OneThirdDonutOmen>(out var donut))
+                if (this.entityManager.TryCreateEntity<OneThirdDonutOmen>(out var donut))
                 {
                     donut.Set(new Position(player.Position));
                     donut.Set(new Rotation(player.Rotation));
@@ -512,7 +510,7 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
             var player = this.dalamud.ClientState.LocalPlayer;
             if (player != null)
             {
-                if (this.attackManager.TryCreateAttackEntity<Twister>(out var twister))
+                if (this.entityManager.TryCreateEntity<Twister>(out var twister))
                 {
                     twister.Set(new Position(player.Position));
                     twister.Set(new Rotation(player.Rotation));
@@ -526,7 +524,7 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
             var player = this.dalamud.ClientState.LocalPlayer;
             if (player != null)
             {
-                if (this.attackManager.TryCreateAttackEntity<RollingBall>(out var ball))
+                if (this.entityManager.TryCreateEntity<RollingBall>(out var ball))
                 {
                     ball.Set(new Position(player.Position))
                         .Set(new Rotation(player.Rotation))
@@ -541,7 +539,7 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
             var player = this.dalamud.ClientState.LocalPlayer;
             if (player != null)
             {
-                if (this.attackManager.TryCreateAttackEntity<LightningCorridor>(out var attack))
+                if (this.entityManager.TryCreateEntity<LightningCorridor>(out var attack))
                 {
                     attack.Set(new Position(player.Position))
                         .Set(new Rotation(player.Rotation));
@@ -554,7 +552,7 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
             var player = this.dalamud.ClientState.LocalPlayer;
             if (player != null)
             {
-                if (this.attackManager.TryCreateAttackEntity<Exaflare>(out var exaflare))
+                if (this.entityManager.TryCreateEntity<Exaflare>(out var exaflare))
                 {
                     exaflare.Set(new Position(player.Position))
                         .Set(new Rotation(player.Rotation));
@@ -567,7 +565,7 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
             var player = this.dalamud.ClientState.LocalPlayer;
             if (player != null)
             {
-                if (this.attackManager.TryCreateAttackEntity<ExaflareRow>(out var exaflare))
+                if (this.entityManager.TryCreateEntity<ExaflareRow>(out var exaflare))
                 {
                     exaflare.Set(new Position(player.Position))
                         .Set(new Rotation(player.Rotation));
@@ -580,7 +578,7 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
             var player = this.dalamud.ClientState.LocalPlayer;
             if (player != null)
             {
-                if (this.attackManager.TryCreateAttackEntity<JumpableShockwave>(out var jumpwave))
+                if (this.entityManager.TryCreateEntity<JumpableShockwave>(out var jumpwave))
                 {
                     jumpwave.Set(new Position(player.Position + 0.0f * Vector3.UnitX))
                         .Set(new Rotation(player.Rotation));
@@ -593,7 +591,7 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
             var player = this.dalamud.ClientState.LocalPlayer;
             if (player != null)
             {
-                if (this.attackManager.TryCreateAttackEntity<Dreadknight>(out var dreadknight))
+                if (this.entityManager.TryCreateEntity<Dreadknight>(out var dreadknight))
                 {
                     dreadknight.Set(new Position(player.Position));
                 }
@@ -607,7 +605,7 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
             var player = this.dalamud.ClientState.LocalPlayer;
             if (player != null)
             {
-                if (this.attackManager.TryCreateAttackEntity<Dreadknight>(out var dreadknight))
+                if (this.entityManager.TryCreateEntity<Dreadknight>(out var dreadknight))
                 {
                     dreadknight.Set(new Position(player.Position));
                     Dreadknight.ApplyTarget(dreadknight, player);
@@ -645,7 +643,7 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
             var player = this.dalamud.ClientState.LocalPlayer;
             if (player != null)
             {
-                if (this.attackManager.TryCreateAttackEntity<ADS>(out var ads))
+                if (this.entityManager.TryCreateEntity<ADS>(out var ads))
                 {
                     var originalPosition = player.Position;
                     ads.Set(new Position(player.Position))
@@ -678,7 +676,7 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
             var player = this.dalamud.ClientState.LocalPlayer;
             if (player != null)
             {
-                if (this.attackManager.TryCreateAttackEntity<ADS>(out var ads))
+                if (this.entityManager.TryCreateEntity<ADS>(out var ads))
                 {
                     var originalPosition = player.Position;
                     ads.Set(new Position(player.Position))
@@ -712,7 +710,7 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
                 var target = player.TargetObject;
                 if (target != null)
                 {
-                    if (this.attackManager.TryCreateAttackEntity<DistanceSnapshotTether>(out var tether))
+                    if (this.entityManager.TryCreateEntity<DistanceSnapshotTether>(out var tether))
                     {
                         DistanceSnapshotTether.SetTetherVfx(tether, TetherOmen.TetherVfx.ActivatedClose, player, target)
                             .Set(new DistanceSnapshotTether.VfxOnFail(["vfx/monster/m0005/eff/m0005sp_15t0t.avfx"]))
@@ -738,7 +736,7 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
                 var target = player.TargetObject;
                 if (target != null)
                 {
-                    if (this.attackManager.TryCreateAttackEntity<DistanceSnapshotTether>(out var tether))
+                    if (this.entityManager.TryCreateEntity<DistanceSnapshotTether>(out var tether))
                     {
                         DistanceSnapshotTether.SetTetherVfx(tether, TetherOmen.TetherVfx.ActivatedFar, player, target)
                             .Set(new DistanceSnapshotTether.VfxOnFail(["vfx/monster/m0005/eff/m0005sp_15t0t.avfx"]))
@@ -759,7 +757,7 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
             var player = this.dalamud.ClientState.LocalPlayer;
             if (player != null)
             {
-                if (this.attackManager.TryCreateAttackEntity<ExpandingPuddle>(out var puddle))
+                if (this.entityManager.TryCreateEntity<ExpandingPuddle>(out var puddle))
                 {
                     puddle.Set(new ExpandingPuddle.Component(
                         "bgcommon/world/common/vfx_for_btl/b0801/eff/b0801_yuka_o.avfx",
@@ -779,7 +777,7 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
             var player = this.dalamud.ClientState.LocalPlayer;
             if (player != null)
             {
-                if (this.attackManager.TryCreateAttackEntity<Star>(out var star))
+                if (this.entityManager.TryCreateEntity<Star>(out var star))
                 {
                     star.Set(new Star.Component(
                         Type: Star.Type.Long,
@@ -798,7 +796,7 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
 
             if (player != null)
             {
-                if (this.attackManager.TryCreateAttackEntity<Tornado>(out var tornado))
+                if (this.entityManager.TryCreateEntity<Tornado>(out var tornado))
                 {
                     tornado.Set(new Position(player.Position));
                     DelayedAction.Create(tornado.CsWorld(), () =>
@@ -817,7 +815,7 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
 
             if (player != null)
             {
-                if (this.attackManager.TryCreateAttackEntity<OctetDonut>(out var tornado))
+                if (this.entityManager.TryCreateEntity<OctetDonut>(out var tornado))
                 {
                     tornado.Set(new Position(player.Position));
                     DelayedAction.Create(tornado.CsWorld(), () =>
@@ -834,7 +832,7 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
 
             if (player != null)
             {
-                if (this.attackManager.TryCreateAttackEntity<RepellingCannonADS>(out var ads))
+                if (this.entityManager.TryCreateEntity<RepellingCannonADS>(out var ads))
                 {
                     ads.Set(new Position(player.Position));
                 }
@@ -849,7 +847,7 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
 
             if (player != null)
             {
-                if (this.attackManager.TryCreateAttackEntity<CircleBladeMelusine>(out var melusine))
+                if (this.entityManager.TryCreateEntity<CircleBladeMelusine>(out var melusine))
                 {
                     melusine.Set(new Position(player.Position))
                         .Set(new Rotation(player.Rotation));
@@ -865,7 +863,7 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
 
             if (player != null)
             {
-                if (this.attackManager.TryCreateAttackEntity<NerveGasKaliya>(out var kaliya))
+                if (this.entityManager.TryCreateEntity<NerveGasKaliya>(out var kaliya))
                 {
                     kaliya.Set(new Position(player.Position))
                         .Set(new Rotation(player.Rotation));
@@ -902,7 +900,7 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
             var player = this.dalamud.ClientState.LocalPlayer;
             if (player != null)
             {
-                if (this.attackManager.TryCreateAttackEntity<LiquidHeaven>(out var LiquidHeaven))
+                if (this.entityManager.TryCreateEntity<LiquidHeaven>(out var LiquidHeaven))
                 {
                     LiquidHeaven.Set(new Position(player.Position))
                                 .Set(new Rotation(player.Rotation));
@@ -916,33 +914,10 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
             var player = this.dalamud.ClientState.LocalPlayer;
             if (player != null)
             {
-                var carby = this.ecsContainer.World.Entity()
-                    .Set(new Model(413))
-                    .Set(new Position(player.Position))
-                    .Set(new Rotation(player.Rotation))
-                    .Set(new UniformScale(1));
-
-                var replacements = new Dictionary<string, string>
+                if (this.entityManager.TryCreateEntity<Chefbingus>(out var carby))
                 {
-                    { "chara/monster/m7002/obj/body/b0001/model/m7002b0001.mdl", "m0001b0002.mdl" },
-                    { "chara/monster/m7002/obj/body/b0001/material/v0005/mt_m0001b0002_a.mtrl", "mt_m0001b0002_a.mtrl" },
-                    { "chara/monster/m7002/obj/body/b0001/material/v0005/mt_m0001b0002_b.mtrl", "mt_m0001b0002_b.mtrl" },
-                    { "chara/monster/m7002/obj/body/b0001/material/v0005/mt_m0001b0002_c.mtrl", "mt_m0001b0002_c.mtrl" },
-                    { "chara/monster/m7002/obj/body/b0001/material/v0005/mt_m0001b0002_d.mtrl", "mt_m0001b0002_d.mtrl" },
-                    { "chara/monster/m7002/obj/body/b0001/material/v0005/mt_m0001b0002_e.mtrl", "mt_m0001b0002_e.mtrl" },
-                    { "chara/monster/m0001/obj/body/b0002/texture/unknown_n_359651549.tex", "unknown_n_359651549.tex" },
-                    { "chara/monster/m0001/obj/body/b0002/texture/unknown_m_359651549.tex", "unknown_m_359651549.tex" },
-                    { "chara/monster/m0001/obj/body/b0002/texture/unknown_id_359651549.tex", "unknown_id_359651549.tex" },
-                    { "chara/monster/m7002/obj/body/b0001/vfx/eff/vm0001.avfx", "" },
-                };
-
-                foreach (var r in replacements)
-                {
-                    var replacementPath = Path.Combine("chefbingus", r.Value);
-                    replacementPath = this.dalamud.PluginInterface.GetResourcePath(replacementPath);
-                    this.World.Entity()
-                        .Set(new FileReplacement(r.Key, replacementPath))
-                        .ChildOf(carby);
+                    carby.Set(new Position(player.Position))
+                        .Set(new Rotation(player.Rotation));
                 }
             }
         }

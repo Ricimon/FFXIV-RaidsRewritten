@@ -4,14 +4,14 @@ using ECommons.MathHelpers;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
-using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Scripts.Attacks.Omens;
+using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Spawn;
 using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public class Star(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn vfxSpawn, ILogger logger) : IAttack, ISystem
+public class Star(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn vfxSpawn, ILogger logger) : IEntity, ISystem
 {
     public enum Type
     {
