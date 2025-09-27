@@ -222,7 +222,7 @@ public class UcobRewritten : IEncounter
             RefreshMechanics();
         }
         ImGui.SameLine();
-        Common.HelpMarker("Make sure all players are on the same RNG seed!");
+        Common.HelpMarker("Make sure all players are on the same RNG seed");
 
         bool tankbusterAftershock = configuration.GetEncounterSetting(TankbusterAftershockKey, this.defaultBoolSettings[TankbusterAftershockKey]);
         if (ImGui.Checkbox("Tankbuster Aftershocks", ref tankbusterAftershock))
@@ -283,7 +283,7 @@ public class UcobRewritten : IEncounter
         }
 
         bool earthShakerStar = configuration.GetEncounterSetting(EarthShakerStarKey, this.defaultBoolSettings[EarthShakerStarKey]);
-        if (ImGui.Checkbox("Earth Shaker Star", ref earthShakerStar))
+        if (ImGui.Checkbox("Stars", ref earthShakerStar))
         {
             configuration.EncounterSettings[EarthShakerStarKey] =
                 earthShakerStar ? bool.TrueString : bool.FalseString;
