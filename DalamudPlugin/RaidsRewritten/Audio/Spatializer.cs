@@ -1,7 +1,6 @@
 ﻿using AsyncAwaitBestPractices;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Plugin.Services;
-using RaidsRewritten.Extensions;
 using RaidsRewritten.Log;
 using System;
 using System.Linq;

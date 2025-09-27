@@ -2,8 +2,8 @@
 using ECommons.DalamudServices;
 using ECommons.EzHookManager;
 using ECommons.Logging;
-using RaidsRewritten.Extensions;
 using RaidsRewritten.Log;
+using RaidsRewritten.Utility;
 using System;
 #nullable disable
 

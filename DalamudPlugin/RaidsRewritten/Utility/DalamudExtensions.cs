@@ -7,7 +7,7 @@ using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using ZLinq;
 
-namespace RaidsRewritten.Extensions;
+namespace RaidsRewritten.Utility;
 
 public static class DalamudExtensions
 {
@@ -30,7 +30,7 @@ public static class DalamudExtensions
         {
             return null;
         }
-        return GetPlayerFullName(localPlayer);
+        return localPlayer.GetPlayerFullName();
     }
 
     public static IEnumerable<IPlayerCharacter> GetPlayers(this IObjectTable objectTable)

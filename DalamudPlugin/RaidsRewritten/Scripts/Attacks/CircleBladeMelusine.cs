@@ -1,10 +1,10 @@
 ﻿using Flecs.NET.Core;
-using RaidsRewritten.Extensions;
 using RaidsRewritten.Game;
 using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Scripts.Attacks.Omens;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Spawn;
+using RaidsRewritten.Utility;
 using System.Collections.Generic;
 using System.Numerics;
 using Player = RaidsRewritten.Game.Player;

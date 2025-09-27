@@ -2,12 +2,12 @@
 using System.Numerics;
 using ECommons.MathHelpers;
 using Flecs.NET.Core;
-using RaidsRewritten.Extensions;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Spawn;
+using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Attacks;
 

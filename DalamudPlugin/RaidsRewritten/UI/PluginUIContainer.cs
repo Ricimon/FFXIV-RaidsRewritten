@@ -1,8 +1,8 @@
 ﻿using System;
 using Dalamud.Interface.Windowing;
-using RaidsRewritten.Extensions;
 using RaidsRewritten.Log;
 using RaidsRewritten.UI.Presenter;
+using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.UI;
 

@@ -127,6 +127,7 @@ public class PluginModule : NinjectModule
         Bind<ISystem>().To<VfxSystem>();
         Bind<ISystem>().To<OmenSystem>();
         Bind<ISystem>().To<ModelSystem>();
+        Bind<ISystem>().To<FileReplacementSystem>();
 
         // Conditions
         Bind<ISystem>().To<Condition>();

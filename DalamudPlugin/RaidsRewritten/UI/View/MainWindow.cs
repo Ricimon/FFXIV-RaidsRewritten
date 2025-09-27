@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Numerics;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -14,7 +16,6 @@ using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using Flecs.NET.Core;
 using RaidsRewritten.Audio;
 using RaidsRewritten.Data;
-using RaidsRewritten.Extensions;
 using RaidsRewritten.Game;
 using RaidsRewritten.Input;
 using RaidsRewritten.Log;
@@ -65,6 +66,8 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
     public IReactiveProperty<bool> KeybindsRequireGameFocus { get; } = new ReactiveProperty<bool>();
     public IReactiveProperty<bool> PrintLogsToChat { get; } = new ReactiveProperty<bool>();
     public IReactiveProperty<int> MinimumVisibleLogLevel { get; } = new ReactiveProperty<int>();
+
+    private World World => this.ecsContainer.World;
 
     private readonly WindowSystem windowSystem;
     private readonly DalamudServices dalamud;
@@ -611,28 +614,28 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
                     DelayedAction.Create(dreadknight.CsWorld(), () =>
                     {
                         Stun.ApplyToTarget(dreadknight, 1f);
-                    }, 4f);
+                    }, 4f).ChildOf(dreadknight);
                     DelayedAction.Create(dreadknight.CsWorld(), () =>
                     {
                         Bind.ApplyToTarget(dreadknight, 3f);
-                    }, 6f);
+                    }, 6f).ChildOf(dreadknight);
                     DelayedAction.Create(dreadknight.CsWorld(), () =>
                     {
                         Dreadknight.RemoveCancellableCC(dreadknight);
-                    }, 7f);
+                    }, 7f).ChildOf(dreadknight);
                     DelayedAction.Create(dreadknight.CsWorld(), () =>
                     {
                         Sleep.ApplyToTarget(dreadknight, 1f);
-                    }, 8f);
+                    }, 8f).ChildOf(dreadknight);
                     DelayedAction.Create(dreadknight.CsWorld(), () =>
                     {
                         Heavy.ApplyToTarget(dreadknight, 5f);
                         Dreadknight.SetTemporaryRelativeSpeed(dreadknight, .1f);
-                    }, 10f);
+                    }, 10f).ChildOf(dreadknight);
                     DelayedAction.Create(dreadknight.CsWorld(), () =>
                     {
                         dreadknight.DestructChildEntity<Heavy.Component>();
-                    }, 12f);
+                    }, 12f).ChildOf(dreadknight);
                 }
             }
         }
@@ -654,7 +657,7 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
                         {
                             ADS.CastLineAoe(ads, MathUtilities.GetAbsoluteAngleFromSourceToTarget(originalPosition, player.Position));
                         }
-                    }, 3f);
+                    }, 3f).ChildOf(ads);
                     DelayedAction.Create(ads.CsWorld(), () =>
                     {
                         var player = this.dalamud.ClientState.LocalPlayer;
@@ -662,8 +665,8 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
                         {
                             ADS.CastLineAoe(ads, MathUtilities.GetAbsoluteAngleFromSourceToTarget(originalPosition, player.Position));
                         }
-                    }, 9f);
-                    DelayedAction.Create(ads.CsWorld(), ads.Destruct, 15f);
+                    }, 9f).ChildOf(ads);
+                    DelayedAction.Create(ads.CsWorld(), ads.Destruct, 15f).ChildOf(ads);
                 }
             }
         }
@@ -687,7 +690,7 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
                         {
                             ADS.CastSteppedLeader(ads, player.Position);
                         }
-                    }, 3f);
+                    }, 3f).ChildOf(ads);
                     DelayedAction.Create(ads.CsWorld(), () =>
                     {
                         var player = this.dalamud.ClientState.LocalPlayer;
@@ -695,11 +698,11 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
                         {
                             ADS.CastSteppedLeader(ads, player.Position);
                         }
-                    }, 9f);
-                    DelayedAction.Create(ads.CsWorld(), ads.Destruct, 15f);
+                    }, 9f).ChildOf(ads);
+                    DelayedAction.Create(ads.CsWorld(), ads.Destruct, 15f).ChildOf(ads);
                 }
             }
-        } 
+        }
 
         if (ImGui.Button("Close Tether to Target"))
         {
@@ -719,7 +722,7 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
                         DelayedAction.Create(tether.CsWorld(), () =>
                         {
                             tether.Add<DistanceSnapshotTether.Activated>();
-                        }, 3f);
+                        }, 3f).ChildOf(tether);
                     }
                 }
             }
@@ -745,7 +748,7 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
                         DelayedAction.Create(tether.CsWorld(), () =>
                         {
                             tether.Add<DistanceSnapshotTether.Activated>();
-                        }, 3f);
+                        }, 3f).ChildOf(tether);
                     }
                 }
             }
@@ -801,7 +804,7 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
                     DelayedAction.Create(tornado.CsWorld(), () =>
                     {
                         tornado.Destruct();
-                    }, 10f);
+                    }, 10f).ChildOf(tornado);
                 }
             }
         }
@@ -820,7 +823,7 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
                     DelayedAction.Create(tornado.CsWorld(), () =>
                     {
                         tornado.Destruct();
-                    }, 26f);
+                    }, 26f).ChildOf(tornado);
                 }
             }
         }
@@ -903,6 +906,43 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
                 {
                     LiquidHeaven.Set(new Position(player.Position))
                                 .Set(new Rotation(player.Rotation));
+                }
+            }
+        }
+
+        ImGui.Text("Models");
+        if (ImGui.Button("Chefbingus"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null)
+            {
+                var carby = this.ecsContainer.World.Entity()
+                    .Set(new Model(413))
+                    .Set(new Position(player.Position))
+                    .Set(new Rotation(player.Rotation))
+                    .Set(new UniformScale(1));
+
+                var replacements = new Dictionary<string, string>
+                {
+                    { "chara/monster/m7002/obj/body/b0001/model/m7002b0001.mdl", "m0001b0002.mdl" },
+                    { "chara/monster/m7002/obj/body/b0001/material/v0005/mt_m0001b0002_a.mtrl", "mt_m0001b0002_a.mtrl" },
+                    { "chara/monster/m7002/obj/body/b0001/material/v0005/mt_m0001b0002_b.mtrl", "mt_m0001b0002_b.mtrl" },
+                    { "chara/monster/m7002/obj/body/b0001/material/v0005/mt_m0001b0002_c.mtrl", "mt_m0001b0002_c.mtrl" },
+                    { "chara/monster/m7002/obj/body/b0001/material/v0005/mt_m0001b0002_d.mtrl", "mt_m0001b0002_d.mtrl" },
+                    { "chara/monster/m7002/obj/body/b0001/material/v0005/mt_m0001b0002_e.mtrl", "mt_m0001b0002_e.mtrl" },
+                    { "chara/monster/m0001/obj/body/b0002/texture/unknown_n_359651549.tex", "unknown_n_359651549.tex" },
+                    { "chara/monster/m0001/obj/body/b0002/texture/unknown_m_359651549.tex", "unknown_m_359651549.tex" },
+                    { "chara/monster/m0001/obj/body/b0002/texture/unknown_id_359651549.tex", "unknown_id_359651549.tex" },
+                    { "chara/monster/m7002/obj/body/b0001/vfx/eff/vm0001.avfx", "" },
+                };
+
+                foreach (var r in replacements)
+                {
+                    var replacementPath = Path.Combine("chefbingus", r.Value);
+                    replacementPath = this.dalamud.PluginInterface.GetResourcePath(replacementPath);
+                    this.World.Entity()
+                        .Set(new FileReplacement(r.Key, replacementPath))
+                        .ChildOf(carby);
                 }
             }
         }

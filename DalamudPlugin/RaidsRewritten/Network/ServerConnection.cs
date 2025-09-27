@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 using AsyncAwaitBestPractices;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
-using RaidsRewritten.Extensions;
 using RaidsRewritten.Log;
+using RaidsRewritten.Utility;
 using SocketIOClient;
 
 namespace RaidsRewritten.Network;

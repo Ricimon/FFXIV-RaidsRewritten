@@ -9,7 +9,6 @@ using ECommons;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
-using RaidsRewritten.Extensions;
 using RaidsRewritten.Log;
 using RaidsRewritten.Structures;
 using RaidsRewritten.Utility;

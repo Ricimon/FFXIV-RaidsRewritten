@@ -1515,6 +1515,9 @@
           "System.Xml.ReaderWriter": "4.3.0",
           "System.Xml.XmlDocument": "4.3.0"
         }
+      },
+      "penumbra.string": {
+        "type": "Project"
       }
     }
   }

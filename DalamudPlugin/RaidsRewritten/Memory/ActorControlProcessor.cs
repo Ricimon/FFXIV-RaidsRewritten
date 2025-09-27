@@ -1,7 +1,7 @@
 ﻿// Adapted from https://github.com/PunishXIV/Splatoon/blob/main/Splatoon/Memory/ActorControlProcessor.cs
 using ECommons.EzHookManager;
-using RaidsRewritten.Extensions;
 using RaidsRewritten.Log;
+using RaidsRewritten.Utility;
 using System;
 
 namespace RaidsRewritten.Memory;

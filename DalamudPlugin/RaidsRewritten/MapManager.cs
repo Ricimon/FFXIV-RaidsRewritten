@@ -2,7 +2,6 @@
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using Lumina.Excel.Sheets;
-using RaidsRewritten.Extensions;
 using RaidsRewritten.Log;
 using RaidsRewritten.Utility;
 using System;
