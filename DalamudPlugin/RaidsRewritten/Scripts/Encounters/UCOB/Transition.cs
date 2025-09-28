@@ -46,6 +46,8 @@ internal class Transition : Mechanic
     private static float GateLimitCutDelay = 10.0f;
     private static float PlayerMarkerDelay = 15.0f;
     private static float ResolutionDelay = PlayerMarkerDelay + 1.0f;
+    private static float ResetDelay = PlayerMarkerDelay + 10.0f;
+
     private List<int> telegraphs = [0, 1, 2, 3, 4, 5, 6, 7];
     private List<int> SymbolPaths = [0, 1, 2, 3, 4, 5, 6, 7];
     private int resolution;
@@ -247,6 +249,12 @@ internal class Transition : Mechanic
                     ShowAds(telegraphs[resolution]);
                 }, ResolutionDelay);
                 attacks.Add(da4);
+
+                var da5 = DelayedAction.Create(World, () =>
+                {
+                    Reset();
+                }, ResolutionDelay);
+                attacks.Add(da5);
                 break;
         }
     }
