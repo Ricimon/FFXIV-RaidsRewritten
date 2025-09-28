@@ -130,8 +130,8 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
                         dalamud.ChatGui.Print(EnrageMessage);
                     }
                     if (animationState.Value != CastingAnimation) { entity.Set(new TimelineBase(CastingAnimation, true)); }
-                    DelayedAction.Create(world, () => AddActorVfx(entity, EnrageVfx1), EnrageVfxDelay);
-                    DelayedAction.Create(world, () => AddActorVfx(entity, EnrageVfx2), EnrageVfxDelay);
+                    DelayedAction.Create(world, () => AddActorVfx(entity, EnrageVfx1), EnrageVfxDelay).ChildOf(entity);
+                    DelayedAction.Create(world, () => AddActorVfx(entity, EnrageVfx2), EnrageVfxDelay).ChildOf(entity);
                     StunPlayer(world, EnrageStunDuration, EnrageStunDelay);
                     component.Enrage = -1;
                     component.EnrageLoop = true;
