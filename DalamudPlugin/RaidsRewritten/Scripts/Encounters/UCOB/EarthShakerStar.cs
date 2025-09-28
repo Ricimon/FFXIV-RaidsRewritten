@@ -3,7 +3,7 @@ using Dalamud.Game.ClientState.Objects.Types;
 using ECommons.Hooks;
 using Flecs.NET.Core;
 using RaidsRewritten.Scripts.Attacks;
-using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
 
 namespace RaidsRewritten.Scripts.Encounters.UCOB;
@@ -44,7 +44,7 @@ public class EarthShakerStar : Mechanic
         if (newObject == null) { return; }
         if (newObject.DataId != EarthShakerPuddleDataId) { return; }
 
-        if (this.AttackManager.TryCreateAttackEntity<Star>(out var star))
+        if (this.EntityManager.TryCreateEntity<Star>(out var star))
         {
             star.Set(new Star.Component(
                 Type: Star.Type.Long,

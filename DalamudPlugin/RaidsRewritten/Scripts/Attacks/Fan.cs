@@ -1,9 +1,8 @@
 ﻿using ECommons.MathHelpers;
 using Flecs.NET.Core;
-using RaidsRewritten.Extensions;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
-using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Utility;
 using System;
 using System.Collections.Generic;
@@ -13,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public sealed class Fan(DalamudServices dalamud, CommonQueries commonQueries, ILogger logger) : IAttack, ISystem
+public sealed class Fan(DalamudServices dalamud, CommonQueries commonQueries, ILogger logger) : IEntity, ISystem
 {
     public record struct Component(Action<Entity> OnHit, int Degrees);
 

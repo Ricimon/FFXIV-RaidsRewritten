@@ -5,12 +5,12 @@ using Flecs.NET.Bindings;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
-using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Scripts.Components;
 using ZLinq;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public class ExaflareRow(DalamudServices dalamud, Random random, ILogger logger) : IAttack, ISystem
+public class ExaflareRow(DalamudServices dalamud, Random random, ILogger logger) : IEntity, ISystem
 {
     public record struct Component(float ElapsedTime, List<int>? ExaflarePositions = null, int ExaflarePair = 0);
 

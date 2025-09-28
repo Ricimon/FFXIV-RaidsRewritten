@@ -2,14 +2,14 @@
 using System.Numerics;
 using ECommons.MathHelpers;
 using Flecs.NET.Core;
-using RaidsRewritten.Extensions;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
-using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Scripts.Components;
+using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public class Circle(DalamudServices dalamud, CommonQueries commonQueries, ILogger logger) : IAttack, ISystem
+public class Circle(DalamudServices dalamud, CommonQueries commonQueries, ILogger logger) : IEntity, ISystem
 {
     public record struct Component(Action<Entity> OnHit);
 

@@ -15,7 +15,7 @@ public abstract class Mechanic()
     protected DalamudServices Dalamud { get; private set; }
     protected Flecs.NET.Core.World World { get; private set; }
     protected CommonQueries CommonQueries { get; private set; }
-    protected AttackManager AttackManager { get; private set; }
+    protected EntityManager EntityManager { get; private set; }
     protected VfxSpawn VfxSpawn { get; private set; }
     protected ILogger Logger { get; private set; }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
@@ -24,14 +24,14 @@ public abstract class Mechanic()
         DalamudServices dalamud,
         EcsContainer ecsContainer,
         CommonQueries commonQueries,
-        AttackManager attackManager,
+        EntityManager entityManager,
         VfxSpawn vfxSpawn,
         ILogger logger)
     {
         this.Dalamud = dalamud;
         this.World = ecsContainer.World;
         this.CommonQueries = commonQueries;
-        this.AttackManager = attackManager;
+        this.EntityManager = entityManager;
         this.VfxSpawn = vfxSpawn;
         this.Logger = logger;
     }
@@ -60,14 +60,14 @@ public abstract class Mechanic()
         DalamudServices dalamud,
         EcsContainer ecsContainer,
         CommonQueries commonQueries,
-        AttackManager attackManager,
+        EntityManager entityManager,
         VfxSpawn vfxSpawn,
         ILogger logger)
     {
         public T Create<T>() where T : Mechanic, new()
         {
             var mechanic = new T();
-            mechanic.Init(dalamud, ecsContainer, commonQueries, attackManager, vfxSpawn, logger);
+            mechanic.Init(dalamud, ecsContainer, commonQueries, entityManager, vfxSpawn, logger);
             return mechanic;
         }
     }

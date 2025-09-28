@@ -4,7 +4,7 @@ using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using Flecs.NET.Core;
 using RaidsRewritten.Scripts.Attacks;
-using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Scripts.Components;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -297,7 +297,7 @@ public class DreadknightInUCoB : Mechanic
 
     private void SpawnDreadknight()
     {
-        if (this.AttackManager.TryCreateAttackEntity<Dreadknight>(out var dreadknight))
+        if (this.EntityManager.TryCreateEntity<Dreadknight>(out var dreadknight))
         {
             Dalamud.ToastGui.ShowNormal(StartMessage);
             Dalamud.ChatGui.Print(StartMessage);

@@ -14,11 +14,12 @@ using RaidsRewritten.Network;
 using RaidsRewritten.Scripts;
 using RaidsRewritten.Scripts.Attacks;
 using RaidsRewritten.Scripts.Attacks.Omens;
-using RaidsRewritten.Scripts.Attacks.Systems;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Scripts.Encounters;
 using RaidsRewritten.Scripts.Encounters.E1S;
 using RaidsRewritten.Scripts.Encounters.UCOB;
+using RaidsRewritten.Scripts.Models;
+using RaidsRewritten.Scripts.Systems;
 using RaidsRewritten.Spawn;
 using RaidsRewritten.UI;
 using RaidsRewritten.UI.Presenter;
@@ -63,7 +64,7 @@ public class PluginModule : NinjectModule
         Bind<IDalamudHook>().To<PluginUIContainer>().InSingletonScope();
         Bind<IDalamudHook>().To<CommandDispatcher>().InSingletonScope();
         Bind<IDalamudHook, EncounterManager>().To<EncounterManager>().InSingletonScope();
-        Bind<IDalamudHook>().To<AttackManager>().InSingletonScope();
+        Bind<IDalamudHook>().To<EntityManager>().InSingletonScope();
         Bind<KeyStateWrapper>().ToSelf().InSingletonScope();
         Bind<IAudioDeviceController, AudioDeviceController>().To<AudioDeviceController>().InSingletonScope();
         Bind<ServerConnection>().ToSelf().InSingletonScope();
@@ -93,41 +94,48 @@ public class PluginModule : NinjectModule
         Bind<IEncounter>().To<UcobRewritten>().InSingletonScope();
         Bind<IEncounter>().To<EdenPrimeTest>().InSingletonScope();
 
-        // Attacks & Systems
-        Bind<IAttack>().To<CircleOmen>();
-        Bind<IAttack>().To<Fan90Omen>();
-        Bind<IAttack>().To<Fan120Omen>();
-        Bind<IAttack>().To<RectangleOmen>();
-        Bind<IAttack>().To<ShortStarOmen>();
-        Bind<IAttack>().To<LongStarOmen>();
-        Bind<IAttack>().To<ExaflareOmen>();
-        Bind<IAttack>().To<OneThirdDonutOmen>();
-        Bind<IAttack, ISystem>().To<TwisterObstacleCourse>();
-        Bind<IAttack, ISystem>().To<Twister>();
-        Bind<IAttack, ISystem>().To<RollingBall>();
-        Bind<IAttack, ISystem>().To<Fan>();
-        Bind<IAttack, ISystem>().To<Circle>();
-        Bind<IAttack, ISystem>().To<Scripts.Attacks.LightningCorridor>();
-        Bind<IAttack, ISystem>().To<Exaflare>();
-        Bind<IAttack, ISystem>().To<ExaflareRow>();
-        Bind<IAttack, ISystem>().To<Scripts.Attacks.LiquidHeaven>();
-        Bind<IAttack, ISystem>().To<JumpableShockwave>();
-        Bind<IAttack, ISystem>().To<Dreadknight>();
-        Bind<IAttack, ISystem>().To<ADS>();
-        Bind<IAttack, ISystem>().To<DistanceSnapshotTether>();
-        Bind<IAttack, ISystem>().To<ExpandingPuddle>();
-        Bind<IAttack, ISystem>().To<Star>();
-        Bind<IAttack, ISystem>().To<Tornado>();
-        Bind<IAttack, ISystem>().To<OctetDonut>();
-        Bind<IAttack, ISystem>().To<RepellingCannonADS>();
-        Bind<IAttack, ISystem>().To<CircleBladeMelusine>();
-        Bind<IAttack, ISystem>().To<NerveGasKaliya>();
+        // Entities
+        // Models
+        Bind<IEntity>().To<Chefbingus>();
+        // Omens
+        Bind<IEntity>().To<CircleOmen>();
+        Bind<IEntity>().To<Fan90Omen>();
+        Bind<IEntity>().To<Fan120Omen>();
+        Bind<IEntity>().To<RectangleOmen>();
+        Bind<IEntity>().To<ShortStarOmen>();
+        Bind<IEntity>().To<LongStarOmen>();
+        Bind<IEntity>().To<ExaflareOmen>();
+        Bind<IEntity>().To<OneThirdDonutOmen>();
+        // Attacks
+        Bind<IEntity, ISystem>().To<TwisterObstacleCourse>();
+        Bind<IEntity, ISystem>().To<Twister>();
+        Bind<IEntity, ISystem>().To<RollingBall>();
+        Bind<IEntity, ISystem>().To<Fan>();
+        Bind<IEntity, ISystem>().To<Circle>();
+        Bind<IEntity, ISystem>().To<Scripts.Attacks.LightningCorridor>();
+        Bind<IEntity, ISystem>().To<Exaflare>();
+        Bind<IEntity, ISystem>().To<ExaflareRow>();
+        Bind<IEntity, ISystem>().To<Scripts.Attacks.LiquidHeaven>();
+        Bind<IEntity, ISystem>().To<JumpableShockwave>();
+        Bind<IEntity, ISystem>().To<Dreadknight>();
+        Bind<IEntity, ISystem>().To<ADS>();
+        Bind<IEntity, ISystem>().To<DistanceSnapshotTether>();
+        Bind<IEntity, ISystem>().To<ExpandingPuddle>();
+        Bind<IEntity, ISystem>().To<Star>();
+        Bind<IEntity, ISystem>().To<Tornado>();
+        Bind<IEntity, ISystem>().To<OctetDonut>();
+        Bind<IEntity, ISystem>().To<RepellingCannonADS>();
+        Bind<IEntity, ISystem>().To<CircleBladeMelusine>();
+        Bind<IEntity, ISystem>().To<NerveGasKaliya>();
         Bind<IAttack, ISystem>().To<VoidGate>();
+        
+        // Systems
         Bind<ISystem>().To<Player>();
         Bind<ISystem>().To<DelayedAction>();
         Bind<ISystem>().To<VfxSystem>();
         Bind<ISystem>().To<OmenSystem>();
         Bind<ISystem>().To<ModelSystem>();
+        Bind<ISystem>().To<FileReplacementSystem>();
 
         // Conditions
         Bind<ISystem>().To<Condition>();

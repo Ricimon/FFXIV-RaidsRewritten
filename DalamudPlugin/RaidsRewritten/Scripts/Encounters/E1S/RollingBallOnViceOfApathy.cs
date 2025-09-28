@@ -6,7 +6,7 @@ using ECommons.Hooks;
 using ECommons.MathHelpers;
 using Flecs.NET.Core;
 using RaidsRewritten.Scripts.Attacks;
-using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Encounters.E1S;
@@ -69,7 +69,7 @@ public class RollingBallOnViceOfApathy : Mechanic
         var Z = arenaCenter.Z - arenaWidth / 2f + random.NextSingle() * arenaWidth;
         var r = MathUtilities.ClampRadians(random.NextSingle() * 2 * MathF.PI);
 
-        if (this.AttackManager.TryCreateAttackEntity<RollingBall>(out var ball))
+        if (this.EntityManager.TryCreateEntity<RollingBall>(out var ball))
         {
             ball.Set(new Position(new Vector3(X, arenaCenter.Y, Z)))
                 .Set(new Rotation(r))

@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace RaidsRewritten.Scripts.Attacks.Components;
+namespace RaidsRewritten.Scripts.Components;
 
 public record struct Position(Vector3 Value);
 public record struct Rotation(float Value);

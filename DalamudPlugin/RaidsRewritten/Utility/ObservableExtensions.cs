@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reactive.Disposables;
 
-namespace RaidsRewritten.Extensions;
+namespace RaidsRewritten.Utility;
 
 public static class ObservableExtensions
 {

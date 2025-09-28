@@ -5,8 +5,8 @@ using Dalamud.Plugin.Services;
 using Dalamud.Utility.Signatures;
 using ECommons;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
-using RaidsRewritten.Extensions;
 using RaidsRewritten.Log;
+using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Memory;
 

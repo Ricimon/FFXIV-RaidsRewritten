@@ -2,12 +2,12 @@
 using System.Numerics;
 using ECommons.MathHelpers;
 using Flecs.NET.Core;
-using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Attacks.Omens;
 
-public class ShortStarOmen : IAttack
+public class ShortStarOmen : IEntity
 {
     public const float ScaleMultiplier = 5.0f;
 

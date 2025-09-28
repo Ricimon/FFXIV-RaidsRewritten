@@ -4,8 +4,8 @@ using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using ECommons.Logging;
-using RaidsRewritten.Extensions;
 using RaidsRewritten.Log;
+using RaidsRewritten.Utility;
 using System;
 
 namespace ECommons.DalamudServices;

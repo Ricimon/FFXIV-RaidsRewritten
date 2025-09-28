@@ -1,16 +1,15 @@
 ﻿using System;
 using Dalamud.Hooking;
-using ECommons.GameFunctions;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Flecs.NET.Core;
 using Lumina.Excel.Sheets;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
-using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Utility;
 
-namespace RaidsRewritten.Scripts.Attacks.Systems;
+namespace RaidsRewritten.Scripts.Systems;
 
 public unsafe sealed class ModelSystem : ISystem, IDisposable
 {
@@ -66,11 +65,11 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
         world.System<Model, Position, Rotation, UniformScale>()
             .Each((Iter it, int i, ref Model model, ref Position position, ref Rotation rotation, ref UniformScale scale) =>
             {
+                var entity = it.Entity(i);
                 BattleChara* chara = null;
 
                 if (!model.Spawned)
                 {
-                    var entity = it.Entity(i);
                     var idx = ClientObjectManager.Instance()->CreateBattleCharacter();
                     if (idx == 0xFFFFFFFF)
                     {
@@ -135,15 +134,20 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
                         // This is needed to get idle/movement sounds working (must be called after model id is assigned)
                         chara->CharacterSetup.CopyFromCharacter((Character*)model.GameObject.Address, CharacterSetupContainer.CopyFlags.None);
                     }
-                }
-                else
-                {
-                    chara = (BattleChara*)ClientObjectManager.Instance()->GetObjectByIndex((ushort)model.GameObjectIndex);
 
-                    chara->SetPosition(position.Value.X, position.Value.Y, position.Value.Z);
-                    chara->SetRotation(rotation.Value);
-                    chara->Scale = scale.Value;
+                    return; // Delay draw for next frame for any file replacements to run
                 }
+
+                chara = (BattleChara*)ClientObjectManager.Instance()->GetObjectByIndex((ushort)model.GameObjectIndex);
+                if (chara == null)
+                {
+                    entity.Destruct();
+                    return;
+                }
+
+                chara->SetPosition(position.Value.X, position.Value.Y, position.Value.Z);
+                chara->SetRotation(rotation.Value);
+                chara->Scale = scale.Value;
 
                 if (!model.DrawEnabled)
                 {
@@ -193,7 +197,8 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
 
                 chara->Timeline.BaseOverride = animationState.Value;
 
-                if (animationState.Interrupt) {
+                if (animationState.Interrupt)
+                {
                     chara->Timeline.TimelineSequencer.PlayTimeline(animationState.Value);
                     animationState.Interrupt = false;
                 }
@@ -258,8 +263,11 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
     private void DeleteModel(uint gameObjectId)
     {
         var obj = (BattleChara*)ClientObjectManager.Instance()->GetObjectByIndex((ushort)gameObjectId);
-        obj->DisableDraw();
-        ClientObjectManager.Instance()->DeleteObjectByIndex((ushort)gameObjectId, 0);
+        if (obj != null)
+        {
+            obj->DisableDraw();
+            ClientObjectManager.Instance()->DeleteObjectByIndex((ushort)gameObjectId, 0);
+        }
     }
 
     // from Brio https://github.com/Etheirys/Brio/blob/main/Brio/Game/Actor/Appearance/ActorAppearance.cs

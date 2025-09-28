@@ -4,7 +4,7 @@ using ECommons.Hooks.ActionEffectTypes;
 using Flecs.NET.Core;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks;
-using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Utility;
 using System;
 using System.Collections.Generic;
@@ -204,7 +204,7 @@ public class ADSSquared : Mechanic
 
         for (int i = 0; i < MechanicInfo[difficulty].NumADS; i++)
         {
-            if (this.AttackManager.TryCreateAttackEntity<ADS>(out var ads))
+            if (this.EntityManager.TryCreateEntity<ADS>(out var ads))
             {
                 var angle = 2 * MathF.PI / MechanicInfo[difficulty].NumADS * i;
                 var pos = new Vector3(

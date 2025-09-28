@@ -1,0 +1,3 @@
+[submodule "DalamudPlugin/Penumbra.String"]
+	path = DalamudPlugin/Penumbra.String
+	url = https://github.com/Ottermandias/Penumbra.String.git

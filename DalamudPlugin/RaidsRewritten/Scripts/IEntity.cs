@@ -1,8 +1,8 @@
 ﻿using Flecs.NET.Core;
 
-namespace RaidsRewritten.Scripts.Attacks;
+namespace RaidsRewritten.Scripts;
 
-public interface IAttack
+public interface IEntity
 {
     public Entity Create(World world);
 }

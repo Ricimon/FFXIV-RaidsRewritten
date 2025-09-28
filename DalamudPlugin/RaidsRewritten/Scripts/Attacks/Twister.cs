@@ -2,16 +2,16 @@
 using System.Numerics;
 using ECommons.MathHelpers;
 using Flecs.NET.Core;
-using RaidsRewritten.Extensions;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
-using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Spawn;
+using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public sealed class Twister(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn vfxSpawn, Random random, ILogger logger) : IAttack, ISystem
+public sealed class Twister(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn vfxSpawn, Random random, ILogger logger) : IEntity, ISystem
 {
     public record struct Component(float Cooldown);
 

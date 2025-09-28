@@ -2,12 +2,12 @@
 using Dalamud.Game.ClientState.Objects.Types;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
-using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Spawn;
 using RaidsRewritten.Utility;
 using System.Numerics;
+using RaidsRewritten.Scripts.Components;
 
-namespace RaidsRewritten.Scripts.Attacks.Systems;
+namespace RaidsRewritten.Scripts.Systems;
 
 public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogger logger) : ISystem
 {

@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Dalamud.Hooking;
 using FFXIVClientStructs.FFXIV.Client.System.Resource.Handle;
-using RaidsRewritten.Extensions;
+using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Interop;
 
@@ -15,10 +15,6 @@ public unsafe partial class ResourceLoader
     #region Delegates
 
     public delegate void* PlaySpecificSoundDelegate(long a1, int idx);
-
-    public delegate void* GetResourceSyncPrototype(IntPtr pFileManager, uint* pCategoryId, char* pResourceType, uint* pResourceHash, char* pPath, void* pUnknown);
-
-    public delegate void* GetResourceAsyncPrototype(IntPtr pFileManager, uint* pCategoryId, char* pResourceType, uint* pResourceHash, char* pPath, void* pUnknown, bool isUnknown);
 
     public delegate IntPtr LoadSoundFileDelegate(IntPtr resourceHandle, uint a2);
 
@@ -33,10 +29,6 @@ public unsafe partial class ResourceLoader
     #region Hooks
 
     public Hook<PlaySpecificSoundDelegate> PlaySpecificSoundHook { get; private set; }
-
-    public Hook<GetResourceSyncPrototype> GetResourceSyncHook { get; private set; }
-
-    public Hook<GetResourceAsyncPrototype> GetResourceAsyncHook { get; private set; }
 
     public Hook<LoadSoundFileDelegate> LoadSoundFileHook { get; private set; }
 
@@ -63,43 +55,6 @@ public unsafe partial class ResourceLoader
         var scdData = *(byte**)(a1 + 8);
         this.logger.Debug($"PlaySpecificSound scd:0x{(IntPtr)scdData:X}, a1:0x{a1:X}, idx:{idx}");
         return PlaySpecificSoundHook.Original(a1, idx);
-    }
-
-    private void* GetResourceSyncDetour(IntPtr pFileManager, uint* pCategoryId, char* pResourceType, uint* pResourceHash, char* pPath, void* pUnknown)
-    {
-        return GetResourceDetour(true, pFileManager, pCategoryId, pResourceType, pResourceHash, pPath, pUnknown, false);
-    }
-
-    private void* GetResourceAsyncDetour(IntPtr pFileManager, uint* pCategoryId, char* pResourceType, uint* pResourceHash, char* pPath, void* pUnknown, bool isUnknown)
-    {
-        return GetResourceDetour(false, pFileManager, pCategoryId, pResourceType, pResourceHash, pPath, pUnknown, isUnknown);
-    }
-
-    private void* GetResourceDetour(bool isSync, IntPtr pFileManager, uint* pCategoryId, char* pResourceType, uint* pResourceHash, char* pPath, void* pUnknown, bool isUnknown)
-    {
-        var ret = isSync ?
-            GetResourceSyncHook.Original(pFileManager, pCategoryId, pResourceType, pResourceHash, pPath, pUnknown) :
-            GetResourceAsyncHook.Original(pFileManager, pCategoryId, pResourceType, pResourceHash, pPath, pUnknown, isUnknown);
-
-        var path = ReadTerminatedString((byte*)pPath);
-        if (ret != null && path.EndsWith(".scd"))
-        {
-            var scdData = Marshal.ReadIntPtr((IntPtr)ret + ResourceDataPointerOffset);
-            // if we immediately have the scd data, cache it, otherwise add it to a waiting list to hopefully be picked up at sound play time
-            //if (scdData != IntPtr.Zero)
-            //{
-            //    this.Scds[scdData] = path;
-            //}
-            var text = new StringBuilder(isSync ? "GetResourceSync " : "GetResourceAsync ");
-            text.Append($"{path}, scd:0x{scdData:X}, rHash:0x{*pResourceHash:X}, rType:{Marshal.PtrToStringAnsi((IntPtr)pResourceHash)}, category:{*pCategoryId}, fileManager:0x{pFileManager:X}");
-            this.logger.Debug(text.ToString());
-        }
-
-        //var text = new StringBuilder(isSync ? "GetResourceSync " : "GetResourceAsync ");
-        //text.Append($"{path}, rHash:0x{*pResourceHash:X}, rType:{Marshal.PtrToStringAnsi((IntPtr)pResourceHash)}, category:{*pCategoryId}, fileManager:0x{pFileManager:X}")
-        //this.logger.Debug(text.ToString());
-
-        return ret;
     }
 
     private IntPtr LoadSoundFileDetour(IntPtr resourceHandle, uint a2)

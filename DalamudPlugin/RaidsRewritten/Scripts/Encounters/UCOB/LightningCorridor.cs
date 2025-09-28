@@ -6,7 +6,7 @@ using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.MathHelpers;
 using Flecs.NET.Core;
-using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Encounters.UCOB;
@@ -82,7 +82,7 @@ public class LightningCorridor : Mechanic
                 var p = (p1 + p2) * 0.5f;
                 var r = MathUtilities.VectorToRotation(p2.ToVector2() - p1.ToVector2());
 
-                if (this.AttackManager.TryCreateAttackEntity<Attacks.LightningCorridor>(out var attack))
+                if (this.EntityManager.TryCreateEntity<Attacks.LightningCorridor>(out var attack))
                 {
                     attack.Set(new Position(p)).Set(new Rotation(r));
                 }

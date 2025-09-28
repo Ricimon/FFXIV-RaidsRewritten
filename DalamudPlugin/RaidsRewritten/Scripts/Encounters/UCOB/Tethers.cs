@@ -5,11 +5,11 @@ using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using Flecs.NET.Core;
-using RaidsRewritten.Extensions;
 using RaidsRewritten.Scripts.Attacks;
 using RaidsRewritten.Scripts.Attacks.Omens;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Spawn;
+using RaidsRewritten.Utility;
 using ZLinq;
 
 namespace RaidsRewritten.Scripts.Encounters.UCOB;
@@ -85,7 +85,7 @@ public class Tethers : Mechanic
                 var src = playerList[i];
                 var target = playerList[i + 1];
 
-                if (this.AttackManager.TryCreateAttackEntity<DistanceSnapshotTether>(out var tether))
+                if (this.EntityManager.TryCreateEntity<DistanceSnapshotTether>(out var tether))
                 {
                     Action<Entity>? onCondition1 = null;
 

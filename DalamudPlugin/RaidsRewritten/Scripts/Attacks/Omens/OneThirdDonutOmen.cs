@@ -1,16 +1,12 @@
-﻿using ECommons.MathHelpers;
+﻿using System.Numerics;
+using ECommons.MathHelpers;
 using Flecs.NET.Core;
-using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Utility;
-using System;
-using System.Collections.Generic;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace RaidsRewritten.Scripts.Attacks.Omens;
 
-public class OneThirdDonutOmen : IAttack
+public class OneThirdDonutOmen : IEntity
 {
     public static bool IsInOmen(Entity omen, Vector3 position)
     {

@@ -6,7 +6,7 @@ using ECommons.Hooks;
 using ECommons.MathHelpers;
 using Flecs.NET.Core;
 using RaidsRewritten.Scripts.Attacks;
-using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Encounters.UCOB;
@@ -68,7 +68,7 @@ public class RollingBallOnNeurolink : Mechanic
         var v = polarDist * MathUtilities.RotationToUnitVector(polarAngle);
         var r = MathUtilities.ClampRadians(random.NextSingle() * 2 * MathF.PI);
 
-        if (this.AttackManager.TryCreateAttackEntity<RollingBall>(out var ball))
+        if (this.EntityManager.TryCreateEntity<RollingBall>(out var ball))
         {
             ball.Set(new Position(new Vector3(v.X, arenaCenter.Y, v.Y)))
                 .Set(new Rotation(r))

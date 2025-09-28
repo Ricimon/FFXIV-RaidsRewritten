@@ -1,5 +1,5 @@
 ﻿using Flecs.NET.Core;
-using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Scripts.Components;
 
 namespace RaidsRewritten.Scripts.Conditions;
 

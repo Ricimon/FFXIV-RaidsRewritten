@@ -8,29 +8,33 @@ using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
-public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration configuration, EcsContainer ecsContainer) : IEncounter
+public class UcobRewritten : IEncounter
 {
     public string Name => "UCOB Rewritten";
 
     // Config
     private string RngSeedKey => $"{Name}.RngSeed";
-    private string PermanentTwistersKey => $"{Name}.PermanentTwisters";
-    private string RollingBallKey => $"{Name}.RollingBall";
-    private string RollingBallMaxBallsKey => $"{Name}.RollingBallMaxBalls";
     private string TankbusterAftershockKey => $"{Name}.TankbusterAftershock";
     private string LightningCorridorKey => $"{Name}.LightningCorridor";
     private string MoreExaflaresKey => $"{Name}.MoreExaflares";
+    private string MoreExaflaresDifficultyKey => $"{Name}.MoreExaflaresDifficulty";
+    private string JumpableShockwavesKey => $"{Name}.JumpableShockwaves";
     private string TemperatureControlKey => $"{Name}.TemperatureControl";
     private string TemperatureControlXKey => Temperature.GaugeXPositionConfig;
     private string TemperatureControlYKey => Temperature.GaugeYPositionConfig;
-    private string MoreExaflaresDifficultyKey => $"{Name}.MoreExaflaresDifficulty";
-    private string JumpableShockwavesKey => $"{Name}.JumpableShockwaves";
     private string DreadknightKey => $"{Name}.Dreadknight";
     private string ADSSquaredKey => $"{Name}.ADS^2";
     private string TethersKey => $"{Name}.Tethers";
     private string EarthShakerStarKey => $"{Name}.EarthShakerStar";
     private string OctetCourseKey => $"{Name}.OctetCourse";
     private string CobTransitionKey => $"{Name}.CobTransition";
+    private string PermanentTwistersKey => $"{Name}.PermanentTwisters";
+    private string RollingBallKey => $"{Name}.RollingBall";
+    private string RollingBallMaxBallsKey => $"{Name}.RollingBallMaxBalls";
+
+    private readonly Mechanic.Factory mechanicFactory;
+    private readonly Configuration configuration;
+    private readonly EcsContainer ecsContainer;
 
     private readonly List<Mechanic> mechanics = [];
     private readonly string[] moreExaflaresDifficulties = [
@@ -38,6 +42,38 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
         MoreExaflares.Difficulties.Medium.ToString(),
         MoreExaflares.Difficulties.High.ToString(),
     ];
+    private readonly Dictionary<string, bool> defaultBoolSettings;
+    private readonly Dictionary<string, int> defaultIntSettings;
+
+    public UcobRewritten(Mechanic.Factory mechanicFactory, Configuration configuration, EcsContainer ecsContainer)
+    {
+        this.mechanicFactory = mechanicFactory;
+        this.configuration = configuration;
+        this.ecsContainer = ecsContainer;
+
+        this.defaultBoolSettings = new()
+        {
+            { TankbusterAftershockKey, true },
+            { LightningCorridorKey, true },
+            { MoreExaflaresKey, true },
+            { JumpableShockwavesKey, true },
+            { TemperatureControlKey, true },
+            { DreadknightKey, true },
+            { ADSSquaredKey, true },
+            { TethersKey, true },
+            { EarthShakerStarKey, true },
+            { OctetCourseKey, true },
+
+            { PermanentTwistersKey, false },
+            { RollingBallKey, false },
+
+        };
+
+        this.defaultIntSettings = new()
+        {
+            { MoreExaflaresDifficultyKey, (int)MoreExaflares.Difficulties.Low },
+        };
+    }
 
     public IEnumerable<Mechanic> GetMechanics()
     {
@@ -52,76 +88,71 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
         }
         this.mechanics.Clear();
 
-        if (configuration.GetEncounterSetting(TankbusterAftershockKey, true))
+        var rngSeedString = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
+        int rngSeed = RandomUtilities.HashToRngSeed(rngSeedString);
+
+        if (configuration.GetEncounterSetting(TankbusterAftershockKey, this.defaultBoolSettings[TankbusterAftershockKey]))
         {
             this.mechanics.Add(mechanicFactory.Create<TankbusterAftershock>());
         }
 
-        if (configuration.GetEncounterSetting(LightningCorridorKey, true))
+        if (configuration.GetEncounterSetting(LightningCorridorKey, this.defaultBoolSettings[LightningCorridorKey]))
         {
             this.mechanics.Add(mechanicFactory.Create<LightningCorridor>());
         }
 
-        if (configuration.GetEncounterSetting(MoreExaflaresKey, true))
+        if (configuration.GetEncounterSetting(MoreExaflaresKey, this.defaultBoolSettings[MoreExaflaresKey]))
         {
             var moreExaflares = mechanicFactory.Create<MoreExaflares>();
+            moreExaflares.RngSeed = rngSeed;
 
-            var seed = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
-            moreExaflares.RngSeed = RandomUtilities.HashToRngSeed(seed);
-
-            var difficulty = (MoreExaflares.Difficulties)configuration.GetEncounterSetting(MoreExaflaresDifficultyKey, (int)MoreExaflares.Difficulties.Low);
+            var difficulty = (MoreExaflares.Difficulties)configuration.GetEncounterSetting(MoreExaflaresDifficultyKey, this.defaultIntSettings[MoreExaflaresDifficultyKey]);
             moreExaflares.Difficulty = difficulty;
 
             this.mechanics.Add(moreExaflares);
         }
 
-        if (configuration.GetEncounterSetting(JumpableShockwavesKey, true))
+        if (configuration.GetEncounterSetting(JumpableShockwavesKey, this.defaultBoolSettings[JumpableShockwavesKey]))
         {
             this.mechanics.Add(mechanicFactory.Create<JumpableShockwaves>());
         }
 
-        if (configuration.GetEncounterSetting(TemperatureControlKey, true))
+        if (configuration.GetEncounterSetting(TemperatureControlKey, this.defaultBoolSettings[TemperatureControlKey]))
         {
             this.mechanics.Add(mechanicFactory.Create<TemperatureControl>());
             this.mechanics.Add(mechanicFactory.Create<LiquidHeaven>());
         }
 
-        if (configuration.GetEncounterSetting(DreadknightKey, true))
+        if (configuration.GetEncounterSetting(DreadknightKey, this.defaultBoolSettings[DreadknightKey]))
         {
             this.mechanics.Add(mechanicFactory.Create<DreadknightInUCoB>());
         }
 
-        if (configuration.GetEncounterSetting(ADSSquaredKey, true))
+        if (configuration.GetEncounterSetting(ADSSquaredKey, this.defaultBoolSettings[ADSSquaredKey]))
         {
             var adsSquared = mechanicFactory.Create<ADSSquared>();
-
-            var seed = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
-            adsSquared.RngSeed = RandomUtilities.HashToRngSeed(seed);
+            adsSquared.RngSeed = rngSeed;
 
             this.mechanics.Add(adsSquared);
         }
 
-        if (configuration.GetEncounterSetting(TethersKey, true))
+        if (configuration.GetEncounterSetting(TethersKey, this.defaultBoolSettings[TethersKey]))
         {
             var tethers = mechanicFactory.Create<Tethers>();
-
-            var seed = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
-            tethers.RngSeed = RandomUtilities.HashToRngSeed(seed);
+            tethers.RngSeed = rngSeed;
 
             this.mechanics.Add(tethers);
         }
 
-        if (configuration.GetEncounterSetting(EarthShakerStarKey, true))
+        if (configuration.GetEncounterSetting(EarthShakerStarKey, this.defaultBoolSettings[EarthShakerStarKey]))
         {
             this.mechanics.Add(mechanicFactory.Create<EarthShakerStar>());
         }
 
-        if (configuration.GetEncounterSetting(OctetCourseKey, true))
+        if (configuration.GetEncounterSetting(OctetCourseKey, this.defaultBoolSettings[OctetCourseKey]))
         {
             var octetCourse = mechanicFactory.Create<OctetObstacleCourse>();
-
-            var seed = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
-            octetCourse.RngSeed = RandomUtilities.HashToRngSeed(seed);
+            octetCourse.RngSeed = rngSeed;
 
             this.mechanics.Add(octetCourse);
         }
@@ -138,21 +169,26 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
         
         // Meme mechanics
 
-        if (configuration.GetEncounterSetting(PermanentTwistersKey, false))
+        if (configuration.GetEncounterSetting(PermanentTwistersKey, this.defaultBoolSettings[PermanentTwistersKey]))
         {
             this.mechanics.Add(mechanicFactory.Create<PermanentTwister>());
         }
 
-        if (configuration.GetEncounterSetting(RollingBallKey, false))
+        if (configuration.GetEncounterSetting(RollingBallKey, this.defaultBoolSettings[RollingBallKey]))
         {
             var rollingBall = mechanicFactory.Create<RollingBallOnNeurolink>();
-
             rollingBall.MaxBalls = configuration.GetEncounterSetting(RollingBallMaxBallsKey, 1);
-
-            var seed = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
-            rollingBall.RngSeed = RandomUtilities.HashToRngSeed(seed);
+            rollingBall.RngSeed = rngSeed;
 
             this.mechanics.Add(rollingBall);
+        }
+
+        // Rewards
+
+        if (IsAtLeastIntendedFightSettingsApplied())
+        {
+            var chefbingus = mechanicFactory.Create<ChefbingusOnClear>();
+            this.mechanics.Add(chefbingus);
         }
     }
 
@@ -195,9 +231,9 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             RefreshMechanics();
         }
         ImGui.SameLine();
-        Common.HelpMarker("Make sure all players are on the same RNG seed!");
+        Common.HelpMarker("Make sure all players are on the same RNG seed");
 
-        bool tankbusterAftershock = configuration.GetEncounterSetting(TankbusterAftershockKey, true);
+        bool tankbusterAftershock = configuration.GetEncounterSetting(TankbusterAftershockKey, this.defaultBoolSettings[TankbusterAftershockKey]);
         if (ImGui.Checkbox("Tankbuster Aftershocks", ref tankbusterAftershock))
         {
             configuration.EncounterSettings[TankbusterAftershockKey] =
@@ -206,7 +242,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             RefreshMechanics();
         }
 
-        bool lightningCorridor = configuration.GetEncounterSetting(LightningCorridorKey, true);
+        bool lightningCorridor = configuration.GetEncounterSetting(LightningCorridorKey, this.defaultBoolSettings[LightningCorridorKey]);
         if (ImGui.Checkbox("Lightning Corridor", ref lightningCorridor))
         {
             configuration.EncounterSettings[LightningCorridorKey] =
@@ -217,7 +253,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
 
         DrawMoreExaflaresConfig();
 
-        bool jumpableShockwaves = configuration.GetEncounterSetting(JumpableShockwavesKey, true);
+        bool jumpableShockwaves = configuration.GetEncounterSetting(JumpableShockwavesKey, this.defaultBoolSettings[JumpableShockwavesKey]);
         if (ImGui.Checkbox("J. Shockwave", ref jumpableShockwaves))
         {
             configuration.EncounterSettings[JumpableShockwavesKey] =
@@ -228,7 +264,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
 
         DrawTemperatureControlConfig();
 
-        bool dreadknight = configuration.GetEncounterSetting(DreadknightKey, true);
+        bool dreadknight = configuration.GetEncounterSetting(DreadknightKey, this.defaultBoolSettings[DreadknightKey]);
         if (ImGui.Checkbox("Dreadknight", ref dreadknight))
         {
             configuration.EncounterSettings[DreadknightKey] =
@@ -237,8 +273,8 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             RefreshMechanics();
         }
 
-        bool adsSquared = configuration.GetEncounterSetting(ADSSquaredKey, true);
-        if (ImGui.Checkbox("ADS²", ref adsSquared))
+        bool adsSquared = configuration.GetEncounterSetting(ADSSquaredKey, this.defaultBoolSettings[ADSSquaredKey]);
+        if (ImGui.Checkbox("ADSï¿½", ref adsSquared))
         {
             configuration.EncounterSettings[ADSSquaredKey] =
                 adsSquared ? bool.TrueString : bool.FalseString;
@@ -246,7 +282,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             RefreshMechanics();
         }
 
-        bool tethers = configuration.GetEncounterSetting(TethersKey, true);
+        bool tethers = configuration.GetEncounterSetting(TethersKey, this.defaultBoolSettings[TethersKey]);
         if (ImGui.Checkbox("Tethers", ref tethers))
         {
             configuration.EncounterSettings[TethersKey] =
@@ -255,8 +291,8 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             RefreshMechanics();
         }
 
-        bool earthShakerStar = configuration.GetEncounterSetting(EarthShakerStarKey, true);
-        if (ImGui.Checkbox("Earth Shaker Star", ref earthShakerStar))
+        bool earthShakerStar = configuration.GetEncounterSetting(EarthShakerStarKey, this.defaultBoolSettings[EarthShakerStarKey]);
+        if (ImGui.Checkbox("Stars", ref earthShakerStar))
         {
             configuration.EncounterSettings[EarthShakerStarKey] =
                 earthShakerStar ? bool.TrueString : bool.FalseString;
@@ -264,7 +300,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
             RefreshMechanics();
         }
 
-        bool octetCourse = configuration.GetEncounterSetting(OctetCourseKey, true);
+        bool octetCourse = configuration.GetEncounterSetting(OctetCourseKey, this.defaultBoolSettings[OctetCourseKey]);
         if (ImGui.Checkbox("Octet Course", ref octetCourse))
         {
             configuration.EncounterSettings[OctetCourseKey] =
@@ -284,7 +320,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
 
         ImGui.Text("Fun Extras");
 
-        bool permanentTwisters = configuration.GetEncounterSetting(PermanentTwistersKey, false);
+        bool permanentTwisters = configuration.GetEncounterSetting(PermanentTwistersKey, this.defaultBoolSettings[PermanentTwistersKey]);
         if (ImGui.Checkbox("Permanent Twisters", ref permanentTwisters))
         {
             configuration.EncounterSettings[PermanentTwistersKey] =
@@ -298,7 +334,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
 
     private void DrawMoreExaflaresConfig()
     {
-        bool moreExaflares = configuration.GetEncounterSetting(MoreExaflaresKey, true);
+        bool moreExaflares = configuration.GetEncounterSetting(MoreExaflaresKey, this.defaultBoolSettings[MoreExaflaresKey]);
         if (ImGui.Checkbox("More Exaflares", ref moreExaflares))
         {
             configuration.EncounterSettings[MoreExaflaresKey] =
@@ -310,7 +346,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
         using (ImRaii.PushIndent())
         using (ImRaii.Disabled(!moreExaflares))
         {
-            var difficulty = configuration.GetEncounterSetting(MoreExaflaresDifficultyKey, (int)MoreExaflares.Difficulties.Low);
+            var difficulty = configuration.GetEncounterSetting(MoreExaflaresDifficultyKey, this.defaultIntSettings[MoreExaflaresDifficultyKey]);
             ImGui.SetNextItemWidth(120);
             if (ImGui.Combo("M.E. Difficulty", ref difficulty, this.moreExaflaresDifficulties, this.moreExaflaresDifficulties.Length))
             {
@@ -323,7 +359,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
 
     private void DrawTemperatureControlConfig()
     {
-        bool temperatureControl = configuration.GetEncounterSetting(TemperatureControlKey, true);
+        bool temperatureControl = configuration.GetEncounterSetting(TemperatureControlKey, this.defaultBoolSettings[TemperatureControlKey]);
         if (ImGui.Checkbox("Temperature Control", ref temperatureControl))
         {
             configuration.EncounterSettings[TemperatureControlKey] =
@@ -374,7 +410,7 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
 
     private void DrawRollingBallConfig()
     {
-        bool rollingBall = configuration.GetEncounterSetting(RollingBallKey, false);
+        bool rollingBall = configuration.GetEncounterSetting(RollingBallKey, this.defaultBoolSettings[RollingBallKey]);
         if (ImGui.Checkbox("Rolling Ball", ref rollingBall))
         {
             configuration.EncounterSettings[RollingBallKey] =
@@ -397,22 +433,37 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
         }
     }
 
+    private bool IsAtLeastIntendedFightSettingsApplied()
+    {
+        foreach(var setting in this.defaultBoolSettings)
+        {
+            if (setting.Value &&
+                !configuration.GetEncounterSetting(setting.Key, setting.Value))
+            {
+                return false;
+            }
+        }
+        foreach(var setting in this.defaultIntSettings)
+        {
+            if (configuration.GetEncounterSetting(setting.Key, setting.Value) < setting.Value)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private void ApplyIntendedFightSettings()
     {
-        configuration.EncounterSettings[TankbusterAftershockKey] = bool.TrueString;
-        configuration.EncounterSettings[LightningCorridorKey] = bool.TrueString;
-        configuration.EncounterSettings[MoreExaflaresKey] = bool.TrueString;
-        configuration.EncounterSettings[MoreExaflaresDifficultyKey] = ((int)MoreExaflares.Difficulties.Low).ToString();
-        configuration.EncounterSettings[JumpableShockwavesKey] = bool.TrueString;
-        configuration.EncounterSettings[TemperatureControlKey] = bool.TrueString;
-        configuration.EncounterSettings[DreadknightKey] = bool.TrueString;
-        configuration.EncounterSettings[ADSSquaredKey] = bool.TrueString;
-        configuration.EncounterSettings[TethersKey] = bool.TrueString;
-        configuration.EncounterSettings[EarthShakerStarKey] = bool.TrueString;
-        configuration.EncounterSettings[OctetCourseKey] = bool.TrueString;
-        configuration.EncounterSettings[CobTransitionKey] = bool.TrueString;
-        configuration.EncounterSettings[PermanentTwistersKey] = bool.FalseString;
-        configuration.EncounterSettings[RollingBallKey] = bool.FalseString;
+        foreach(var setting in this.defaultBoolSettings)
+        {
+            configuration.EncounterSettings[setting.Key] = setting.Value.ToString();
+        }
+
+        foreach(var setting in this.defaultIntSettings)
+        {
+            configuration.EncounterSettings[setting.Key] = setting.Value.ToString();
+        }
 
         configuration.Save();
         RefreshMechanics();
@@ -420,19 +471,11 @@ public class UcobRewritten(Mechanic.Factory mechanicFactory, Configuration confi
 
     private void DisableEverything()
     {
-        configuration.EncounterSettings[TankbusterAftershockKey] = bool.FalseString;
-        configuration.EncounterSettings[LightningCorridorKey] = bool.FalseString;
-        configuration.EncounterSettings[MoreExaflaresKey] = bool.FalseString;
-        configuration.EncounterSettings[JumpableShockwavesKey] = bool.FalseString;
-        configuration.EncounterSettings[TemperatureControlKey] = bool.FalseString;
-        configuration.EncounterSettings[DreadknightKey] = bool.FalseString;
-        configuration.EncounterSettings[ADSSquaredKey] = bool.FalseString;
-        configuration.EncounterSettings[TethersKey] = bool.FalseString;
-        configuration.EncounterSettings[EarthShakerStarKey] = bool.FalseString;
-        configuration.EncounterSettings[OctetCourseKey] = bool.FalseString;
-        configuration.EncounterSettings[PermanentTwistersKey] = bool.FalseString;
-        configuration.EncounterSettings[RollingBallKey] = bool.FalseString;
-        configuration.EncounterSettings[CobTransitionKey] = bool.FalseString;
+        foreach(var setting in this.defaultBoolSettings)
+        {
+            configuration.EncounterSettings[setting.Key] = bool.FalseString;
+        }
+
         configuration.Save();
         RefreshMechanics();
     }

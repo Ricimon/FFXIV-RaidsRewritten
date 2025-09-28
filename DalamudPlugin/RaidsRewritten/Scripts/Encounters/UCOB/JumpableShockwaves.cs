@@ -3,7 +3,7 @@ using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using Flecs.NET.Core;
 using RaidsRewritten.Scripts.Attacks;
-using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Scripts.Components;
 
 namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
@@ -52,7 +52,7 @@ public class JumpableShockwaves : Mechanic
 
         var da = DelayedAction.Create(this.World, () =>
         {
-            if (this.AttackManager.TryCreateAttackEntity<JumpableShockwave>(out var jumpwave))
+            if (this.EntityManager.TryCreateEntity<JumpableShockwave>(out var jumpwave))
             {
                 var position = set.Target.Position;
                 position.Y = 0;

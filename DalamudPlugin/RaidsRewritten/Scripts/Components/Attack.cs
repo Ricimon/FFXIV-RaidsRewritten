@@ -1,4 +1,4 @@
-﻿namespace RaidsRewritten.Scripts.Attacks.Components;
+﻿namespace RaidsRewritten.Scripts.Components;
 
 public struct Attack;
 public struct Omen;

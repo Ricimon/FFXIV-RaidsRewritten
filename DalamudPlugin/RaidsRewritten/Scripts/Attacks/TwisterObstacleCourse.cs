@@ -2,7 +2,7 @@
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
-using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Utility;
 using System;
 using System.Collections.Generic;
@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public class TwisterObstacleCourse (Random random) : IAttack, ISystem
+public class TwisterObstacleCourse (Random random) : IEntity, ISystem
 {
     public record struct Component(int Sets, float OuterRadius);
 

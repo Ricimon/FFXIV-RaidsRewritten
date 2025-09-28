@@ -1,11 +1,11 @@
 ﻿using System.Numerics;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
-using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Scripts.Components;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public class ExpandingPuddle(DalamudServices dalamud, CommonQueries commonQueries) : IAttack, ISystem
+public class ExpandingPuddle(DalamudServices dalamud, CommonQueries commonQueries) : IEntity, ISystem
 {
     public record struct Component(
         string VfxPath,

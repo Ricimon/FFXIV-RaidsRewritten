@@ -3,10 +3,10 @@ using ECommons;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using Flecs.NET.Core;
-using RaidsRewritten.Extensions;
 using RaidsRewritten.Scripts.Attacks;
-using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Attacks.Omens;
+using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Spawn;
 using RaidsRewritten.Utility;
@@ -178,7 +178,7 @@ public class TankbusterAftershock : Mechanic
 
     private bool SpawnOmen<T>(out Entity FanOmen, AftershockData aftershockData, Vector3 position, float rotation, List<Entity> ToDestruct)
     {
-        if (this.AttackManager.TryCreateAttackEntity<T>(out Entity tempFanOmen))
+        if (this.EntityManager.TryCreateEntity<T>(out Entity tempFanOmen))
         {
             tempFanOmen.Set(new Position(position))
                    .Set(new Rotation(rotation))
@@ -197,7 +197,7 @@ public class TankbusterAftershock : Mechanic
 
     void Aftershock(AftershockData aftershockData, Entity fakeActor, Vector3 position, float rotation, List<Entity> ToDestruct)
     {
-        if (this.AttackManager.TryCreateAttackEntity<Fan>(out var AftershockAoE))
+        if (this.EntityManager.TryCreateEntity<Fan>(out var AftershockAoE))
         {
             void OnHit(Entity e)
             {

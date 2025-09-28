@@ -1,5 +1,4 @@
 ﻿using ECommons.MathHelpers;
-using RaidsRewritten.Scripts.Attacks.Components;
 using System;
 using System.Numerics;
 

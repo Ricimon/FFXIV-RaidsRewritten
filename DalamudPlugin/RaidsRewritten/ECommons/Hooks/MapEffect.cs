@@ -5,8 +5,8 @@ using Dalamud.Hooking;
 using Dalamud.Plugin.Services;
 using ECommons.EzHookManager;
 using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
-using RaidsRewritten.Extensions;
 using RaidsRewritten.Log;
+using RaidsRewritten.Utility;
 
 namespace ECommons.Hooks;
 #nullable disable

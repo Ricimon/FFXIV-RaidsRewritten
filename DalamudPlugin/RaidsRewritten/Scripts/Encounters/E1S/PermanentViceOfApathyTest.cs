@@ -3,7 +3,7 @@ using Dalamud.Game.ClientState.Objects.Types;
 using ECommons.Hooks;
 using Flecs.NET.Core;
 using RaidsRewritten.Scripts.Attacks;
-using RaidsRewritten.Scripts.Attacks.Components;
+using RaidsRewritten.Scripts.Components;
 
 namespace RaidsRewritten.Scripts.Encounters.E1S;
 
@@ -47,7 +47,7 @@ public class PermanentViceOfApathyTest : Mechanic
             var player = this.Dalamud.ClientState.LocalPlayer;
             if (player != null)
             {
-                if (this.AttackManager.TryCreateAttackEntity<Twister>(out var twister))
+                if (this.EntityManager.TryCreateEntity<Twister>(out var twister))
                 {
                     twister.Set(new Position(newObject.Position));
                     twister.Set(new Rotation(newObject.Rotation));
