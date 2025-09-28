@@ -307,14 +307,14 @@ public sealed class MainWindow : Window, IPluginUIView, IDisposable
         using var debugTab = ImRaii.TabItem("Debug");
         if (!debugTab) return;
 
-#if DEBUG
+//#if DEBUG
         bool punishmentImmunity = configuration.PunishmentImmunity;
         if (ImGui.Checkbox("Punishment Immunity", ref punishmentImmunity))
         {
             configuration.PunishmentImmunity = punishmentImmunity;
             configuration.Save();
         }
-#endif
+//#endif
 
         if (ImGui.Button("Print Player Data"))
         {
