@@ -253,7 +253,7 @@ internal class Transition : Mechanic
                 var da5 = DelayedAction.Create(World, () =>
                 {
                     Reset();
-                }, ResolutionDelay);
+                }, ResetDelay);
                 attacks.Add(da5);
                 break;
         }

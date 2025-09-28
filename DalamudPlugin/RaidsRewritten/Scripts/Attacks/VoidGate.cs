@@ -23,8 +23,8 @@ public class VoidGate() : IEntity, ISystem
 
     private readonly Dictionary<Phase, float> phaseTimings = new()
     {
-        { Phase.Spawn, 5.5f },
-        { Phase.Expel, 16.0f },
+        { Phase.Spawn, 5.2f },
+        { Phase.Expel, 15.0f },
         { Phase.Reset, 20.0f }
     };
 
@@ -101,10 +101,10 @@ public class VoidGate() : IEntity, ISystem
                 {
                     case Phase.Spawn:
                         if (ShouldReturn(component)) { return; }
-                        animationActor.Set(new ActorVfx(AbsorbVfx));
+                        AddActorVfx(animationActor, AbsorbVfx);
                         DelayedAction.Create(world, () =>
                         {
-                            gateActor.Set(new ActorVfx(GateActorVfx));
+                            AddActorVfx(gateActor, GateActorVfx);
                         }, 0.5f);
 
                         component.Phase = Phase.Expel;
@@ -112,12 +112,14 @@ public class VoidGate() : IEntity, ISystem
                         break;
                     case Phase.Expel:
                         if (ShouldReturn(component)) { return; }
-
-                        animationActor.Set(new ActorVfx(ExpelVfx));
+                        
+                        AddActorVfx(animationActor, ExpelVfx);
+                        
                         DelayedAction.Create(world, () =>
                         {
                             gateActor.Destruct();
                         }, 0.5f);
+                        
                         component.Phase = Phase.Reset;
                         break;
                     case Phase.Reset:
@@ -163,6 +165,7 @@ public class VoidGate() : IEntity, ISystem
     {
         return entity.CsWorld().Entity()
             .Set(new ActorVfx(vfxPath))
+            .Set(new Scale(new Vector3(2f,2f,2f)))
             .ChildOf(entity);
     }
 }
