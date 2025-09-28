@@ -8,15 +8,14 @@ using ECommons.Hooks.ActionEffectTypes;
 using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using Flecs.NET.Core;
-using RaidsRewritten.Extensions;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks;
-using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Scripts.Attacks.Omens;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Spawn;
 using RaidsRewritten.Utility;
+using RaidsRewritten.Scripts.Components;
 
 namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
@@ -117,7 +116,7 @@ internal class Transition : Mechanic
     private void ShowAds(int value)
     {
         //Kaliya
-        if (this.AttackManager.TryCreateAttackEntity<NerveGasKaliya>(out var kaliya))
+        if (EntityManager.TryCreateEntity<NerveGasKaliya>(out var kaliya))
         {
             var angle = 2 * MathF.PI / 8 * Table[value].Kaliya;
             var pos = new Vector3(
@@ -131,7 +130,7 @@ internal class Transition : Mechanic
         }
 
         //Melusine
-        if (this.AttackManager.TryCreateAttackEntity<CircleBladeMelusine>(out var melusine))
+        if (EntityManager.TryCreateEntity<CircleBladeMelusine>(out var melusine))
         {
             var angle = 2 * MathF.PI / 8 * Table[value].Melusine;
             var pos = new Vector3(
@@ -147,7 +146,7 @@ internal class Transition : Mechanic
         //ADS
         for (int i = 0; i < 3; i++)
         {
-            if (this.AttackManager.TryCreateAttackEntity<RepellingCannonADS>(out var ads))
+            if (EntityManager.TryCreateEntity<RepellingCannonADS>(out var ads))
             {
                 var angle = 2 * MathF.PI / 8 * Table[value].Ads[i];
                 var pos = new Vector3(
@@ -211,7 +210,7 @@ internal class Transition : Mechanic
 
                 for (int i = 0; i < 8; i++)
                 {
-                    if (this.AttackManager.TryCreateAttackEntity<VoidGate>(out var voidgate))
+                    if (EntityManager.TryCreateEntity<VoidGate>(out var voidgate))
                     {
                         var angle = 2 * MathF.PI / 8 * i;
                         var pos = new Vector3(

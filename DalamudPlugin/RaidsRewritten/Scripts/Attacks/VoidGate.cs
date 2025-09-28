@@ -2,18 +2,17 @@
 using System.Numerics;
 using Flecs.NET.Bindings;
 using Flecs.NET.Core;
-using RaidsRewritten.Extensions;
 using RaidsRewritten.Game;
-using RaidsRewritten.Log;
-using RaidsRewritten.Scripts.Attacks.Components;
 using RaidsRewritten.Scripts.Attacks.Omens;
+using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Spawn;
-using static RaidsRewritten.Scripts.Attacks.VoidGate;
+using RaidsRewritten.Utility;
+using Player = RaidsRewritten.Game.Player;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public class VoidGate(ILogger logger) : IAttack, ISystem
+public class VoidGate() : IEntity, ISystem
 {
     public enum Phase
     {

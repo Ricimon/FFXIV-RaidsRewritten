@@ -127,7 +127,7 @@ public class PluginModule : NinjectModule
         Bind<IEntity, ISystem>().To<RepellingCannonADS>();
         Bind<IEntity, ISystem>().To<CircleBladeMelusine>();
         Bind<IEntity, ISystem>().To<NerveGasKaliya>();
-        Bind<IAttack, ISystem>().To<VoidGate>();
+        Bind<IEntity, ISystem>().To<VoidGate>();
         
         // Systems
         Bind<ISystem>().To<Player>();
