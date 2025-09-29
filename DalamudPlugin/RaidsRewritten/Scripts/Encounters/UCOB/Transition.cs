@@ -24,16 +24,16 @@ internal class Transition : Mechanic
     public enum Phase
     {
         Octet,
-        Pheonix,
+        Teraflare,
     }
 
     private static readonly Dictionary<uint, Phase> HookedActions = new()
     {
-        { 41, Phase.Octet},       //Octet NEED NUMBER
-        { 16462, Phase.Pheonix },    //Pheonix NEED NUMBER
+        { 9959, Phase.Octet},       //Octet NEED NUMBER
+        { 9961, Phase.Teraflare },    //Teraflare ID
     };
 
-    private readonly Vector3 ArenaCenter = new(100, 0, 100);
+    private readonly Vector3 ArenaCenter = new(0, 0, 0);
     private const int ArenaRadius = 22;
     public int RngSeed { get; set; }
     private Random? random;
@@ -41,12 +41,14 @@ internal class Transition : Mechanic
     private readonly List<Entity> gates = [];
     private List<IBattleChara> playerList = [];
     private IBattleChara? localPlayer;
-    private static float PheonixDelay = 3.6f;
-    private static float PlayerLimitCutDelay = 5.5f;
-    private static float GateLimitCutDelay = 10.0f;
-    private static float PlayerMarkerDelay = 15.0f;
-    private static float ResolutionDelay = PlayerMarkerDelay + 1.0f;
-    private static float ResetDelay = PlayerMarkerDelay + 10.0f;
+    private static float OctetDelay = 40.0f;
+    private static float TeraflareDelay = 8.0f;
+    private static float SpawnDelay = TeraflareDelay;
+    private static float TelegraphDelay = TeraflareDelay + 8.0f;
+    private static float GateMarkerDelay = TeraflareDelay + 10.0f;
+    private static float PortalMarkerDelay = TeraflareDelay + 25.0f;
+    private static float ResolutionDelay = TeraflareDelay + 35.0f;
+    private static float ResetDelay = ResolutionDelay + 5.0f;
 
     private List<int> telegraphs = [0, 1, 2, 3, 4, 5, 6, 7];
     private List<int> SymbolPaths = [0, 1, 2, 3, 4, 5, 6, 7];
@@ -173,17 +175,13 @@ internal class Transition : Mechanic
         {
             case Phase.Octet:
                 var seed = RngSeed;
-                localPlayer = this.Dalamud.ClientState.LocalPlayer;
                 random = new Random(seed);
                 Shuffle(random, telegraphs);
                 Shuffle(random, SymbolPaths);
                 resolution = random.Next(0, 7);
-                ShowAds(telegraphs[0]);
-                
                 foreach (var player in this.Dalamud.ObjectTable.PlayerObjects)
                 {
                     playerList.Add(player);
-
                 }
                 if (playerList.Count != 8)
                 {
@@ -203,58 +201,80 @@ internal class Transition : Mechanic
                     return aCs.ContentId.CompareTo(bCs.ContentId);
                 });
 
+                var da = DelayedAction.Create(World, () => 
+                { 
+                    ShowAds(telegraphs[0]); 
+                }, OctetDelay);
+                attacks.Add(da);
                 DebugOutput();
                 break;
-            case Phase.Pheonix:
+            case Phase.Teraflare:
+                localPlayer = this.Dalamud.ClientState.LocalPlayer;
                 int playerNumber = playerList.IndexOf(localPlayer);
 
-                ShowAds(telegraphs[playerNumber]);
-
-                for (int i = 0; i < 8; i++)
-                {
-                    if (EntityManager.TryCreateEntity<VoidGate>(out var voidgate))
-                    {
-                        var angle = 2 * MathF.PI / 8 * i;
-                        var pos = new Vector3(
-                        ArenaCenter.X - ArenaRadius * MathF.Sin(angle),
-                        ArenaCenter.Y + 1.5f,
-                        ArenaCenter.Z - ArenaRadius * MathF.Cos(angle)
-                        );
-                        voidgate.Set(new Position(pos));
-                        voidgate.Set(new Rotation(angle));
-                        gates.Add(voidgate);
-                    }
-                }
 
                 var da1 = DelayedAction.Create(World, () => 
                 {
+                    ShowAds(telegraphs[playerNumber]);
+                }, SpawnDelay);
+
+                var da2 = DelayedAction.Create(World, () => 
+                { 
+                    //Adds Telegraph Here
+                }, TelegraphDelay);
+
+                var da3 = DelayedAction.Create(World, () => 
+                {
+                    for (int i = 0; i < 8; i++)
+                    {
+                        if (EntityManager.TryCreateEntity<VoidGate>(out var voidgate))
+                        {
+                            var angle = 2 * MathF.PI / 8 * i;
+                            var pos = new Vector3(
+                            ArenaCenter.X - ArenaRadius * MathF.Sin(angle),
+                            ArenaCenter.Y + 1.5f,
+                            ArenaCenter.Z - ArenaRadius * MathF.Cos(angle)
+                            );
+                            voidgate.Set(new Position(pos));
+                            voidgate.Set(new Rotation(angle));
+                            gates.Add(voidgate);
+                        }
+                    }
                     CommonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
                     {
-                        LimitCutNumber.ApplyToTarget(e, 10, SymbolPaths[playerNumber]);
+                        var fa = FakeActor.Create(World)
+                            .Set(new Position(localPlayer.Position))
+                            .Set(new Rotation(localPlayer.Rotation))
+                            .ChildOf(e);
+                        attacks.Add(fa);
+                        LimitCutNumber.ApplyToTarget(fa, 10, SymbolPaths[playerNumber]);
                     });
-                }, PlayerLimitCutDelay);
+                }, GateMarkerDelay);
 
-                attacks.Add(da1);
-                var da2 = DelayedAction.Create(World, () =>
+                var da4 = DelayedAction.Create(World, () => 
                 {
                     gates.ForEach(e =>
                     {
                         LimitCutNumber.ApplyToTarget(e, 10, SymbolPaths[resolution]);
                     });
-                }, GateLimitCutDelay);
-                attacks.Add(da2);
 
-                var da4 = DelayedAction.Create(World, () =>
+                }, PortalMarkerDelay);
+                var da5 = DelayedAction.Create(World, () => 
                 {
                     ShowAds(telegraphs[resolution]);
                 }, ResolutionDelay);
-                attacks.Add(da4);
 
-                var da5 = DelayedAction.Create(World, () =>
+                var da6 = DelayedAction.Create(World, () =>
                 {
                     Reset();
                 }, ResetDelay);
+
+                attacks.Add(da1);
+                attacks.Add(da2);
+                attacks.Add(da3);
+                attacks.Add(da4);
                 attacks.Add(da5);
+                attacks.Add(da6);
                 break;
         }
     }
