@@ -117,7 +117,7 @@ internal class Transition : Mechanic
         },
     };
 
-    private void ShowAds(int value)
+    private void ShowAds(int value, float delay)
     {
         //Kaliya
         if (EntityManager.TryCreateEntity<NerveGasKaliya>(out var kaliya))
@@ -130,6 +130,7 @@ internal class Transition : Mechanic
             );
             kaliya.Set(new Position(pos));
             kaliya.Set(new Rotation(angle));
+            kaliya.Set(new NerveGasKaliya.AttackDelay(delay));
             attacks.Add(kaliya);
         }
 
@@ -144,6 +145,7 @@ internal class Transition : Mechanic
             );
             melusine.Set(new Position(pos));
             melusine.Set(new Rotation(angle));
+            melusine.Set(new CircleBladeMelusine.AttackDelay(delay));
             attacks.Add(melusine);
         }
 
@@ -160,6 +162,7 @@ internal class Transition : Mechanic
                 );
                 ads.Set(new Position(pos));
                 ads.Set(new Rotation(angle));
+                ads.Set(new RepellingCannonADS.AttackDelay(delay));
                 attacks.Add(ads);
             }
         }
@@ -203,7 +206,7 @@ internal class Transition : Mechanic
 
                 var da = DelayedAction.Create(World, () => 
                 { 
-                    ShowAds(telegraphs[0]); 
+                    ShowAds(telegraphs[0], TelegraphDelay); 
                 }, OctetDelay);
                 attacks.Add(da);
                 DebugOutput();
@@ -215,15 +218,10 @@ internal class Transition : Mechanic
 
                 var da1 = DelayedAction.Create(World, () => 
                 {
-                    ShowAds(telegraphs[playerNumber]);
+                    ShowAds(telegraphs[playerNumber], TelegraphDelay);
                 }, SpawnDelay);
 
                 var da2 = DelayedAction.Create(World, () => 
-                { 
-                    //Adds Telegraph Here
-                }, TelegraphDelay);
-
-                var da3 = DelayedAction.Create(World, () => 
                 {
                     for (int i = 0; i < 8; i++)
                     {
@@ -251,7 +249,7 @@ internal class Transition : Mechanic
                     });
                 }, GateMarkerDelay);
 
-                var da4 = DelayedAction.Create(World, () => 
+                var da3 = DelayedAction.Create(World, () => 
                 {
                     gates.ForEach(e =>
                     {
@@ -259,12 +257,12 @@ internal class Transition : Mechanic
                     });
 
                 }, PortalMarkerDelay);
-                var da5 = DelayedAction.Create(World, () => 
+                var da4 = DelayedAction.Create(World, () => 
                 {
-                    ShowAds(telegraphs[resolution]);
+                    ShowAds(telegraphs[resolution], 0.0f);
                 }, ResolutionDelay);
 
-                var da6 = DelayedAction.Create(World, () =>
+                var da5 = DelayedAction.Create(World, () =>
                 {
                     Reset();
                 }, ResetDelay);
@@ -274,7 +272,6 @@ internal class Transition : Mechanic
                 attacks.Add(da3);
                 attacks.Add(da4);
                 attacks.Add(da5);
-                attacks.Add(da6);
                 break;
         }
     }
