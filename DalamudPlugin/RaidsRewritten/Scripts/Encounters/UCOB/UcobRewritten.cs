@@ -11,6 +11,7 @@ namespace RaidsRewritten.Scripts.Encounters.UCOB;
 public class UcobRewritten : IEncounter
 {
     public ushort TerritoryId => 733;
+
     public string Name => "UCOB Rewritten";
 
     // Config
