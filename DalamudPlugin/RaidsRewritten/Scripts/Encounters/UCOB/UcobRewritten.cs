@@ -10,6 +10,7 @@ namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
 public class UcobRewritten : IEncounter
 {
+    public ushort TerritoryId => 733;
     public string Name => "UCOB Rewritten";
 
     // Config
@@ -63,6 +64,7 @@ public class UcobRewritten : IEncounter
             { TethersKey, true },
             { EarthShakerStarKey, true },
             { OctetCourseKey, true },
+            { CobTransitionKey, true},
 
             { PermanentTwistersKey, false },
             { RollingBallKey, false },
@@ -157,14 +159,12 @@ public class UcobRewritten : IEncounter
             this.mechanics.Add(octetCourse);
         }
 
-        if (configuration.GetEncounterSetting(CobTransitionKey, true))
+        if (configuration.GetEncounterSetting(CobTransitionKey, this.defaultBoolSettings[CobTransitionKey]))
         {
-            var CobTransition = mechanicFactory.Create<Transition>();
+            var cobTransition = mechanicFactory.Create<Transition>();
+            cobTransition.RngSeed = rngSeed;
 
-            var seed = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
-            CobTransition.RngSeed = RandomUtilities.HashToRngSeed(seed);
-
-            this.mechanics.Add(CobTransition);
+            this.mechanics.Add(cobTransition);
         }
         
         // Meme mechanics
@@ -274,7 +274,7 @@ public class UcobRewritten : IEncounter
         }
 
         bool adsSquared = configuration.GetEncounterSetting(ADSSquaredKey, this.defaultBoolSettings[ADSSquaredKey]);
-        if (ImGui.Checkbox("ADS�", ref adsSquared))
+        if (ImGui.Checkbox("ADS²", ref adsSquared))
         {
             configuration.EncounterSettings[ADSSquaredKey] =
                 adsSquared ? bool.TrueString : bool.FalseString;
@@ -309,7 +309,7 @@ public class UcobRewritten : IEncounter
             RefreshMechanics();
         }
 
-        bool cobTransition = configuration.GetEncounterSetting(CobTransitionKey, true);
+        bool cobTransition = configuration.GetEncounterSetting(CobTransitionKey, this.defaultBoolSettings[CobTransitionKey]);
         if (ImGui.Checkbox("Transition", ref cobTransition))
         {
             configuration.EncounterSettings[CobTransitionKey] =

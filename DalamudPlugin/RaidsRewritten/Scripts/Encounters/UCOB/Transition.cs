@@ -5,16 +5,11 @@ using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
-using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
-using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks;
-using RaidsRewritten.Scripts.Attacks.Omens;
 using RaidsRewritten.Scripts.Conditions;
-using RaidsRewritten.Spawn;
-using RaidsRewritten.Utility;
 using RaidsRewritten.Scripts.Components;
 
 namespace RaidsRewritten.Scripts.Encounters.UCOB;
@@ -189,7 +184,6 @@ internal class Transition : Mechanic
                 if (playerList.Count != 8)
                 {
                     this.Logger.Debug($"uh oh, unexpected number of players: {playerList.Count}");
-                    //return;
                 }
 
                 // ensure same order before randomizing list
@@ -213,6 +207,7 @@ internal class Transition : Mechanic
                 break;
             case Phase.Teraflare:
                 localPlayer = this.Dalamud.ClientState.LocalPlayer;
+                if (localPlayer == null) { return; }
                 int playerNumber = playerList.IndexOf(localPlayer);
 
 

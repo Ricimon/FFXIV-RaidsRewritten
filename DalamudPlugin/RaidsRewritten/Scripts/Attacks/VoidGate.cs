@@ -18,7 +18,6 @@ public class VoidGate() : IEntity, ISystem
     public record struct SpawnDelay(float DelayTime = 1.0f);
     public record struct ExpelDelay(float DelayTime = 1.0f);
     public record struct Component(float ElapsedTime, Phase Phase = Phase.Spawn);
-    public struct Spawn;
     public struct GateActor;
     public struct AnimationActor;
 
@@ -112,36 +111,7 @@ public class VoidGate() : IEntity, ISystem
                         entity.Destruct();
                         break;
                 }
-               
-                
-
-                entity.Remove<Spawn>();
             });
-        /*
-        world.System<Component, Position, Rotation>().With<Vfx>()
-            .Each((Iter it, int i, ref Component component, ref Position position, ref Rotation rotation) =>
-            {
-
-                Entity fakeactor;
-                var entity = it.Entity(i);
-                /*
-                using var animationQuery = world.QueryBuilder().With(flecs.EcsChildOf, entity).With<FakeActor.Component, AnimationActor>().Build();
-                if (animationQuery.IsTrue())
-                { 
-                    fakeactor = animationQuery.First();
-                    fakeactor.Set(new ActorVfx(ExpelVfx));
-                }
-
-                /*
-                using var gateQuery = world.QueryBuilder().With(flecs.EcsChildOf, entity).With<FakeActor.Component, GateActor>().Build();
-                gateQuery.Each((Iter it, int i) =>
-                {
-                    var e = it.Entity(i);
-                    e.Destruct();
-                });
-                entity.Remove<Vfx>();
-            });
-        */
     }
 
     private static Entity AddActorVfx(Entity entity, string vfxPath)
