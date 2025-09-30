@@ -27,7 +27,7 @@ public class FileReplacementSystem(ResourceLoader resourceLoader) : ISystem
                     }
 
                     // Replacements need to stay for a few frames for model loading systems to pick them up
-                    if (replace.FramesSinceApplication == 5)
+                    if (replace.FramesSinceApplication == 30)
                     {
                         resourceLoader.RemoveFileReplacement(replace.OriginalPath);
                         replace.FramesSinceApplication = -1;
