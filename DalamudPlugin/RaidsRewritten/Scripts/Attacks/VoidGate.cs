@@ -1,14 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Numerics;
+﻿using System.Numerics;
 using Flecs.NET.Bindings;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
-using RaidsRewritten.Scripts.Attacks.Omens;
 using RaidsRewritten.Scripts.Components;
-using RaidsRewritten.Scripts.Conditions;
-using RaidsRewritten.Spawn;
-using RaidsRewritten.Utility;
-using Player = RaidsRewritten.Game.Player;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
@@ -21,25 +15,14 @@ public class VoidGate() : IEntity, ISystem
         Reset
     }
 
-    private readonly Dictionary<Phase, float> phaseTimings = new()
-    {
-        { Phase.Spawn, 5.2f },
-        { Phase.Expel, 15.0f },
-        { Phase.Reset, 20.0f }
-    };
-
+    public record struct SpawnDelay(float DelayTime = 1.0f);
+    public record struct ExpelDelay(float DelayTime = 1.0f);
     public record struct Component(float ElapsedTime, Phase Phase = Phase.Spawn);
-    public struct Vfx;
-    public struct Destruct;
     public struct Spawn;
     public struct GateActor;
     public struct AnimationActor;
 
-    private const float OmenDuration = 0.75f;
-    private const ushort IdleAnimation = 34;
-    private const ushort AttackAnimation = 3212;
-    private const float HysteriaDuration = 30f;
-    private const float RedirectInterval = 15f;
+    private const float ResetBuffer = 5.0f;
     private const string AbsorbVfx = "vfx/monster/c0101/eff/c0101wpinc0c.avfx";
     private const string ExpelVfx = "vfx/monster/c0101/eff/c0101wpouc0c.avfx";
     private const string GateActorVfx = "chara/monster/m0273/obj/body/b0001/vfx/eff/vm0001.avfx";
@@ -52,6 +35,8 @@ public class VoidGate() : IEntity, ISystem
             .Set(new Scale())
             .Set(new UniformScale(1f))
             .Set(new Component())
+            .Set(new SpawnDelay())
+            .Set(new ExpelDelay())
             .Add<Attack>();
     }
 
@@ -59,8 +44,8 @@ public class VoidGate() : IEntity, ISystem
 
     public void Register(World world)
     {
-        world.System<Component, Position, Rotation>()
-            .Each((Iter it, int i, ref Component component, ref Position position, ref Rotation rotation) =>
+        world.System<Component, Position, Rotation, SpawnDelay, ExpelDelay>()
+            .Each((Iter it, int i, ref Component component, ref Position position, ref Rotation rotation, ref SpawnDelay spawnDelay, ref ExpelDelay expelDelay) =>
             {
                 component.ElapsedTime += it.DeltaTime();
 
@@ -100,7 +85,7 @@ public class VoidGate() : IEntity, ISystem
                 switch (component.Phase)
                 {
                     case Phase.Spawn:
-                        if (ShouldReturn(component)) { return; }
+                        if (component.ElapsedTime < spawnDelay.DelayTime) { return; }
                         AddActorVfx(animationActor, AbsorbVfx);
                         DelayedAction.Create(world, () =>
                         {
@@ -111,8 +96,8 @@ public class VoidGate() : IEntity, ISystem
 
                         break;
                     case Phase.Expel:
-                        if (ShouldReturn(component)) { return; }
-                        
+                        if (component.ElapsedTime < expelDelay.DelayTime) { return; }
+
                         AddActorVfx(animationActor, ExpelVfx);
                         
                         DelayedAction.Create(world, () =>
@@ -123,7 +108,7 @@ public class VoidGate() : IEntity, ISystem
                         component.Phase = Phase.Reset;
                         break;
                     case Phase.Reset:
-                        if (ShouldReturn(component)) { return; }
+                        if (component.ElapsedTime < expelDelay.DelayTime + ResetBuffer) { return; }
                         entity.Destruct();
                         break;
                 }
@@ -158,8 +143,6 @@ public class VoidGate() : IEntity, ISystem
             });
         */
     }
-
-    private bool ShouldReturn(Component component) => component.ElapsedTime < phaseTimings[component.Phase];
 
     private static Entity AddActorVfx(Entity entity, string vfxPath)
     {

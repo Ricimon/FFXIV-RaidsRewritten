@@ -44,7 +44,7 @@ internal class Transition : Mechanic
     private static float OctetDelay = 40.0f;
     private static float TeraflareDelay = 8.0f;
     private static float SpawnDelay = TeraflareDelay;
-    private static float TelegraphDelay = TeraflareDelay + 8.0f;
+    private static float TelegraphDelay = 8.0f;
     private static float GateMarkerDelay = TeraflareDelay + 10.0f;
     private static float PortalMarkerDelay = TeraflareDelay + 25.0f;
     private static float ResolutionDelay = TeraflareDelay + 35.0f;
@@ -235,6 +235,8 @@ internal class Transition : Mechanic
                             );
                             voidgate.Set(new Position(pos));
                             voidgate.Set(new Rotation(angle));
+                            voidgate.Set(new VoidGate.SpawnDelay(4.0f));
+                            voidgate.Set(new VoidGate.ExpelDelay(24.2f));
                             gates.Add(voidgate);
                         }
                     }
