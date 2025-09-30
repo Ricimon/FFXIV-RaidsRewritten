@@ -14,7 +14,7 @@ using RaidsRewritten.Scripts.Components;
 
 namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
-internal class Transition : Mechanic
+public class Transition : Mechanic
 {
     public enum Phase
     {
