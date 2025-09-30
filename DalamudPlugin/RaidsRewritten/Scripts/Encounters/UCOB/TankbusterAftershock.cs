@@ -1,22 +1,16 @@
-﻿using Dalamud.Game.ClientState.Objects.Types;
-using ECommons;
+﻿using System;
+using System.Collections.Generic;
+using System.Numerics;
+using Dalamud.Game.ClientState.Objects.Types;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using Flecs.NET.Core;
 using RaidsRewritten.Scripts.Attacks;
-using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Attacks.Omens;
 using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Spawn;
 using RaidsRewritten.Utility;
-using System;
-using System.Collections.Generic;
-using System.Numerics;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
