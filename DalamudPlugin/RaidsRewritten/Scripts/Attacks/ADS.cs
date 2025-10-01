@@ -34,7 +34,7 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
     private const ushort CircleAttackAnimation = 2260;
     private const float SnapshotEffectDelay = 0.25f;
     private const float ParalysisDuration = 30f;
-    private const float PacifyDuration = 20f;
+    private const float PacifyDuration = 10f;
     private const float StunInterval = 3f;
     private const float StunDuration = 1f;
     private readonly Dictionary<Phase, float> phaseTimings = new()
