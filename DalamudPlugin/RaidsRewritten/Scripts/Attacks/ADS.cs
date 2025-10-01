@@ -113,10 +113,7 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
                         {
                             if (player.HasTranscendance())
                             {
-                                DelayedAction.Create(world, () =>
-                                {
-                                    vfxSpawn.PlayInvulnerabilityEffect(player);
-                                }, SnapshotEffectDelay);
+                                DelayedAction.Create(world, () => vfxSpawn.PlayInvulnerabilityEffect(player), SnapshotEffectDelay).ChildOf(entity);
                             }
                             else
                             {
@@ -126,7 +123,8 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
                                     {
                                         Paralysis.ApplyToTarget(e, ParalysisDuration, StunInterval, StunDuration);
                                         Pacify.ApplyToTarget(e, PacifyDuration);
-                                    }, SnapshotEffectDelay);
+                                    }, SnapshotEffectDelay)
+                                        .ChildOf(entity);
                                 });
                             }
                         }
@@ -200,10 +198,7 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
                             {
                                 if (player.HasTranscendance())
                                 {
-                                    DelayedAction.Create(world, () =>
-                                    {
-                                        vfxSpawn.PlayInvulnerabilityEffect(player);
-                                    }, SnapshotEffectDelay);
+                                    DelayedAction.Create(world, () => vfxSpawn.PlayInvulnerabilityEffect(player), SnapshotEffectDelay).ChildOf(entity);
                                 } else
                                 {
                                     commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
@@ -212,7 +207,8 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
                                         {
                                             Paralysis.ApplyToTarget(e, ParalysisDuration, StunInterval, StunDuration);
                                             Pacify.ApplyToTarget(e, PacifyDuration);
-                                        }, SnapshotEffectDelay);
+                                        }, SnapshotEffectDelay)
+                                            .ChildOf(entity);
                                     });
                                 }
                             }
