@@ -310,11 +310,11 @@ public class UcobRewritten : IEncounter
             RefreshMechanics();
         }
 
-        bool cobTransition = configuration.GetEncounterSetting(JunctionCoilsKey, this.defaultBoolSettings[JunctionCoilsKey]);
-        if (ImGui.Checkbox("Transition", ref cobTransition))
+        bool junctionCoils = configuration.GetEncounterSetting(JunctionCoilsKey, this.defaultBoolSettings[JunctionCoilsKey]);
+        if (ImGui.Checkbox("Junction Coils", ref junctionCoils))
         {
             configuration.EncounterSettings[JunctionCoilsKey] =
-                cobTransition ? bool.TrueString : bool.FalseString;
+                junctionCoils ? bool.TrueString : bool.FalseString;
             configuration.Save();
             RefreshMechanics();
         }

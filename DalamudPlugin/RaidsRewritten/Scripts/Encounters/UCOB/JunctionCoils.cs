@@ -178,13 +178,11 @@ public class JunctionCoils : Mechanic
         if (set.Action == null) { return; }
         if (set.Target == null) { return; }
         if (!HookedActions.TryGetValue(set.Action.Value.RowId, out var phase)) { return; }
-        if (random == null)
-        {
-            random = new Random(RngSeed);
-        }
+
         switch (phase)
         {
             case Phase.Octet:
+                random = new Random(RngSeed);
                 int OctetTelegraph = random.Next(0, 7);
 
                 var da = DelayedAction.Create(World, () =>
@@ -198,8 +196,9 @@ public class JunctionCoils : Mechanic
             case Phase.Teraflare:
                 localPlayer = this.Dalamud.ClientState.LocalPlayer;
                 if (localPlayer == null) { return; }
-                
                 List<IBattleChara> playerList = FillPlayerList();
+
+                random = new Random(RngSeed);
                 Shuffle(random, playerList);
                 Shuffle(random, telegraphs);
                 Shuffle(random, SymbolNumber);
