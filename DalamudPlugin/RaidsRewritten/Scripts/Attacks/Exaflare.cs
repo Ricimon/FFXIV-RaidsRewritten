@@ -152,16 +152,15 @@ public class Exaflare(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogger logger
         if (player == null || player.IsDead) { return; }
         if (player.HasTranscendance())
         {
-            DelayedAction.Create(e.CsWorld(), () => {
-                vfxSpawn.PlayInvulnerabilityEffect(player);
-            }, StatusDelay);
+            DelayedAction.Create(e.CsWorld(), () => vfxSpawn.PlayInvulnerabilityEffect(player), StatusDelay).ChildOf(e);
         }
         else
         {
             DelayedAction.Create(e.CsWorld(), () => {
                 Stun.ApplyToTarget(e, StunDuration);
                 Pacify.ApplyToTarget(e, PacifyDuration);
-            }, StatusDelay);
+            }, StatusDelay)
+                .ChildOf(e);
         }
     }
 

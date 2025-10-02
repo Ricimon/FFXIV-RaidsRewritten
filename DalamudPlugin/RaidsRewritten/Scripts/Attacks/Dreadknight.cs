@@ -132,7 +132,7 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
                     if (animationState.Value != CastingAnimation) { entity.Set(new TimelineBase(CastingAnimation, true)); }
                     DelayedAction.Create(world, () => AddActorVfx(entity, EnrageVfx1), EnrageVfxDelay).ChildOf(entity);
                     DelayedAction.Create(world, () => AddActorVfx(entity, EnrageVfx2), EnrageVfxDelay).ChildOf(entity);
-                    StunPlayer(world, EnrageStunDuration, EnrageStunDelay);
+                    StunPlayer(entity, EnrageStunDuration, EnrageStunDelay);
                     component.Enrage = -1;
                     component.EnrageLoop = true;
                 }
@@ -174,7 +174,7 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
                         if (animationState.Value != AttackAnimation) { entity.Set(new TimelineBase(AttackAnimation)); }
                         if (dalamud.ClientState.LocalPlayer == target.Value)
                         {
-                            StunPlayer(world, StunDuration);
+                            StunPlayer(entity, StunDuration);
                             component.NextRefresh = component.ElapsedTime + 3f;
                         }
                     } else
@@ -325,15 +325,15 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
     // can't directly remove components, instead schedule removal from a system
     public static void RemoveCancellableCC(Entity entity) => entity.Add<QueueCancelCC>();
 
-    private void StunPlayer(World world, float duration, float delay = StunDelay)
+    private void StunPlayer(Entity entity, float duration, float delay = StunDelay)
     {
         var player = dalamud.ClientState.LocalPlayer;
         if (player == null || player.IsDead) { return; }
         commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
         {
-            DelayedAction.Create(world, () => {
+            DelayedAction.Create(entity.CsWorld(), () => {
                 Stun.ApplyToTarget(e, duration);
-            }, delay);
+            }, delay).ChildOf(entity);
         });
     }
 

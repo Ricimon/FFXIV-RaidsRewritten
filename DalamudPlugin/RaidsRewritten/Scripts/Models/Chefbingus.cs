@@ -14,7 +14,7 @@ public class Chefbingus(DalamudServices dalamud) : IEntity
             .Set(new Model(413))
             .Set(new Position())
             .Set(new Rotation())
-            .Set(new UniformScale(1));
+            .Set(new UniformScale(1.1f));
 
         var replacements = new Dictionary<string, string>
         {

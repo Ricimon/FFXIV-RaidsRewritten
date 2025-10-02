@@ -100,18 +100,12 @@ public class NerveGasKaliya(DalamudServices dalamud, VfxSpawn vfxSpawn, CommonQu
                                 {
                                     if (player.HasTranscendance())
                                     {
-                                        DelayedAction.Create(world, () =>
-                                        {
-                                            vfxSpawn.PlayInvulnerabilityEffect(player);
-                                        }, 0.25f);
+                                        DelayedAction.Create(world, () => vfxSpawn.PlayInvulnerabilityEffect(player), 0.25f).ChildOf(entity);
                                     } else
                                     {
                                         commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
                                         {
-                                            DelayedAction.Create(world, () =>
-                                            {
-                                                Hysteria.ApplyToTarget(e, HysteriaDuration, RedirectInterval);
-                                            }, 0.25f);
+                                            DelayedAction.Create(world, () => Hysteria.ApplyToTarget(e, HysteriaDuration, RedirectInterval), 0.25f).ChildOf(entity);
                                         });
                                     }
                                 }
