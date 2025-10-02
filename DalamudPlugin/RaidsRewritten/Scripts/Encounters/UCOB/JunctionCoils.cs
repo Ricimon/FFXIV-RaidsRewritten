@@ -2,11 +2,9 @@
 using System.Collections.Generic;
 using System.Numerics;
 using Dalamud.Game.ClientState.Objects.Types;
-using ECommons;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
-using FFXIVClientStructs.FFXIV.Client.UI;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Scripts.Attacks;
@@ -14,7 +12,7 @@ using RaidsRewritten.Scripts.Components;
 
 namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
-public class Transition : Mechanic
+public class JunctionCoils : Mechanic
 {
     public enum Phase
     {
@@ -34,7 +32,6 @@ public class Transition : Mechanic
     private Random? random;
     private readonly List<Entity> attacks = [];
     private readonly List<Entity> gates = [];
-    private List<IBattleChara> playerList = [];
     private IBattleChara? localPlayer;
     private static float OctetDelay = 40.0f;
     private static float TeraflareDelay = 8.0f;
@@ -49,7 +46,6 @@ public class Transition : Mechanic
     private const int MessageGimmickDuration = 5;
     private List<int> telegraphs = [0, 1, 2, 3, 4, 5, 6, 7];
     private List<int> SymbolNumber = [0, 1, 2, 3, 4, 5, 6, 7];
-    private int resolution;
 
     public override void Reset()
     {
@@ -182,53 +178,37 @@ public class Transition : Mechanic
         if (set.Action == null) { return; }
         if (set.Target == null) { return; }
         if (!HookedActions.TryGetValue(set.Action.Value.RowId, out var phase)) { return; }
+        if (random == null)
+        {
+            random = new Random(RngSeed);
+        }
         switch (phase)
         {
             case Phase.Octet:
-                var seed = RngSeed;
-                random = new Random(seed);
-                Shuffle(random, telegraphs);
-                Shuffle(random, SymbolNumber);
-                resolution = random.Next(0, 7);
-                foreach (var player in this.Dalamud.ObjectTable.PlayerObjects)
-                {
-                    playerList.Add(player);
-                }
-                if (playerList.Count != 8)
-                {
-                    this.Logger.Debug($"uh oh, unexpected number of players: {playerList.Count}");
-                }
+                int OctetTelegraph = random.Next(0, 7);
 
-                // ensure same order before randomizing list
-                playerList.Sort((a, b) => {
-                    BattleChara aCs;
-                    BattleChara bCs;
-                    unsafe
-                    {
-                        aCs = *(BattleChara*)a.Address;
-                        bCs = *(BattleChara*)b.Address;
-                    }
-                    return aCs.ContentId.CompareTo(bCs.ContentId);
-                });
-                Logger.Debug($"Octet Telegraph: {telegraphs[0]}");
-                var da = DelayedAction.Create(World, () => 
+                var da = DelayedAction.Create(World, () =>
                 {
-                    ShowTextGimmick(OctetMessage, MessageGimmickDuration);
-                    ShowAds(telegraphs[0], TelegraphDelay); 
+                    Dalamud.ToastGui.ShowNormal(OctetMessage);
+                    ShowAds(OctetTelegraph, TelegraphDelay);
                 }, OctetDelay);
+
                 attacks.Add(da);
                 break;
             case Phase.Teraflare:
                 localPlayer = this.Dalamud.ClientState.LocalPlayer;
-                if (localPlayer == null || random == null) { return; }
+                if (localPlayer == null) { return; }
+                
+                List<IBattleChara> playerList = FillPlayerList();
                 Shuffle(random, playerList);
+                Shuffle(random, telegraphs);
+                Shuffle(random, SymbolNumber);
+                int resolution = random.Next(0, 7);
                 int playerNumber = playerList.IndexOf(localPlayer);
-                Logger.Debug($"{playerNumber}");
-                DebugOutput();
 
                 var da1 = DelayedAction.Create(World, () => 
                 {
-                    ShowTextGimmick(PheonixMessage, MessageGimmickDuration);
+                    Dalamud.ToastGui.ShowNormal(PheonixMessage);
                     ShowAds(telegraphs[playerNumber], TelegraphDelay);
                 }, SpawnDelay);
 
@@ -253,29 +233,24 @@ public class Transition : Mechanic
                     }
                     CommonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
                     {
-                        var fa = FakeActor.Create(World)
-                            .Set(new Position(localPlayer.Position))
-                            .Set(new Rotation(localPlayer.Rotation))
-                            .ChildOf(e);
-                        attacks.Add(fa);
                         var lc = this.World.Entity()
                             .Set(new ActorVfx(SymbolPaths[SymbolNumber[playerNumber]]))
-                            .ChildOf(fa);
+                            .ChildOf(e);
                         attacks.Add(lc);
                     });
                 }, GateMarkerDelay);
 
                 var da3 = DelayedAction.Create(World, () => 
                 {
-                    gates.ForEach(e =>
+                    foreach (var gate in gates)
                     {
                         var lc = this.World.Entity()
-                            .Set(new ActorVfx(SymbolPaths[SymbolNumber[resolution]]))
-                            .ChildOf(e);
+                                .Set(new ActorVfx(SymbolPaths[SymbolNumber[resolution]]))
+                                .ChildOf(gate);
                         attacks.Add(lc);
-                    });
-
+                    }
                 }, PortalMarkerDelay);
+
                 var da4 = DelayedAction.Create(World, () => 
                 {
                     ShowAds(telegraphs[resolution], 0.0f);
@@ -294,19 +269,29 @@ public class Transition : Mechanic
                 break;
         }
     }
-    private void ShowTextGimmick(string text, int seconds, RaptureAtkModule.TextGimmickHintStyle style = RaptureAtkModule.TextGimmickHintStyle.Warning)
-    {
-        unsafe
-        {
-            var raptureAtkModule = RaptureAtkModule.Instance();
-            if (raptureAtkModule == null) { return; }
 
-            raptureAtkModule->ShowTextGimmickHint(
-            text,
-            style,
-            10 * seconds);
+    private List<IBattleChara> FillPlayerList()
+    {
+        List<IBattleChara> playerList = [];
+        foreach (var player in this.Dalamud.ObjectTable.PlayerObjects)
+        {
+            playerList.Add(player);
         }
+
+        // ensure same order before randomizing list
+        playerList.Sort((a, b) => {
+            BattleChara aCs;
+            BattleChara bCs;
+            unsafe
+            {
+                aCs = *(BattleChara*)a.Address;
+                bCs = *(BattleChara*)b.Address;
+            }
+            return aCs.ContentId.CompareTo(bCs.ContentId);
+        });
+        return playerList;
     }
+
     private static void Shuffle<T>(Random rand, List<T> list)
     {
         for (int i = list.Count - 1; i > 0; i--)
@@ -314,28 +299,5 @@ public class Transition : Mechanic
             int j = rand.Next(i + 1);
             (list[i], list[j]) = (list[j], list[i]);
         }
-    }
-    private void DebugOutput()
-    {
-        Table.TryGetValue(telegraphs[resolution], out var data);
-        Logger.Debug($"Resolution Number: {resolution}");
-        Logger.Debug($"Resolution Actual: {telegraphs[resolution]}");
-        Logger.Debug($"Symbol: {SymbolNumber[resolution]}");
-        Logger.Debug($"Kaliya: {data.Kaliya.ToString()} ");
-        Logger.Debug($"Melusine: {data.Melusine.ToString()} ");
-        Logger.Debug($"ADS: {data.Ads[0].ToString()}, {data.Ads[1].ToString()}, {data.Ads[2].ToString()}");
-        string str = "";
-        telegraphs.Each(a =>
-        {
-            str += a.ToString();
-        });
-        Logger.Debug(str);
-        str = "";
-        SymbolNumber.Each(a => 
-        {
-            str += a.ToString();
-        });
-        Logger.Debug(str);
-        str = "";
     }
 }

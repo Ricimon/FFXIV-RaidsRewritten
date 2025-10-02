@@ -29,7 +29,7 @@ public class UcobRewritten : IEncounter
     private string TethersKey => $"{Name}.Tethers";
     private string EarthShakerStarKey => $"{Name}.EarthShakerStar";
     private string OctetCourseKey => $"{Name}.OctetCourse";
-    private string CobTransitionKey => $"{Name}.CobTransition";
+    private string JunctionCoilsKey => $"{Name}.JunctionCoils";
     private string PermanentTwistersKey => $"{Name}.PermanentTwisters";
     private string RollingBallKey => $"{Name}.RollingBall";
     private string RollingBallMaxBallsKey => $"{Name}.RollingBallMaxBalls";
@@ -65,7 +65,7 @@ public class UcobRewritten : IEncounter
             { TethersKey, true },
             { EarthShakerStarKey, true },
             { OctetCourseKey, true },
-            { CobTransitionKey, true},
+            { JunctionCoilsKey, true},
 
             { PermanentTwistersKey, false },
             { RollingBallKey, false },
@@ -160,12 +160,12 @@ public class UcobRewritten : IEncounter
             this.mechanics.Add(octetCourse);
         }
 
-        if (configuration.GetEncounterSetting(CobTransitionKey, this.defaultBoolSettings[CobTransitionKey]))
+        if (configuration.GetEncounterSetting(JunctionCoilsKey, this.defaultBoolSettings[JunctionCoilsKey]))
         {
-            var cobTransition = mechanicFactory.Create<Transition>();
-            cobTransition.RngSeed = rngSeed;
+            var junctionCoils = mechanicFactory.Create<JunctionCoils>();
+            junctionCoils.RngSeed = rngSeed;
 
-            this.mechanics.Add(cobTransition);
+            this.mechanics.Add(junctionCoils);
         }
         
         // Meme mechanics
@@ -310,10 +310,10 @@ public class UcobRewritten : IEncounter
             RefreshMechanics();
         }
 
-        bool cobTransition = configuration.GetEncounterSetting(CobTransitionKey, this.defaultBoolSettings[CobTransitionKey]);
+        bool cobTransition = configuration.GetEncounterSetting(JunctionCoilsKey, this.defaultBoolSettings[JunctionCoilsKey]);
         if (ImGui.Checkbox("Transition", ref cobTransition))
         {
-            configuration.EncounterSettings[CobTransitionKey] =
+            configuration.EncounterSettings[JunctionCoilsKey] =
                 cobTransition ? bool.TrueString : bool.FalseString;
             configuration.Save();
             RefreshMechanics();
