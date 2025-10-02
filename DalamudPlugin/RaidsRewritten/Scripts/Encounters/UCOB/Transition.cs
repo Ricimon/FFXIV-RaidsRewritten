@@ -46,7 +46,7 @@ public class Transition : Mechanic
     private static float ResetDelay = ResolutionDelay + 5.0f;
 
     private List<int> telegraphs = [0, 1, 2, 3, 4, 5, 6, 7];
-    private List<int> SymbolPaths = [0, 1, 2, 3, 4, 5, 6, 7];
+    private List<int> SymbolNumber = [0, 1, 2, 3, 4, 5, 6, 7];
     private int resolution;
 
     public override void Reset()
@@ -112,6 +112,17 @@ public class Transition : Mechanic
         },
     };
 
+    private readonly List<string> SymbolPaths = new List<string> {
+        "vfx/lockon/eff/m0361trg_a1t.avfx",
+        "vfx/lockon/eff/m0361trg_a2t.avfx",
+        "vfx/lockon/eff/m0361trg_a3t.avfx",
+        "vfx/lockon/eff/m0361trg_a4t.avfx",
+        "vfx/lockon/eff/m0361trg_a5t.avfx",
+        "vfx/lockon/eff/m0361trg_a6t.avfx",
+        "vfx/lockon/eff/m0361trg_a7t.avfx",
+        "vfx/lockon/eff/m0361trg_a8t.avfx",
+    };
+
     private void ShowAds(int value, float delay)
     {
         //Kaliya
@@ -175,7 +186,7 @@ public class Transition : Mechanic
                 var seed = RngSeed;
                 random = new Random(seed);
                 Shuffle(random, telegraphs);
-                Shuffle(random, SymbolPaths);
+                Shuffle(random, SymbolNumber);
                 resolution = random.Next(0, 7);
                 foreach (var player in this.Dalamud.ObjectTable.PlayerObjects)
                 {
@@ -242,7 +253,11 @@ public class Transition : Mechanic
                             .Set(new Rotation(localPlayer.Rotation))
                             .ChildOf(e);
                         attacks.Add(fa);
-                        LimitCutNumber.ApplyToTarget(fa, 10, SymbolPaths[playerNumber]);
+                        var lc = this.World.Entity()
+                            .Set(new ActorVfx(SymbolPaths[SymbolNumber[playerNumber]]))
+                            .ChildOf(fa);
+                        attacks.Add(lc);
+                        //LimitCutNumber.ApplyToTarget(fa, 10, SymbolNumber[playerNumber]);
                     });
                 }, GateMarkerDelay);
 
@@ -250,7 +265,11 @@ public class Transition : Mechanic
                 {
                     gates.ForEach(e =>
                     {
-                        LimitCutNumber.ApplyToTarget(e, 10, SymbolPaths[resolution]);
+                        var lc = this.World.Entity()
+                            .Set(new ActorVfx(SymbolPaths[SymbolNumber[playerNumber]]))
+                            .ChildOf(e);
+                        attacks.Add(lc);
+                        //LimitCutNumber.ApplyToTarget(e, 10, SymbolNumber[resolution]);
                     });
 
                 }, PortalMarkerDelay);
@@ -281,13 +300,12 @@ public class Transition : Mechanic
             (list[i], list[j]) = (list[j], list[i]);
         }
     }
-
     private void DebugOutput()
     {
         Table.TryGetValue(telegraphs[resolution], out var data);
         Logger.Debug($"Resolution Number: {resolution}");
         Logger.Debug($"Resolution Actual: {telegraphs[resolution]}");
-        Logger.Debug($"Symbol: {SymbolPaths[resolution]}");
+        Logger.Debug($"Symbol: {SymbolNumber[resolution]}");
         Logger.Debug($"Kaliya: {data.Kaliya.ToString()} ");
         Logger.Debug($"Melusine: {data.Melusine.ToString()} ");
         Logger.Debug($"ADS: {data.Ads[0].ToString()}, {data.Ads[1].ToString()}, {data.Ads[2].ToString()}");
@@ -299,7 +317,7 @@ public class Transition : Mechanic
         });
         Logger.Debug(str);
         str = "";
-        SymbolPaths.Each(a => 
+        SymbolNumber.Each(a => 
         {
             str += a.ToString();
         });
