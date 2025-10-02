@@ -224,7 +224,7 @@ public class Transition : Mechanic
                 if (localPlayer == null || random == null) { return; }
                 Shuffle(random, playerList);
                 int playerNumber = playerList.IndexOf(localPlayer);
-
+                Logger.Debug($"{playerNumber}");
                 DebugOutput();
 
                 var da1 = DelayedAction.Create(World, () => 
@@ -272,7 +272,7 @@ public class Transition : Mechanic
                     gates.ForEach(e =>
                     {
                         var lc = this.World.Entity()
-                            .Set(new ActorVfx(SymbolPaths[SymbolNumber[playerNumber]]))
+                            .Set(new ActorVfx(SymbolPaths[SymbolNumber[resolution]]))
                             .ChildOf(e);
                         attacks.Add(lc);
                         //LimitCutNumber.ApplyToTarget(e, 10, SymbolNumber[resolution]);
