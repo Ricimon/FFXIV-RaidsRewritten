@@ -34,6 +34,7 @@ public class Transition : Mechanic
     private Random? random;
     private readonly List<Entity> attacks = [];
     private readonly List<Entity> gates = [];
+    private List<IBattleChara> playerList = [];
     private IBattleChara? localPlayer;
     private static float OctetDelay = 40.0f;
     private static float TeraflareDelay = 8.0f;
@@ -187,20 +188,6 @@ public class Transition : Mechanic
                 Shuffle(random, telegraphs);
                 Shuffle(random, SymbolNumber);
                 resolution = random.Next(0, 7);
-
-                var da = DelayedAction.Create(World, () => 
-                { 
-                    ShowAds(telegraphs[0], TelegraphDelay); 
-                }, OctetDelay);
-                attacks.Add(da);
-                DebugOutput();
-                break;
-
-            case Phase.Teraflare:
-                localPlayer = this.Dalamud.ClientState.LocalPlayer;
-                if (localPlayer == null) { return; }
-
-                List<IBattleChara> playerList = [];
                 foreach (var player in this.Dalamud.ObjectTable.PlayerObjects)
                 {
                     playerList.Add(player);
@@ -222,7 +209,19 @@ public class Transition : Mechanic
                     return aCs.ContentId.CompareTo(bCs.ContentId);
                 });
 
+                var da = DelayedAction.Create(World, () => 
+                { 
+                    ShowAds(telegraphs[0], TelegraphDelay); 
+                }, OctetDelay);
+                attacks.Add(da);
+                DebugOutput();
+                break;
+            case Phase.Teraflare:
+                localPlayer = this.Dalamud.ClientState.LocalPlayer;
+                if (localPlayer == null || random == null) { return; }
+                Shuffle(random, playerList);
                 int playerNumber = playerList.IndexOf(localPlayer);
+
                 var da1 = DelayedAction.Create(World, () => 
                 {
                     ShowAds(telegraphs[playerNumber], TelegraphDelay);
