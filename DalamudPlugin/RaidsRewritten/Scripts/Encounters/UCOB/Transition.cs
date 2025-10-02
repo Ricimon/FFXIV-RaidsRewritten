@@ -11,7 +11,6 @@ using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Scripts.Attacks;
 using RaidsRewritten.Scripts.Components;
-using RaidsRewritten.Scripts.Conditions;
 
 namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
@@ -25,8 +24,8 @@ public class Transition : Mechanic
 
     private static readonly Dictionary<uint, Phase> HookedActions = new()
     {
-        { 9959, Phase.Octet},       //Octet NEED NUMBER
-        { 9961, Phase.Teraflare },    //Teraflare ID
+        { 9959, Phase.Octet},       //Octet
+        { 9961, Phase.Teraflare },    //Teraflare
     };
 
     private readonly Vector3 ArenaCenter = new(0, 0, 0);
@@ -263,7 +262,6 @@ public class Transition : Mechanic
                             .Set(new ActorVfx(SymbolPaths[SymbolNumber[playerNumber]]))
                             .ChildOf(fa);
                         attacks.Add(lc);
-                        //LimitCutNumber.ApplyToTarget(fa, 10, SymbolNumber[playerNumber]);
                     });
                 }, GateMarkerDelay);
 
@@ -275,7 +273,6 @@ public class Transition : Mechanic
                             .Set(new ActorVfx(SymbolPaths[SymbolNumber[resolution]]))
                             .ChildOf(e);
                         attacks.Add(lc);
-                        //LimitCutNumber.ApplyToTarget(e, 10, SymbolNumber[resolution]);
                     });
 
                 }, PortalMarkerDelay);
