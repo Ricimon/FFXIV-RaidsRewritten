@@ -27,8 +27,7 @@ public class VoidGate() : IEntity, ISystem
     private const string GateActorVfx = "chara/monster/m0273/obj/body/b0001/vfx/eff/vm0001.avfx";
     public static Entity CreateEntity(World world)
     {
-        return world.Entity()
-            .Set(new Model(-1))
+        return FakeActor.Create(world)
             .Set(new Position())
             .Set(new Rotation())
             .Set(new Scale())
