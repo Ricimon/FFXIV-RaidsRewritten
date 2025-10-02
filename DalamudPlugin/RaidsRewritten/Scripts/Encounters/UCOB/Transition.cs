@@ -6,11 +6,12 @@ using ECommons;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
+using FFXIVClientStructs.FFXIV.Client.UI;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Scripts.Attacks;
-using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Scripts.Components;
+using RaidsRewritten.Scripts.Conditions;
 
 namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
@@ -44,7 +45,9 @@ public class Transition : Mechanic
     private static float PortalMarkerDelay = TeraflareDelay + 25.0f;
     private static float ResolutionDelay = TeraflareDelay + 35.0f;
     private static float ResetDelay = ResolutionDelay + 5.0f;
-
+    private const string OctetMessage = "Bahamut draws from your memories...";
+    private const string PheonixMessage = "You are granted a unique vision...";
+    private const int MessageGimmickDuration = 5;
     private List<int> telegraphs = [0, 1, 2, 3, 4, 5, 6, 7];
     private List<int> SymbolNumber = [0, 1, 2, 3, 4, 5, 6, 7];
     private int resolution;
@@ -208,13 +211,13 @@ public class Transition : Mechanic
                     }
                     return aCs.ContentId.CompareTo(bCs.ContentId);
                 });
-
+                Logger.Debug($"Octet Telegraph: {telegraphs[0]}");
                 var da = DelayedAction.Create(World, () => 
-                { 
+                {
+                    ShowTextGimmick(OctetMessage, MessageGimmickDuration);
                     ShowAds(telegraphs[0], TelegraphDelay); 
                 }, OctetDelay);
                 attacks.Add(da);
-                DebugOutput();
                 break;
             case Phase.Teraflare:
                 localPlayer = this.Dalamud.ClientState.LocalPlayer;
@@ -222,8 +225,11 @@ public class Transition : Mechanic
                 Shuffle(random, playerList);
                 int playerNumber = playerList.IndexOf(localPlayer);
 
+                DebugOutput();
+
                 var da1 = DelayedAction.Create(World, () => 
                 {
+                    ShowTextGimmick(PheonixMessage, MessageGimmickDuration);
                     ShowAds(telegraphs[playerNumber], TelegraphDelay);
                 }, SpawnDelay);
 
@@ -291,7 +297,19 @@ public class Transition : Mechanic
                 break;
         }
     }
+    private void ShowTextGimmick(string text, int seconds, RaptureAtkModule.TextGimmickHintStyle style = RaptureAtkModule.TextGimmickHintStyle.Warning)
+    {
+        unsafe
+        {
+            var raptureAtkModule = RaptureAtkModule.Instance();
+            if (raptureAtkModule == null) { return; }
 
+            raptureAtkModule->ShowTextGimmickHint(
+            text,
+            style,
+            10 * seconds);
+        }
+    }
     private static void Shuffle<T>(Random rand, List<T> list)
     {
         for (int i = list.Count - 1; i > 0; i--)
@@ -310,7 +328,6 @@ public class Transition : Mechanic
         Logger.Debug($"Melusine: {data.Melusine.ToString()} ");
         Logger.Debug($"ADS: {data.Ads[0].ToString()}, {data.Ads[1].ToString()}, {data.Ads[2].ToString()}");
         string str = "";
-        Logger.Debug($"Octet Telegraph: {telegraphs[0]}");
         telegraphs.Each(a =>
         {
             str += a.ToString();
