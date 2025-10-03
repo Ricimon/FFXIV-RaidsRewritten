@@ -182,7 +182,7 @@ public class JunctionCoils : Mechanic
         switch (phase)
         {
             case Phase.Octet:
-                random = new Random(RngSeed);
+                random = new Random(RngSeed + 5330);
                 int OctetTelegraph = random.Next(0, 7);
 
                 var da = DelayedAction.Create(World, () =>
@@ -198,7 +198,7 @@ public class JunctionCoils : Mechanic
                 if (localPlayer == null) { return; }
                 List<IBattleChara> playerList = FillPlayerList();
 
-                random = new Random(RngSeed);
+                random = new Random(RngSeed + 8008135);
                 Shuffle(random, playerList);
                 Shuffle(random, telegraphs);
                 Shuffle(random, SymbolNumber);
