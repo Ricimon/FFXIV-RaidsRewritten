@@ -42,7 +42,7 @@ public class JunctionCoils : Mechanic
     private static float ResolutionDelay = TeraflareDelay + 35.0f;
     private static float ResetDelay = ResolutionDelay + 5.0f;
     private const string OctetMessage = "Bahamut draws from your memories...";
-    private const string PheonixMessage = "You are granted a unique vision...";
+    private const string PhoenixMessage = "You are granted a unique vision...";
     private const int MessageGimmickDuration = 5;
     private List<int> telegraphs = [0, 1, 2, 3, 4, 5, 6, 7];
     private List<int> SymbolNumber = [0, 1, 2, 3, 4, 5, 6, 7];
@@ -208,8 +208,8 @@ public class JunctionCoils : Mechanic
 
                 var da1 = DelayedAction.Create(World, () => 
                 {
-                    Dalamud.ToastGui.ShowNormal(PheonixMessage);
-                    Dalamud.ChatGui.Print(PheonixMessage);
+                    Dalamud.ToastGui.ShowNormal(PhoenixMessage);
+                    Dalamud.ChatGui.Print(PhoenixMessage);
                     ShowAds(telegraphs[playerNumber], TelegraphDelay);
                 }, SpawnDelay);
 
