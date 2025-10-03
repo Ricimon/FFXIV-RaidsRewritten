@@ -183,7 +183,7 @@ public class JunctionCoils : Mechanic
         {
             case Phase.Octet:
                 random = new Random(RngSeed + 5330);
-                int OctetTelegraph = random.Next(0, 7);
+                int OctetTelegraph = random.Next(0, Table.Count);
 
                 var da = DelayedAction.Create(World, () =>
                 {
@@ -203,8 +203,14 @@ public class JunctionCoils : Mechanic
                 Shuffle(random, playerList);
                 Shuffle(random, telegraphs);
                 Shuffle(random, SymbolNumber);
-                int resolution = random.Next(0, 7);
-                int playerNumber = playerList.IndexOf(localPlayer);
+                int resolution = random.Next(0, Table.Count);
+                int playerNumber = playerList.FindIndex(p => p.GameObjectId == localPlayer.GameObjectId);
+
+                if (playerNumber < 0)
+                {
+                    this.Logger.Error("Could not find local player in Object Table. Defaulting to 0 index.");
+                    playerNumber = 0;
+                }
 
                 var da1 = DelayedAction.Create(World, () => 
                 {
