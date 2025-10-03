@@ -188,6 +188,7 @@ public class JunctionCoils : Mechanic
                 var da = DelayedAction.Create(World, () =>
                 {
                     Dalamud.ToastGui.ShowNormal(OctetMessage);
+                    Dalamud.ChatGui.Print(OctetMessage);
                     ShowAds(OctetTelegraph, TelegraphDelay);
                 }, OctetDelay);
 
@@ -208,6 +209,7 @@ public class JunctionCoils : Mechanic
                 var da1 = DelayedAction.Create(World, () => 
                 {
                     Dalamud.ToastGui.ShowNormal(PheonixMessage);
+                    Dalamud.ChatGui.Print(PheonixMessage);
                     ShowAds(telegraphs[playerNumber], TelegraphDelay);
                 }, SpawnDelay);
 

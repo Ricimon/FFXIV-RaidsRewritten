@@ -88,7 +88,7 @@ public class VoidGate() : IEntity, ISystem
                         DelayedAction.Create(world, () =>
                         {
                             AddActorVfx(gateActor, GateActorVfx);
-                        }, 0.5f);
+                        }, 0.5f).ChildOf(gateActor);
 
                         component.Phase = Phase.Expel;
 
@@ -101,7 +101,7 @@ public class VoidGate() : IEntity, ISystem
                         DelayedAction.Create(world, () =>
                         {
                             gateActor.Destruct();
-                        }, 0.5f);
+                        }, 0.5f).ChildOf(gateActor);
                         
                         component.Phase = Phase.Reset;
                         break;
