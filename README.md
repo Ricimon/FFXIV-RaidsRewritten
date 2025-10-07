@@ -12,6 +12,5 @@ RaidsRewritten is (currently) entirely executed client-side. It hooks fight even
 
 ## Available fights
 
-- UCOB Rewritten (WIP)
-
-_Development is ongoing... designing and building custom mechanics is hard..._
+- UCOB Rewritten
+- ??? (in ~~time stasis~~ development)
