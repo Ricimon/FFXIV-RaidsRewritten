@@ -1,4 +1,5 @@
 ﻿// Adapted from https://github.com/PunishXIV/Splatoon/blob/main/Splatoon/Memory/ObjectEffectProcessor.cs
+// 0054cc3
 using System;
 using Dalamud.Hooking;
 using Dalamud.Plugin.Services;

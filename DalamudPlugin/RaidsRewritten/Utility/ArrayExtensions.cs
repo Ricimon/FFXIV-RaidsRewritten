@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Adapted from https://github.com/0ceal0t/Dalamud-VFXEditor/blob/main/VFXEditor/Utils/ArrayExtensions.cs
+// e9c7545
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 

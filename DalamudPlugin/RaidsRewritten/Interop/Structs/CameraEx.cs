@@ -2,6 +2,8 @@
 
 namespace RaidsRewritten.Interop.Structs;
 
+// Offsets from https://github.com/awgil/ffxiv_navmesh/blob/master/vnavmesh/Movement/OverrideCamera.cs
+// af6c884
 [StructLayout(LayoutKind.Explicit, Size = 0x2B0)]
 public unsafe struct CameraEx
 {

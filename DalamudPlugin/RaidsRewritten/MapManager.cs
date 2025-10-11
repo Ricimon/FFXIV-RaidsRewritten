@@ -1,4 +1,5 @@
 ﻿using Dalamud.Plugin.Services;
+using ECommons.ExcelServices;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using Lumina.Excel.Sheets;
@@ -42,46 +43,62 @@ public class MapManager : IDisposable
 
         switch (territoryIntendedUse)
         {
-            case TerritoryIntendedUseEnum.Town:
-            case TerritoryIntendedUseEnum.OpenWorld:
-            case TerritoryIntendedUseEnum.RaidPublicArea:
-            case TerritoryIntendedUseEnum.HousingArea:
-            case TerritoryIntendedUseEnum.GoldSaucer:
+            case TerritoryIntendedUseEnum.City_Area:
+            case TerritoryIntendedUseEnum.Open_World:
+            case TerritoryIntendedUseEnum.Quest_Area_2: // Raid Public Area
+            case TerritoryIntendedUseEnum.Residential_Area:
+            case TerritoryIntendedUseEnum.Gold_Saucer:
                 return true;
-            case TerritoryIntendedUseEnum.HousingPrivateArea:
+            case TerritoryIntendedUseEnum.Housing_Instances:
                 return HousingManager.Instance()->GetCurrentIndoorHouseId().IsValid();
             case TerritoryIntendedUseEnum.Inn:
             case TerritoryIntendedUseEnum.Dungeon:
-            case TerritoryIntendedUseEnum.JailArea:
-            case TerritoryIntendedUseEnum.OpeningArea:
-            case TerritoryIntendedUseEnum.BeforeTrialDung:
-            case TerritoryIntendedUseEnum.AllianceRaid:
-            case TerritoryIntendedUseEnum.OpenWorldInstanceBattle:
+            case TerritoryIntendedUseEnum.Variant_Dungeon:
+            case TerritoryIntendedUseEnum.Gaol:
+            case TerritoryIntendedUseEnum.Starting_Area:
+            case TerritoryIntendedUseEnum.Quest_Area: // Pre Trial Dungeon
+            case TerritoryIntendedUseEnum.Alliance_Raid:
+            case TerritoryIntendedUseEnum.Quest_Battle: // Open World Instance Battle
             case TerritoryIntendedUseEnum.Trial:
-            case TerritoryIntendedUseEnum.MainStoryQuestPrivateArea:
-            case TerritoryIntendedUseEnum.Raids: // need to check
-            case TerritoryIntendedUseEnum.RaidFights:
-            case TerritoryIntendedUseEnum.ChocoboSquare: // need to check
-            case TerritoryIntendedUseEnum.ChocoboTutorial:
-            case TerritoryIntendedUseEnum.Wedding:
-            case TerritoryIntendedUseEnum.DiademV1:
-            case TerritoryIntendedUseEnum.BeginnerTutorial:
-            case TerritoryIntendedUseEnum.PvPTheFeast: // need to check
-            case TerritoryIntendedUseEnum.MainStoryQuestEventArea: // need to check
-            case TerritoryIntendedUseEnum.FreeCompanyGarrison:
-            case TerritoryIntendedUseEnum.PalaceOfTheDead:
-            case TerritoryIntendedUseEnum.TreasureMapInstance:
-            case TerritoryIntendedUseEnum.EventTrial: // need to check
-            case TerritoryIntendedUseEnum.TheFeastArea: // need to check
-            case TerritoryIntendedUseEnum.DiademV2:
-            case TerritoryIntendedUseEnum.PrivateEventArea: // need to check
+            case TerritoryIntendedUseEnum.Quest_Area_3: // MSQ Private Area
+            case TerritoryIntendedUseEnum.Raid: // need to check
+            case TerritoryIntendedUseEnum.Raid_2:
+            case TerritoryIntendedUseEnum.Frontline:
+            case TerritoryIntendedUseEnum.Chocobo_Square: // need to check
+            case TerritoryIntendedUseEnum.Restoration_Event:
+            case TerritoryIntendedUseEnum.Sanctum: // Wedding
+            case TerritoryIntendedUseEnum.Lord_of_Verminion: // need to check
+            case TerritoryIntendedUseEnum.Diadem:
+            case TerritoryIntendedUseEnum.Hall_of_the_Novice:
+            case TerritoryIntendedUseEnum.Crystalline_Conflict:
+            case TerritoryIntendedUseEnum.Quest_Battle_2: // MSQ Event Area, need to check
+            case TerritoryIntendedUseEnum.Barracks:
+            case TerritoryIntendedUseEnum.Deep_Dungeon:
+            case TerritoryIntendedUseEnum.Seasonal_Event:
+            case TerritoryIntendedUseEnum.Treasure_Map_Duty:
+            case TerritoryIntendedUseEnum.Seasonal_Event_Duty:
+            case TerritoryIntendedUseEnum.Battlehall:
+            case TerritoryIntendedUseEnum.Crystalline_Conflict_2:
+            case TerritoryIntendedUseEnum.Diadem_2:
+            case TerritoryIntendedUseEnum.Rival_Wings:
+            case TerritoryIntendedUseEnum.Unknown_1: // need to check
             case TerritoryIntendedUseEnum.Eureka:
-            case TerritoryIntendedUseEnum.TheFeastCrystalTower:
-            case TerritoryIntendedUseEnum.LeapOfFaith:
-            case TerritoryIntendedUseEnum.MaskedCarnival:
-            case TerritoryIntendedUseEnum.OceanFishing:
-            case TerritoryIntendedUseEnum.DiademV3:
+            case TerritoryIntendedUseEnum.Leap_of_Faith:
+            case TerritoryIntendedUseEnum.Masked_Carnivale:
+            case TerritoryIntendedUseEnum.Ocean_Fishing:
+            case TerritoryIntendedUseEnum.Diadem_3:
             case TerritoryIntendedUseEnum.Bozja:
+            case TerritoryIntendedUseEnum.Island_Sanctuary:
+            case TerritoryIntendedUseEnum.Battlehall_2:
+            case TerritoryIntendedUseEnum.Battlehall_3:
+            case TerritoryIntendedUseEnum.Large_Scale_Raid:
+            case TerritoryIntendedUseEnum.Large_Scale_Savage_Raid:
+            case TerritoryIntendedUseEnum.Quest_Area_4:
+            case TerritoryIntendedUseEnum.Tribal_Instance:
+            case TerritoryIntendedUseEnum.Criterion_Duty:
+            case TerritoryIntendedUseEnum.Criterion_Savage_Duty:
+            case TerritoryIntendedUseEnum.Blunderville:
+            case TerritoryIntendedUseEnum.Occult_Crescent:
             default:
                 return false;
         }
@@ -119,8 +136,8 @@ public class MapManager : IDisposable
         }
 
         var territoryIntendedUse = (TerritoryIntendedUseEnum)GameMain.Instance()->CurrentTerritoryIntendedUseId;
-        if (territoryIntendedUse == TerritoryIntendedUseEnum.HousingArea ||
-            territoryIntendedUse == TerritoryIntendedUseEnum.HousingPrivateArea)
+        if (territoryIntendedUse == TerritoryIntendedUseEnum.Residential_Area ||
+            territoryIntendedUse == TerritoryIntendedUseEnum.Housing_Instances)
         {
             var housingManager = HousingManager.Instance();
             var houseId = housingManager->GetCurrentIndoorHouseId();

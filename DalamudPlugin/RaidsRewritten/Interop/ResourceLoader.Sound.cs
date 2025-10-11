@@ -1,4 +1,5 @@
 ﻿// Adapted from https://git.anna.lgbt/anna/SoundFilter/src/branch/main/SoundFilter/Filter.cs
+// 87431c55c1
 using System;
 using System.Collections.Generic;
 using System.Numerics;

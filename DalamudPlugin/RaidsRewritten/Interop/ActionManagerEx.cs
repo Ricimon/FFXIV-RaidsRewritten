@@ -1,4 +1,5 @@
 ﻿// Adapted from https://github.com/awgil/ffxiv_bossmod/blob/master/BossMod/Framework/ActionManagerEx.cs
+// 4c1a83c
 using System;
 using System.Numerics;
 using Dalamud.Hooking;

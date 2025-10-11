@@ -1,4 +1,5 @@
 ﻿// Adapted from https://github.com/0ceal0t/Dalamud-VFXEditor/blob/main/VFXEditor/Interop/ResourceLoader.Vfx.cs
+// ac4aab8
 using System;
 using Dalamud.Hooking;
 

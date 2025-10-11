@@ -1,4 +1,5 @@
 ﻿// Adapted from https://github.com/0ceal0t/Dalamud-VFXEditor/blob/main/VFXEditor/Spawn/VfxSpawn.cs
+// 70661e3
 using System;
 using System.Collections.Generic;
 using System.Numerics;

@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Adapted from https://github.com/awgil/ffxiv_navmesh/blob/master/vnavmesh/Angle.cs
+// bcbdf2f
+using System;
 using System.Numerics;
 
 namespace RaidsRewritten.Structures;

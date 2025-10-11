@@ -1,4 +1,5 @@
 ﻿// Adapted from https://github.com/0ceal0t/Dalamud-VFXEditor/blob/main/VFXEditor/Interop/Structs/ResourceHandle.cs
+// 9e528e0
 using FFXIVClientStructs.FFXIV.Client.System.Resource;
 using Penumbra.String;
 using Penumbra.String.Classes;

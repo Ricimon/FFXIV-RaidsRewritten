@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Adapted from https://github.com/0ceal0t/Dalamud-VFXEditor/blob/main/VFXEditor/Interop/Structs/Vfx/ActorVfx.cs
+using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
 

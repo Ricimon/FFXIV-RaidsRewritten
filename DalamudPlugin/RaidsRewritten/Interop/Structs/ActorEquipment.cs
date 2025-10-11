@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 namespace RaidsRewritten.Interop.Structs;
 
 // taken from Brio https://github.com/Etheirys/Brio/blob/main/Brio/Game/Actor/Appearance/ActorEquipment.cs
-
+// a27fbec
 [StructLayout(LayoutKind.Explicit, Size = Count)]
 public unsafe struct ActorEquipment
 {

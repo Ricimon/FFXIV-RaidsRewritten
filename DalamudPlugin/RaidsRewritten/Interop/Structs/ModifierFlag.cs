@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Adapted from https://github.com/Infiziert90/ChatTwo/blob/main/ChatTwo/GameFunctions/Types/ModifierFlag.cs
+// 352088d
+using System;
 
 namespace RaidsRewritten.Interop.Structs;
 

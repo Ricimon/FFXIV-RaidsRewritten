@@ -1,4 +1,5 @@
 // Adapted from https://github.com/xivdev/Penumbra/blob/master/Penumbra/Interop/Structs/FileMode.cs
+// 2b4a01d
 namespace RaidsRewritten.Interop.Structs;
 
 public enum FileMode : byte

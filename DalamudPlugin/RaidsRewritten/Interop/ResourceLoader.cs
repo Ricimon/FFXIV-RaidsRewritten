@@ -1,4 +1,7 @@
 ﻿// Adapted from https://github.com/0ceal0t/Dalamud-VFXEditor/blob/main/VFXEditor/Interop/ResourceLoader.cs
+// 855ac66
+// and https://github.com/0ceal0t/Dalamud-VFXEditor/blob/main/VFXEditor/Interop/Constants.cs
+// 656ef1b
 using System;
 using System.Runtime.InteropServices;
 using RaidsRewritten.Log;
