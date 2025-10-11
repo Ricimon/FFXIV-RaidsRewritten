@@ -1,4 +1,6 @@
-﻿using System;
+﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/GameFunctions/NameplateKind.cs
+// 78da16b
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;

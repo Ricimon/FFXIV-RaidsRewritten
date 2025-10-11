@@ -1,4 +1,6 @@
-﻿using Dalamud.Game;
+﻿// Adapted from https://github.com/NightmareXIV/ECommons/blob/master/ECommons/DalamudServices/Svc.cs
+// c6a7a0e
+using Dalamud.Game;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.IoC;
 using Dalamud.Plugin;

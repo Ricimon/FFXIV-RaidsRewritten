@@ -1,4 +1,6 @@
-﻿using RaidsRewritten;
+﻿// Adapted from https://github.com/NightmareXIV/ECommons/blob/master/ECommons/Hooks/ActionEffectTypes/TargetEffect.cs
+// c3e114b
+using ECommons.DalamudServices;
 using System;
 
 namespace ECommons.Hooks.ActionEffectTypes;
@@ -32,7 +34,7 @@ public unsafe struct TargetEffect
 
     public override string ToString()
     {
-        var effectTarget = PluginInitializer.ObjectTable.SearchById(TargetID);
+        var effectTarget = Svc.Objects.SearchById(TargetID);
         var str = $"Effect Target: {effectTarget?.Name?.ToString()} (0x{effectTarget?.Address:X})";
         ForEach(e =>
         {

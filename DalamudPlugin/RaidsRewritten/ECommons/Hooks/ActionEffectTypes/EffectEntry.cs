@@ -1,4 +1,6 @@
-﻿using System;
+﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/Hooks/ActionEffectTypes/EffectEntry.cs
+// a285c30
+using System;
 
 namespace ECommons.Hooks.ActionEffectTypes;
 

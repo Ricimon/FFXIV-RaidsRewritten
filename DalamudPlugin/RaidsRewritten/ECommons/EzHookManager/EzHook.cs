@@ -1,4 +1,6 @@
-﻿using Dalamud;
+﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/EzHookManager/EzHook.cs
+// bd1270e
+using Dalamud;
 using Dalamud.Hooking;
 using ECommons.DalamudServices;
 using ECommons.Logging;

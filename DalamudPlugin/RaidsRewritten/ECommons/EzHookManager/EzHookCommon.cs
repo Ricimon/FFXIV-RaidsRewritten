@@ -1,4 +1,6 @@
-﻿using Dalamud.Hooking;
+﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/EzHookManager/EzHookCommon.cs
+// 3121eb8
+using Dalamud.Hooking;
 using System.Collections.Generic;
 
 namespace ECommons.EzHookManager;

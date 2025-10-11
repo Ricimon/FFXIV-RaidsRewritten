@@ -1,4 +1,6 @@
-﻿using Dalamud.Game;
+﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/ObjectLifeTracker/ObjectLife.cs
+// 4d35fe9
+using Dalamud.Game;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Hooking;
 using Dalamud.Plugin.Services;

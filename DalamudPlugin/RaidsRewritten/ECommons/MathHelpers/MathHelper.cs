@@ -1,4 +1,6 @@
-﻿using ECommons.DalamudServices;
+﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/MathHelpers/MathHelper.cs
+// 6b3de99
+using ECommons.DalamudServices;
 using ECommons.Logging;
 using System;
 using System.Collections.Generic;
@@ -306,6 +308,16 @@ public static class MathHelper
     }
 
     public static Vector3 ToVector3(this (float X, float Y, float Z) t) => new(t.X, t.Y, t.Z);
+
+    /// <summary>
+    /// Add a number to each element of a vector
+    /// </summary>
+    public static Vector4 Add(this Vector4 v, float i) => new(v.X + i, v.Y + i, v.Z + i, v.W + i);
+
+    /// <summary>
+    /// Add a number to each element of a vector, excluding W
+    /// </summary>
+    public static Vector4 AddNoW(this Vector4 v, float i) => new(v.X + i, v.Y + i, v.Z + i, v.W);
 
     /// <summary>
     /// Degrees

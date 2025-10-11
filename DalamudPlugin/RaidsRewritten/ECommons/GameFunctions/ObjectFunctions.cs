@@ -1,4 +1,6 @@
-﻿using Dalamud.Game.ClientState.Objects.Types;
+﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/GameFunctions/ObjectFunctions.cs
+// 78da16b
+using Dalamud.Game.ClientState.Objects.Types;
 using ECommons.DalamudServices;
 using ECommons.EzHookManager;
 using ECommons.Logging;

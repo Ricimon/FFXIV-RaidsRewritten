@@ -1,4 +1,6 @@
-﻿namespace ECommons.MathHelpers;
+﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/MathHelpers/Bitmask.cs
+// d8b7406
+namespace ECommons.MathHelpers;
 
 public static class Bitmask
 {

@@ -1,4 +1,5 @@
 ﻿// Adapted from https://github.com/NightmareXIV/ECommons/blob/master/ECommons/Logging/InternalLog.cs
+// 74e7994
 using Dalamud.Interface.Colors;
 using ECommons.CircularBuffers;
 //using ECommons.ImGuiMethods;

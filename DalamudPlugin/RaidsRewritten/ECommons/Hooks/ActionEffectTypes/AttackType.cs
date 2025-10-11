@@ -1,4 +1,6 @@
-﻿//This file is authored by lmcintyre and distributed under GNU GPL v3 license. https://github.com/lmcintyre/
+﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/Hooks/ActionEffectTypes/AttackType.cs
+// c15238a
+//This file is authored by lmcintyre and distributed under GNU GPL v3 license. https://github.com/lmcintyre/
 
 namespace ECommons.Hooks.ActionEffectTypes;
 

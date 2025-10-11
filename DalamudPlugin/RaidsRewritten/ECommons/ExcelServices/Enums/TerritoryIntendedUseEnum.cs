@@ -1,4 +1,6 @@
-﻿#nullable disable
+﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/ExcelServices/Enums/TerritoryIntendedUseEnum.cs
+// 02e20d5
+#nullable disable
 
 namespace ECommons.ExcelServices;
 
@@ -58,4 +60,5 @@ public enum TerritoryIntendedUseEnum : uint
     [CommonlyUsed] Criterion_Duty = 57,
     [CommonlyUsed] Criterion_Savage_Duty = 58,
     Blunderville = 59,
+    [CommonlyUsed] Occult_Crescent = 61,
 }

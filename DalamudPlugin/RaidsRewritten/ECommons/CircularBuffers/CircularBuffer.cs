@@ -1,4 +1,6 @@
-﻿using System;
+﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/CircularBuffers/CircularBuffer.cs
+// c3e114b
+using System;
 using System.Collections;
 using System.Collections.Generic;
 

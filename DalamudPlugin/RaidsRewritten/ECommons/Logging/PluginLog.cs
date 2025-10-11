@@ -1,4 +1,6 @@
-﻿using ECommons.DalamudServices;
+﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/Logging/PluginLog.cs
+// 3121eb8
+using ECommons.DalamudServices;
 using Serilog.Events;
 
 namespace ECommons.Logging;

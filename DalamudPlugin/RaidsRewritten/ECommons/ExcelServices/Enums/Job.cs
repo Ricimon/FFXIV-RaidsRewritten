@@ -1,4 +1,6 @@
-﻿using System.Reflection;
+﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/ExcelServices/Enums/Job.cs
+// 02e20d5
+using System.Reflection;
 
 namespace ECommons.ExcelServices;
 

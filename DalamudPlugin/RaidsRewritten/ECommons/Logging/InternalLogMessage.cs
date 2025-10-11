@@ -1,4 +1,6 @@
-﻿using Serilog.Events;
+﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/Logging/InternalLogMessage.cs
+// c3e114b
+using Serilog.Events;
 using System;
 
 namespace ECommons.Logging;
