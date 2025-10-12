@@ -165,7 +165,7 @@ public sealed class EncounterManager(
         if (obj is ICharacter c)
         {
             if (c is IPlayerCharacter && BlacklistedPcVfx.Contains(vfxPath)) { return; }
-            var targetText = c.AddressEquals(dalamud.ClientState.LocalPlayer) ? "me" : (c is IPlayerCharacter pc ? pc.GetJob().ToString() : c.DataId.ToString() ?? "Unknown");
+            var targetText = c.AddressEquals(dalamud.ClientState.LocalPlayer) ? "me" : (c is IPlayerCharacter pc ? pc.GetJob().ToString() : c.BaseId.ToString() ?? "Unknown");
             unsafe
             {
                 text.Append($" spawned on {targetText}, npc id={c.NameId}, model id={c.Struct()->ModelContainer.ModelCharaId}, name npc id={c.NameId}, position={c.Position}, name={c.Name}");
@@ -175,7 +175,7 @@ public sealed class EncounterManager(
         {
             unsafe
             {
-                text.Append($" spawned on {obj.DataId}, npc id={obj.Struct()->GetNameId()}, position={obj.Position}");
+                text.Append($" spawned on {obj.BaseId}, npc id={obj.Struct()->GetNameId()}, position={obj.Position}");
             }
         }
         logger.Debug(text.ToString());
@@ -239,7 +239,7 @@ public sealed class EncounterManager(
             }
             text.Append($"(0x{newObjectPointer:X}|{obj.Position})");
             text.Append($" Kind {obj.ObjectKind}");
-            text.Append($" DataId 0x{obj.DataId:X}");
+            text.Append($" BaseId 0x{obj.BaseId:X}");
             text.Append($" EntityId 0x{obj.EntityId:X}");
             logger.Debug(text.ToString());
 
