@@ -1,11 +1,10 @@
-﻿using Dalamud.Plugin.Services;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 
 namespace RaidsRewritten.Log;
 
-public class DalamudLoggerFactory(IPluginLog pluginLog, IChatGui chatGui, Configuration configuration) : ILoggerFactory
+public sealed class DalamudLoggerFactory(DalamudServices dalamud, Configuration configuration) : ILoggerFactory
 {
-    private readonly DalamudLogger logger = new(pluginLog, chatGui, configuration);
+    private readonly DalamudLogger logger = new(dalamud, configuration);
 
     public Microsoft.Extensions.Logging.ILogger CreateLogger(string categoryName)
     {

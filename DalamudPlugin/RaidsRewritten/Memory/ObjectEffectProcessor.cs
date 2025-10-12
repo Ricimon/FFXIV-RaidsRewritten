@@ -2,16 +2,14 @@
 // 0054cc3
 using System;
 using Dalamud.Hooking;
-using Dalamud.Plugin.Services;
 using Dalamud.Utility.Signatures;
-using ECommons;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using RaidsRewritten.Log;
 using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Memory;
 
-public unsafe class ObjectEffectProcessor : IDisposable
+public unsafe class ObjectEffectProcessor(DalamudServices dalamud, ILogger logger) : IDisposable
 {
     internal delegate long ProcessObjectEffect(GameObject* a1, ushort a2, ushort a3, long a4);
     [Signature("4C 8B DC 53 48 81 EC ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 84 24 ?? ?? ?? ?? 49 89 6B F0 48 8B D9 49 89 7B E0", DetourName = nameof(ProcessObjectEffectDetour), Fallibility = Fallibility.Fallible)]
@@ -41,32 +39,23 @@ public unsafe class ObjectEffectProcessor : IDisposable
         }
         catch (Exception e)
         {
-            this.logger.Info(e.ToStringFull());
+            logger.Info(e.ToStringFull());
         }
         return ProcessObjectEffectHook.Original(a1, a2, a3, a4);
     }
 
-    private readonly IGameInteropProvider gameInteropProvider;
-    private readonly ILogger logger;
-
     private Action<uint, ushort, ushort>? callback;
-
-    public ObjectEffectProcessor(IGameInteropProvider gameInteropProvider, ILogger logger)
-    {
-        this.gameInteropProvider = gameInteropProvider;
-        this.logger = logger;
-    }
 
     public void Init(Action<uint, ushort, ushort> callback)
     {
         this.callback = callback;
         try
         {
-            this.gameInteropProvider.InitializeFromAttributes(this);
+            dalamud.GameInteropProvider.InitializeFromAttributes(this);
         }
         catch (Exception e)
         {
-            this.logger.Warn(e.ToStringFull());
+            logger.Warn(e.ToStringFull());
         }
         Enable();
     }
@@ -80,7 +69,7 @@ public unsafe class ObjectEffectProcessor : IDisposable
         }
         catch (Exception e)
         {
-            this.logger.Warn(e.ToStringFull());
+            logger.Warn(e.ToStringFull());
         }
     }
 
@@ -92,7 +81,7 @@ public unsafe class ObjectEffectProcessor : IDisposable
         }
         catch (Exception e)
         {
-            this.logger.Warn(e.ToStringFull());
+            logger.Warn(e.ToStringFull());
         }
     }
 
@@ -104,7 +93,7 @@ public unsafe class ObjectEffectProcessor : IDisposable
         }
         catch (Exception e)
         {
-            this.logger.Warn(e.ToStringFull());
+            logger.Warn(e.ToStringFull());
         }
     }
 }

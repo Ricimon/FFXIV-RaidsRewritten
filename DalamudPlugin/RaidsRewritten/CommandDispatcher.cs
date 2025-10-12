@@ -1,27 +1,22 @@
 ﻿using Dalamud.Game.Command;
-using Dalamud.Plugin.Services;
-using System;
 using RaidsRewritten.UI.Presenter;
 
 namespace RaidsRewritten;
 
 public sealed class CommandDispatcher(
-    ICommandManager commandManager,
+    DalamudServices dalamud,
     MainWindowPresenter mainWindowPresenter) : IDalamudHook
 {
     private const string commandName = "/raidsrewritten";
     private const string commandNameAlt = "/rr";
 
-    private readonly ICommandManager commandManager = commandManager ?? throw new ArgumentNullException(nameof(commandManager));
-    private readonly MainWindowPresenter mainWindowPresenter = mainWindowPresenter ?? throw new ArgumentNullException(nameof(mainWindowPresenter));
-
     public void HookToDalamud()
     {
-        this.commandManager.AddHandler(commandName, new CommandInfo(OnCommand)
+        dalamud.CommandManager.AddHandler(commandName, new CommandInfo(OnCommand)
         {
             HelpMessage = $"Open the {PluginInitializer.Name} window"
         });
-        this.commandManager.AddHandler(commandNameAlt, new CommandInfo(OnCommand)
+        dalamud.CommandManager.AddHandler(commandNameAlt, new CommandInfo(OnCommand)
         {
             HelpMessage = $"Open the {PluginInitializer.Name} window"
         });
@@ -29,8 +24,8 @@ public sealed class CommandDispatcher(
 
     public void Dispose()
     {
-        this.commandManager.RemoveHandler(commandName);
-        this.commandManager.RemoveHandler(commandNameAlt);
+        dalamud.CommandManager.RemoveHandler(commandName);
+        dalamud.CommandManager.RemoveHandler(commandNameAlt);
     }
 
     private void OnCommand(string command, string args)
@@ -41,6 +36,6 @@ public sealed class CommandDispatcher(
 
     private void ShowMainWindow()
     {
-        this.mainWindowPresenter.View.Visible = true;
+        mainWindowPresenter.View.Visible = true;
     }
 }

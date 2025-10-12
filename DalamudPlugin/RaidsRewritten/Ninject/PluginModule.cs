@@ -1,16 +1,10 @@
-﻿using Dalamud.Game;
-using Dalamud.Interface.Windowing;
-using Dalamud.Plugin;
-using Dalamud.Plugin.Services;
+﻿using Dalamud.Interface.Windowing;
 using Ninject.Activation;
 using Ninject.Modules;
-using RaidsRewritten.Audio;
 using RaidsRewritten.Game;
-using RaidsRewritten.Input;
 using RaidsRewritten.Interop;
 using RaidsRewritten.Log;
 using RaidsRewritten.Memory;
-using RaidsRewritten.Network;
 using RaidsRewritten.Scripts;
 using RaidsRewritten.Scripts.Attacks;
 using RaidsRewritten.Scripts.Attacks.Omens;
@@ -31,26 +25,6 @@ public class PluginModule : NinjectModule
 {
     public override void Load()
     {
-        // Dalamud services
-        // TODO: Deprecate these
-        Bind<IDalamudPluginInterface>().ToConstant(PluginInitializer.PluginInterface).InTransientScope();
-        Bind<ICommandManager>().ToConstant(PluginInitializer.CommandManager).InTransientScope();
-        Bind<IGameInteropProvider>().ToConstant(PluginInitializer.GameInteropProvider).InTransientScope();
-        Bind<IChatGui>().ToConstant(PluginInitializer.ChatGui).InTransientScope();
-        Bind<IClientState>().ToConstant(PluginInitializer.ClientState).InTransientScope();
-        Bind<ICondition>().ToConstant(PluginInitializer.Condition).InTransientScope();
-        Bind<IDutyState>().ToConstant(PluginInitializer.DutyState).InTransientScope();
-        Bind<IDataManager>().ToConstant(PluginInitializer.DataManager).InTransientScope();
-        Bind<IObjectTable>().ToConstant(PluginInitializer.ObjectTable).InTransientScope();
-        Bind<IGameGui>().ToConstant(PluginInitializer.GameGui).InTransientScope();
-        Bind<IAddonEventManager>().ToConstant(PluginInitializer.AddonEventManager).InTransientScope();
-        Bind<IAddonLifecycle>().ToConstant(PluginInitializer.AddonLifecycle).InTransientScope();
-        Bind<IFramework>().ToConstant(PluginInitializer.Framework).InTransientScope();
-        Bind<ITextureProvider>().ToConstant(PluginInitializer.TextureProvider).InTransientScope();
-        Bind<IKeyState>().ToConstant(PluginInitializer.KeyState).InTransientScope();
-        Bind<ISigScanner>().ToConstant(PluginInitializer.SigScanner).InTransientScope();
-        Bind<IPluginLog>().ToConstant(PluginInitializer.Log).InTransientScope();
-
         // External Libraries (and taken code)
         Bind<DalamudServices>().ToSelf();
         Bind<MapEffectProcessor>().ToSelf().InSingletonScope();
@@ -65,11 +39,6 @@ public class PluginModule : NinjectModule
         Bind<IDalamudHook>().To<CommandDispatcher>().InSingletonScope();
         Bind<IDalamudHook, EncounterManager>().To<EncounterManager>().InSingletonScope();
         Bind<IDalamudHook>().To<EntityManager>().InSingletonScope();
-        Bind<KeyStateWrapper>().ToSelf().InSingletonScope();
-        Bind<IAudioDeviceController, AudioDeviceController>().To<AudioDeviceController>().InSingletonScope();
-        Bind<ServerConnection>().ToSelf().InSingletonScope();
-        Bind<Spatializer>().ToSelf().InSingletonScope();
-        Bind<MapManager>().ToSelf().InSingletonScope();
         Bind<Mechanic.Factory>().ToSelf();
         Bind<EcsContainer>().ToSelf().InSingletonScope();
         Bind<CommonQueries>().ToSelf().InSingletonScope();

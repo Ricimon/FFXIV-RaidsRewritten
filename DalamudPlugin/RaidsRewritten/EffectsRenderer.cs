@@ -7,7 +7,6 @@ using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
-using RaidsRewritten.Input;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.UI.Util;
@@ -64,16 +63,8 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
     }
 
     private readonly Lazy<EffectsRendererPresenter> presenter;
-    private readonly IDalamudPluginInterface pluginInterface;
-    private readonly IClientState clientState;
-    private readonly IGameGui gameGui;
-    private readonly ITextureProvider textureProvider;
-    private readonly IAddonLifecycle addonLifecycle;
-    private readonly IAddonEventManager addonEventManager;
-    private readonly IDataManager dataManager;
-    private readonly KeyStateWrapper keyStateWrapper;
+    private readonly DalamudServices dalamud;
     private readonly Configuration configuration;
-    private readonly MapManager mapManager;
     private readonly ILogger logger;
     private readonly EcsContainer ecsContainer;
 
@@ -86,34 +77,18 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
 
     public EffectsRenderer(
         Lazy<EffectsRendererPresenter> presenter,
-        IDalamudPluginInterface pluginInterface,
-        IClientState clientState,
-        IGameGui gameGui,
-        ITextureProvider textureProvider,
-        IAddonLifecycle addonLifecycle,
-        IAddonEventManager addonEventManager,
-        IDataManager dataManager,
-        KeyStateWrapper keyStateWrapper,
+        DalamudServices dalamud,
         Configuration configuration,
-        MapManager mapManager,
         ILogger logger,
         EcsContainer ecsContainer)
     {
         this.presenter = presenter;
-        this.pluginInterface = pluginInterface;
-        this.clientState = clientState;
-        this.gameGui = gameGui;
-        this.textureProvider = textureProvider;
-        this.addonLifecycle = addonLifecycle;
-        this.addonEventManager = addonEventManager;
-        this.dataManager = dataManager;
-        this.keyStateWrapper = keyStateWrapper;
+        this.dalamud = dalamud;
         this.configuration = configuration;
-        this.mapManager = mapManager;
         this.logger = logger;
         this.ecsContainer = ecsContainer;
 
-        this.font = pluginInterface.UiBuilder.FontAtlas.NewDelegateFontHandle(e =>
+        this.font = dalamud.PluginInterface.UiBuilder.FontAtlas.NewDelegateFontHandle(e =>
         {
             e.OnPreBuild(tk =>
             {
@@ -172,7 +147,7 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
 
             foreach (var gaugeEntry in toGaugeDraw)
             {
-                var imgGauge = this.textureProvider.GetFromFile(this.pluginInterface.GetResourcePath(gaugeEntry.Path)).GetWrapOrDefault()?.Handle ?? default;
+                var imgGauge = this.dalamud.TextureProvider.GetFromFile(this.dalamud.PluginInterface.GetResourcePath(gaugeEntry.Path)).GetWrapOrDefault()?.Handle ?? default;
                 drawList.AddImage(imgGauge, gaugeEntry.Position, gaugeEntry.Position + gaugeEntry.ImageSize);
 
                 float clampedValue = Math.Clamp(gaugeEntry.Value, -100f, 100f);
