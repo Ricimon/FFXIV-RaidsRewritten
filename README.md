@@ -24,6 +24,6 @@ The XIV-interfacing parts of this plugin uses implementations taken from other o
 - [Brio](https://github.com/Etheirys/Brio), for arbitrary model spawning and game asset lookup
 - [Penumbra](https://github.com/xivdev/Penumbra), for custom model replacements
 - [Bossmod](https://github.com/awgil/ffxiv_bossmod), for player action overrides
-- [vnavmesh](https://github.com/awgil/ffxiv_navmesh), for player control overrides
+- [vnavmesh](https://github.com/awgil/ffxiv_navmesh), for player movement overrides
 - [ECommons](https://github.com/NightmareXIV/ECommons), for various XIV utility functions
 - [SimpleTweaks](https://github.com/Caraxi/SimpleTweaksPlugin), for hotbar gray-out functionality
