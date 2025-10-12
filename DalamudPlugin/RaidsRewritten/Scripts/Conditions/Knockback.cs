@@ -78,7 +78,7 @@ public sealed class Knockback : IDalamudHook
             });
 
             it.World().Entity()
-                .Set(new Condition.Component("Knocked Back", duration))
+                .Set(new Condition.Component("Knocked Back", duration, DateTime.UtcNow))
                 .Set(new Component(knockbackDirection))
                 .ChildOf(target);
         }, 0, true).ChildOf(target);

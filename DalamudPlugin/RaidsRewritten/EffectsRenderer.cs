@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.ManagedFontAtlas;
-using Dalamud.Plugin;
-using Dalamud.Plugin.Services;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
@@ -12,23 +10,13 @@ using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.UI.Util;
 using RaidsRewritten.UI.View;
 using RaidsRewritten.Utility;
+using ZLinq;
 
 namespace RaidsRewritten;
 
 public sealed class EffectsRenderer : IPluginUIView, IDisposable
 {
-    private class EffectTextEntry
-    {
-        public string Text { get; set; }
-        public Vector2 Position { get; set; }
-
-        public EffectTextEntry(string Text, Vector2 Position)
-        {
-            this.Text = Text;
-            this.Position = Position;
-        }
-
-    }
+    private record class EffectTextEntry(string Text, Vector2 TextSize, DateTime CreationTime);
 
     private class EffectGaugeEntry
     { 
@@ -65,12 +53,15 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
     private readonly Lazy<EffectsRendererPresenter> presenter;
     private readonly DalamudServices dalamud;
     private readonly Configuration configuration;
-    private readonly ILogger logger;
     private readonly EcsContainer ecsContainer;
+    private readonly ILogger logger;
 
     private readonly IFontHandle font;
     private readonly Query<Condition.Component> componentsQuery;
     private readonly Query<Temperature.Component> temperatureQuery;
+
+    private readonly List<EffectTextEntry> toDraw = [];
+    private readonly List<EffectGaugeEntry> toGaugeDraw = [];
 
     private const float PADDING_X = 10f;
     private const float PADDING_Y = 7f;
@@ -79,14 +70,14 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
         Lazy<EffectsRendererPresenter> presenter,
         DalamudServices dalamud,
         Configuration configuration,
-        ILogger logger,
-        EcsContainer ecsContainer)
+        EcsContainer ecsContainer,
+        ILogger logger)
     {
         this.presenter = presenter;
         this.dalamud = dalamud;
         this.configuration = configuration;
-        this.logger = logger;
         this.ecsContainer = ecsContainer;
+        this.logger = logger;
 
         this.font = dalamud.PluginInterface.UiBuilder.FontAtlas.NewDelegateFontHandle(e =>
         {
@@ -114,8 +105,8 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
         if (this.presenter == null) return;
         if (!this.font.Available) return;
 
-        var toDraw = new List<EffectTextEntry>();
-        var toGaugeDraw = new List<EffectGaugeEntry>();
+        toDraw.Clear();
+        toGaugeDraw.Clear();
 
         var drawList = ImGui.GetForegroundDrawList();
         var maxWidth = 0f;
@@ -127,7 +118,7 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
         {
             this.componentsQuery.Each((ref Condition.Component status) =>
             {
-                AddStatus(toDraw, status.Name, Math.Round(status.TimeRemaining), ref offsetY, ref maxWidth);
+                AddStatus(toDraw, status, ref offsetY, ref maxWidth);
             });
 
             this.temperatureQuery.Each((ref Temperature.Component temperature) => { 
@@ -139,9 +130,13 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
                 var min = new Vector2(configuration.EffectsRendererPositionX - maxWidth / 2 - PADDING_X, configuration.EffectsRendererPositionY);
                 var max = new Vector2(configuration.EffectsRendererPositionX + maxWidth / 2 + PADDING_X, configuration.EffectsRendererPositionY + offsetY);
                 drawList.AddRectFilled(min, max, ImGui.ColorConvertFloat4ToU32(new Vector4(0, 0, 0, 0.3f)), 5);
-                foreach (var effectEntry in toDraw)
+                offsetY = 0f;
+                foreach (var effectEntry in toDraw.AsValueEnumerable().OrderBy(e => e.CreationTime))
                 {
-                    drawList.AddText(ImGui.GetFont(), 50, effectEntry.Position, Vector4Colors.Red.ToColorU32(), effectEntry.Text);
+                    var textSize = effectEntry.TextSize;
+                    var position = new Vector2(configuration.EffectsRendererPositionX - textSize.X / 2, configuration.EffectsRendererPositionY + offsetY);
+                    drawList.AddText(ImGui.GetFont(), 50, position, Vector4Colors.Red.ToColorU32(), effectEntry.Text);
+                    offsetY += textSize.Y;
                 }
             }
 
@@ -212,13 +207,13 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
         drawListPtr.AddText(font, fontSize, position + new Vector2(outline, outline), color, text);
     }
 
-    private void AddStatus(List<EffectTextEntry> toDraw, string statusName, double timeRemaining, ref float offsetY, ref float maxWidth)
+    private void AddStatus(List<EffectTextEntry> toDraw, Condition.Component status, ref float offsetY, ref float maxWidth)
     {
-        var text = $"{statusName} for {timeRemaining}s";
+        var timeRemainingString = Math.Floor(status.TimeRemaining).ToString();
+        var text = $"{status.Name} for {timeRemainingString}s";
         var textSize = ImGui.CalcTextSize(text);
-        var position = new Vector2(configuration.EffectsRendererPositionX - textSize.X / 2, configuration.EffectsRendererPositionY + offsetY);
         //drawList.AddText(ImGui.GetFont(), 50, position, Vector4Colors.Red.ToColorU32(), text);
-        toDraw.Add(new EffectTextEntry(text, position));
+        toDraw.Add(new EffectTextEntry(text, textSize, status.CreationTime));
         offsetY += textSize.Y;
         if (textSize.X > maxWidth) maxWidth = textSize.X;
     }

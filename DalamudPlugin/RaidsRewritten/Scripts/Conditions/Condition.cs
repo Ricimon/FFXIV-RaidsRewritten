@@ -8,7 +8,7 @@ namespace RaidsRewritten.Scripts.Conditions;
 
 public class Condition(ILogger logger) : ISystem
 {
-    public record struct Component(string Name, float TimeRemaining);
+    public record struct Component(string Name, float TimeRemaining, DateTime CreationTime);
     public record struct Id(int Value);
     public struct Hidden;
     public struct IgnoreOnDeath;
@@ -47,14 +47,14 @@ public class Condition(ILogger logger) : ISystem
             else
             {
                 return world.Entity()
-                    .Set(new Component(name, duration))
+                    .Set(new Component(name, duration, DateTime.UtcNow))
                     .Set(new Id(id))
                     .ChildOf(target);
             }
         }
 
         return world.Entity()
-            .Set(new Component(name, duration))
+            .Set(new Component(name, duration, DateTime.UtcNow))
             .ChildOf(target);
     }
 
