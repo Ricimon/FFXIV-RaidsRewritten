@@ -4,7 +4,7 @@ using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Encounters.E1S;
 
-public class EdenPrimeTest(Mechanic.Factory mechanicFactory, Configuration configuration) : IEncounter
+public class EdenPrimeTest(Mechanic.Factory mechanicFactory, DalamudServices dalamud, Configuration configuration) : IEncounter
 {
     public ushort TerritoryId => 853;
 
@@ -51,6 +51,7 @@ public class EdenPrimeTest(Mechanic.Factory mechanicFactory, Configuration confi
         rngSeed = EncounterUtilities.IncrementRngSeed(rngSeed);
         configuration.EncounterSettings[RngSeedKey] = rngSeed;
         configuration.Save();
+        dalamud.ChatGui.Print($"RNG seed is now ${rngSeed}", PluginInitializer.Name);
         RefreshMechanics();
     }
 

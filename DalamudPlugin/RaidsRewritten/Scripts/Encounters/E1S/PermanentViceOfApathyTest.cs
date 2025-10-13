@@ -9,7 +9,7 @@ namespace RaidsRewritten.Scripts.Encounters.E1S;
 
 public class PermanentViceOfApathyTest : Mechanic
 {
-    private const uint ViceOfApathyDataId = 0x1EAE20;
+    private const uint ViceOfApathyBaseId = 0x1EAE20;
     private const float SpawnDelay = 1.0f;
 
     private readonly List<Entity> entities = [];
@@ -34,13 +34,13 @@ public class PermanentViceOfApathyTest : Mechanic
 
     public override void OnCombatEnd()
     {
-        Reset();
+        //Reset();
     }
 
     public override void OnObjectCreation(nint newObjectPointer, IGameObject? newObject)
     {
         if (newObject == null) { return; }
-        if (newObject.DataId != ViceOfApathyDataId) { return; }
+        if (newObject.BaseId != ViceOfApathyBaseId) { return; }
 
         void CreateTwister()
         {

@@ -35,6 +35,7 @@ public class UcobRewritten : IEncounter
     private string RollingBallMaxBallsKey => $"{Name}.RollingBallMaxBalls";
 
     private readonly Mechanic.Factory mechanicFactory;
+    private readonly DalamudServices dalamud;
     private readonly Configuration configuration;
     private readonly EcsContainer ecsContainer;
 
@@ -47,9 +48,10 @@ public class UcobRewritten : IEncounter
     private readonly Dictionary<string, bool> defaultBoolSettings;
     private readonly Dictionary<string, int> defaultIntSettings;
 
-    public UcobRewritten(Mechanic.Factory mechanicFactory, Configuration configuration, EcsContainer ecsContainer)
+    public UcobRewritten(Mechanic.Factory mechanicFactory, DalamudServices dalamud, Configuration configuration, EcsContainer ecsContainer)
     {
         this.mechanicFactory = mechanicFactory;
+        this.dalamud = dalamud;
         this.configuration = configuration;
         this.ecsContainer = ecsContainer;
 
@@ -69,7 +71,6 @@ public class UcobRewritten : IEncounter
 
             { PermanentTwistersKey, false },
             { RollingBallKey, false },
-
         };
 
         this.defaultIntSettings = new()
@@ -208,6 +209,7 @@ public class UcobRewritten : IEncounter
         rngSeed = EncounterUtilities.IncrementRngSeed(rngSeed);
         configuration.EncounterSettings[RngSeedKey] = rngSeed;
         configuration.Save();
+        this.dalamud.ChatGui.Print($"RNG seed is now ${rngSeed}", PluginInitializer.Name);
         RefreshMechanics();
     }
 

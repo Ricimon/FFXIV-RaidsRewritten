@@ -12,7 +12,7 @@ public class EarthShakerStar : Mechanic
 {
     public const string VfxPath = "bgcommon/world/common/vfx_for_btl/b0801/eff/b0801_yuka_o.avfx";
 
-    private const uint EarthShakerPuddleDataId = 0x1E9663;
+    private const uint EarthShakerPuddleBaseId = 0x1E9663;
 
     private readonly List<Entity> attacks = [];
 
@@ -42,7 +42,7 @@ public class EarthShakerStar : Mechanic
     public override void OnObjectCreation(nint newObjectPointer, IGameObject? newObject)
     {
         if (newObject == null) { return; }
-        if (newObject.DataId != EarthShakerPuddleDataId) { return; }
+        if (newObject.BaseId != EarthShakerPuddleBaseId) { return; }
 
         if (this.EntityManager.TryCreateEntity<Star>(out var star))
         {

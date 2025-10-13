@@ -57,6 +57,9 @@ public class HelpWindow(ILogger logger) : IPluginUIView
         ImGui.TextWrapped("Custom mechanic punishments don't do anything that you can't normally do without the plugin, and you can test some of their effects in the Debug tab.");
         ImGui.TextWrapped("You don't need to pretend mechanic punishments are worse than they actually are. Be creative with solutions and recoveries!");
 
+        ImGui.Text("---");
+        ImGui.TextWrapped("Lastly, there's a special reward if you can defeat the intended difficulty (or harder)!");
+
         ImGui.Spacing();
         if (ImGui.Button("Close",
             new Vector2(ImGui.GetWindowWidth() - 2 * ImGui.GetStyle().WindowPadding.X, 0)))

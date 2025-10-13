@@ -93,7 +93,7 @@ public sealed class EncounterManager(
     private void OnMapEffect(uint Position, ushort Param1, ushort Param2)
     {
         var text = $"MAP_EFFECT: {Position}, {Param1}, {Param2}";
-        logger.Debug(text);
+        logger.Trace(text);
 
         if (configuration.EverythingDisabled) { return; }
     }
@@ -104,7 +104,7 @@ public sealed class EncounterManager(
         if (gameObject == null) { return; }
 
         var text = $"OBJECT_EFFECT: on {gameObject.Name.TextValue} 0x{Target:X}/0x{gameObject.GameObjectId:X} data {Param1}, {Param2}";
-        logger.Debug(text);
+        logger.Trace(text);
 
         if (configuration.EverythingDisabled) { return; }
     }
@@ -127,7 +127,7 @@ public sealed class EncounterManager(
             actionName = action.Name.ExtractText();
         }
         var text = $"CAST: {battleChara.Name} (0x{battleChara.EntityId:X}|{battleChara.NameId}|{battleChara.Position}) starts casting {actionName} ({battleChara.CastActionId})";
-        logger.Debug(text);
+        logger.Trace(text);
 
         if (configuration.EverythingDisabled) { return; }
 
@@ -149,7 +149,7 @@ public sealed class EncounterManager(
         var obj = dalamud.ObjectTable.SearchByEntityId(target);
         if (obj == null)
         {
-            logger.Debug(text.ToString());
+            logger.Trace(text.ToString());
 
             if (configuration.EverythingDisabled) { return; }
             if (ActiveEncounter != null)
@@ -178,7 +178,7 @@ public sealed class EncounterManager(
                 text.Append($" spawned on {obj.BaseId}, npc id={obj.Struct()->GetNameId()}, position={obj.Position}");
             }
         }
-        logger.Debug(text.ToString());
+        logger.Trace(text.ToString());
 
         if (configuration.EverythingDisabled) { return; }
         if (ActiveEncounter != null)
@@ -193,7 +193,7 @@ public sealed class EncounterManager(
     private void OnDirectorUpdate(long a1, long a2, DirectorUpdateCategory a3, uint a4, uint a5, int a6, int a7)
     {
         var text = $"DIRECTOR_UPDATE: {a3}, {a4:X8}, {a5:X8}, {a6:X8}, {a7:X8}";
-        logger.Debug(text);
+        logger.Trace(text);
 
         if (configuration.EverythingDisabled) { return; }
         if (ActiveEncounter != null)
@@ -219,7 +219,7 @@ public sealed class EncounterManager(
             if (obj == null)
             {
                 text.Append($"0x{newObjectPointer:X}");
-                logger.Debug(text.ToString());
+                logger.Trace(text.ToString());
 
                 if (configuration.EverythingDisabled) { return; }
 
@@ -241,7 +241,7 @@ public sealed class EncounterManager(
             text.Append($" Kind {obj.ObjectKind}");
             text.Append($" BaseId 0x{obj.BaseId:X}");
             text.Append($" EntityId 0x{obj.EntityId:X}");
-            logger.Debug(text.ToString());
+            logger.Trace(text.ToString());
 
             if (configuration.EverythingDisabled) { return; }
 
@@ -275,7 +275,7 @@ public sealed class EncounterManager(
         //}
 
         text.Append(set.ToString());
-        logger.Debug(text.ToString());
+        logger.Trace(text.ToString());
 
         if (configuration.EverythingDisabled) { return; }
 
@@ -302,7 +302,7 @@ public sealed class EncounterManager(
         var text = new StringBuilder($"ACTOR_CONTROL: source {source.Name} (0x{sourceId})");
         text.Append($", command {command}, {p1}, {p2}, {p3}, {p4}, {p5}, {p6}");
         text.Append($", targetId 0x{targetId:X}, replaying {replaying}");
-        logger.Debug(text.ToString());
+        logger.Trace(text.ToString());
 
         if (configuration.EverythingDisabled) { return; }
     }
@@ -348,7 +348,7 @@ public sealed class EncounterManager(
             if (!this.inCombat.Value)
             {
                 this.inCombat = true;
-                logger.Debug("COMBAT STARTED");
+                logger.Trace("COMBAT STARTED");
                 if (configuration.EverythingDisabled) { return; }
 
                 if (ActiveEncounter != null)
@@ -364,7 +364,7 @@ public sealed class EncounterManager(
             if (this.inCombat.Value)
             {
                 this.inCombat = false;
-                logger.Debug("COMBAT ENDED");
+                logger.Trace("COMBAT ENDED");
                 if (configuration.EverythingDisabled) { return; }
 
                 if (ActiveEncounter != null)
@@ -387,7 +387,7 @@ public sealed class EncounterManager(
             var weather = weatherManager->GetCurrentWeather();
             if (this.weather == weather) { return; }
 
-            logger.Debug($"WEATHER: {weather}");
+            logger.Trace($"WEATHER: {weather}");
 
             var prevWeather = this.weather;
             this.weather = weather;

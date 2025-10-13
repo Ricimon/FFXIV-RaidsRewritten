@@ -99,7 +99,7 @@ public class DreadknightInUCoB : Mechanic
         }
     };
 
-    private const uint NeurolinkDataId = 0x1E88FF;
+    private const uint NeurolinkBaseId = 0x1E88FF;
     private readonly Vector3 ArenaCenter = new(0,0,0);
     private const int GenerateId = 9902;
     private const int HatchId = 9903;
@@ -192,7 +192,7 @@ public class DreadknightInUCoB : Mechanic
     public override void OnObjectCreation(nint newObjectPointer, IGameObject? newObject)
     {
         if (newObject == null) { return; }
-        if (newObject.DataId != NeurolinkDataId) { return; }
+        if (newObject.BaseId != NeurolinkBaseId) { return; }
 
         neurolinksSpawned++;
 
@@ -209,7 +209,7 @@ public class DreadknightInUCoB : Mechanic
 
         var isCancellingCC = Data.Actions.DamageActions.Contains(set.Action.Value.RowId) ||
             Data.Actions.AutoAttacks.Contains(set.Action.Value.RowId);
-        var isTargetingTwintania = set.Target?.DataId == TwintaniaId;
+        var isTargetingTwintania = set.Target?.BaseId == TwintaniaId;
 
         // don't want to keep looping over entity's children if not cancellable
         if (ccCancellable && isCancellingCC && isTargetingTwintania)
@@ -306,7 +306,7 @@ public class DreadknightInUCoB : Mechanic
 
             foreach (var obj in Dalamud.ObjectTable)
             {
-                if (obj.DataId == TwintaniaId)
+                if (obj.BaseId == TwintaniaId)
                 {
                     dreadknight.Set(new Dreadknight.BackupTarget(obj));
                     break;
