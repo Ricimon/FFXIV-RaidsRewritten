@@ -16,7 +16,6 @@ using RaidsRewritten.Scripts.Models;
 using RaidsRewritten.Scripts.Systems;
 using RaidsRewritten.Spawn;
 using RaidsRewritten.UI;
-using RaidsRewritten.UI.Presenter;
 using RaidsRewritten.UI.View;
 
 namespace RaidsRewritten.Ninject;
@@ -52,9 +51,8 @@ public class PluginModule : NinjectModule
         // Views and Presenters
         Bind<WindowSystem>().ToMethod(_ => new(PluginInitializer.Name)).InSingletonScope();
         Bind<IPluginUIView, EffectsRenderer>().To<EffectsRenderer>().InSingletonScope();
-        Bind<IPluginUIPresenter, EffectsRendererPresenter>().To<EffectsRendererPresenter>().InSingletonScope();
         Bind<IPluginUIView, MainWindow>().To<MainWindow>().InSingletonScope();
-        Bind<IPluginUIPresenter, MainWindowPresenter>().To<MainWindowPresenter>().InSingletonScope();
+        Bind<IPluginUIView, HelpWindow>().To<HelpWindow>().InSingletonScope();
 
         // Data
         Bind<Configuration>().ToMethod(GetConfiguration).InSingletonScope();

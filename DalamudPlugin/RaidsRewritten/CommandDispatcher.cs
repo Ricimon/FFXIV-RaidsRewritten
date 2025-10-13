@@ -1,11 +1,11 @@
 ﻿using Dalamud.Game.Command;
-using RaidsRewritten.UI.Presenter;
+using RaidsRewritten.UI.View;
 
 namespace RaidsRewritten;
 
 public sealed class CommandDispatcher(
     DalamudServices dalamud,
-    MainWindowPresenter mainWindowPresenter) : IDalamudHook
+    MainWindow mainWindow) : IDalamudHook
 {
     private const string commandName = "/raidsrewritten";
     private const string commandNameAlt = "/rr";
@@ -36,6 +36,6 @@ public sealed class CommandDispatcher(
 
     private void ShowMainWindow()
     {
-        mainWindowPresenter.View.Visible = true;
+        mainWindow.Visible = true;
     }
 }

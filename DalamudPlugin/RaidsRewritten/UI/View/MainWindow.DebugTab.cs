@@ -31,6 +31,21 @@ public partial class MainWindow
             configuration.PunishmentImmunity = punishmentImmunity;
             configuration.Save();
         }
+
+        if (ImGui.Button("Clear All Attacks"))
+        {
+            this.World.DeleteWith<Attack>();
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Clear All Statuses"))
+        {
+            this.World.DeleteWith<Condition.Component>();
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Clear All Models"))
+        {
+            this.World.DeleteWith<Model>();
+        }
 #endif
 
         if (ImGui.Button("Print Player Data"))
@@ -55,21 +70,6 @@ public partial class MainWindow
                     this.logger.Info($"Weather: {weather}, Eorzea Time: {et}");
                 }
             }
-        }
-
-        if (ImGui.Button("Clear All Attacks"))
-        {
-            this.World.DeleteWith<Attack>();
-        }
-        ImGui.SameLine();
-        if (ImGui.Button("Clear All Statuses"))
-        {
-            this.World.DeleteWith<Condition.Component>();
-        }
-        ImGui.SameLine();
-        if (ImGui.Button("Clear All Models"))
-        {
-            this.World.DeleteWith<Model>();
         }
 
         ImGui.Text("Fake statuses");

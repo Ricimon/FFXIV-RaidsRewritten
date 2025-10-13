@@ -4,6 +4,8 @@ using System.Numerics;
 using System.Reactive.Linq;
 using System.Text;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Flecs.NET.Core;
@@ -14,7 +16,6 @@ using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Spawn;
 using RaidsRewritten.UI.Util;
 using RaidsRewritten.Utility;
-using Reactive.Bindings;
 using ZLinq;
 
 namespace RaidsRewritten.UI.View;
@@ -29,12 +30,10 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
         set => this.visible = value;
     }
 
-    public IReactiveProperty<bool> PrintLogsToChat { get; } = new ReactiveProperty<bool>();
-    public IReactiveProperty<int> MinimumVisibleLogLevel { get; } = new ReactiveProperty<int>();
-
     private World World => this.ecsContainer.World;
 
     private readonly WindowSystem windowSystem;
+    private readonly HelpWindow helpWindow;
     private readonly DalamudServices dalamud;
     private readonly EncounterManager encounterManager;
     private readonly EntityManager entityManager;
@@ -51,6 +50,7 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
 
     public MainWindow(
         WindowSystem windowSystem,
+        HelpWindow helpWindow,
         DalamudServices dalamud,
         EncounterManager encounterManager,
         EntityManager entityManager,
@@ -60,10 +60,11 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
         CommonQueries commonQueries,
         VfxSpawn vfxSpawn,
         Random random,
-        ILogger logger) : base(
-        PluginInitializer.Name)
+        ILogger logger) :
+        base(PluginInitializer.Name)
     {
         this.windowSystem = windowSystem;
+        this.helpWindow = helpWindow;
         this.dalamud = dalamud;
         this.encounterManager = encounterManager;
         this.entityManager = entityManager;
@@ -110,6 +111,7 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
     {
         if (!Visible)
         {
+            this.helpWindow.Visible = false;
             return;
         }
 
@@ -170,8 +172,24 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
             }
         }
 
+        ImGui.Spacing();
+
         using var tabs = ImRaii.TabBar("rr-tabs");
         if (!tabs) return;
+
+        using (var iconFont = ImRaii.PushFont(UiBuilder.IconFont))
+        {
+            var questionIcon = FontAwesomeIcon.Question.ToIconString();
+            ImGui.SameLine(ImGui.GetWindowContentRegionMax().X - ImGui.GetWindowContentRegionMin().X - ImGuiHelpers.GetButtonSize(questionIcon).X);
+            if (ImGui.Button(questionIcon))
+            {
+                this.helpWindow.Visible = true;
+            }
+        }
+        if (ImGui.IsItemHovered())
+        {
+            ImGui.SetTooltip("Help");
+        }
 
         DrawMainTab();
         DrawDebugTab();
@@ -183,39 +201,41 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
         using var mainTab = ImRaii.TabItem("Main");
         if (!mainTab) return;
 
+        ImGui.PushItemWidth(120);
         var effectsRendererPositionX = configuration.EffectsRendererPositionX;
-        if (ImGui.InputInt("Position X", ref effectsRendererPositionX, 5))
+        if (ImGui.InputInt("Status Display Position X", ref effectsRendererPositionX, 5))
         {
             configuration.EffectsRendererPositionX = effectsRendererPositionX;
             configuration.Save();
         }
 
         var effectsRendererPositionY = configuration.EffectsRendererPositionY;
-        if (ImGui.InputInt("Position Y", ref effectsRendererPositionY, 5))
+        if (ImGui.InputInt("Status Display Position Y", ref effectsRendererPositionY, 5))
         {
             configuration.EffectsRendererPositionY = effectsRendererPositionY;
             configuration.Save();
         }
+        ImGui.PopItemWidth();
 
-        if (ImGui.Button("Reset Status Placement"))
+        if (ImGui.Button("Display Fake Status"))
+        {
+            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+            {
+                this.World.Entity().Set(new Condition.Component("Fake Status", 15.0f, DateTime.UtcNow)).ChildOf(e);
+            });
+        }
+
+        ImGui.SameLine();
+
+        if (ImGui.Button("Reset Status Display Placement"))
         {
             var viewport = ImGui.GetMainViewport();
             int x = (int)(viewport.Pos.X + viewport.Size.X / 2);
             int y = (int)(viewport.Pos.Y + viewport.Size.Y / 3);
 
-            configuration.EffectsRendererPositionX = effectsRendererPositionX;
-            configuration.EffectsRendererPositionY = effectsRendererPositionY;
+            configuration.EffectsRendererPositionX = x;
+            configuration.EffectsRendererPositionY = y;
             configuration.Save();
-        }
-
-        ImGui.SameLine();
-
-        if (ImGui.Button("Status Overlay"))
-        {
-            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
-            {
-                this.World.Entity().Set(new Condition.Component("test", 15.0f)).ChildOf(e);
-            });
         }
 
         var encounterText = new StringBuilder("Active Encounter: ");
@@ -244,20 +264,22 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
         using var miscTab = ImRaii.TabItem("Misc");
         if (!miscTab) return;
 
-        var printLogsToChat = this.PrintLogsToChat.Value;
+        var printLogsToChat = this.configuration.PrintLogsToChat;
         if (ImGui.Checkbox("Print logs to chat", ref printLogsToChat))
         {
-            this.PrintLogsToChat.Value = printLogsToChat;
+            this.configuration.PrintLogsToChat = printLogsToChat;
+            this.configuration.Save();
         }
 
         if (printLogsToChat)
         {
             ImGui.SameLine();
-            var minLogLevel = this.MinimumVisibleLogLevel.Value;
+            var minLogLevel = this.configuration.MinimumVisibleLogLevel;
             ImGui.SetNextItemWidth(70);
             if (ImGui.Combo("Min log level", ref minLogLevel, allLoggingLevels, allLoggingLevels.Length))
             {
-                this.MinimumVisibleLogLevel.Value = minLogLevel;
+                this.configuration.MinimumVisibleLogLevel = minLogLevel;
+                this.configuration.Save();
             }
         }
 

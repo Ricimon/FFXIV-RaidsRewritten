@@ -50,7 +50,6 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
         set => this.visible = value;
     }
 
-    private readonly Lazy<EffectsRendererPresenter> presenter;
     private readonly DalamudServices dalamud;
     private readonly Configuration configuration;
     private readonly EcsContainer ecsContainer;
@@ -67,13 +66,11 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
     private const float PADDING_Y = 7f;
 
     public EffectsRenderer(
-        Lazy<EffectsRendererPresenter> presenter,
         DalamudServices dalamud,
         Configuration configuration,
         EcsContainer ecsContainer,
         ILogger logger)
     {
-        this.presenter = presenter;
         this.dalamud = dalamud;
         this.configuration = configuration;
         this.ecsContainer = ecsContainer;
@@ -102,7 +99,6 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
 
     public void Draw()
     {
-        if (this.presenter == null) return;
         if (!this.font.Available) return;
 
         toDraw.Clear();
