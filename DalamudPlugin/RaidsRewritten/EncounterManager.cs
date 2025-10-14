@@ -14,6 +14,7 @@ using ECommons.ObjectLifeTracker;
 using RaidsRewritten.Log;
 using RaidsRewritten.Memory;
 using RaidsRewritten.Scripts.Encounters;
+using RaidsRewritten.UI.View;
 using RaidsRewritten.Utility;
 using ZLinq;
 
@@ -24,6 +25,7 @@ public sealed class EncounterManager(
     MapEffectProcessor mapEffectProcessor,
     ObjectEffectProcessor objectEffectProcessor,
     ActorControlProcessor actorControlProcessor,
+    Lazy<MainWindow> mainWindow,
     Configuration configuration,
     IEncounter[] encounters,
     ILogger logger) : IDalamudHook
@@ -83,6 +85,10 @@ public sealed class EncounterManager(
             ActiveEncounter = encounter;
             encounter.RefreshMechanics();
             logger.Info("Active encounter set to {0}", encounter.Name);
+            if (!configuration.EverythingDisabled)
+            {
+                mainWindow.Value.Visible = true;
+            }
         }
         else
         {
