@@ -3,10 +3,11 @@ using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
 using RaidsRewritten.Log;
+using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.UI.View;
 
-public class HelpWindow(ILogger logger) : IPluginUIView
+public class HelpWindow(DalamudServices dalamud, ILogger logger) : IPluginUIView
 {
     // this extra bool exists for ImGui, since you can't ref a property
     private bool visible = false;
@@ -22,10 +23,11 @@ public class HelpWindow(ILogger logger) : IPluginUIView
     {
         if (!Visible) { return; }
 
-        ImGui.SetNextWindowSize(Vector2.Zero);
+        ImGui.SetNextWindowSize(Vector2.Zero, ImGuiCond.Always);
+        var width = Math.Min(ImGui.GetMainViewport().Size.X / ImGuiHelpers.GlobalScale / 2, 800);
         ImGui.SetNextWindowSizeConstraints(
-            new Vector2(Math.Min(ImGui.GetMainViewport().Size.X / ImGuiHelpers.GlobalScale / 2, 800), 0),
-            new(float.PositiveInfinity, float.PositiveInfinity));
+            new(width, 0),
+            new(width, float.PositiveInfinity));
         if (ImGui.Begin(this.windowName, ref this.visible, ImGuiWindowFlags.NoResize))
         {
             DrawContents();
@@ -35,6 +37,12 @@ public class HelpWindow(ILogger logger) : IPluginUIView
 
     private void DrawContents()
     {
+        var iconPath = dalamud.PluginInterface.GetResourcePath("icon.png");
+        var icon = dalamud.TextureProvider.GetFromFile(iconPath).GetWrapOrDefault();
+        if (icon != null)
+        {
+            ImGui.Image(icon.Handle, ImGuiHelpers.GlobalScale * new Vector2(100, 100));
+        }
         ImGui.TextWrapped("RaidsRewritten is a plugin that adds custom mechanics to fights.");
 
         ImGui.Text("---");
@@ -49,8 +57,8 @@ public class HelpWindow(ILogger logger) : IPluginUIView
         ImGui.Text("---");
         ImGui.TextWrapped("The plugin becomes active when in a supported fight.");
         ImGui.TextWrapped("Custom mechanics can be customized before a pull, but not during a pull.");
-        ImGui.TextWrapped("The intended difficulty is a specially crafted set of custom mechanics aimed at making the fight much harder and a novel prog experience.");
-        ImGui.TextWrapped("Some custom mechanic names are intentionally unclear to not spoil the blind prog experience.");
+        ImGui.TextWrapped("The intended difficulty is a specially crafted set of custom mechanics aimed at making the fight much harder and a novel progression experience.");
+        ImGui.TextWrapped("Some custom mechanic names are intentionally unclear to not spoil the blind progression experience.");
         ImGui.TextWrapped("Since this plugin (currently) runs purely client-side, it's important to match the RNG seed between all players so every player sees the same mechanic variation for mechanics with RNG.");
 
         ImGui.Text("---");
@@ -58,7 +66,7 @@ public class HelpWindow(ILogger logger) : IPluginUIView
         ImGui.TextWrapped("You don't need to pretend mechanic punishments are worse than they actually are. Be creative with solutions and recoveries!");
 
         ImGui.Text("---");
-        ImGui.TextWrapped("Lastly, there's a special reward if you can defeat the intended difficulty (or harder)!");
+        ImGui.TextWrapped("Lastly, there is a special reward if you can defeat the intended difficulty (or harder)!");
 
         ImGui.Spacing();
         if (ImGui.Button("Close",

@@ -24,29 +24,38 @@ public partial class MainWindow
         using var debugTab = ImRaii.TabItem("Debug");
         if (!debugTab) return;
 
+        var debug = false;
 #if DEBUG
-        bool punishmentImmunity = configuration.PunishmentImmunity;
-        if (ImGui.Checkbox("Punishment Immunity", ref punishmentImmunity))
+        debug = true;
+#endif
+
+        if (debug)
         {
-            configuration.PunishmentImmunity = punishmentImmunity;
-            configuration.Save();
+            bool punishmentImmunity = configuration.PunishmentImmunity;
+            if (ImGui.Checkbox("Punishment Immunity", ref punishmentImmunity))
+            {
+                configuration.PunishmentImmunity = punishmentImmunity;
+                configuration.Save();
+            }
         }
 
         if (ImGui.Button("Clear All Attacks"))
         {
             this.World.DeleteWith<Attack>();
         }
-        ImGui.SameLine();
-        if (ImGui.Button("Clear All Statuses"))
+        if (debug)
         {
-            this.World.DeleteWith<Condition.Component>();
+            ImGui.SameLine();
+            if (ImGui.Button("Clear All Statuses"))
+            {
+                this.World.DeleteWith<Condition.Component>();
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("Clear All Models"))
+            {
+                this.World.DeleteWith<Model>();
+            }
         }
-        ImGui.SameLine();
-        if (ImGui.Button("Clear All Models"))
-        {
-            this.World.DeleteWith<Model>();
-        }
-#endif
 
         if (ImGui.Button("Print Player Data"))
         {
@@ -235,409 +244,410 @@ public partial class MainWindow
             }
         }
 
-#if DEBUG
-        if (ImGui.Button("Spawn Ball"))
+        if (debug)
         {
-            var player = this.dalamud.ClientState.LocalPlayer;
-            if (player != null)
+            if (ImGui.Button("Spawn Ball"))
             {
-                if (this.entityManager.TryCreateEntity<RollingBall>(out var ball))
+                var player = this.dalamud.ClientState.LocalPlayer;
+                if (player != null)
                 {
-                    ball.Set(new Position(player.Position))
-                        .Set(new Rotation(player.Rotation))
-                        .Set(new RollingBall.Movement(MathUtilities.RotationToUnitVector(player.Rotation)))
-                        .Set(new RollingBall.CircleArena(player.Position.ToVector2(), 10.0f));
+                    if (this.entityManager.TryCreateEntity<RollingBall>(out var ball))
+                    {
+                        ball.Set(new Position(player.Position))
+                            .Set(new Rotation(player.Rotation))
+                            .Set(new RollingBall.Movement(MathUtilities.RotationToUnitVector(player.Rotation)))
+                            .Set(new RollingBall.CircleArena(player.Position.ToVector2(), 10.0f));
                         //.Set(new RollingBall.ShowOmen());
+                    }
                 }
             }
-        }
-        if (ImGui.Button("LightningCorridor"))
-        {
-            var player = this.dalamud.ClientState.LocalPlayer;
-            if (player != null)
+            if (ImGui.Button("LightningCorridor"))
             {
-                if (this.entityManager.TryCreateEntity<LightningCorridor>(out var attack))
+                var player = this.dalamud.ClientState.LocalPlayer;
+                if (player != null)
                 {
-                    attack.Set(new Position(player.Position))
-                        .Set(new Rotation(player.Rotation));
+                    if (this.entityManager.TryCreateEntity<LightningCorridor>(out var attack))
+                    {
+                        attack.Set(new Position(player.Position))
+                            .Set(new Rotation(player.Rotation));
+                    }
                 }
             }
-        }
 
-        if (ImGui.Button("Exaflare"))
-        {
-            var player = this.dalamud.ClientState.LocalPlayer;
-            if (player != null)
+            if (ImGui.Button("Exaflare"))
             {
-                if (this.entityManager.TryCreateEntity<Exaflare>(out var exaflare))
+                var player = this.dalamud.ClientState.LocalPlayer;
+                if (player != null)
                 {
-                    exaflare.Set(new Position(player.Position))
-                        .Set(new Rotation(player.Rotation));
+                    if (this.entityManager.TryCreateEntity<Exaflare>(out var exaflare))
+                    {
+                        exaflare.Set(new Position(player.Position))
+                            .Set(new Rotation(player.Rotation));
+                    }
                 }
             }
-        }
-        ImGui.SameLine();
-        if (ImGui.Button("Row of Exaflares"))
-        {
-            var player = this.dalamud.ClientState.LocalPlayer;
-            if (player != null)
+            ImGui.SameLine();
+            if (ImGui.Button("Row of Exaflares"))
             {
-                if (this.entityManager.TryCreateEntity<ExaflareRow>(out var exaflare))
+                var player = this.dalamud.ClientState.LocalPlayer;
+                if (player != null)
                 {
-                    exaflare.Set(new Position(player.Position))
-                        .Set(new Rotation(player.Rotation));
+                    if (this.entityManager.TryCreateEntity<ExaflareRow>(out var exaflare))
+                    {
+                        exaflare.Set(new Position(player.Position))
+                            .Set(new Rotation(player.Rotation));
+                    }
                 }
             }
-        }
 
-        if (ImGui.Button("Jumpwave"))
-        {
-            var player = this.dalamud.ClientState.LocalPlayer;
-            if (player != null)
+            if (ImGui.Button("Jumpwave"))
             {
-                if (this.entityManager.TryCreateEntity<JumpableShockwave>(out var jumpwave))
+                var player = this.dalamud.ClientState.LocalPlayer;
+                if (player != null)
                 {
-                    jumpwave.Set(new Position(player.Position + 0.0f * Vector3.UnitX))
-                        .Set(new Rotation(player.Rotation));
+                    if (this.entityManager.TryCreateEntity<JumpableShockwave>(out var jumpwave))
+                    {
+                        jumpwave.Set(new Position(player.Position + 0.0f * Vector3.UnitX))
+                            .Set(new Rotation(player.Rotation));
+                    }
                 }
             }
-        }
 
-        if (ImGui.Button("Dreadknight"))
-        {
-            var player = this.dalamud.ClientState.LocalPlayer;
-            if (player != null)
+            if (ImGui.Button("Dreadknight"))
             {
-                if (this.entityManager.TryCreateEntity<Dreadknight>(out var dreadknight))
+                var player = this.dalamud.ClientState.LocalPlayer;
+                if (player != null)
                 {
-                    dreadknight.Set(new Position(player.Position));
+                    if (this.entityManager.TryCreateEntity<Dreadknight>(out var dreadknight))
+                    {
+                        dreadknight.Set(new Position(player.Position));
+                    }
                 }
             }
-        }
 
-        ImGui.SameLine();
+            ImGui.SameLine();
 
-        if (ImGui.Button("Dreadknight With Tether"))
-        {
-            var player = this.dalamud.ClientState.LocalPlayer;
-            if (player != null)
+            if (ImGui.Button("Dreadknight With Tether"))
             {
-                if (this.entityManager.TryCreateEntity<Dreadknight>(out var dreadknight))
+                var player = this.dalamud.ClientState.LocalPlayer;
+                if (player != null)
                 {
-                    dreadknight.Set(new Position(player.Position));
-                    Dreadknight.ApplyTarget(dreadknight, player);
-                    DelayedAction.Create(dreadknight.CsWorld(), () =>
+                    if (this.entityManager.TryCreateEntity<Dreadknight>(out var dreadknight))
                     {
-                        Stun.ApplyToTarget(dreadknight, 1f);
-                    }, 4f).ChildOf(dreadknight);
-                    DelayedAction.Create(dreadknight.CsWorld(), () =>
-                    {
-                        Bind.ApplyToTarget(dreadknight, 3f);
-                    }, 6f).ChildOf(dreadknight);
-                    DelayedAction.Create(dreadknight.CsWorld(), () =>
-                    {
-                        Dreadknight.RemoveCancellableCC(dreadknight);
-                    }, 7f).ChildOf(dreadknight);
-                    DelayedAction.Create(dreadknight.CsWorld(), () =>
-                    {
-                        Sleep.ApplyToTarget(dreadknight, 1f);
-                    }, 8f).ChildOf(dreadknight);
-                    DelayedAction.Create(dreadknight.CsWorld(), () =>
-                    {
-                        Heavy.ApplyToTarget(dreadknight, 5f);
-                        Dreadknight.SetTemporaryRelativeSpeed(dreadknight, .1f);
-                    }, 10f).ChildOf(dreadknight);
-                    DelayedAction.Create(dreadknight.CsWorld(), () =>
-                    {
-                        dreadknight.DestructChildEntity<Heavy.Component>();
-                    }, 12f).ChildOf(dreadknight);
-                }
-            }
-        }
-
-        if (ImGui.Button("ADS"))
-        {
-            var player = this.dalamud.ClientState.LocalPlayer;
-            if (player != null)
-            {
-                if (this.entityManager.TryCreateEntity<ADS>(out var ads))
-                {
-                    var originalPosition = player.Position;
-                    ads.Set(new Position(player.Position))
-                        .Set(new Rotation(player.Rotation));
-                    DelayedAction.Create(ads.CsWorld(), () =>
-                    {
-                        var player = this.dalamud.ClientState.LocalPlayer;
-                        if (player != null)
+                        dreadknight.Set(new Position(player.Position));
+                        Dreadknight.ApplyTarget(dreadknight, player);
+                        DelayedAction.Create(dreadknight.CsWorld(), () =>
                         {
-                            ADS.CastLineAoe(ads, MathUtilities.GetAbsoluteAngleFromSourceToTarget(originalPosition, player.Position));
+                            Stun.ApplyToTarget(dreadknight, 1f);
+                        }, 4f).ChildOf(dreadknight);
+                        DelayedAction.Create(dreadknight.CsWorld(), () =>
+                        {
+                            Bind.ApplyToTarget(dreadknight, 3f);
+                        }, 6f).ChildOf(dreadknight);
+                        DelayedAction.Create(dreadknight.CsWorld(), () =>
+                        {
+                            Dreadknight.RemoveCancellableCC(dreadknight);
+                        }, 7f).ChildOf(dreadknight);
+                        DelayedAction.Create(dreadknight.CsWorld(), () =>
+                        {
+                            Sleep.ApplyToTarget(dreadknight, 1f);
+                        }, 8f).ChildOf(dreadknight);
+                        DelayedAction.Create(dreadknight.CsWorld(), () =>
+                        {
+                            Heavy.ApplyToTarget(dreadknight, 5f);
+                            Dreadknight.SetTemporaryRelativeSpeed(dreadknight, .1f);
+                        }, 10f).ChildOf(dreadknight);
+                        DelayedAction.Create(dreadknight.CsWorld(), () =>
+                        {
+                            dreadknight.DestructChildEntity<Heavy.Component>();
+                        }, 12f).ChildOf(dreadknight);
+                    }
+                }
+            }
+
+            if (ImGui.Button("ADS"))
+            {
+                var player = this.dalamud.ClientState.LocalPlayer;
+                if (player != null)
+                {
+                    if (this.entityManager.TryCreateEntity<ADS>(out var ads))
+                    {
+                        var originalPosition = player.Position;
+                        ads.Set(new Position(player.Position))
+                            .Set(new Rotation(player.Rotation));
+                        DelayedAction.Create(ads.CsWorld(), () =>
+                        {
+                            var player = this.dalamud.ClientState.LocalPlayer;
+                            if (player != null)
+                            {
+                                ADS.CastLineAoe(ads, MathUtilities.GetAbsoluteAngleFromSourceToTarget(originalPosition, player.Position));
+                            }
+                        }, 3f).ChildOf(ads);
+                        DelayedAction.Create(ads.CsWorld(), () =>
+                        {
+                            var player = this.dalamud.ClientState.LocalPlayer;
+                            if (player != null)
+                            {
+                                ADS.CastLineAoe(ads, MathUtilities.GetAbsoluteAngleFromSourceToTarget(originalPosition, player.Position));
+                            }
+                        }, 9f).ChildOf(ads);
+                        DelayedAction.Create(ads.CsWorld(), ads.Destruct, 15f).ChildOf(ads);
+                    }
+                }
+            }
+
+            ImGui.SameLine();
+
+            if (ImGui.Button("ADS Stepped Leader"))
+            {
+                var player = this.dalamud.ClientState.LocalPlayer;
+                if (player != null)
+                {
+                    if (this.entityManager.TryCreateEntity<ADS>(out var ads))
+                    {
+                        var originalPosition = player.Position;
+                        ads.Set(new Position(player.Position))
+                            .Set(new Rotation(player.Rotation));
+                        DelayedAction.Create(ads.CsWorld(), () =>
+                        {
+                            var player = this.dalamud.ClientState.LocalPlayer;
+                            if (player != null)
+                            {
+                                ADS.CastSteppedLeader(ads, player.Position);
+                            }
+                        }, 3f).ChildOf(ads);
+                        DelayedAction.Create(ads.CsWorld(), () =>
+                        {
+                            var player = this.dalamud.ClientState.LocalPlayer;
+                            if (player != null)
+                            {
+                                ADS.CastSteppedLeader(ads, player.Position);
+                            }
+                        }, 9f).ChildOf(ads);
+                        DelayedAction.Create(ads.CsWorld(), ads.Destruct, 15f).ChildOf(ads);
+                    }
+                }
+            }
+
+            if (ImGui.Button("Close Tether to Target"))
+            {
+                var player = this.dalamud.ClientState.LocalPlayer;
+                if (player != null)
+                {
+                    var target = player.TargetObject;
+                    if (target != null)
+                    {
+                        if (this.entityManager.TryCreateEntity<DistanceSnapshotTether>(out var tether))
+                        {
+                            DistanceSnapshotTether.SetTetherVfx(tether, TetherOmen.TetherVfx.ActivatedClose, player, target)
+                                .Set(new DistanceSnapshotTether.VfxOnFail(["vfx/monster/m0005/eff/m0005sp_15t0t.avfx"]))
+                                .Set(new DistanceSnapshotTether.Tether((e) => { Stun.ApplyToTarget(e, 5); }))
+                                .Set(new DistanceSnapshotTether.FailWhenFurtherThan(10));
+
+                            DelayedAction.Create(tether.CsWorld(), () =>
+                            {
+                                tether.Add<DistanceSnapshotTether.Activated>();
+                            }, 3f).ChildOf(tether);
                         }
-                    }, 3f).ChildOf(ads);
-                    DelayedAction.Create(ads.CsWorld(), () =>
-                    {
-                        var player = this.dalamud.ClientState.LocalPlayer;
-                        if (player != null)
-                        {
-                            ADS.CastLineAoe(ads, MathUtilities.GetAbsoluteAngleFromSourceToTarget(originalPosition, player.Position));
-                        }
-                    }, 9f).ChildOf(ads);
-                    DelayedAction.Create(ads.CsWorld(), ads.Destruct, 15f).ChildOf(ads);
+                    }
                 }
             }
-        }
 
-        ImGui.SameLine();
+            ImGui.SameLine();
 
-        if (ImGui.Button("ADS Stepped Leader"))
-        {
-            var player = this.dalamud.ClientState.LocalPlayer;
-            if (player != null)
+            if (ImGui.Button("Far Tether to Target"))
             {
-                if (this.entityManager.TryCreateEntity<ADS>(out var ads))
+                var player = this.dalamud.ClientState.LocalPlayer;
+                if (player != null)
                 {
-                    var originalPosition = player.Position;
-                    ads.Set(new Position(player.Position))
-                        .Set(new Rotation(player.Rotation));
-                    DelayedAction.Create(ads.CsWorld(), () =>
+                    var target = player.TargetObject;
+                    if (target != null)
                     {
-                        var player = this.dalamud.ClientState.LocalPlayer;
-                        if (player != null)
+                        if (this.entityManager.TryCreateEntity<DistanceSnapshotTether>(out var tether))
                         {
-                            ADS.CastSteppedLeader(ads, player.Position);
+                            DistanceSnapshotTether.SetTetherVfx(tether, TetherOmen.TetherVfx.ActivatedFar, player, target)
+                                .Set(new DistanceSnapshotTether.VfxOnFail(["vfx/monster/m0005/eff/m0005sp_15t0t.avfx"]))
+                                .Set(new DistanceSnapshotTether.Tether((e) => { Stun.ApplyToTarget(e, 5); }))
+                                .Set(new DistanceSnapshotTether.FailWhenCloserThan(10));
+
+                            DelayedAction.Create(tether.CsWorld(), () =>
+                            {
+                                tether.Add<DistanceSnapshotTether.Activated>();
+                            }, 3f).ChildOf(tether);
                         }
-                    }, 3f).ChildOf(ads);
-                    DelayedAction.Create(ads.CsWorld(), () =>
-                    {
-                        var player = this.dalamud.ClientState.LocalPlayer;
-                        if (player != null)
-                        {
-                            ADS.CastSteppedLeader(ads, player.Position);
-                        }
-                    }, 9f).ChildOf(ads);
-                    DelayedAction.Create(ads.CsWorld(), ads.Destruct, 15f).ChildOf(ads);
+                    }
                 }
             }
-        }
 
-        if (ImGui.Button("Close Tether to Target"))
-        {
-            var player = this.dalamud.ClientState.LocalPlayer;
-            if (player != null)
+            if (ImGui.Button("Expanding Puddle"))
             {
-                var target = player.TargetObject;
-                if (target != null)
+                var player = this.dalamud.ClientState.LocalPlayer;
+                if (player != null)
                 {
-                    if (this.entityManager.TryCreateEntity<DistanceSnapshotTether>(out var tether))
+                    if (this.entityManager.TryCreateEntity<ExpandingPuddle>(out var puddle))
                     {
-                        DistanceSnapshotTether.SetTetherVfx(tether, TetherOmen.TetherVfx.ActivatedClose, player, target)
-                            .Set(new DistanceSnapshotTether.VfxOnFail(["vfx/monster/m0005/eff/m0005sp_15t0t.avfx"]))
-                            .Set(new DistanceSnapshotTether.Tether((e) => { Stun.ApplyToTarget(e, 5); }))
-                            .Set(new DistanceSnapshotTether.FailWhenFurtherThan(10));
+                        puddle.Set(new ExpandingPuddle.Component(
+                            "bgcommon/world/common/vfx_for_btl/b0801/eff/b0801_yuka_o.avfx",
+                            0.5f,
+                            10.0f,
+                            1.0f,
+                            10.0f));
+                        puddle.Set(new Position(player.Position));
+                        puddle.Set(new Rotation(player.Rotation));
+                        puddle.Set(new Scale(Vector3.One));
+                    }
+                }
+            }
 
-                        DelayedAction.Create(tether.CsWorld(), () =>
+            if (ImGui.Button("Star"))
+            {
+                var player = this.dalamud.ClientState.LocalPlayer;
+                if (player != null)
+                {
+                    if (this.entityManager.TryCreateEntity<Star>(out var star))
+                    {
+                        star.Set(new Star.Component(
+                            Type: Star.Type.Long,
+                            OmenTime: 3.0f,
+                            VfxPath: "vfx/monster/gimmick5/eff/x6r7_b3_g08_c0p.avfx",
+                            OnHit: e => { Stun.ApplyToTarget(e, 2.0f); }));
+                        star.Set(new Position(player.Position));
+                        star.Set(new Rotation(player.Rotation));
+                    }
+                }
+            }
+
+            if (ImGui.Button("Tornado"))
+            {
+                var player = this.dalamud.ClientState.LocalPlayer;
+
+                if (player != null)
+                {
+                    if (this.entityManager.TryCreateEntity<Tornado>(out var tornado))
+                    {
+                        tornado.Set(new Position(player.Position));
+                        DelayedAction.Create(tornado.CsWorld(), () =>
                         {
-                            tether.Add<DistanceSnapshotTether.Activated>();
-                        }, 3f).ChildOf(tether);
+                            tornado.Destruct();
+                        }, 10f).ChildOf(tornado);
+                    }
+                }
+            }
+
+            ImGui.SameLine();
+
+            if (ImGui.Button("Donut Tornado"))
+            {
+                var player = this.dalamud.ClientState.LocalPlayer;
+
+                if (player != null)
+                {
+                    if (this.entityManager.TryCreateEntity<OctetDonut>(out var tornado))
+                    {
+                        tornado.Set(new Position(player.Position));
+                        DelayedAction.Create(tornado.CsWorld(), () =>
+                        {
+                            tornado.Destruct();
+                        }, 26f).ChildOf(tornado);
+                    }
+                }
+            }
+
+            if (ImGui.Button("Transition ADS"))
+            {
+                var player = this.dalamud.ClientState.LocalPlayer;
+
+                if (player != null)
+                {
+                    if (this.entityManager.TryCreateEntity<RepellingCannonADS>(out var ads))
+                    {
+                        ads.Set(new Position(player.Position));
+                    }
+                }
+            }
+
+            ImGui.SameLine();
+
+            if (ImGui.Button("Transition Melusine"))
+            {
+                var player = this.dalamud.ClientState.LocalPlayer;
+
+                if (player != null)
+                {
+                    if (this.entityManager.TryCreateEntity<CircleBladeMelusine>(out var melusine))
+                    {
+                        melusine.Set(new Position(player.Position))
+                            .Set(new Rotation(player.Rotation));
+                    }
+                }
+            }
+
+            ImGui.SameLine();
+
+            if (ImGui.Button("Transition Kaliya"))
+            {
+                var player = this.dalamud.ClientState.LocalPlayer;
+
+                if (player != null)
+                {
+                    if (this.entityManager.TryCreateEntity<NerveGasKaliya>(out var kaliya))
+                    {
+                        kaliya.Set(new Position(player.Position))
+                            .Set(new Rotation(player.Rotation));
+                    }
+                }
+            }
+
+            ImGui.Text("Heat Stuff");
+            if (ImGui.Button("Add Temperature"))
+            {
+                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+                {
+                    Temperature.SetTemperature(e);
+                });
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("Incr Heat"))
+            {
+                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+                {
+                    Temperature.HeatChangedEvent(e, 50);
+                });
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("Decr Heat"))
+            {
+                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+                {
+                    Temperature.HeatChangedEvent(e, -50);
+                });
+            }
+            if (ImGui.Button("Spawn Liquid Heaven"))
+            {
+                var player = this.dalamud.ClientState.LocalPlayer;
+                if (player != null)
+                {
+                    if (this.entityManager.TryCreateEntity<LiquidHeaven>(out var LiquidHeaven))
+                    {
+                        LiquidHeaven.Set(new Position(player.Position))
+                                    .Set(new Rotation(player.Rotation));
+                    }
+                }
+            }
+
+            ImGui.Text("Models");
+            if (ImGui.Button("Chefbingus"))
+            {
+                var player = this.dalamud.ClientState.LocalPlayer;
+                if (player != null)
+                {
+                    if (this.entityManager.TryCreateEntity<Chefbingus>(out var carby))
+                    {
+                        carby.Set(new Position(player.Position))
+                            .Set(new Rotation(player.Rotation));
                     }
                 }
             }
         }
-
-        ImGui.SameLine();
-
-        if (ImGui.Button("Far Tether to Target"))
-        {
-            var player = this.dalamud.ClientState.LocalPlayer;
-            if (player != null)
-            {
-                var target = player.TargetObject;
-                if (target != null)
-                {
-                    if (this.entityManager.TryCreateEntity<DistanceSnapshotTether>(out var tether))
-                    {
-                        DistanceSnapshotTether.SetTetherVfx(tether, TetherOmen.TetherVfx.ActivatedFar, player, target)
-                            .Set(new DistanceSnapshotTether.VfxOnFail(["vfx/monster/m0005/eff/m0005sp_15t0t.avfx"]))
-                            .Set(new DistanceSnapshotTether.Tether((e) => { Stun.ApplyToTarget(e, 5); }))
-                            .Set(new DistanceSnapshotTether.FailWhenCloserThan(10));
-
-                        DelayedAction.Create(tether.CsWorld(), () =>
-                        {
-                            tether.Add<DistanceSnapshotTether.Activated>();
-                        }, 3f).ChildOf(tether);
-                    }
-                }
-            }
-        }
-
-        if (ImGui.Button("Expanding Puddle"))
-        {
-            var player = this.dalamud.ClientState.LocalPlayer;
-            if (player != null)
-            {
-                if (this.entityManager.TryCreateEntity<ExpandingPuddle>(out var puddle))
-                {
-                    puddle.Set(new ExpandingPuddle.Component(
-                        "bgcommon/world/common/vfx_for_btl/b0801/eff/b0801_yuka_o.avfx",
-                        0.5f,
-                        10.0f,
-                        1.0f,
-                        10.0f));
-                    puddle.Set(new Position(player.Position));
-                    puddle.Set(new Rotation(player.Rotation));
-                    puddle.Set(new Scale(Vector3.One));
-                }
-            }
-        }
-
-        if (ImGui.Button("Star"))
-        {
-            var player = this.dalamud.ClientState.LocalPlayer;
-            if (player != null)
-            {
-                if (this.entityManager.TryCreateEntity<Star>(out var star))
-                {
-                    star.Set(new Star.Component(
-                        Type: Star.Type.Long,
-                        OmenTime: 3.0f,
-                        VfxPath: "vfx/monster/gimmick5/eff/x6r7_b3_g08_c0p.avfx",
-                        OnHit: e => { Stun.ApplyToTarget(e, 2.0f); }));
-                    star.Set(new Position(player.Position));
-                    star.Set(new Rotation(player.Rotation));
-                }
-            }
-        }
-
-        if (ImGui.Button("Tornado"))
-        {
-            var player = this.dalamud.ClientState.LocalPlayer;
-
-            if (player != null)
-            {
-                if (this.entityManager.TryCreateEntity<Tornado>(out var tornado))
-                {
-                    tornado.Set(new Position(player.Position));
-                    DelayedAction.Create(tornado.CsWorld(), () =>
-                    {
-                        tornado.Destruct();
-                    }, 10f).ChildOf(tornado);
-                }
-            }
-        }
-
-        ImGui.SameLine();
-
-        if (ImGui.Button("Donut Tornado"))
-        {
-            var player = this.dalamud.ClientState.LocalPlayer;
-
-            if (player != null)
-            {
-                if (this.entityManager.TryCreateEntity<OctetDonut>(out var tornado))
-                {
-                    tornado.Set(new Position(player.Position));
-                    DelayedAction.Create(tornado.CsWorld(), () =>
-                    {
-                        tornado.Destruct();
-                    }, 26f).ChildOf(tornado);
-                }
-            }
-        }
-
-        if (ImGui.Button("Transition ADS"))
-        {
-            var player = this.dalamud.ClientState.LocalPlayer;
-
-            if (player != null)
-            {
-                if (this.entityManager.TryCreateEntity<RepellingCannonADS>(out var ads))
-                {
-                    ads.Set(new Position(player.Position));
-                }
-            }
-        }
-
-        ImGui.SameLine();
-
-        if (ImGui.Button("Transition Melusine"))
-        {
-            var player = this.dalamud.ClientState.LocalPlayer;
-
-            if (player != null)
-            {
-                if (this.entityManager.TryCreateEntity<CircleBladeMelusine>(out var melusine))
-                {
-                    melusine.Set(new Position(player.Position))
-                        .Set(new Rotation(player.Rotation));
-                }
-            }
-        }
-
-        ImGui.SameLine();
-
-        if (ImGui.Button("Transition Kaliya"))
-        {
-            var player = this.dalamud.ClientState.LocalPlayer;
-
-            if (player != null)
-            {
-                if (this.entityManager.TryCreateEntity<NerveGasKaliya>(out var kaliya))
-                {
-                    kaliya.Set(new Position(player.Position))
-                        .Set(new Rotation(player.Rotation));
-                }
-            }
-        }
-
-        ImGui.Text("Heat Stuff");
-        if (ImGui.Button("Add Temperature"))
-        {
-            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
-            {
-                Temperature.SetTemperature(e);
-            });
-        }
-        ImGui.SameLine();
-        if (ImGui.Button("Incr Heat"))
-        {
-            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
-            {
-                Temperature.HeatChangedEvent(e, 50);
-            });
-        }
-        ImGui.SameLine();
-        if (ImGui.Button("Decr Heat"))
-        {
-            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
-            {
-                Temperature.HeatChangedEvent(e, -50);
-            });
-        }
-        if (ImGui.Button("Spawn Liquid Heaven"))
-        {
-            var player = this.dalamud.ClientState.LocalPlayer;
-            if (player != null)
-            {
-                if (this.entityManager.TryCreateEntity<LiquidHeaven>(out var LiquidHeaven))
-                {
-                    LiquidHeaven.Set(new Position(player.Position))
-                                .Set(new Rotation(player.Rotation));
-                }
-            }
-        }
-
-        ImGui.Text("Models");
-        if (ImGui.Button("Chefbingus"))
-        {
-            var player = this.dalamud.ClientState.LocalPlayer;
-            if (player != null)
-            {
-                if (this.entityManager.TryCreateEntity<Chefbingus>(out var carby))
-                {
-                    carby.Set(new Position(player.Position))
-                        .Set(new Rotation(player.Rotation));
-                }
-            }
-        }
-#endif
     }
 }
