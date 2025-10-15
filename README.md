@@ -6,14 +6,36 @@ This plugin augments existing fights with custom mechanics just for fun.
 
 <img src="images/icon.png" height=100px />
 
-## What's happening?
+<img src="images/raidsrewritten.gif" />
 
-RaidsRewritten is (currently) entirely executed client-side. It hooks fight events to spawn fake attack VFX objects, then runs custom hit-detection checks to determine if the local player was hit by a fake attack. If so, this plugin hijacks client controls to simulate the effects of a stun, knockback, etc. If multiple players are running the plugin, mechanic variations between all players are synced via using a fixed RNG seed.
-
-## Available fights
+### Available fights
 
 - UCOB Rewritten
 - ??? (in ~~time stasis~~ development)
+
+## Support discord
+
+[![Discord Banner](https://discord.com/api/guilds/669688899248979968/widget.png?style=banner2)](https://discord.gg/rSucAJ6A7u)
+
+## Installation
+- Enter `/xlsettings` in the chat window and go to the **Experimental** tab in the opened window.
+- Scroll down to the **Custom Plugin Repositories** section.
+- Paste in the following `repo.json` link into the first open text field
+```
+https://raw.githubusercontent.com/Ricimon/FFXIV-ProximityVoiceChat/refs/heads/master/repo.json
+```
+*All my plugins, including RaidsRewritten, are accessible from the ProximityVoiceChat repo json*
+- Click the **+** button to the right of the text field and make sure the **Enabled checkmark** is checked.
+- Click on the **Save Button** on the bottom-right of the window.
+
+This adds plugins from this custom repo as installable plugins in the available plugins list. To then install the plugin itself,
+
+- Enter `/xlplugins` in the chat window and go to the **All Plugins** tab in the opened window.
+- Search for the **RaidsRewritten** plugin and click **install**.
+
+## What's happening?
+
+RaidsRewritten is (currently) entirely executed client-side. It hooks fight events to spawn fake attack VFX objects, then runs custom hit-detection checks to determine if the local player was hit by a fake attack. If so, this plugin hijacks client controls to simulate the effects of a stun, knockback, etc. If multiple players are running the plugin, mechanic variations between all players are synced via using a fixed RNG seed.
 
 ## Attributions
 
