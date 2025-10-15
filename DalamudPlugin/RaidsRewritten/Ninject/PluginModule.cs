@@ -53,6 +53,7 @@ public class PluginModule : NinjectModule
         Bind<IPluginUIView, EffectsRenderer>().To<EffectsRenderer>().InSingletonScope();
         Bind<IPluginUIView, MainWindow>().To<MainWindow>().InSingletonScope();
         Bind<IPluginUIView, HelpWindow>().To<HelpWindow>().InSingletonScope();
+        Bind<IPluginUIView, ChangelogWindow>().To<ChangelogWindow>().InSingletonScope();
 
         // Data
         Bind<Configuration>().ToMethod(GetConfiguration).InSingletonScope();

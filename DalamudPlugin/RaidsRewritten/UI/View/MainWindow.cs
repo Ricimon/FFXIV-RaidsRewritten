@@ -34,6 +34,7 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
 
     private readonly WindowSystem windowSystem;
     private readonly HelpWindow helpWindow;
+    private readonly ChangelogWindow changelogWindow;
     private readonly DalamudServices dalamud;
     private readonly EncounterManager encounterManager;
     private readonly EntityManager entityManager;
@@ -51,6 +52,7 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
     public MainWindow(
         WindowSystem windowSystem,
         HelpWindow helpWindow,
+        ChangelogWindow changelogWindow,
         DalamudServices dalamud,
         EncounterManager encounterManager,
         EntityManager entityManager,
@@ -65,6 +67,7 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
     {
         this.windowSystem = windowSystem;
         this.helpWindow = helpWindow;
+        this.changelogWindow = changelogWindow;
         this.dalamud = dalamud;
         this.encounterManager = encounterManager;
         this.entityManager = entityManager;
@@ -112,6 +115,7 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
         if (!Visible)
         {
             this.helpWindow.Visible = false;
+            this.changelogWindow.Visible = false;
             return;
         }
 
@@ -281,6 +285,11 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
                 this.configuration.MinimumVisibleLogLevel = minLogLevel;
                 this.configuration.Save();
             }
+        }
+
+        if (ImGui.Button("Changelog"))
+        {
+            this.changelogWindow.Visible = true;
         }
 
         ImGui.Spacing();
