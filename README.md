@@ -37,7 +37,7 @@ This adds plugins from this custom repo as installable plugins in the available 
 
 RaidsRewritten is (currently) entirely executed client-side. It hooks fight events to spawn fake attack VFX objects, then runs custom hit-detection checks to determine if the local player was hit by a fake attack. If so, this plugin hijacks client controls to simulate the effects of a stun, knockback, etc. If multiple players are running the plugin, mechanic variations between all players are synced via using a fixed RNG seed.
 
-To be clear, RaidsRewritten does not change anything about the original fight, it only adds fake mechanics on top of it.
+⚠️ ***To be clear, RaidsRewritten does not change anything about the original fight, it only adds fake mechanics on top of it. Nothing sent to and from official Square Enix game servers are modified, and hijacked player controls are only capable of performing what a player is normally able to perform (ex. a fake knockback is just forced movement in the knockback direction).*** ⚠️
 
 ## Contributing
 
