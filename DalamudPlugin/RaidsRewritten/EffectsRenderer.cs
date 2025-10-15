@@ -205,7 +205,7 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
 
     private void AddStatus(List<EffectTextEntry> toDraw, Condition.Component status, ref float offsetY, ref float maxWidth)
     {
-        var timeRemainingString = Math.Floor(status.TimeRemaining).ToString();
+        var timeRemainingString = Math.Round(status.TimeRemaining).ToString();
         var text = $"{status.Name} for {timeRemainingString}s";
         var textSize = ImGui.CalcTextSize(text);
         //drawList.AddText(ImGui.GetFont(), 50, position, Vector4Colors.Red.ToColorU32(), text);
