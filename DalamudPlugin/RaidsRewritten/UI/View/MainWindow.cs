@@ -119,9 +119,11 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
             return;
         }
 
-        var width = 350;
-        ImGui.SetNextWindowSize(new Vector2(width, 400), ImGuiCond.FirstUseEver);
-        ImGui.SetNextWindowSizeConstraints(new Vector2(width, 250), new Vector2(float.MaxValue, float.MaxValue));
+        var width = 350 * ImGuiHelpers.GlobalScale;
+        var height = 400 * ImGuiHelpers.GlobalScale;
+        ImGui.SetNextWindowSize(new Vector2(width, height), ImGuiCond.FirstUseEver);
+        var minHeight = 250 * ImGuiHelpers.GlobalScale;
+        ImGui.SetNextWindowSizeConstraints(new Vector2(width, minHeight), new Vector2(float.MaxValue, float.MaxValue));
         if (ImGui.Begin(this.windowName, ref this.visible))
         {
             this.World.DeferBegin();
