@@ -2,7 +2,7 @@
 
 Plugin for [XIVLauncher/Dalamud](https://goatcorp.github.io/)
 
-This plugin augments existing fights with custom mechanics just for fun.
+This plugin augments existing raids with custom mechanics just for fun.
 
 <img src="images/icon.png" height=100px />
 
@@ -13,7 +13,7 @@ This plugin augments existing fights with custom mechanics just for fun.
 - UCOB Rewritten
 - ??? (in ~~time stasis~~ development)
 
-## Support discord
+## Support Discord
 
 [![Discord Banner](https://discord.com/api/guilds/669688899248979968/widget.png?style=banner2)](https://discord.gg/rSucAJ6A7u)
 
@@ -36,6 +36,12 @@ This adds plugins from this custom repo as installable plugins in the available 
 ## What's happening?
 
 RaidsRewritten is (currently) entirely executed client-side. It hooks fight events to spawn fake attack VFX objects, then runs custom hit-detection checks to determine if the local player was hit by a fake attack. If so, this plugin hijacks client controls to simulate the effects of a stun, knockback, etc. If multiple players are running the plugin, mechanic variations between all players are synced via using a fixed RNG seed.
+
+## Contributing
+
+Please use the support Discord for idea and code contribution discussion.
+
+If you'd like to implement your own custom mechanic, use the existing mechanics as examples, and feel free to submit a pull request!
 
 ## Attributions
 
