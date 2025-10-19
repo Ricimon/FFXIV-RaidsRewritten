@@ -1,10 +1,12 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Game.ClientState.Statuses;
 using Dalamud.Plugin.Services;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using Flecs.NET.Core;
 using RaidsRewritten.Scripts.Attacks;
 using RaidsRewritten.Scripts.Components;
+using RaidsRewritten.Scripts.Conditions;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -133,7 +135,8 @@ public class DreadknightInUCoB : Mechanic
     private int oviformsOnField = 0;
     private DateTime lastTargetSwap = DateTime.MinValue;
     private bool tetherVfxChanged = true;
-    private bool ccCancellable = true;
+    private Query<Sleep.Component>? sleepQuery;
+    private Query<Bind.Component>? bindQuery;
 
     public override void Reset()
     {
@@ -153,7 +156,6 @@ public class DreadknightInUCoB : Mechanic
         oviformsOnField = 0;
         lastTargetSwap = DateTime.MinValue;
         tetherVfxChanged = true;
-        ccCancellable = false;
     }
 
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
@@ -212,10 +214,12 @@ public class DreadknightInUCoB : Mechanic
         var isTargetingTwintania = set.Target?.BaseId == TwintaniaId;
 
         // don't want to keep looping over entity's children if not cancellable
-        if (ccCancellable && isCancellingCC && isTargetingTwintania)
+        if (isCancellingCC && isTargetingTwintania)
         {
-            Dreadknight.RemoveCancellableCC(dreadknight.Value);
-            ccCancellable = false;
+            if (sleepQuery.HasValue && sleepQuery.Value.IsTrue() || bindQuery.HasValue && bindQuery.Value.IsTrue())
+            {
+                Dreadknight.RemoveCancellableCC(dreadknight.Value);
+            }
         }
 
         if (set.Action.Value.RowId == GenerateId)
@@ -269,11 +273,9 @@ public class DreadknightInUCoB : Mechanic
                 break;
             case CrowdControlType.Sleep:
                 Conditions.Sleep.ApplyToTarget(dreadknight!.Value, ccData.duration * CrowdControlDurationMultiplier);
-                ccCancellable = true;
                 break;
             case CrowdControlType.Bind:
                 Conditions.Bind.ApplyToTarget(dreadknight!.Value, ccData.duration * CrowdControlDurationMultiplier);
-                ccCancellable = true;
                 break;
         }
     }
@@ -288,10 +290,25 @@ public class DreadknightInUCoB : Mechanic
 
     public override void OnFrameworkUpdate(IFramework framework)
     {
-        if (dreadknight.HasValue && !tetherVfxChanged && (DateTime.UtcNow - lastTargetSwap).TotalSeconds >= SecondsUntilSwappable)
+        if (dreadknight.HasValue)
         {
-            Dreadknight.ChangeTetherVfx(dreadknight.Value, SwappableTetherVfx);
-            tetherVfxChanged = true;
+            if (!sleepQuery.HasValue)
+            {
+                sleepQuery = World.QueryBuilder<Sleep.Component>().With(Ecs.ChildOf, dreadknight.Value).Build();
+            }
+            if (!bindQuery.HasValue)
+            {
+                bindQuery = World.QueryBuilder<Bind.Component>().With(Ecs.ChildOf, dreadknight.Value).Build();
+            }
+            if (!tetherVfxChanged && (DateTime.UtcNow - lastTargetSwap).TotalSeconds >= SecondsUntilSwappable)
+            {
+                Dreadknight.ChangeTetherVfx(dreadknight.Value, SwappableTetherVfx);
+                tetherVfxChanged = true;
+            }
+        } else
+        {
+            if (sleepQuery.HasValue) { sleepQuery = null; }
+            if (bindQuery.HasValue) { bindQuery = null; }
         }
     }
 
