@@ -20,7 +20,6 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
     public record struct Speed(float Value);
     public record struct SpeedModifier(float Value);
 
-    public struct QueueCancelCC;
     public struct TetherVfxChild;
     public struct CastingVfxChild;
 
@@ -73,14 +72,6 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
                 {
                     it.Entity(i).Destruct();
                 }
-            });
-
-        world.System<Component>().With<QueueCancelCC>()
-            .Each((Entity entity, ref Component _) =>
-            {
-                entity.DestructChildEntity<Sleep.Component>();
-                entity.DestructChildEntity<Bind.Component>();
-                entity.Remove<QueueCancelCC>();
             });
 
         // no target
@@ -323,7 +314,11 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
     }
 
     // can't directly remove components, instead schedule removal from a system
-    public static void RemoveCancellableCC(Entity entity) => entity.Add<QueueCancelCC>();
+    public static void RemoveCancellableCC(Entity entity) => entity.CsWorld().Defer(() =>
+    {
+        entity.DestructChildEntity<Sleep.Component>();
+        entity.DestructChildEntity<Bind.Component>();
+    });
 
     private void StunPlayer(Entity entity, float duration, float delay = StunDelay)
     {
