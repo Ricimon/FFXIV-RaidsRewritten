@@ -14,6 +14,7 @@ public class Temperature(DalamudServices dalamud, CommonQueries commonQueries, I
 
     public const string GaugeXPositionConfig = "UCOB Rewritten.TemperatureControlX";
     public const string GaugeYPositionConfig = "UCOB Rewritten.TemperatureControlY";
+    public const string GaugeScaleConfig = "UCOB Rewritten.TemperatureControlScale";
     public const string GaugeImagePath = "temperature_gauge.png";
     private const int TemperatureID = 420;
     public record struct Component()

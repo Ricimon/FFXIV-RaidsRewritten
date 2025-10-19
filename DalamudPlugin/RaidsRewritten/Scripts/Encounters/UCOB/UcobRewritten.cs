@@ -24,6 +24,7 @@ public class UcobRewritten : IEncounter
     private string TemperatureControlKey => $"{Name}.TemperatureControl";
     private string TemperatureControlXKey => Temperature.GaugeXPositionConfig;
     private string TemperatureControlYKey => Temperature.GaugeYPositionConfig;
+    private string TemperatureControlScaleKey => Temperature.GaugeScaleConfig;
     private string DreadknightKey => $"{Name}.Dreadknight";
     private string ADSSquaredKey => $"{Name}.ADS^2";
     private string TethersKey => $"{Name}.Tethers";
@@ -360,6 +361,7 @@ public class UcobRewritten : IEncounter
             ImGui.PushItemWidth(120);
             int temperatureControlX = configuration.GetEncounterSetting(TemperatureControlXKey, 0);
             int temperatureControlY = configuration.GetEncounterSetting(TemperatureControlYKey, 0);
+            int temperatureControlScale = configuration.GetEncounterSetting(TemperatureControlScaleKey, 100);
 
             // Auto-position
             if (temperatureControlX == 0 && temperatureControlY == 0)
@@ -373,6 +375,8 @@ public class UcobRewritten : IEncounter
 
                 configuration.EncounterSettings[TemperatureControlXKey] = temperatureControlX.ToString();
                 configuration.EncounterSettings[TemperatureControlYKey] = temperatureControlY.ToString();
+                configuration.EncounterSettings[TemperatureControlScaleKey] = temperatureControlScale.ToString();
+
                 configuration.Save();
             }
 
@@ -384,6 +388,11 @@ public class UcobRewritten : IEncounter
             if (ImGui.InputInt("Gauge Y", ref temperatureControlY, 5))
             {
                 configuration.EncounterSettings[TemperatureControlYKey] = temperatureControlY.ToString();
+                configuration.Save();
+            }
+            if (ImGui.InputInt("Gauge Scale", ref temperatureControlScale, 1))
+            {
+                configuration.EncounterSettings[TemperatureControlScaleKey] = temperatureControlScale.ToString();
                 configuration.Save();
             }
             ImGui.PopItemWidth();
