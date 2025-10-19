@@ -1,4 +1,6 @@
-﻿using ECommons.DalamudServices;
+﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/Schedulers/TickScheduler.cs
+// 78da16b
+using ECommons.DalamudServices;
 using ECommons.Logging;
 using System;
 

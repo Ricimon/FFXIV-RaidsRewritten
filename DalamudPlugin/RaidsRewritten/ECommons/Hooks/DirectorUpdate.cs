@@ -1,4 +1,6 @@
-﻿using Dalamud.Hooking;
+﻿// Adapted from https://github.com/NightmareXIV/ECommons/blob/master/ECommons/Hooks/DirectorUpdate.cs
+// d787aac
+using Dalamud.Hooking;
 using ECommons.DalamudServices;
 using ECommons.EzHookManager;
 using ECommons.Logging;

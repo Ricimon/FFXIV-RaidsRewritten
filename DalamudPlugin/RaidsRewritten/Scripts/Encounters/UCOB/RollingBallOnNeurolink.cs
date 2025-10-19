@@ -17,7 +17,7 @@ public class RollingBallOnNeurolink : Mechanic
 
     public int MaxBalls { get; set; } = 1;
 
-    private const uint NeurolinkDataId = 0x1E88FF;
+    private const uint NeurolinkBaseId = 0x1E88FF;
 
     private readonly List<Entity> attacks = [];
 
@@ -44,13 +44,13 @@ public class RollingBallOnNeurolink : Mechanic
 
     public override void OnCombatEnd()
     {
-        Reset();
+        //Reset();
     }
 
     public override void OnObjectCreation(nint newObjectPointer, IGameObject? newObject)
     {
         if (newObject == null) { return; }
-        if (newObject.DataId != NeurolinkDataId) { return; }
+        if (newObject.BaseId != NeurolinkBaseId) { return; }
         if (ballsSpawned >= MaxBalls) { return; }
 
         var arenaCenter = new Vector3(0, 0, 0);

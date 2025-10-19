@@ -30,11 +30,13 @@ public class UcobRewritten : IEncounter
     private string TethersKey => $"{Name}.Tethers";
     private string EarthShakerStarKey => $"{Name}.EarthShakerStar";
     private string OctetCourseKey => $"{Name}.OctetCourse";
+    private string JunctionCoilsKey => $"{Name}.JunctionCoils";
     private string PermanentTwistersKey => $"{Name}.PermanentTwisters";
     private string RollingBallKey => $"{Name}.RollingBall";
     private string RollingBallMaxBallsKey => $"{Name}.RollingBallMaxBalls";
 
     private readonly Mechanic.Factory mechanicFactory;
+    private readonly DalamudServices dalamud;
     private readonly Configuration configuration;
     private readonly EcsContainer ecsContainer;
 
@@ -47,9 +49,10 @@ public class UcobRewritten : IEncounter
     private readonly Dictionary<string, bool> defaultBoolSettings;
     private readonly Dictionary<string, int> defaultIntSettings;
 
-    public UcobRewritten(Mechanic.Factory mechanicFactory, Configuration configuration, EcsContainer ecsContainer)
+    public UcobRewritten(Mechanic.Factory mechanicFactory, DalamudServices dalamud, Configuration configuration, EcsContainer ecsContainer)
     {
         this.mechanicFactory = mechanicFactory;
+        this.dalamud = dalamud;
         this.configuration = configuration;
         this.ecsContainer = ecsContainer;
 
@@ -65,10 +68,10 @@ public class UcobRewritten : IEncounter
             { TethersKey, true },
             { EarthShakerStarKey, true },
             { OctetCourseKey, true },
+            { JunctionCoilsKey, true},
 
             { PermanentTwistersKey, false },
             { RollingBallKey, false },
-
         };
 
         this.defaultIntSettings = new()
@@ -159,6 +162,14 @@ public class UcobRewritten : IEncounter
             this.mechanics.Add(octetCourse);
         }
 
+        if (configuration.GetEncounterSetting(JunctionCoilsKey, this.defaultBoolSettings[JunctionCoilsKey]))
+        {
+            var junctionCoils = mechanicFactory.Create<JunctionCoils>();
+            junctionCoils.RngSeed = rngSeed;
+
+            this.mechanics.Add(junctionCoils);
+        }
+        
         // Meme mechanics
 
         if (configuration.GetEncounterSetting(PermanentTwistersKey, this.defaultBoolSettings[PermanentTwistersKey]))
@@ -199,6 +210,7 @@ public class UcobRewritten : IEncounter
         rngSeed = EncounterUtilities.IncrementRngSeed(rngSeed);
         configuration.EncounterSettings[RngSeedKey] = rngSeed;
         configuration.Save();
+        this.dalamud.ChatGui.Print($"RNG seed is now ${rngSeed}", PluginInitializer.Name);
         RefreshMechanics();
     }
 
@@ -266,7 +278,7 @@ public class UcobRewritten : IEncounter
         }
 
         bool adsSquared = configuration.GetEncounterSetting(ADSSquaredKey, this.defaultBoolSettings[ADSSquaredKey]);
-        if (ImGui.Checkbox("ADS²", ref adsSquared))
+        if (ImGui.Checkbox("ADSÂ²", ref adsSquared))
         {
             configuration.EncounterSettings[ADSSquaredKey] =
                 adsSquared ? bool.TrueString : bool.FalseString;
@@ -297,6 +309,15 @@ public class UcobRewritten : IEncounter
         {
             configuration.EncounterSettings[OctetCourseKey] =
                 octetCourse ? bool.TrueString : bool.FalseString;
+            configuration.Save();
+            RefreshMechanics();
+        }
+
+        bool junctionCoils = configuration.GetEncounterSetting(JunctionCoilsKey, this.defaultBoolSettings[JunctionCoilsKey]);
+        if (ImGui.Checkbox("Junction Coils", ref junctionCoils))
+        {
+            configuration.EncounterSettings[JunctionCoilsKey] =
+                junctionCoils ? bool.TrueString : bool.FalseString;
             configuration.Save();
             RefreshMechanics();
         }

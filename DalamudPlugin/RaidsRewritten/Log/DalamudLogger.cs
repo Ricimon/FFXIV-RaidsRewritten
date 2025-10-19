@@ -1,68 +1,56 @@
-﻿using Dalamud.Game.Text;
-using Dalamud.Plugin.Services;
-using System;
+﻿using System;
+using Dalamud.Game.Text;
 
 namespace RaidsRewritten.Log;
 
-public class DalamudLogger : ILogger, Microsoft.Extensions.Logging.ILogger
+public class DalamudLogger(DalamudServices dalamud, Configuration configuration) : ILogger, Microsoft.Extensions.Logging.ILogger
 {
-    private readonly IPluginLog pluginLog;
-    private readonly IChatGui chatGui;
-    private readonly Configuration configuration;
-
-    public DalamudLogger(IPluginLog pluginLog, IChatGui chatGui, Configuration configuration)
-    {
-        this.pluginLog = pluginLog;
-        this.chatGui = chatGui;
-        this.configuration = configuration;
-    }
-
     public void Trace(string message, params object[] values)
     {
 #if DEBUG
-        this.pluginLog.Verbose(message, values);
+        dalamud.Log.Verbose(message, values);
         Log(LogLevel.Trace, message, values);
 #endif
     }
 
     public void Debug(string message, params object[] values)
     {
-        this.pluginLog.Debug(message, values);
+        dalamud.Log.Debug(message, values);
         Log(LogLevel.Debug, message, values);
     }
 
     public void Info(string message, params object[] values)
     {
-        this.pluginLog.Info(message, values);
+        dalamud.Log.Info(message, values);
         Log(LogLevel.Info, message, values);
     }
 
     public void Warn(string message, params object[] values)
     {
-        this.pluginLog.Warning(message, values);
+        dalamud.Log.Warning(message, values);
         Log(LogLevel.Warn, message, values);
     }
 
     public void Error(string message, params object[] values)
     {
-        this.pluginLog.Error(message, values);
+        dalamud.Log.Error(message, values);
         Log(LogLevel.Error, message, values);
     }
 
     public void Fatal(string message, params object[] values)
     {
-        this.pluginLog.Fatal(message, values);
+        dalamud.Log.Fatal(message, values);
         Log(LogLevel.Fatal, message, values);
     }
 
     private void Log(LogLevel logLevel, string message, params object[] values)
     {
-        if (!this.configuration.PrintLogsToChat)
+        if (!configuration.PrintLogsToChat)
         {
             return;
         }
 
-        if (logLevel.Ordinal < this.configuration.MinimumVisibleLogLevel)
+        if (logLevel.Ordinal < configuration.MinimumVisibleLogLevel)
         {
             return;
         }
@@ -78,7 +66,7 @@ public class DalamudLogger : ILogger, Microsoft.Extensions.Logging.ILogger
             chatType = XivChatType.ErrorMessage;
         }
 
-        this.chatGui.Print(new XivChatEntry
+        dalamud.ChatGui.Print(new XivChatEntry
         {
             Message = $"{logLevel} | {string.Format(message, values)}",
             Type = chatType

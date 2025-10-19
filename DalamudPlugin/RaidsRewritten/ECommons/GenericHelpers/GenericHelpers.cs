@@ -1,4 +1,6 @@
-﻿using Dalamud.Game.ClientState.Conditions;
+﻿// Adapted from https://github.com/NightmareXIV/ECommons/blob/master/ECommons/GenericHelpers/GenericHelpers.cs
+// 636eb68
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
@@ -97,35 +99,35 @@ public static unsafe partial class GenericHelpers
         return obj?.Address == other?.Address;
     }
 
-    ///// <summary>
-    ///// Retrieves entries from call stack in a form of single string. <b>Expensive.</b>
-    ///// </summary>
-    ///// <param name="maxFrames"></param>
-    ///// <returns></returns>
-    //public static string GetCallStackID(int maxFrames = 3)
-    //{
-    //    try
-    //    {
-    //        if(maxFrames == 0)
-    //        {
-    //            maxFrames = int.MaxValue;
-    //        }
-    //        else
-    //        {
-    //            maxFrames--;
-    //        }
-    //        var stack = new StackTrace().GetFrames();
-    //        if(stack.Length > 1)
-    //        {
-    //            return stack[1..Math.Min(stack.Length, maxFrames)].Select(x => x.GetMethod() == null ? "<unknown>" : $"{x.GetMethod().DeclaringType?.FullName}.{x.GetMethod().Name}").Join(" <- ");
-    //        }
-    //    }
-    //    catch(Exception e)
-    //    {
-    //        e.Log();
-    //    }
-    //    return "";
-    //}
+    /// <summary>
+    /// Retrieves entries from call stack in a form of single string. <b>Expensive.</b>
+    /// </summary>
+    /// <param name="maxFrames"></param>
+    /// <returns></returns>
+    public static string GetCallStackID(int maxFrames = 3)
+    {
+        try
+        {
+            if(maxFrames == 0)
+            {
+                maxFrames = int.MaxValue;
+            }
+            else
+            {
+                maxFrames--;
+            }
+            var stack = new StackTrace().GetFrames();
+            if(stack.Length > 1)
+            {
+                return stack[1..Math.Min(stack.Length, maxFrames)].Select(x => x.GetMethod() == null ? "<unknown>" : $"{x.GetMethod().DeclaringType?.FullName}.{x.GetMethod().Name}").Join(" <- ");
+            }
+        }
+        catch(Exception e)
+        {
+            e.Log();
+        }
+        return "";
+    }
 
 #pragma warning disable
     /// <summary>
@@ -134,50 +136,50 @@ public static unsafe partial class GenericHelpers
 #pragma warning restore
     public static bool UseAsyncKeyCheck = false;
 
-    ///// <summary>
-    ///// Checks if a key is pressed via winapi.
-    ///// </summary>
-    ///// <param name="key">Key</param>
-    ///// <returns>Whether the key is currently pressed</returns>
-    //public static bool IsKeyPressed(int key)
-    //{
-    //    if(key == 0) return false;
-    //    if(UseAsyncKeyCheck)
-    //    {
-    //        return Bitmask.IsBitSet((uint)NativeFunctions.GetKeyState(key), 15);
-    //    }
-    //    else
-    //    {
-    //        return Bitmask.IsBitSet((uint)NativeFunctions.GetAsyncKeyState(key), 15);
-    //    }
-    //}
+    /// <summary>
+    /// Checks if a key is pressed via winapi.
+    /// </summary>
+    /// <param name="key">Key</param>
+    /// <returns>Whether the key is currently pressed</returns>
+    public static bool IsKeyPressed(int key)
+    {
+        if(key == 0) return false;
+        if(UseAsyncKeyCheck)
+        {
+            return Bitmask.IsBitSet((uint)TerraFX.Interop.Windows.Windows.GetKeyState(key), 15);
+        }
+        else
+        {
+            return Bitmask.IsBitSet((uint)TerraFX.Interop.Windows.Windows.GetAsyncKeyState(key), 15);
+        }
+    }
 
     /// <summary>
     /// Checks if a key is pressed via winapi.
     /// </summary>
     /// <param name="key">Key</param>
     /// <returns>Whether the key is currently pressed</returns>
-    //public static bool IsKeyPressed(LimitedKeys key) => IsKeyPressed((int)key);
+    public static bool IsKeyPressed(LimitedKeys key) => IsKeyPressed((int)key);
 
-    //public static bool IsAnyKeyPressed(IEnumerable<LimitedKeys> keys) => keys.Any(IsKeyPressed);
+    public static bool IsAnyKeyPressed(IEnumerable<LimitedKeys> keys) => keys.Any(IsKeyPressed);
 
-    //public static bool IsKeyPressed(IEnumerable<LimitedKeys> keys)
-    //{
-    //    foreach(var x in keys)
-    //    {
-    //        if(IsKeyPressed(x)) return true;
-    //    }
-    //    return false;
-    //}
+    public static bool IsKeyPressed(IEnumerable<LimitedKeys> keys)
+    {
+        foreach(var x in keys)
+        {
+            if(IsKeyPressed(x)) return true;
+        }
+        return false;
+    }
 
-    //public static bool IsKeyPressed(IEnumerable<int> keys)
-    //{
-    //    foreach(var x in keys)
-    //    {
-    //        if(IsKeyPressed(x)) return true;
-    //    }
-    //    return false;
-    //}
+    public static bool IsKeyPressed(IEnumerable<int> keys)
+    {
+        foreach(var x in keys)
+        {
+            if(IsKeyPressed(x)) return true;
+        }
+        return false;
+    }
 
     /// <summary>
     /// Checks if you are targeting object <paramref name="obj"/>.
@@ -223,17 +225,17 @@ public static unsafe partial class GenericHelpers
     //    return EzConfig.DefaultSerializationFactory.Deserialize<T>(EzConfig.DefaultSerializationFactory.Serialize(obj));
     //}
 
-    //public static void DeleteFileToRecycleBin(string path)
-    //{
-    //    try
-    //    {
-    //        Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(path, Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs, Microsoft.VisualBasic.FileIO.RecycleOption.SendToRecycleBin);
-    //    }
-    //    catch(Exception e)
-    //    {
-    //        e.LogWarning();
-    //    }
-    //}
+    public static void DeleteFileToRecycleBin(string path)
+    {
+        try
+        {
+            Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(path, Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs, Microsoft.VisualBasic.FileIO.RecycleOption.SendToRecycleBin);
+        }
+        catch(Exception e)
+        {
+            e.LogWarning();
+        }
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool If<T>(this T obj, Func<T, bool> func)

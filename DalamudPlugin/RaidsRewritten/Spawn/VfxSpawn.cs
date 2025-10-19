@@ -1,4 +1,5 @@
 ﻿// Adapted from https://github.com/0ceal0t/Dalamud-VFXEditor/blob/main/VFXEditor/Spawn/VfxSpawn.cs
+// 70661e3
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -44,23 +45,14 @@ public class VfxLoopItem
     }
 }
 
-public unsafe sealed class VfxSpawn : IDisposable
+public unsafe sealed class VfxSpawn(ResourceLoader resourceLoader, ILogger logger) : IDisposable
 {
     public readonly Dictionary<BaseVfx, VfxSpawnItem> Vfxs = [];
     public readonly List<VfxLoopItem> ToLoop = [];
 
-    private readonly ResourceLoader resourceLoader;
-    private readonly ILogger logger;
-
-    public VfxSpawn(ResourceLoader resourceLoader, ILogger logger)
-    {
-        this.resourceLoader = resourceLoader;
-        this.logger = logger;
-    }
-
     public StaticVfx SpawnStaticVfx(string path, Vector3 position, float rotation)
     {
-        var vfx = new StaticVfx(this.resourceLoader, path);
+        var vfx = new StaticVfx(resourceLoader, path);
         vfx.Create(position, rotation);
         Vfxs.Add(vfx, new(path, SpawnType.Ground, false));
         return vfx;
@@ -73,7 +65,7 @@ public unsafe sealed class VfxSpawn : IDisposable
 
     public ActorVfx SpawnActorVfx(string path, nint casterAddress, nint targetAddress)
     {
-        var vfx = new ActorVfx(this.resourceLoader, path);
+        var vfx = new ActorVfx(resourceLoader, path);
         vfx.Create(casterAddress, targetAddress);
         Vfxs.Add(vfx, new(path, SpawnType.Target, false));
         return vfx;

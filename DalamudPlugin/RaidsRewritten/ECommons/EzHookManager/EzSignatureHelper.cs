@@ -1,4 +1,6 @@
-﻿using ECommons.Logging;
+﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/EzHookManager/EzSignatureHelper.cs
+// ad39d4b
+using ECommons.Logging;
 using ECommons.Reflection;
 using System;
 using System.Reflection;

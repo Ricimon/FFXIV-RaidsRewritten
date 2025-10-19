@@ -1,4 +1,5 @@
 ﻿// Adapted from https://github.com/Caraxi/SimpleTweaksPlugin/blob/main/Tweaks/UiAdjustment/FadeUnavailableActions.cs
+// 70b13ca
 using System;
 using System.Collections.Generic;
 using System.Reflection;

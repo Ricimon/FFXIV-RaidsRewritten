@@ -35,7 +35,7 @@ public class Temperature(DalamudServices dalamud, CommonQueries commonQueries, I
 
         world.Entity()
             .Set(new Temperature.Component())
-            .Set(new Condition.Component("", float.PositiveInfinity))
+            .Set(new Condition.Component("", float.PositiveInfinity, DateTime.UtcNow))
             .Add<Condition.Hidden>()
             .Add<Condition.IgnoreOnDeath>()
             .ChildOf(playerEntity);

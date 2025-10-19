@@ -1,4 +1,5 @@
 ﻿// Adapted from https://github.com/NightmareXIV/ECommons/blob/master/ECommons/GenericHelpers/LogHelpers.cs
+// 79292fa
 using ECommons.Logging;
 using RaidsRewritten.Utility;
 using System;

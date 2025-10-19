@@ -1,4 +1,5 @@
 ﻿// Adapted from https://github.com/PunishXIV/Splatoon/blob/main/Splatoon/Memory/AttachedInfo.cs
+// 2528d6a
 using System;
 using System.Collections.Generic;
 using System.Text;

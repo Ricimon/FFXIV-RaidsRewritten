@@ -33,13 +33,13 @@ public class PermanentTwister : Mechanic
 
     public override void OnCombatEnd()
     {
-        Reset();
+        //Reset();
     }
 
     public override void OnObjectCreation(nint newObjectPointer, IGameObject? newObject)
     {
         if (newObject == null) { return; }
-        if (newObject.DataId != TWISTER_DATA_ID) { return; }
+        if (newObject.BaseId != TWISTER_DATA_ID) { return; }
 
         var player = this.Dalamud.ClientState.LocalPlayer;
         if (player != null)

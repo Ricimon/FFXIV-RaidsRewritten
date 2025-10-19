@@ -1,4 +1,5 @@
 ﻿// Adapted from https://github.com/0ceal0t/Dalamud-VFXEditor/blob/main/VFXEditor/Interop/InteropUtils.cs
+// 9e528e0
 using Dalamud;
 using Penumbra.String;
 using RaidsRewritten.Interop.Structs;

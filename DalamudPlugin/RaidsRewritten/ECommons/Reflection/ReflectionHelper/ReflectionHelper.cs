@@ -1,4 +1,6 @@
-﻿using ECommons.Logging;
+﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/Reflection/ReflectionHelper/ReflectionHelper.cs
+// f83b1f1
+using ECommons.Logging;
 using System.Linq;
 using System.Reflection;
 

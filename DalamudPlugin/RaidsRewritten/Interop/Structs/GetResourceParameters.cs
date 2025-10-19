@@ -1,4 +1,5 @@
 ﻿// Adapted from https://github.com/0ceal0t/Dalamud-VFXEditor/blob/main/VFXEditor/Interop/Structs/GetResourceParameters.cs
+// c67443c
 using System.Runtime.InteropServices;
 
 namespace RaidsRewritten.Interop.Structs;

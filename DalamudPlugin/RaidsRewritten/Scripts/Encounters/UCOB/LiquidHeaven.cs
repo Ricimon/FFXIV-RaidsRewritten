@@ -39,7 +39,7 @@ public class LiquidHeaven : Mechanic
     public override void OnObjectCreation(nint newObjectPointer, IGameObject? newObject)
     {
         if (newObject == null) { return; }
-        if (newObject.DataId != NEUROLINK_DATA_ID) { return; }
+        if (newObject.BaseId != NEUROLINK_DATA_ID) { return; }
         
         var player = this.Dalamud.ClientState.LocalPlayer;
         if (player != null)

@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Adapted from https://github.com/PunishXIV/Splatoon/blob/main/Splatoon/Structures/CachedCastInfo.cs
+// 470c334
+using System;
 
 namespace RaidsRewritten.Structures;
 

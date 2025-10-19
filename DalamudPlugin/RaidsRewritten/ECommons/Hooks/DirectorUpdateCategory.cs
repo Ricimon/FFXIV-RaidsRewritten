@@ -1,4 +1,6 @@
-﻿namespace ECommons.Hooks;
+﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/Hooks/DirectorUpdateCategory.cs
+// 3121eb8
+namespace ECommons.Hooks;
 
 public enum DirectorUpdateCategory : uint
 {

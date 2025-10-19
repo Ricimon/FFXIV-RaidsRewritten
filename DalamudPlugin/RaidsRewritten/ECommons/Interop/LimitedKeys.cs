@@ -1,4 +1,6 @@
-﻿using System.Reflection;
+﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/Interop/LimitedKeys.cs
+// 3121eb8
+using System.Reflection;
 
 namespace ECommons.Interop;
 

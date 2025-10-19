@@ -14,22 +14,24 @@ using ECommons.ObjectLifeTracker;
 using RaidsRewritten.Log;
 using RaidsRewritten.Memory;
 using RaidsRewritten.Scripts.Encounters;
+using RaidsRewritten.UI.View;
 using RaidsRewritten.Utility;
 using ZLinq;
 
 namespace RaidsRewritten;
 
-public sealed class EncounterManager : IDalamudHook
+public sealed class EncounterManager(
+    DalamudServices dalamud,
+    MapEffectProcessor mapEffectProcessor,
+    ObjectEffectProcessor objectEffectProcessor,
+    ActorControlProcessor actorControlProcessor,
+    Lazy<MainWindow> mainWindow,
+    Configuration configuration,
+    IEncounter[] encounters,
+    ILogger logger) : IDalamudHook
 {
     public IEncounter? ActiveEncounter { get; private set; }
     public bool InCombat => inCombat ?? false;
-
-    private readonly DalamudServices dalamud;
-    private readonly MapEffectProcessor mapEffectProcessor;
-    private readonly ObjectEffectProcessor objectEffectProcessor;
-    private readonly ActorControlProcessor actorControlProcessor;
-    private readonly Configuration configuration;
-    private readonly ILogger logger;
 
     private readonly List<string> BlacklistedPcVfx = [
         "vfx/common/eff/dk02ht_zan0m.avfx",
@@ -42,35 +44,16 @@ public sealed class EncounterManager : IDalamudHook
         "vfx/common/eff/dk04ht_win0h.avfx",
         "vfx/common/eff/cmat_aoz0f.avfx",
     ];
-    private readonly Dictionary<ushort, IEncounter> encounters;
+    private readonly Dictionary<ushort, IEncounter> encounterMap = encounters.AsValueEnumerable().ToDictionary(e => e.TerritoryId, e => e);
 
     private bool? inCombat = null;
     private byte weather = 0;
 
-    public EncounterManager(
-        DalamudServices dalamud,
-        MapEffectProcessor mapEffectProcessor,
-        ObjectEffectProcessor objectEffectProcessor,
-        ActorControlProcessor actorControlProcessor,
-        Configuration configuration,
-        IEncounter[] encounters,
-        ILogger logger)
-    {
-        this.dalamud = dalamud;
-        this.mapEffectProcessor = mapEffectProcessor;
-        this.objectEffectProcessor = objectEffectProcessor;
-        this.actorControlProcessor = actorControlProcessor;
-        this.configuration = configuration;
-        this.logger = logger;
-
-        this.encounters = encounters.AsValueEnumerable().ToDictionary(e => e.TerritoryId, e => e);
-    }
-
     public void HookToDalamud()
     {
-        this.mapEffectProcessor.Init(OnMapEffect);
-        this.objectEffectProcessor.Init(OnObjectEffect);
-        this.actorControlProcessor.Init(OnActorControl);
+        mapEffectProcessor.Init(OnMapEffect);
+        objectEffectProcessor.Init(OnObjectEffect);
+        actorControlProcessor.Init(OnActorControl);
         AttachedInfo.Init(logger, OnStartingCast, OnVFXSpawn);
         DirectorUpdate.Init(OnDirectorUpdate, logger);
         ObjectLife.Init(dalamud.GameInteropProvider, dalamud.SigScanner, dalamud.ObjectTable, logger);
@@ -78,9 +61,9 @@ public sealed class EncounterManager : IDalamudHook
         ActionEffect.ActionEffectEntryEvent += OnActionEffect;
         ActionEffect.ActionEffectEvent += OnActionEffectEvent;
 
-        this.dalamud.ClientState.TerritoryChanged += this.OnTerritoryChanged;
-        OnTerritoryChanged(this.dalamud.ClientState.TerritoryType);
-        this.dalamud.Framework.Update += OnFrameworkUpdate;
+        dalamud.ClientState.TerritoryChanged += this.OnTerritoryChanged;
+        OnTerritoryChanged(dalamud.ClientState.TerritoryType);
+        dalamud.Framework.Update += OnFrameworkUpdate;
     }
 
     public void Dispose()
@@ -89,19 +72,23 @@ public sealed class EncounterManager : IDalamudHook
         DirectorUpdate.Dispose();
         ObjectLife.Dispose();
         ActionEffect.Dispose();
-        this.dalamud.ClientState.TerritoryChanged -= this.OnTerritoryChanged;
-        this.dalamud.Framework.Update -= OnFrameworkUpdate;
+        dalamud.ClientState.TerritoryChanged -= this.OnTerritoryChanged;
+        dalamud.Framework.Update -= OnFrameworkUpdate;
     }
 
     private void OnTerritoryChanged(ushort obj)
     {
         ActiveEncounter?.Unload();
 
-        if (this.encounters.TryGetValue(obj, out var encounter))
+        if (this.encounterMap.TryGetValue(obj, out var encounter))
         {
             ActiveEncounter = encounter;
             encounter.RefreshMechanics();
-            this.logger.Info("Active encounter set to {0}", encounter.Name);
+            logger.Info("Active encounter set to {0}", encounter.Name);
+            if (!configuration.EverythingDisabled)
+            {
+                mainWindow.Value.Visible = true;
+            }
         }
         else
         {
@@ -112,25 +99,25 @@ public sealed class EncounterManager : IDalamudHook
     private void OnMapEffect(uint Position, ushort Param1, ushort Param2)
     {
         var text = $"MAP_EFFECT: {Position}, {Param1}, {Param2}";
-        this.logger.Debug(text);
+        logger.Trace(text);
 
-        if (this.configuration.EverythingDisabled) { return; }
+        if (configuration.EverythingDisabled) { return; }
     }
 
     private void OnObjectEffect(uint Target, ushort Param1, ushort Param2)
     {
-        var gameObject = this.dalamud.ObjectTable.SearchByEntityId(Target);
+        var gameObject = dalamud.ObjectTable.SearchByEntityId(Target);
         if (gameObject == null) { return; }
 
         var text = $"OBJECT_EFFECT: on {gameObject.Name.TextValue} 0x{Target:X}/0x{gameObject.GameObjectId:X} data {Param1}, {Param2}";
-        this.logger.Debug(text);
+        logger.Trace(text);
 
-        if (this.configuration.EverythingDisabled) { return; }
+        if (configuration.EverythingDisabled) { return; }
     }
 
     private void OnStartingCast(uint source, uint castId)
     {
-        var sourceObject = this.dalamud.ObjectTable.SearchByEntityId(source);
+        var sourceObject = dalamud.ObjectTable.SearchByEntityId(source);
         if (sourceObject == null) { return; }
         if (sourceObject is not IBattleChara battleChara) { return; }
 
@@ -140,15 +127,15 @@ public sealed class EncounterManager : IDalamudHook
         }
 
         var actionName = "<Unknown>";
-        var actionSheet = this.dalamud.DataManager.GetExcelSheet<Lumina.Excel.Sheets.Action>(this.dalamud.ClientState.ClientLanguage);
+        var actionSheet = dalamud.DataManager.GetExcelSheet<Lumina.Excel.Sheets.Action>(dalamud.ClientState.ClientLanguage);
         if (actionSheet.TryGetRow(battleChara.CastActionId, out var action))
         {
             actionName = action.Name.ExtractText();
         }
         var text = $"CAST: {battleChara.Name} (0x{battleChara.EntityId:X}|{battleChara.NameId}|{battleChara.Position}) starts casting {actionName} ({battleChara.CastActionId})";
-        this.logger.Debug(text);
+        logger.Trace(text);
 
-        if (this.configuration.EverythingDisabled) { return; }
+        if (configuration.EverythingDisabled) { return; }
 
         if (ActiveEncounter != null)
         {
@@ -165,12 +152,12 @@ public sealed class EncounterManager : IDalamudHook
 
         var text = new StringBuilder($"VFX: {vfxPath}");
 
-        var obj = this.dalamud.ObjectTable.SearchByEntityId(target);
+        var obj = dalamud.ObjectTable.SearchByEntityId(target);
         if (obj == null)
         {
-            this.logger.Debug(text.ToString());
+            logger.Trace(text.ToString());
 
-            if (this.configuration.EverythingDisabled) { return; }
+            if (configuration.EverythingDisabled) { return; }
             if (ActiveEncounter != null)
             {
                 foreach (var mechanic in ActiveEncounter.GetMechanics())
@@ -184,7 +171,7 @@ public sealed class EncounterManager : IDalamudHook
         if (obj is ICharacter c)
         {
             if (c is IPlayerCharacter && BlacklistedPcVfx.Contains(vfxPath)) { return; }
-            var targetText = c.AddressEquals(this.dalamud.ClientState.LocalPlayer) ? "me" : (c is IPlayerCharacter pc ? pc.GetJob().ToString() : c.DataId.ToString() ?? "Unknown");
+            var targetText = c.AddressEquals(dalamud.ClientState.LocalPlayer) ? "me" : (c is IPlayerCharacter pc ? pc.GetJob().ToString() : c.BaseId.ToString() ?? "Unknown");
             unsafe
             {
                 text.Append($" spawned on {targetText}, npc id={c.NameId}, model id={c.Struct()->ModelContainer.ModelCharaId}, name npc id={c.NameId}, position={c.Position}, name={c.Name}");
@@ -194,12 +181,12 @@ public sealed class EncounterManager : IDalamudHook
         {
             unsafe
             {
-                text.Append($" spawned on {obj.DataId}, npc id={obj.Struct()->GetNameId()}, position={obj.Position}");
+                text.Append($" spawned on {obj.BaseId}, npc id={obj.Struct()->GetNameId()}, position={obj.Position}");
             }
         }
-        this.logger.Debug(text.ToString());
+        logger.Trace(text.ToString());
 
-        if (this.configuration.EverythingDisabled) { return; }
+        if (configuration.EverythingDisabled) { return; }
         if (ActiveEncounter != null)
         {
             foreach (var mechanic in ActiveEncounter.GetMechanics())
@@ -212,9 +199,9 @@ public sealed class EncounterManager : IDalamudHook
     private void OnDirectorUpdate(long a1, long a2, DirectorUpdateCategory a3, uint a4, uint a5, int a6, int a7)
     {
         var text = $"DIRECTOR_UPDATE: {a3}, {a4:X8}, {a5:X8}, {a6:X8}, {a7:X8}";
-        this.logger.Debug(text);
+        logger.Trace(text);
 
-        if (this.configuration.EverythingDisabled) { return; }
+        if (configuration.EverythingDisabled) { return; }
         if (ActiveEncounter != null)
         {
             if (a3 == DirectorUpdateCategory.Commence ||
@@ -231,16 +218,16 @@ public sealed class EncounterManager : IDalamudHook
 
     private unsafe void OnObjectCreation(nint newObjectPointer)
     {
-        this.dalamud.Framework.Run(() =>
+        dalamud.Framework.Run(() =>
         {
             var text = new StringBuilder("OBJECT_CREATED: ");
-            var obj = this.dalamud.ObjectTable.AsValueEnumerable().FirstOrDefault(x => x.Address == newObjectPointer);
+            var obj = dalamud.ObjectTable.AsValueEnumerable().FirstOrDefault(x => x.Address == newObjectPointer);
             if (obj == null)
             {
                 text.Append($"0x{newObjectPointer:X}");
-                this.logger.Debug(text.ToString());
+                logger.Trace(text.ToString());
 
-                if (this.configuration.EverythingDisabled) { return; }
+                if (configuration.EverythingDisabled) { return; }
 
                 if (ActiveEncounter != null)
                 {
@@ -258,11 +245,11 @@ public sealed class EncounterManager : IDalamudHook
             }
             text.Append($"(0x{newObjectPointer:X}|{obj.Position})");
             text.Append($" Kind {obj.ObjectKind}");
-            text.Append($" DataId 0x{obj.DataId:X}");
+            text.Append($" BaseId 0x{obj.BaseId:X}");
             text.Append($" EntityId 0x{obj.EntityId:X}");
-            this.logger.Debug(text.ToString());
+            logger.Trace(text.ToString());
 
-            if (this.configuration.EverythingDisabled) { return; }
+            if (configuration.EverythingDisabled) { return; }
 
             if (ActiveEncounter != null)
             {
@@ -294,9 +281,9 @@ public sealed class EncounterManager : IDalamudHook
         //}
 
         text.Append(set.ToString());
-        this.logger.Debug(text.ToString());
+        logger.Trace(text.ToString());
 
-        if (this.configuration.EverythingDisabled) { return; }
+        if (configuration.EverythingDisabled) { return; }
 
         if (ActiveEncounter != null)
         {
@@ -309,7 +296,7 @@ public sealed class EncounterManager : IDalamudHook
 
     private void OnActorControl(uint sourceId, uint command, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, ulong targetId, byte replaying)
     {
-        var source = this.dalamud.ObjectTable.SearchByEntityId(sourceId);
+        var source = dalamud.ObjectTable.SearchByEntityId(sourceId);
         if (source == null) { return; }
         if (source is not IBattleChara battleChara) { return; }
 
@@ -321,14 +308,14 @@ public sealed class EncounterManager : IDalamudHook
         var text = new StringBuilder($"ACTOR_CONTROL: source {source.Name} (0x{sourceId})");
         text.Append($", command {command}, {p1}, {p2}, {p3}, {p4}, {p5}, {p6}");
         text.Append($", targetId 0x{targetId:X}, replaying {replaying}");
-        this.logger.Debug(text.ToString());
+        logger.Trace(text.ToString());
 
-        if (this.configuration.EverythingDisabled) { return; }
+        if (configuration.EverythingDisabled) { return; }
     }
 
     private void OnFrameworkUpdate(IFramework framework)
     {
-        if (!this.configuration.EverythingDisabled && ActiveEncounter != null)
+        if (!configuration.EverythingDisabled && ActiveEncounter != null)
         {
             foreach(var mechanic in ActiveEncounter.GetMechanics())
             {
@@ -342,14 +329,14 @@ public sealed class EncounterManager : IDalamudHook
 
     private void UpdateCombatState()
     {
-        var combatState = this.dalamud.Condition[ConditionFlag.InCombat];
-        if (this.dalamud.Condition[ConditionFlag.DutyRecorderPlayback])
+        var combatState = dalamud.Condition[ConditionFlag.InCombat];
+        if (dalamud.Condition[ConditionFlag.DutyRecorderPlayback])
         {
-            if (this.dalamud.ClientState.LocalPlayer == null) { return; }
+            if (dalamud.ClientState.LocalPlayer == null) { return; }
 
             unsafe
             {
-                var chara = this.dalamud.ClientState.LocalPlayer.Character();
+                var chara = dalamud.ClientState.LocalPlayer.Character();
                 if (chara == null) { return; }
 
                 combatState = chara->InCombat;
@@ -367,8 +354,8 @@ public sealed class EncounterManager : IDalamudHook
             if (!this.inCombat.Value)
             {
                 this.inCombat = true;
-                this.logger.Debug("COMBAT STARTED");
-                if (this.configuration.EverythingDisabled) { return; }
+                logger.Trace("COMBAT STARTED");
+                if (configuration.EverythingDisabled) { return; }
 
                 if (ActiveEncounter != null)
                 {
@@ -383,8 +370,8 @@ public sealed class EncounterManager : IDalamudHook
             if (this.inCombat.Value)
             {
                 this.inCombat = false;
-                this.logger.Debug("COMBAT ENDED");
-                if (this.configuration.EverythingDisabled) { return; }
+                logger.Trace("COMBAT ENDED");
+                if (configuration.EverythingDisabled) { return; }
 
                 if (ActiveEncounter != null)
                 {
@@ -406,12 +393,12 @@ public sealed class EncounterManager : IDalamudHook
             var weather = weatherManager->GetCurrentWeather();
             if (this.weather == weather) { return; }
 
-            this.logger.Debug($"WEATHER: {weather}");
+            logger.Trace($"WEATHER: {weather}");
 
             var prevWeather = this.weather;
             this.weather = weather;
 
-            if (this.configuration.EverythingDisabled) { return; }
+            if (configuration.EverythingDisabled) { return; }
             if (prevWeather > 0 && ActiveEncounter != null)
             {
                 foreach (var mechanic in ActiveEncounter.GetMechanics())

@@ -1,4 +1,6 @@
-﻿using FFXIVClientStructs.FFXIV.Client.Game;
+﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/Hooks/ActionEffectTypes/EffectHeader.cs
+// a285c30
+using FFXIVClientStructs.FFXIV.Client.Game;
 using System.Runtime.InteropServices;
 
 namespace ECommons.Hooks.ActionEffectTypes;

@@ -1,4 +1,6 @@
-﻿using ECommons.DalamudServices;
+﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/ExcelServices/ExcelWorldHelper.cs
+// 12b8473
+using ECommons.DalamudServices;
 using Lumina.Excel.Sheets;
 using System;
 using System.Collections.Generic;
@@ -87,6 +89,7 @@ public static class ExcelWorldHelper
     {
         return Svc.Data.GetExcelSheet<World>().GetRowOrDefault(id);
     }
+    public static World? Get(int id) => Get((uint)id);
 
     [Obsolete("Please use GetName")]
     public static string GetWorldNameById(uint id) => GetName(id);

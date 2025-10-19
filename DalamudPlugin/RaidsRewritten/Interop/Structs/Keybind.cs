@@ -1,5 +1,6 @@
-﻿using Dalamud.Game.ClientState.Keys;
-using FFXIVClientStructs.FFXIV.Client.UI;
+﻿// Adapted from https://github.com/Infiziert90/ChatTwo/blob/main/ChatTwo/GameFunctions/Types/Keybind.cs
+// c24ca3c
+using Dalamud.Game.ClientState.Keys;
 
 namespace RaidsRewritten.Interop.Structs;
 

@@ -1,4 +1,5 @@
 ﻿// Adapted from https://github.com/NightmareXIV/ECommons/blob/master/ECommons/Hooks/MapEffect.cs
+// 8c7688a
 using System;
 using Dalamud.Game;
 using Dalamud.Hooking;

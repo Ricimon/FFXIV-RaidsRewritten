@@ -1,4 +1,6 @@
-﻿using Dalamud.Game.ClientState.Objects.SubKinds;
+﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/ChatMethods/Sender.cs
+// f87bc87
+using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.Text.SeStringHandling;
 using ECommons.DalamudServices;
 using ECommons.ExcelServices;

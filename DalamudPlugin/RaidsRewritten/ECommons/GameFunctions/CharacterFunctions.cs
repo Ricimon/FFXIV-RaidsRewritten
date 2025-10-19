@@ -1,5 +1,8 @@
-﻿using Dalamud.Game.ClientState.Objects.Types;
+﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/GameFunctions/CharacterFunctions.cs
+// ee94cda
+using Dalamud.Game.ClientState.Objects.Types;
 using ECommons.MathHelpers;
+using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using System;
 using System.Collections.Generic;
@@ -54,7 +57,7 @@ public static unsafe class CharacterFunctions
 
     public static bool IsInWater(this ICharacter chr)
     {
-        return *(byte*)(chr.Address + 1436) == 1;
+        return *(byte*)(chr.Address + 1452) == 1;
     }
 
     public static CombatRole GetRole(this ICharacter c)
@@ -66,10 +69,10 @@ public static unsafe class CharacterFunctions
         return CombatRole.NonCombat;
     }
 
-    public static bool IsCasting(this IBattleChara c, uint spellId = 0)
+    public static bool IsCasting(this IBattleChara c, uint spellId = 0, ActionType? type = null)
     {
         if(c.Struct()->GetCastInfo() == null) return false;
-        return c.IsCasting && (spellId == 0 || c.CastActionId.EqualsAny(spellId));
+        return c.IsCasting && (spellId == 0 || (c.CastActionId.EqualsAny(spellId) && (type == null || c.CastActionType == (byte)type.Value)));
     }
 
     public static bool IsCasting(this IBattleChara c, params uint[] spellId)

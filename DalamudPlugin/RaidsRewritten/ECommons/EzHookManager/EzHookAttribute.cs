@@ -1,4 +1,6 @@
-﻿using System;
+﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/EzHookManager/EzHookAttribute.cs
+// 0cd87b3
+using System;
 
 namespace ECommons.EzHookManager;
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]

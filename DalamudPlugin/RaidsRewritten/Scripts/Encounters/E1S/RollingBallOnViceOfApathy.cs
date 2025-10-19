@@ -23,7 +23,7 @@ public class RollingBallOnViceOfApathy : Mechanic
         }
     }
 
-    private const uint ViceOfApathyDataId = 0x1EAE20;
+    private const uint ViceOfApathyBaseId = 0x1EAE20;
 
     private readonly List<Entity> attacks = [];
 
@@ -53,13 +53,13 @@ public class RollingBallOnViceOfApathy : Mechanic
 
     public override void OnCombatEnd()
     {
-        Reset();
+        //Reset();
     }
 
     public override void OnObjectCreation(nint newObjectPointer, IGameObject? newObject)
     {
         if (newObject == null) { return; }
-        if (newObject.DataId != ViceOfApathyDataId) { return; }
+        if (newObject.BaseId != ViceOfApathyBaseId) { return; }
         if (ballSpawned) { return; }
 
         var arenaCenter = new Vector3(100, 0, 100);

@@ -1,4 +1,6 @@
-﻿using FFXIVClientStructs;
+﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/MathHelpers/Number.cs
+// 78da16b
+using FFXIVClientStructs;
 using System;
 using System.Collections.Generic;
 using System.Linq;

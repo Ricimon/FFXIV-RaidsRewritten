@@ -42,7 +42,7 @@ public class MoreExaflares : Mechanic
                 ActionEffectIds = [
                     9939,  // calamitous blaze (seventh umbral era)
                 ],
-                ObjectIds = [NeurolinkDataId],
+                ObjectIds = [NeurolinkBaseId],
                 StartCastIds = [
                     9967,  // exaflare part 1
                     9968,  // exaflare part 2
@@ -58,7 +58,7 @@ public class MoreExaflares : Mechanic
                     9939,  // calamitous blaze (seventh umbral era)
                     9950,  // megaflare stack
                 ],
-                ObjectIds = [NeurolinkDataId],
+                ObjectIds = [NeurolinkBaseId],
                 StartCastIds = [
                     9967,  // exaflare part 1
                     9968,  // exaflare part 2
@@ -78,7 +78,7 @@ public class MoreExaflares : Mechanic
                     9942, // gigaflare
                 ],
                 ObjectIds = [
-                    NeurolinkDataId
+                    NeurolinkBaseId
                 ],
                 StartCastIds = [
                     9941,  // flatten
@@ -89,7 +89,7 @@ public class MoreExaflares : Mechanic
         }
     };
 
-    private const uint NeurolinkDataId = 0x1E88FF;
+    private const uint NeurolinkBaseId = 0x1E88FF;
     private int LiquidHellCounter = 0;
     private int CurrentNeuroCounter = 0;
     private bool GoldenCanSpawnExa = false;
@@ -191,7 +191,7 @@ public class MoreExaflares : Mechanic
     {
         if (newObject == null) { return; }
         var allowedAttacks = DifficultyInfo[Difficulty].ObjectIds;
-        if (!allowedAttacks.Contains(newObject.DataId)) { return; }
+        if (!allowedAttacks.Contains(newObject.BaseId)) { return; }
 
         if (DifficultyInfo[Difficulty].RequiredNeuroNum <= CurrentNeuroCounter)
         {

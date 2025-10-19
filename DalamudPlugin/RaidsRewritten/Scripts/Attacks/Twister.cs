@@ -25,7 +25,8 @@ public sealed class Twister(DalamudServices dalamud, CommonQueries commonQueries
             .Set(new Position())
             .Set(new Rotation())
             .Set(new Scale())
-            .Set(new Component())
+            // Short initial cooldown as the server may not immediately register standing on a real twister
+            .Set(new Component(0.4f))
             .Add<Attack>();
     }
 

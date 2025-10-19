@@ -1,4 +1,5 @@
 ﻿// Adapted from https://github.com/xivdev/Penumbra/blob/master/Penumbra/Interop/Structs/SeFileDescriptor.cs
+// 9822ab4
 using System.Runtime.InteropServices;
 
 namespace RaidsRewritten.Interop.Structs;

@@ -1,4 +1,5 @@
 ﻿// Adapted from https://github.com/0ceal0t/Dalamud-VFXEditor/blob/main/VFXEditor/Interop/ResourceLoader.Crc.cs
+// 855ac66
 using System;
 using System.Collections.Generic;
 using System.Threading;

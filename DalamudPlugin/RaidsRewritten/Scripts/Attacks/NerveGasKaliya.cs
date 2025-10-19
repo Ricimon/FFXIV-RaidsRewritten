@@ -33,6 +33,8 @@ public class NerveGasKaliya(DalamudServices dalamud, VfxSpawn vfxSpawn, CommonQu
 
     public record struct Component(float ElapsedTime, Phase Phase = Phase.Animation);
 
+    public record struct AttackDelay(float DelayTime = 0.0f);
+
     private const float OmenDuration = 0.75f;
     private const ushort IdleAnimation = 34;
     private const ushort AttackAnimation = 3212;
@@ -51,6 +53,7 @@ public class NerveGasKaliya(DalamudServices dalamud, VfxSpawn vfxSpawn, CommonQu
             .Set(new UniformScale(1f))
             .Set(new TimelineBase(IdleAnimation))
             .Set(new Component())
+            .Set(new AttackDelay())
             .Add<Attack>();
     }
 
@@ -58,8 +61,8 @@ public class NerveGasKaliya(DalamudServices dalamud, VfxSpawn vfxSpawn, CommonQu
 
     public void Register(World world)
     {
-        world.System<Component, Position, Rotation>()
-            .Each((Iter it, int i, ref Component component, ref Position position, ref Rotation rotation) =>
+        world.System<Component, Position, Rotation, AttackDelay>()
+            .Each((Iter it, int i, ref Component component, ref Position position, ref Rotation rotation, ref AttackDelay delay) =>
             {
                 component.ElapsedTime += it.DeltaTime();
                 var entity = it.Entity(i);
@@ -67,12 +70,12 @@ public class NerveGasKaliya(DalamudServices dalamud, VfxSpawn vfxSpawn, CommonQu
                 switch (component.Phase)
                 {
                     case Phase.Animation:
-                        if (ShouldReturn(component)) { return; }
+                        if (ShouldReturn(component, delay)) { return; }
                         entity.Set(new TimelineBase(AttackAnimation));
                         component.Phase = Phase.Omen;
                         break;
                     case Phase.Omen:
-                        if (ShouldReturn(component)) { return; }
+                        if (ShouldReturn(component, delay)) { return; }
                         Fan120Omen.CreateEntity(world)
                             .Set(new Position(position.Value))
                             .Set(new Rotation(rotation.Value))
@@ -82,7 +85,7 @@ public class NerveGasKaliya(DalamudServices dalamud, VfxSpawn vfxSpawn, CommonQu
                         component.Phase = Phase.Snapshot;
                         break;
                     case Phase.Snapshot:
-                        if (ShouldReturn(component)) { return; }
+                        if (ShouldReturn(component, delay)) { return; }
 
                         entity.Set(new TimelineBase(IdleAnimation));
 
@@ -113,19 +116,19 @@ public class NerveGasKaliya(DalamudServices dalamud, VfxSpawn vfxSpawn, CommonQu
                         component.Phase = Phase.Vfx;
                         break;
                     case Phase.Vfx:
-                        if (ShouldReturn(component)) { return; }
+                        if (ShouldReturn(component, delay)) { return; }
                         AddActorVfx(entity, AttackVfx);
                         component.Phase = Phase.Reset;
                         break;
                     case Phase.Reset:
-                        if (ShouldReturn(component)) { return; }
+                        if (ShouldReturn(component, delay)) { return; }
                         entity.Destruct();
                         break;
                 }
             });
     }
 
-    private bool ShouldReturn(Component component) => component.ElapsedTime < phaseTimings[component.Phase];
+    private bool ShouldReturn(Component component, AttackDelay delay) => component.ElapsedTime < phaseTimings[component.Phase] + delay.DelayTime;
 
     private static Entity AddActorVfx(Entity entity, string vfxPath)
     {

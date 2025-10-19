@@ -1,50 +1,30 @@
 ﻿using System;
 using Dalamud.Interface.Windowing;
 using RaidsRewritten.Log;
-using RaidsRewritten.UI.Presenter;
+using RaidsRewritten.UI.View;
 using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.UI;
 
 // It is good to have this be disposable in general, in case you ever need it
 // to do any cleanup
-public sealed class PluginUIContainer : IDalamudHook
+public sealed class PluginUIContainer(
+    IPluginUIView[] pluginUiViews,
+    MainWindow mainWindow,
+    DalamudServices dalamud,
+    WindowSystem windowSystem,
+    ILogger logger) : IDalamudHook
 {
-    private readonly IPluginUIPresenter[] pluginUIPresenters;
-    private readonly MainWindowPresenter mainWindowPresenter;
-    private readonly DalamudServices dalamud;
-    private readonly WindowSystem windowSystem;
-    private readonly ILogger logger;
-
-    public PluginUIContainer(
-        IPluginUIPresenter[] pluginUIPresenters,
-        MainWindowPresenter mainWindowPresenter,
-        DalamudServices dalamud,
-        WindowSystem windowSystem,
-        ILogger logger)
-    {
-        this.pluginUIPresenters = pluginUIPresenters;
-        this.mainWindowPresenter = mainWindowPresenter;
-        this.dalamud = dalamud;
-        this.windowSystem = windowSystem;
-        this.logger = logger;
-
-        foreach (var pluginUIPresenter in this.pluginUIPresenters)
-        {
-            pluginUIPresenter.SetupBindings();
-        }
-    }
-
     public void Dispose()
     {
-        this.dalamud.PluginInterface.UiBuilder.Draw -= Draw;
-        this.dalamud.PluginInterface.UiBuilder.OpenMainUi -= ShowMainWindow;
+        dalamud.PluginInterface.UiBuilder.Draw -= Draw;
+        dalamud.PluginInterface.UiBuilder.OpenMainUi -= ShowMainWindow;
     }
 
     public void HookToDalamud()
     {
-        this.dalamud.PluginInterface.UiBuilder.Draw += Draw;
-        this.dalamud.PluginInterface.UiBuilder.OpenMainUi += ShowMainWindow;
+        dalamud.PluginInterface.UiBuilder.Draw += Draw;
+        dalamud.PluginInterface.UiBuilder.OpenMainUi += ShowMainWindow;
     }
 
     public void Draw()
@@ -58,19 +38,19 @@ public sealed class PluginUIContainer : IDalamudHook
 
         try
         {
-            foreach (var pluginUIPresenter in this.pluginUIPresenters)
+            foreach (var view in pluginUiViews)
             {
-                pluginUIPresenter.View.Draw();
+                view.Draw();
             }
         }
         catch (Exception e)
         {
-            this.logger.Error(e.ToStringFull());
+            logger.Error(e.ToStringFull());
         }
     }
 
     private void ShowMainWindow()
     {
-        this.mainWindowPresenter.View.Visible = true;
+        mainWindow.Visible = true;
     }
 }

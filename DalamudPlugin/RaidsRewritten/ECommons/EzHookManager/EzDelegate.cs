@@ -1,4 +1,6 @@
-﻿using ECommons.DalamudServices;
+﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/EzHookManager/EzDelegate.cs
+// 3121eb8
+using ECommons.DalamudServices;
 using System.Runtime.InteropServices;
 
 namespace ECommons.EzHookManager;

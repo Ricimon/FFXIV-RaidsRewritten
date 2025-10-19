@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Adapted from https://github.com/PunishXIV/Splatoon/blob/main/Splatoon/Structures/CachedObjectEffectInfo.cs
+// 0054cc3
+using System;
 
 namespace RaidsRewritten.Structures;
 

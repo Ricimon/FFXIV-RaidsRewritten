@@ -1,4 +1,5 @@
 ﻿// Adapted from https://github.com/awgil/ffxiv_navmesh/blob/master/vnavmesh/Movement/OverrideCamera.cs
+// af6c884
 using System;
 using Dalamud.Game.Config;
 using Dalamud.Hooking;

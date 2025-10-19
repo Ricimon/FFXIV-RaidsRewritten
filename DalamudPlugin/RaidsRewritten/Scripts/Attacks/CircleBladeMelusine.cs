@@ -33,6 +33,8 @@ public class CircleBladeMelusine(DalamudServices dalamud, VfxSpawn vfxSpawn, Com
 
     public record struct Component(float ElapsedTime, Phase Phase = Phase.Omen);
 
+    public record struct AttackDelay(float DelayTime = 0.0f);
+
     private const float OmenDuration = 0.75f;
     private const ushort IdleAnimation = 34;
     private const ushort AttackAnimation = 2863;
@@ -52,6 +54,7 @@ public class CircleBladeMelusine(DalamudServices dalamud, VfxSpawn vfxSpawn, Com
             .Set(new UniformScale(2f))
             .Set(new TimelineBase(IdleAnimation))
             .Set(new Component())
+            .Set(new AttackDelay())
             .Add<Attack>();
     }
 
@@ -62,8 +65,8 @@ public class CircleBladeMelusine(DalamudServices dalamud, VfxSpawn vfxSpawn, Com
 
     public void Register(World world)
     {
-        world.System<Component, Position>()
-            .Each((Iter it, int i, ref Component component, ref Position position) =>
+        world.System<Component, Position, AttackDelay>()
+            .Each((Iter it, int i, ref Component component, ref Position position, ref AttackDelay delay) =>
             {
                 component.ElapsedTime += it.DeltaTime();
                 var entity = it.Entity(i);
@@ -71,7 +74,7 @@ public class CircleBladeMelusine(DalamudServices dalamud, VfxSpawn vfxSpawn, Com
                 switch (component.Phase)
                 {
                     case Phase.Omen:
-                        if (ShouldReturn(component)) { return; }
+                        if (ShouldReturn(component, delay)) { return; }
                         CircleOmen.CreateEntity(world)
                             .Set(new Position(position.Value))
                             .Set(new Scale(new Vector3(AttackScale)))
@@ -80,12 +83,12 @@ public class CircleBladeMelusine(DalamudServices dalamud, VfxSpawn vfxSpawn, Com
                         component.Phase = Phase.Animation;
                         break;
                     case Phase.Animation:
-                        if (ShouldReturn(component)) { return; }
+                        if (ShouldReturn(component, delay)) { return; }
                         entity.Set(new TimelineBase(AttackAnimation));
                         component.Phase = Phase.Snapshot;
                         break;
                     case Phase.Snapshot:
-                        if (ShouldReturn(component)) { return; }
+                        if (ShouldReturn(component, delay)) { return; }
 
                         entity.Set(new TimelineBase(IdleAnimation));
 
@@ -116,19 +119,19 @@ public class CircleBladeMelusine(DalamudServices dalamud, VfxSpawn vfxSpawn, Com
                         component.Phase = Phase.Vfx;
                         break;
                     case Phase.Vfx:
-                        if (ShouldReturn(component)) { return; }
+                        if (ShouldReturn(component, delay)) { return; }
                         AddActorVfx(entity, AttackVfx);
                         component.Phase = Phase.Reset;
                         break;
                     case Phase.Reset:
-                        if (ShouldReturn(component)) { return; }
+                        if (ShouldReturn(component, delay)) { return; }
                         entity.Destruct();
                         break;
                 }
             });
     }
 
-    private bool ShouldReturn(Component component) => component.ElapsedTime < phaseTimings[component.Phase];
+    private bool ShouldReturn(Component component, AttackDelay delay) => component.ElapsedTime < phaseTimings[component.Phase] + delay.DelayTime;
 
     private static Entity AddActorVfx(Entity entity, string vfxPath)
     {
