@@ -1,8 +1,8 @@
 {
   "Author": "Ricimon",
   "Name": "RaidsRewritten",
-  "Punchline": "Custom raid mechanics [IN DEVELOPMENT]",
-  "Description": "Augments existing raids with custom mechanics just for fun. [IN DEVELOPMENT]",
+  "Punchline": "Custom raid mechanics",
+  "Description": "Augments existing raids with custom mechanics just for fun.",
   "RepoUrl": "https://github.com/Ricimon/FFXIV-RaidsRewritten",
   "IconUrl": "https://raw.githubusercontent.com/Ricimon/FFXIV-RaidsRewritten/main/images/icon.png",
   "InternalName": "RaidsRewritten",
