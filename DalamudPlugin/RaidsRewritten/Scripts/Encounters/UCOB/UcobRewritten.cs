@@ -392,8 +392,8 @@ public class UcobRewritten : IEncounter
             }
             if (ImGui.InputInt("Gauge Scale", ref temperatureControlScale, 5))
             {
-                if (temperatureControlScale > 100) { temperatureControlScale = 100; }
-                if (temperatureControlScale < 50) { temperatureControlScale = 50; }
+                if (temperatureControlScale > 200) { temperatureControlScale = 200; }
+                if (temperatureControlScale < 25) { temperatureControlScale = 25; }
 
                 configuration.EncounterSettings[TemperatureControlScaleKey] = temperatureControlScale.ToString();
                 configuration.Save();
