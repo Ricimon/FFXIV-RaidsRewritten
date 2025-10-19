@@ -38,6 +38,13 @@ public class ChangelogWindow : IPluginUIView
         {
             if (child)
             {
+                ImGui.Text("v1.0.1");
+                using (var i = ImRaii.PushIndent())
+                {
+                    ImGui.TextWrapped("Added scaling support to temperature gauge UI." +
+                        "\nBugfix Dreadknight desync.");
+                }
+
                 ImGui.Text("v1.0.0");
                 using (var i = ImRaii.PushIndent())
                 {
