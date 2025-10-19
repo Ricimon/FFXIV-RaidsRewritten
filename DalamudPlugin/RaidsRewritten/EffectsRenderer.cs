@@ -26,7 +26,8 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
         public Vector2 ImageSize { get; set; }
         public string Path { get; set; }
         public float Value { get; set; }
-        public EffectGaugeEntry(Vector2 Position, Vector2 Offset, Vector2 BarSize, Vector2 ImageSize, string Path, float Value)
+        public float Scale { get; set; }
+        public EffectGaugeEntry(Vector2 Position, Vector2 Offset, Vector2 BarSize, Vector2 ImageSize, string Path, float Value, float Scale = 1)
         { 
             this.Position = Position;
             this.Offset = Offset;
@@ -34,6 +35,7 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
             this.ImageSize = ImageSize;
             this.Path = Path;
             this.Value = Value;
+            this.Scale = Scale;
         }
     }
 
@@ -184,18 +186,20 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
                 {
                     barText = $"{gaugeEntry.Value}";
                 }
-                var textSize = ImGui.CalcTextSize(barText);
-                var position = new Vector2(barPosition.X + fillWidth - (textSize.X/2), barPosition.Y + textSize.Y / 2 + PADDING_Y);
 
-                TextOutline(ImGui.GetFont(), 40, position, Vector4Colors.Black.ToColorU32(), barText, 2, drawList);
-                drawList.AddText(ImGui.GetFont(), 40, position, Vector4Colors.White.ToColorU32(), barText);
+                
+                var textSize = ImGui.CalcTextSize(barText);
+                var position = new Vector2(barPosition.X + fillWidth - (textSize.X * gaugeEntry.Scale / 2), barPosition.Y + textSize.Y * gaugeEntry.Scale / 2 + (PADDING_Y * gaugeEntry.Scale));
+
+                TextOutline(ImGui.GetFont(), 40 * gaugeEntry.Scale, position, Vector4Colors.Black.ToColorU32(), barText, 2, drawList);
+                drawList.AddText(ImGui.GetFont(), 40 * gaugeEntry.Scale, position, Vector4Colors.White.ToColorU32(), barText);
             }
 
         }
 
     }
 
-    private void TextOutline(ImFontPtr font, int fontSize, Vector2 position, UInt32 color, string text, int outline, ImDrawListPtr drawListPtr)
+    private void TextOutline(ImFontPtr font, float fontSize, Vector2 position, UInt32 color, string text, int outline, ImDrawListPtr drawListPtr)
     {
         drawListPtr.AddText(font, fontSize, position + new Vector2(-outline, -outline), color, text);
         drawListPtr.AddText(font, fontSize, position + new Vector2(outline, -outline), color, text);
@@ -216,11 +220,13 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
 
     private void AddTemperature(List<EffectGaugeEntry> toDraw, Temperature.Component tc) 
     {
-        Vector2 offset = new Vector2(64, 79);
-        Vector2 barSize = new Vector2(370, 24);
-        Vector2 imageSize = new Vector2(498, 147);
+        float scaleFloat = configuration.GetEncounterSetting(Temperature.GaugeScaleConfig, 100) / 100.0f;
+        Vector2 scaler = new Vector2(scaleFloat, scaleFloat);
+        Vector2 offset = new Vector2(64, 79) * scaler;
+        Vector2 barSize = new Vector2(370, 24) * scaler;
+        Vector2 imageSize = new Vector2(498, 147) * scaler;
         Vector2 position = new Vector2(configuration.GetEncounterSetting(Temperature.GaugeXPositionConfig, 0) - imageSize.X / 2, configuration.GetEncounterSetting(Temperature.GaugeYPositionConfig, 0) - imageSize.Y / 2);
         var path = Temperature.GaugeImagePath;
-        toDraw.Add(new EffectGaugeEntry(position, offset, barSize, imageSize, path, tc.CurrentTemperature));
+        toDraw.Add(new EffectGaugeEntry(position, offset, barSize, imageSize, path, tc.CurrentTemperature, scaleFloat));
     }
 }
