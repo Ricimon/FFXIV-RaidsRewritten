@@ -255,10 +255,10 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
     private void AddTemperature(List<EffectGaugeEntry> toDraw, Temperature.Component tc) 
     {
         float scaleFloat = configuration.GetEncounterSetting(Temperature.GaugeScaleConfig, 100) / 100.0f;
-        Vector2 scalar = new Vector2(scaleFloat, scaleFloat);
-        Vector2 offset = new Vector2(64, 79) * scalar;
-        Vector2 barSize = new Vector2(370, 24) * scalar;
-        Vector2 imageSize = new Vector2(498, 147) * scalar;
+        Vector2 scaler = new Vector2(scaleFloat, scaleFloat);
+        Vector2 offset = new Vector2(64, 79) * scaler;
+        Vector2 barSize = new Vector2(370, 24) * scaler;
+        Vector2 imageSize = new Vector2(498, 147) * scaler;
         Vector2 position = new Vector2(configuration.GetEncounterSetting(Temperature.GaugeXPositionConfig, 0) - imageSize.X / 2, configuration.GetEncounterSetting(Temperature.GaugeYPositionConfig, 0) - imageSize.Y / 2);
         var path = Temperature.GaugeImagePath;
         toDraw.Add(new EffectGaugeEntry(position, offset, barSize, imageSize, path, tc.CurrentTemperature, scaleFloat));
