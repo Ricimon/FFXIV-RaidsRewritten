@@ -210,7 +210,7 @@ public class UcobRewritten : IEncounter
         rngSeed = EncounterUtilities.IncrementRngSeed(rngSeed);
         configuration.EncounterSettings[RngSeedKey] = rngSeed;
         configuration.Save();
-        this.dalamud.ChatGui.Print($"RNG seed is now ${rngSeed}", PluginInitializer.Name);
+        this.dalamud.ChatGui.Print($"RNG seed is now {rngSeed}", PluginInitializer.Name);
         RefreshMechanics();
     }
 

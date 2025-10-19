@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
-using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Plugin.Services;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
@@ -10,9 +9,9 @@ using RaidsRewritten.Scripts.Attacks;
 using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
 
-namespace RaidsRewritten.Scripts.Encounters.UCOB;
+namespace RaidsRewritten.Scripts.Encounters.E1S;
 
-public class DreadknightInUCoB : Mechanic
+public class DreadknightTest : Mechanic
 {
     private enum CrowdControlType
     {
@@ -98,14 +97,8 @@ public class DreadknightInUCoB : Mechanic
         }
     };
 
-    private const uint NeurolinkBaseId = 0x1E88FF;
-    private readonly Vector3 ArenaCenter = new(0,0,0);
-    private const int GenerateId = 9902;
-    private const int HatchId = 9903;
-    private const float BaseSpeedIncrement = 0.5f;
-    private const float TwintaniaId = 0x1FDF;
-    private const byte AddsWeather = 31;
-    private const float AddsDreadknightSpawnDelay = 10f;
+    private readonly Vector3 ArenaCenter = new(100,0,100);
+    private const float BossId = 0x2495;
     private const string SwappableTetherVfx = "vfx/channeling/eff/chn_light01f.avfx";
     private const int SecondsUntilSwappable = 60;
     private const string StartMessage = "Twintania channels energy to the Dreadknight...";
@@ -126,10 +119,7 @@ public class DreadknightInUCoB : Mechanic
     ];
 
     private Entity? dreadknight;
-    private readonly List<Entity> attacks = [];
 
-    private int neurolinksSpawned = 0;
-    private int oviformsOnField = 0;
     private DateTime lastTargetSwap = DateTime.MinValue;
     private bool tetherVfxChanged = true;
     private Query<Sleep.Component>? sleepQuery;
@@ -138,12 +128,6 @@ public class DreadknightInUCoB : Mechanic
     public override void Reset()
     {
         SoftReset();
-        neurolinksSpawned = 0;
-        foreach (var attack in attacks)
-        {
-            attack.Destruct();
-        }
-        attacks.Clear();
     }
 
     private void SoftReset()
@@ -154,7 +138,6 @@ public class DreadknightInUCoB : Mechanic
         this.sleepQuery = null;
         this.bindQuery?.Dispose();
         this.bindQuery = null;
-        oviformsOnField = 0;
         lastTargetSwap = DateTime.MinValue;
         tetherVfxChanged = true;
     }
@@ -175,28 +158,9 @@ public class DreadknightInUCoB : Mechanic
 
     public override void OnCombatStart()
     {
+        SoftReset();
+
         SpawnDreadknight();
-    }
-
-    public override void OnWeatherChange(byte weather)
-    {
-        if (weather == AddsWeather)
-        {
-            attacks.Add(DelayedAction.Create(World, SpawnDreadknight, AddsDreadknightSpawnDelay));
-        }
-    }
-
-    public override void OnObjectCreation(nint newObjectPointer, IGameObject? newObject)
-    {
-        if (newObject == null) { return; }
-        if (newObject.BaseId != NeurolinkBaseId) { return; }
-
-        neurolinksSpawned++;
-
-        if (neurolinksSpawned > 2)
-        {
-            SoftReset();
-        }
     }
 
     public override void OnActionEffectEvent(ActionEffectSet set)
@@ -206,10 +170,10 @@ public class DreadknightInUCoB : Mechanic
 
         var isCancellingCC = Data.Actions.DamageActions.Contains(set.Action.Value.RowId) ||
             Data.Actions.AutoAttacks.Contains(set.Action.Value.RowId);
-        var isTargetingTwintania = set.Target?.BaseId == TwintaniaId;
+        var isTargetingBoss = set.Target?.BaseId == BossId;
 
         // don't want to keep looping over entity's children if not cancellable
-        if (isCancellingCC && isTargetingTwintania)
+        if (isCancellingCC && isTargetingBoss)
         {
             if (sleepQuery.HasValue && sleepQuery.Value.IsTrue() || bindQuery.HasValue && bindQuery.Value.IsTrue())
             {
@@ -217,23 +181,7 @@ public class DreadknightInUCoB : Mechanic
             }
         }
 
-        if (set.Action.Value.RowId == GenerateId)
-        {
-            oviformsOnField = neurolinksSpawned;
-            return;
-        } else if (set.Action.Value.RowId == HatchId) {
-            oviformsOnField--;
-            if (oviformsOnField <= 0 && dreadknight.HasValue)
-            {
-                var speedIncrement = BaseSpeedIncrement;
-                if (neurolinksSpawned >= 3)
-                {
-                    speedIncrement *= 2;
-                }
-                Dreadknight.IncrementSpeed(dreadknight.Value, speedIncrement);
-            }
-            return;
-        } else if (baitActionIds.Contains(set.Action.Value.RowId) && isTargetingTwintania) {
+       if (baitActionIds.Contains(set.Action.Value.RowId) && isTargetingBoss) {
             var timeDiff = DateTime.UtcNow - lastTargetSwap;
             if (!(timeDiff.TotalSeconds < SecondsUntilSwappable && Dreadknight.HasTarget(dreadknight.Value)))
             {
@@ -246,7 +194,7 @@ public class DreadknightInUCoB : Mechanic
             }
         }
 
-        if (CrowdControlDict.TryGetValue(set.Action.Value.RowId, out var ccData) && isTargetingTwintania)
+        if (CrowdControlDict.TryGetValue(set.Action.Value.RowId, out var ccData) && isTargetingBoss)
         {
             HandleCC(ccData);
         }
@@ -275,27 +223,20 @@ public class DreadknightInUCoB : Mechanic
         }
     }
 
-    public override void OnVFXSpawn(IGameObject? target, string vfxPath)
-    {
-        if (vfxPath.Equals("vfx/channeling/eff/chn_kosoku1f.avfx"))
-        {
-            Reset();
-        }
-    }
-
     public override void OnFrameworkUpdate(IFramework framework)
     {
-        if (dreadknight.HasValue && !tetherVfxChanged && (DateTime.UtcNow - lastTargetSwap).TotalSeconds >= SecondsUntilSwappable)
+        if (dreadknight.HasValue)
         {
-            Dreadknight.ChangeTetherVfx(dreadknight.Value, SwappableTetherVfx);
-            tetherVfxChanged = true;
+            if (!tetherVfxChanged && (DateTime.UtcNow - lastTargetSwap).TotalSeconds >= SecondsUntilSwappable)
+            {
+                Dreadknight.ChangeTetherVfx(dreadknight.Value, SwappableTetherVfx);
+                tetherVfxChanged = true;
+            }
         }
     }
 
     private void SpawnDreadknight()
     {
-        SoftReset();
-
         if (this.EntityManager.TryCreateEntity<Dreadknight>(out var dreadknight))
         {
             Dalamud.ToastGui.ShowNormal(StartMessage);
@@ -305,7 +246,7 @@ public class DreadknightInUCoB : Mechanic
 
             foreach (var obj in Dalamud.ObjectTable)
             {
-                if (obj.BaseId == TwintaniaId)
+                if (obj.BaseId == BossId)
                 {
                     dreadknight.Set(new Dreadknight.BackupTarget(obj));
                     break;

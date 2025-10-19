@@ -97,7 +97,7 @@ public unsafe sealed class ActionManagerEx : IDisposable
         }
 
         var res = useActionHook.Original(self, actionType, actionId, targetId, extraParam, mode, comboRouteId, outOptAreaTargeted);
-        this.logger.Debug($"USE_ACTION: type:{actionType}, actionId:{actionId}, targetId:{targetId}, mode:{mode}, comboRouteId:{comboRouteId}, ret:{res}");
+        this.logger.Trace($"USE_ACTION: type:{actionType}, actionId:{actionId}, targetId:{targetId}, mode:{mode}, comboRouteId:{comboRouteId}, ret:{res}");
         return res;
     }
 
@@ -126,7 +126,7 @@ public unsafe sealed class ActionManagerEx : IDisposable
         //if (preventAutos)
         //    targetSystem->Target = null;
         bool ret = useActionLocationHook.Original(self, actionType, actionId, targetId, location, extraParam, a7);
-        this.logger.Debug($"USE_ACTION_LOCATION: type:{actionType}, actionId:{actionId}, targetId:{targetId}, location:{*location}, ret:{ret}");
+        this.logger.Trace($"USE_ACTION_LOCATION: type:{actionType}, actionId:{actionId}, targetId:{targetId}, location:{*location}, ret:{ret}");
         //if (preventAutos)
         //    targetSystem->Target = hardTarget;
         return ret;

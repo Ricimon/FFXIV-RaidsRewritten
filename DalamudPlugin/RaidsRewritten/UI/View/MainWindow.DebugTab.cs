@@ -62,10 +62,20 @@ public partial class MainWindow
             var player = this.dalamud.ClientState.LocalPlayer;
             if (player != null)
             {
-                this.logger.Info($"Player position:{player.Position}, address:0x{player.Address:X}, entityId:0x{player.EntityId:X}, gameObjectId:0x{player.GameObjectId}");
+                this.logger.Info($"Player position:{player.Position}, address:0x{player.Address:X}, entityId:0x{player.EntityId:X}, gameObjectId:0x{player.GameObjectId:X}");
             }
         }
         ImGui.SameLine();
+        if (ImGui.Button("Print Target Data"))
+        {
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player != null && player.TargetObject != null)
+            {
+                var target = player.TargetObject;
+                this.logger.Info($"Target position:{target.Position}, address:0x{target.Address:X}, entityId:0x{target.EntityId:X}, gameObjectId:0x{target.GameObjectId:X}, baseId:0x{target.BaseId:X}");
+            }
+        }
+
         if (ImGui.Button("Print Weather/Time Data"))
         {
             unsafe

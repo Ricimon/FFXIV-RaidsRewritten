@@ -13,6 +13,7 @@ public class EdenPrimeTest(Mechanic.Factory mechanicFactory, DalamudServices dal
     // Config
     private string RngSeedKey => $"{Name}.RngSeed";
     private string RollingBallKey => $"{Name}.RollingBall";
+    private string DreadknightKey => $"{Name}.Dreadknight";
 
     private readonly List<Mechanic> mechanics = [];
 
@@ -34,6 +35,11 @@ public class EdenPrimeTest(Mechanic.Factory mechanicFactory, DalamudServices dal
             rollingBall.RngSeed = RandomUtilities.HashToRngSeed(seed);
             this.mechanics.Add(rollingBall);
         }
+ 
+        if (configuration.GetEncounterSetting(DreadknightKey, true))
+        {
+            this.mechanics.Add(mechanicFactory.Create<DreadknightTest>());
+        }
     }
 
     public void Unload()
@@ -51,7 +57,7 @@ public class EdenPrimeTest(Mechanic.Factory mechanicFactory, DalamudServices dal
         rngSeed = EncounterUtilities.IncrementRngSeed(rngSeed);
         configuration.EncounterSettings[RngSeedKey] = rngSeed;
         configuration.Save();
-        dalamud.ChatGui.Print($"RNG seed is now ${rngSeed}", PluginInitializer.Name);
+        dalamud.ChatGui.Print($"RNG seed is now {rngSeed}", PluginInitializer.Name);
         RefreshMechanics();
     }
 
@@ -72,6 +78,15 @@ public class EdenPrimeTest(Mechanic.Factory mechanicFactory, DalamudServices dal
         {
             configuration.EncounterSettings[RollingBallKey] =
                 rollingBall ? bool.TrueString : bool.FalseString;
+            configuration.Save();
+            RefreshMechanics();
+        }
+
+        bool dreadknight = configuration.GetEncounterSetting(DreadknightKey, true);
+        if (ImGui.Checkbox("Dreadknight", ref dreadknight))
+        {
+            configuration.EncounterSettings[DreadknightKey] =
+                dreadknight ? bool.TrueString : bool.FalseString;
             configuration.Save();
             RefreshMechanics();
         }
