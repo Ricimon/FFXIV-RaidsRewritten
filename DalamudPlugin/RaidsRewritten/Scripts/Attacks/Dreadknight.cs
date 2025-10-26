@@ -118,7 +118,7 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
                     if (!component.EnrageLoop)
                     {
                         ShowTextGimmick(EnrageMessage, EnrageNotificationDuration);
-                        dalamud.ChatGui.Print(EnrageMessage);
+                        dalamud.ChatGui.PrintSystemMessage(EnrageMessage);
                     }
                     if (animationState.Value != CastingAnimation) { entity.Set(new TimelineBase(CastingAnimation, true)); }
                     DelayedAction.Create(world, () => AddActorVfx(entity, EnrageVfx1), EnrageVfxDelay).ChildOf(entity);

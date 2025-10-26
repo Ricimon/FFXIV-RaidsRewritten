@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Game.Text;
 using Dalamud.Interface.Utility.Raii;
 using RaidsRewritten.Game;
 using RaidsRewritten.Scripts.Conditions;
@@ -210,7 +211,7 @@ public class UcobRewritten : IEncounter
         rngSeed = EncounterUtilities.IncrementRngSeed(rngSeed);
         configuration.EncounterSettings[RngSeedKey] = rngSeed;
         configuration.Save();
-        this.dalamud.ChatGui.Print($"RNG seed is now {rngSeed}", PluginInitializer.Name);
+        this.dalamud.ChatGui.PrintSystemMessage($"RNG seed is now {rngSeed}", PluginInitializer.Name);
         RefreshMechanics();
     }
 

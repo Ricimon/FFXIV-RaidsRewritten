@@ -3,6 +3,7 @@ using System.IO;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Game.Text;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using ZLinq;
@@ -49,5 +50,18 @@ public static class DalamudExtensions
     {
         // 418 = Transcendance status ID
         return battleChara.StatusList.AsValueEnumerable().Any(s => s.StatusId == 418);
+    }
+
+    public static void PrintSystemMessage(this IChatGui chatGui, string message, string? messageTag = null)
+    {
+        if (messageTag != null)
+        {
+            message = $"[{messageTag}] {message}";
+        }
+        chatGui.Print(new XivChatEntry
+        {
+            Message = message,
+            Type = XivChatType.SystemMessage,
+        });
     }
 }

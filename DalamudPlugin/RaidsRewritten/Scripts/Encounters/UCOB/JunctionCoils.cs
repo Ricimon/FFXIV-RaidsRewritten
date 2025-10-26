@@ -9,6 +9,7 @@ using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Scripts.Attacks;
 using RaidsRewritten.Scripts.Components;
+using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
@@ -188,7 +189,7 @@ public class JunctionCoils : Mechanic
                 var da = DelayedAction.Create(World, () =>
                 {
                     Dalamud.ToastGui.ShowNormal(OctetMessage);
-                    Dalamud.ChatGui.Print(OctetMessage);
+                    Dalamud.ChatGui.PrintSystemMessage(OctetMessage);
                     ShowAds(OctetTelegraph, TelegraphDelay);
                 }, OctetDelay);
 
@@ -215,7 +216,7 @@ public class JunctionCoils : Mechanic
                 var da1 = DelayedAction.Create(World, () => 
                 {
                     Dalamud.ToastGui.ShowNormal(PhoenixMessage);
-                    Dalamud.ChatGui.Print(PhoenixMessage);
+                    Dalamud.ChatGui.PrintSystemMessage(PhoenixMessage);
                     ShowAds(telegraphs[playerNumber], TelegraphDelay);
                 }, SpawnDelay);
 

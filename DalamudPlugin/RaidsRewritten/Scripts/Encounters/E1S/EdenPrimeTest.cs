@@ -57,7 +57,7 @@ public class EdenPrimeTest(Mechanic.Factory mechanicFactory, DalamudServices dal
         rngSeed = EncounterUtilities.IncrementRngSeed(rngSeed);
         configuration.EncounterSettings[RngSeedKey] = rngSeed;
         configuration.Save();
-        dalamud.ChatGui.Print($"RNG seed is now {rngSeed}", PluginInitializer.Name);
+        dalamud.ChatGui.PrintSystemMessage($"RNG seed is now {rngSeed}", PluginInitializer.Name);
         RefreshMechanics();
     }
 

@@ -9,6 +9,7 @@ using Flecs.NET.Core;
 using RaidsRewritten.Scripts.Attacks;
 using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
+using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Encounters.UCOB;
 
@@ -299,7 +300,7 @@ public class DreadknightInUCoB : Mechanic
         if (this.EntityManager.TryCreateEntity<Dreadknight>(out var dreadknight))
         {
             Dalamud.ToastGui.ShowNormal(StartMessage);
-            Dalamud.ChatGui.Print(StartMessage);
+            Dalamud.ChatGui.PrintSystemMessage(StartMessage);
             dreadknight.Set(new Position(ArenaCenter));
             this.dreadknight = dreadknight;
 
