@@ -102,6 +102,7 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
     public void Draw()
     {
         if (!this.font.Available) return;
+        if (configuration.EverythingDisabled) return;
 
         toDraw.Clear();
         toGaugeDraw.Clear();

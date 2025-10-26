@@ -103,14 +103,15 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
                                 c.Mut(ref it).Destruct();
                             }
                         });
+
+                        DisableAllOverrides();
+                        return;
                     }
 
 #if DEBUG
-                    if (configuration.PunishmentImmunity) {
-                        playerManager.OverrideMovement = PlayerMovementOverride.OverrideMovementState.None;
-                        playerManager.ForceWalk = PlayerMovementOverride.ForcedWalkState.None;
-                        playerManager.DisableAllActions = false;
-                        playerManager.DisableDamagingActions = false;
+                    if (configuration.PunishmentImmunity)
+                    {
+                        DisableAllOverrides();
                         return;
                     }
 #endif
@@ -206,5 +207,13 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
                     logger.Error(e.ToStringFull());
                 }
             });
+    }
+
+    private void DisableAllOverrides()
+    {
+        playerManager.OverrideMovement = PlayerMovementOverride.OverrideMovementState.None;
+        playerManager.ForceWalk = PlayerMovementOverride.ForcedWalkState.None;
+        playerManager.DisableAllActions = false;
+        playerManager.DisableDamagingActions = false;
     }
 }
