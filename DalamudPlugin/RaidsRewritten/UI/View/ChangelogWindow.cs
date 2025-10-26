@@ -38,6 +38,13 @@ public class ChangelogWindow : IPluginUIView
         {
             if (child)
             {
+                ImGui.Text("v1.0.2");
+                using (var i = ImRaii.PushIndent())
+                {
+                    ImGui.TextWrapped("Changed fake messages type from Echo to SystemMessage." +
+                        "\nAdded support for changing status text color.");
+                }
+
                 ImGui.Text("v1.0.1");
                 using (var i = ImRaii.PushIndent())
                 {

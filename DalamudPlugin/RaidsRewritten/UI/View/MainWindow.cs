@@ -215,6 +215,10 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
             configuration.Save();
         }
 
+        ImGui.SameLine();
+        var p = ImGui.GetCursorPos();
+        ImGui.NewLine();
+
         var effectsRendererPositionY = configuration.EffectsRendererPositionY;
         if (ImGui.InputInt("Status Display Position Y", ref effectsRendererPositionY, 5))
         {
@@ -223,12 +227,42 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
         }
         ImGui.PopItemWidth();
 
+        ImGui.SetCursorPos(p);
+        var spacing = ImGui.GetFrameHeightWithSpacing() - ImGui.GetFrameHeight();
+        if (ImGui.Button("Color", new Vector2(0, 2 * ImGui.GetFrameHeight() + spacing)))
+        {
+            ImGui.OpenPopup("status_text_color");
+        }
+        using (var statusTextColorPopup = ImRaii.Popup("status_text_color"))
+        {
+            if (statusTextColorPopup)
+            {
+                var color = configuration.StatusTextColor;
+                if (ImGui.ColorPicker3("Status Text Color", ref color))
+                {
+                    configuration.StatusTextColor = color;
+                    configuration.Save();
+                }
+
+                ImGui.SameLine();
+                p = ImGui.GetCursorPos();
+                if (ImGui.Button("Reset Color"))
+                {
+                    configuration.StatusTextColor = new Configuration().StatusTextColor;
+                    configuration.Save();
+                }
+
+                ImGui.SetCursorPos(p + new Vector2(0, ImGui.GetFrameHeightWithSpacing()));
+                if (ImGui.Button("Display Fake Status"))
+                {
+                    DisplayFakeStatus();
+                }
+            }
+        }
+
         if (ImGui.Button("Display Fake Status"))
         {
-            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
-            {
-                this.World.Entity().Set(new Condition.Component("Fake Status", 15.0f, DateTime.UtcNow)).ChildOf(e);
-            });
+            DisplayFakeStatus();
         }
 
         ImGui.SameLine();
@@ -319,5 +353,13 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
         //    Process.Start(new ProcessStartInfo { FileName = "https://ko-fi.com/ricimon", UseShellExecute = true });
         //}
         //ImGui.PopStyleColor(3);
+    }
+
+    private void DisplayFakeStatus()
+    {
+        commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+        {
+            this.World.Entity().Set(new Condition.Component("Fake Status", 15.0f, DateTime.UtcNow)).ChildOf(e);
+        });
     }
 }

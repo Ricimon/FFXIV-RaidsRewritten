@@ -133,7 +133,7 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
                 {
                     var textSize = effectEntry.TextSize;
                     var position = new Vector2(configuration.EffectsRendererPositionX - textSize.X / 2, configuration.EffectsRendererPositionY + offsetY);
-                    drawList.AddText(ImGui.GetFont(), 50, position, Vector4Colors.Red.ToColorU32(), effectEntry.Text);
+                    drawList.AddText(ImGui.GetFont(), 50, position, configuration.StatusTextColor.ToColorU32(), effectEntry.Text);
                     offsetY += textSize.Y;
                 }
             }

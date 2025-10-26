@@ -1,8 +1,10 @@
-﻿using Dalamud.Configuration;
+﻿using System;
+using System.Collections.Generic;
+using System.Numerics;
+using Dalamud.Configuration;
 using Dalamud.Plugin;
 using NLog;
-using System;
-using System.Collections.Generic;
+using RaidsRewritten.UI.Util;
 
 namespace RaidsRewritten
 {
@@ -11,9 +13,11 @@ namespace RaidsRewritten
     {
         public int Version { get; set; } = 0;
 
-        public bool EverythingDisabled = false;
+        public bool EverythingDisabled { get; set; } = false;
 
-        public bool PunishmentImmunity = false;
+        public Vector3 StatusTextColor { get; set; } = Vector4Colors.Red.AsVector3();
+
+        public bool PunishmentImmunity { get; set; } = false;
 
         public Dictionary<string, string> EncounterSettings = [];
 
