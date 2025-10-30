@@ -41,7 +41,7 @@ public class ChangelogWindow : IPluginUIView
                 ImGui.Text("v1.0.3");
                 using (var i = ImRaii.PushIndent())
                 {
-                    ImGui.TextWrapped("Minor bugfix.");
+                    ImGui.TextWrapped("Fix a missing instance of heat generation.");
                 }
 
                 ImGui.Text("v1.0.2");
