@@ -28,6 +28,9 @@ public class TemperatureControl : Mechanic
             9901, new HeatData { HeatValue = 20.0f, ID = 9901, DelaySeconds = 1.1f } //Liquid hell
         },
         {
+            9914, new HeatData { HeatValue = 50.0f, ID = 9914, DelaySeconds = 3.6f} //Megaflare (Nael/AOE)
+        },
+        {
             9917, new HeatData { HeatValue = 40.0f, ID = 9917, DelaySeconds = 0.8f } //Thermeonic Beam
         },
         {
