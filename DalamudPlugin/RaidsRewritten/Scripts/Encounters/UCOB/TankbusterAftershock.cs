@@ -64,15 +64,20 @@ public class TankbusterAftershock : Mechanic
     private const float PacifyDurationSeconds = 20f;
     private readonly List<List<Entity>> attacks = [];
 
+    public override void Reset()
+    {
+        for (var i = attacks.Count - 1; i >= 0; i--)
+        {
+            Reset(attacks[i]);
+        }
+        attacks.Clear();
+    }
+
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
     {
         if (a3 == DirectorUpdateCategory.Wipe)
         {
-            foreach (var ToDestruct in attacks)
-            {
-                Reset(ToDestruct);
-            }
-            attacks.Clear();
+            Reset();
         }
     }
 

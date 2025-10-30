@@ -38,6 +38,12 @@ public class ChangelogWindow : IPluginUIView
         {
             if (child)
             {
+                ImGui.Text("v1.0.3");
+                using (var i = ImRaii.PushIndent())
+                {
+                    ImGui.TextWrapped("Minor bugfix.");
+                }
+
                 ImGui.Text("v1.0.2");
                 using (var i = ImRaii.PushIndent())
                 {
