@@ -21,7 +21,7 @@ RaidsRewritten is (currently) entirely executed client-side. It hooks fight even
 
 #### Why is there a server folder then?
 
-Please see [here]() for why.
+Please see [here](raidsrewritten_server/README.md).
 
 ## Support Discord
 
