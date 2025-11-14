@@ -1,57 +1,37 @@
 use crate::game::role::Role;
 use serde::{Deserialize, Serialize};
+use serde_repr::*;
 
-// https://stackoverflow.com/a/57578431
-macro_rules! back_to_enum {
-    ($(#[$meta:meta])* $vis:vis enum $name:ident {
-        $($(#[$vmeta:meta])* $vname:ident $(= $val:expr)?,)*
-    }) => {
-        $(#[$meta])*
-        $vis enum $name {
-            $($(#[$vmeta])* $vname $(= $val)?,)*
-        }
+#[derive(Serialize_repr, Deserialize_repr, PartialEq, Default, Debug)]
+#[repr(u32)]
+pub enum Action {
+    #[default]
+    None = 0,
 
-        impl std::convert::TryFrom<u32> for $name {
-            type Error = ();
+    // To server
+    UpdatePlayer = 1,
+    UpdateStatus = 2,
+    StartMechanic = 3,
 
-            fn try_from(v: u32) -> Result<Self, Self::Error> {
-                match v {
-                    $(x if x == $name::$vname as u32 => Ok($name::$vname),)*
-                    _ => Err(()),
-                }
-            }
-        }
-    }
+    // To client
+    PlayVfx = 51,
+    ApplyCondition = 52,
 }
 
-back_to_enum! {
-    #[repr(u32)]
-    pub enum Action {
-        None = 0,
-
-        // To server
-        UpdatePlayer = 1,
-        UpdateStatus = 2,
-        StartMechanic = 3,
-
-        // To client
-        PlayVfx = 51,
-        ApplyCondition = 52,
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Default, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct Message {
     #[serde(rename = "a")]
-    action: i32,
+    pub action: Action,
 
-    update_player: Option<UpdatePlayerPayload>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub update_player: Option<UpdatePlayerPayload>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct UpdatePlayerPayload {
-    id: u64,
-    name: String,
-    role: Role,
-    party: String,
+    pub id: u64,
+    pub name: String,
+    pub role: Role,
+    pub party: String,
 }

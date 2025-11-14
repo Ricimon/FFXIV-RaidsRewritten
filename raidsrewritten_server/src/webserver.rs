@@ -1,16 +1,14 @@
 pub mod message;
 
 use crate::MessageToEcs;
-use crate::game::role::Role;
 use axum::routing::get;
-use rmpv::Value::{self, Map};
+use rmpv::Value;
 use socketioxide::{
     SocketIo,
     extract::{AckSender, Data, SocketRef},
     layer::SocketIoLayer,
     socket::DisconnectReason,
 };
-use std::convert::{TryFrom, TryInto};
 use std::sync::mpsc::Sender;
 use tracing::info;
 
@@ -21,8 +19,18 @@ async fn on_connect_impl(
 ) {
     info!(ns = socket.ns(), ?socket.id, "Socket.IO connected");
 
+    // socket
+    //     .emit(
+    //         "message",
+    //         &message::Message {
+    //             action: message::Action::PlayVfx,
+    //             ..Default::default()
+    //         },
+    //     )
+    //     .ok();
+
     let tx = tx_to_ecs.clone();
-    let on_message = async |socket: SocketRef, Data::<Value>(data)| {
+    let on_message = async |socket: SocketRef, Data(data): Data<message::Message>| {
         on_message_impl(socket, Data(data), tx).await;
     };
     socket.on("message", on_message);
@@ -35,37 +43,28 @@ async fn on_connect_impl(
     socket.on_disconnect(on_disconnect);
 }
 
-async fn on_message_impl(socket: SocketRef, Data(data): Data<Value>, tx: Sender<MessageToEcs>) {
-    info!(?socket.id, "Received message\n{:#?}", data);
-    socket.emit("message-back", &data).ok();
+async fn on_message_impl(
+    socket: SocketRef,
+    Data(message): Data<message::Message>,
+    tx: Sender<MessageToEcs>,
+) {
+    info!(?socket.id, "Received message\n{:#?}", message);
+    socket.emit("message-back", &message).ok();
 
-    if let Map(vec) = data {
-        let mut iter = vec.iter();
-        if let Some(action_number) = iter.find_map(|x| {
-            if (&x).0.as_str() == Some("a")
-                && let Some(i) = (&x).1.as_u64()
-            {
-                return u32::try_from(i).ok();
-            } else {
-                return None;
-            }
-        }) {
-            match action_number.try_into() {
-                Ok(message::Action::UpdatePlayer) => {
-                    info!("Update Player received!");
-
-                    tx.send(MessageToEcs::UpdatePlayer {
-                        socket_id: socket.id,
-                        content_id: 0,
-                        name: "invalid".to_string(),
-                        role: Role::None,
-                        party: "invalid".to_string(),
-                    })
-                    .unwrap();
-                }
-                _ => {}
+    match message.action {
+        message::Action::UpdatePlayer => {
+            if let Some(update_player) = message.update_player {
+                tx.send(MessageToEcs::UpdatePlayer {
+                    socket_id: socket.id,
+                    content_id: update_player.id,
+                    name: update_player.name,
+                    role: update_player.role,
+                    party: update_player.party,
+                })
+                .unwrap();
             }
         }
+        _ => {}
     }
 }
 

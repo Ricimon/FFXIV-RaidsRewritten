@@ -1,8 +1,10 @@
-use serde::{Deserialize, Serialize};
+use serde_repr::*;
 use strum_macros::IntoStaticStr;
 
-#[derive(Serialize, Deserialize, Debug, IntoStaticStr)]
+#[derive(Serialize_repr, Deserialize_repr, PartialEq, IntoStaticStr, Default, Debug)]
+#[repr(u32)]
 pub enum Role {
+    #[default]
     None = 0,
     Tank = 1,
     Healer = 2,
