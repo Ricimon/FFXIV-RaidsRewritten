@@ -1,9 +1,9 @@
 mod ecs_container;
 mod game;
+mod message_to_ecs;
 mod webserver;
 
-use game::role::Role;
-use socketioxide::socket::Sid;
+use message_to_ecs::MessageToEcs;
 use std::sync::mpsc;
 use tracing_subscriber::FmtSubscriber;
 
@@ -14,20 +14,6 @@ use tracing_subscriber::FmtSubscriber;
 // Therefore, for the webserver system to affect the ECS system, it needs to send information through a Channel.
 // The ECS system can then pick up these messages every game tick to process and affect the ECS world.
 // Conversely, the socketioxide SocketIo object can be cheaply cloned, so it's directly cloned and used in the ECS system.
-enum MessageToEcs {
-    Test,
-
-    UpdatePlayer {
-        socket_id: Sid,
-        content_id: u64,
-        name: String,
-        role: Role,
-        party: String,
-    },
-    RemovePlayer {
-        socket_id: Sid,
-    },
-}
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

@@ -37,6 +37,7 @@ public struct Message
         public Role role;
         public string party;
     }
+    [JsonProperty(PropertyName = "up")]
     public UpdatePlayerPayload? updatePlayer;
 
     public struct UpdateStatusPayload

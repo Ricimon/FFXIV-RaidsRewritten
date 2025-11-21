@@ -64,6 +64,18 @@ async fn on_message_impl(
                 .unwrap();
             }
         }
+        message::Action::UpdateStatus => {
+            if let Some(update_status) = message.update_status {
+                tx.send(MessageToEcs::UpdateStatus {
+                    socket_id: socket.id,
+                    world_position_x: update_status.world_position_x,
+                    world_position_y: update_status.world_position_y,
+                    world_position_z: update_status.world_position_z,
+                    is_alive: update_status.is_alive,
+                })
+                .unwrap();
+            }
+        }
         _ => {}
     }
 }
