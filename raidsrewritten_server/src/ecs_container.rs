@@ -1,4 +1,4 @@
-use crate::MessageToEcs;
+use crate::system_messages::MessageToEcs;
 use crate::game::role;
 use flecs_ecs::prelude::*;
 use socketioxide::{SocketIo, socket};

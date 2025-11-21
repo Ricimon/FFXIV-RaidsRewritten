@@ -1,6 +1,6 @@
 pub mod message;
 
-use crate::MessageToEcs;
+use crate::system_messages::MessageToEcs;
 use axum::routing::get;
 use rmpv::Value;
 use socketioxide::{

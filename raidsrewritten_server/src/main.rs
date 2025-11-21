@@ -1,9 +1,9 @@
 mod ecs_container;
 mod game;
-mod message_to_ecs;
+mod system_messages;
 mod webserver;
 
-use message_to_ecs::MessageToEcs;
+use crate::system_messages::MessageToEcs;
 use std::sync::mpsc;
 use tracing_subscriber::FmtSubscriber;
 
