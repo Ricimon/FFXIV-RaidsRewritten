@@ -37,12 +37,27 @@ client.OnConnected += async (sender, _) =>
 
     await Task.Delay(1500);
 
+    for (var i = 0; i < 2; i++)
+    {
+        await client.EmitAsync("message", new Message
+        {
+            action = Message.Action.StartMechanic,
+            startMechanic = new Message.StartMechanicPayload
+            {
+                requestId = "TestMechanic1",
+                mechanicId = 1,
+            },
+        });
+    }
+
+    await Task.Delay(3000);
+
     await client.EmitAsync("message", new Message
     {
         action = Message.Action.StartMechanic,
         startMechanic = new Message.StartMechanicPayload
         {
-            requestId = "TestMechanic1",
+            requestId = "TestMechanic2",
             mechanicId = 1,
         },
     });

@@ -64,6 +64,7 @@ pub fn run_world(world: World, rx_from_ws: Receiver<MessageToEcs>, io: &SocketIo
     };
 
     create_systems(&world);
+    create_observers(&world);
 
     let _ = tokio::spawn(async move {
         let mut interval = time::interval(Duration::from_micros(1_000_000 / 64));
@@ -165,10 +166,10 @@ fn process_messages(world: &World, queries: &CommonQueries, rx_from_ws: &Receive
                     return;
                 };
                 e.try_get::<&Party>(|party| {
-                    if !&queries
+                    if queries
                         .query_mechanic
                         .find(|(m, p)| m.request_id == request_id && p.id == party.id)
-                        .is_some()
+                        .is_none()
                     {
                         info!(
                             socket_str = socket_id.as_str(),
@@ -202,6 +203,28 @@ fn create_systems(world: &World) {
                     mechanic.mechanic_id, party.id, "Removing Mechanic"
                 );
                 it.entity(index).destruct();
+            }
+        });
+}
+
+fn create_observers(world: &World) {
+    world
+        .observer::<flecs::OnRemove, (&Player, &Party)>()
+        .each_iter(|it, _, (player, party)| {
+            let last_player = it
+                .world()
+                .query::<(&Player, &Party)>()
+                .build()
+                .find(|(pl, pa)| pa.id == party.id && pl.content_id != player.content_id)
+                .is_none();
+            info!(player.name, last_player, "Player removed");
+            if last_player {
+                // Cleanup any party entities
+                it.world().query::<&Party>().build().each_entity(|e, p| {
+                    if p.id == party.id {
+                        e.destruct();
+                    }
+                });
             }
         });
 }
