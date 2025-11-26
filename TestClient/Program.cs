@@ -34,6 +34,18 @@ client.OnConnected += async (sender, _) =>
             party = "test_party",
         },
     });
+
+    await Task.Delay(1500);
+
+    await client.EmitAsync("message", new Message
+    {
+        action = Message.Action.StartMechanic,
+        startMechanic = new Message.StartMechanicPayload
+        {
+            requestId = "TestMechanic1",
+            mechanicId = 1,
+        },
+    });
 };
 
 client.OnDisconnected += (sender, e) =>

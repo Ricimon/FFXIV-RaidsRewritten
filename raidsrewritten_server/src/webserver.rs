@@ -41,7 +41,7 @@ async fn on_message_impl(
     Data(message): Data<message::Message>,
     tx: Sender<MessageToEcs>,
 ) {
-    info!(?socket.id, "Received message\n{:#?}", message);
+    // info!(?socket.id, "Received message\n{:#?}", message);
     socket.emit("message-back", &message).ok();
 
     match message.action {
@@ -65,6 +65,16 @@ async fn on_message_impl(
                     world_position_y: update_status.world_position_y,
                     world_position_z: update_status.world_position_z,
                     is_alive: update_status.is_alive,
+                })
+                .unwrap();
+            }
+        }
+        message::Action::StartMechanic => {
+            if let Some(start_mechanic) = message.start_mechanic {
+                tx.send(MessageToEcs::StartMechanic {
+                    socket_id: socket.id,
+                    request_id: start_mechanic.request_id.clone(),
+                    mechanic_id: start_mechanic.mechanic_id,
                 })
                 .unwrap();
             }

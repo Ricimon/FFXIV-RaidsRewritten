@@ -56,8 +56,8 @@ public struct Message
 
     public struct StartMechanicPayload
     {
-        [JsonProperty(PropertyName = "i")]
-        public uint id;
+        [JsonProperty(PropertyName = "ri")]
+        public string requestId;
         [JsonProperty(PropertyName = "mi")]
         public uint mechanicId;
     }
@@ -78,10 +78,26 @@ public struct Message
 
     public struct ApplyConditionPayload
     {
-        [JsonProperty(PropertyName = "i")]
-        public uint conditionId;
+        public enum Condition : uint
+        {
+            None = 0,
+            Stun = 1,
+            Paralysis = 2,
+            Bind = 3,
+            Heavy = 4,
+            Hysteria = 5,
+            Pacify = 6,
+            Sleep = 7,
+            Knockback = 8,
+        }
+        [JsonProperty(PropertyName = "c")]
+        public Condition condition;
         [JsonProperty(PropertyName = "d")]
         public float duration;
+        [JsonProperty(PropertyName = "kbx")]
+        public float? knockbackDirectionX;
+        [JsonProperty(PropertyName = "kbz")]
+        public float? knockbackDirectionZ;
     }
     [JsonProperty(PropertyName = "ac")]
     public ApplyConditionPayload? applyCondition;

@@ -19,4 +19,9 @@ pub enum MessageToEcs {
     RemovePlayer {
         socket_id: Sid,
     },
+    StartMechanic {
+        socket_id: Sid,
+        request_id: String,
+        mechanic_id: u32,
+    },
 }
