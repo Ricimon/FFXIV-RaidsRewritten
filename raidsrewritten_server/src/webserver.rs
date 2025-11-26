@@ -1,7 +1,9 @@
 pub mod message;
 
+use crate::ecs_container;
 use crate::system_messages::MessageToEcs;
 use axum::routing::get;
+use flecs_ecs::prelude::*;
 use rmpv::Value;
 use socketioxide::{
     SocketIo,
@@ -10,6 +12,7 @@ use socketioxide::{
     socket::DisconnectReason,
 };
 use std::sync::mpsc::Sender;
+use std::sync::{Arc, Mutex};
 use tracing::info;
 
 async fn on_connect_impl(
@@ -18,16 +21,6 @@ async fn on_connect_impl(
     tx_to_ecs: Sender<MessageToEcs>,
 ) {
     info!(ns = socket.ns(), ?socket.id, "Socket.IO connected");
-
-    // socket
-    //     .emit(
-    //         "message",
-    //         &message::Message {
-    //             action: message::Action::PlayVfx,
-    //             ..Default::default()
-    //         },
-    //     )
-    //     .ok();
 
     let tx = tx_to_ecs.clone();
     let on_message = async |socket: SocketRef, Data(data): Data<message::Message>| {
@@ -102,7 +95,11 @@ pub async fn run_webserver(
     layer: SocketIoLayer,
     io: SocketIo,
     tx_to_ecs: Sender<MessageToEcs>,
+    world: World,
 ) -> Result<(), Box<dyn std::error::Error>> {
+    // https://doc.rust-lang.org/book/ch16-03-shared-state.html#atomic-reference-counting-with-arct
+    let world = Arc::new(Mutex::new(world));
+
     let on_connect = async |socket: SocketRef, Data::<Value>(data)| {
         on_connect_impl(socket, Data(data), tx_to_ecs).await;
     };
@@ -110,7 +107,20 @@ pub async fn run_webserver(
     io.ns("/", on_connect);
 
     let app = axum::Router::new()
-        .route("/", get(|| async { "Hello, World!" }))
+        .route(
+            "/",
+            get(|| async move {
+                let mut players = 0;
+                let world = world.lock().unwrap();
+                world
+                    .query::<&ecs_container::Player>()
+                    .build()
+                    .each_entity(|_, _| {
+                        players += 1;
+                    });
+                format!("Players connected: {players}")
+            }),
+        )
         .layer(layer);
 
     info!("Starting server.");

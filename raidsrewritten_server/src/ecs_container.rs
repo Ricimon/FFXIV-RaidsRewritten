@@ -1,14 +1,11 @@
-use crate::system_messages::MessageToEcs;
 use crate::game::role;
+use crate::system_messages::MessageToEcs;
 use flecs_ecs::prelude::*;
 use socketioxide::{SocketIo, socket};
 use std::sync::mpsc::Receiver;
 use std::time::Duration;
 use tokio::time;
 use tracing::info;
-
-#[derive(Component)]
-pub struct TestComponent;
 
 #[derive(Component)]
 pub struct Socket {
@@ -47,27 +44,15 @@ struct CommonQueries<'a> {
     query_socket: Query<&'a Socket>,
 }
 
-#[allow(clippy::let_underscore_future)]
-pub fn run_ecs_container(rx_from_ws: Receiver<MessageToEcs>, io: &SocketIo) {
-    let world = World::new();
+pub fn create_world() -> World {
+    World::new()
+}
 
+#[allow(clippy::let_underscore_future)]
+pub fn run_world(world: World, rx_from_ws: Receiver<MessageToEcs>, io: &SocketIo) {
     let common_queries = CommonQueries {
         query_socket: world.query::<&Socket>().build(),
     };
-
-    // Example
-    let io1 = io.clone();
-    system!(world, TestComponent).each_iter(move |it, index, _test| {
-        info!("ECS tick on TestComponent");
-        let e = it.entity(index);
-        e.destruct();
-
-        // This is an example of how the webserver's SocketIo can be cheaply cloned and used in the ECS system
-        let io1 = io1.clone();
-        tokio::spawn(async move {
-            io1.emit("message", "This is from ECS").await.unwrap();
-        });
-    });
 
     let _ = tokio::spawn(async move {
         let mut interval = time::interval(Duration::from_micros(1_000_000 / 64));
@@ -83,10 +68,6 @@ fn tick(world: &World, queries: &CommonQueries, rx_from_ws: &Receiver<MessageToE
     // Receive messages from the webserver system per game tick
     for message in rx_from_ws.try_iter() {
         match message {
-            MessageToEcs::Test => {
-                world.entity().add(TestComponent);
-            }
-
             MessageToEcs::UpdatePlayer {
                 socket_id,
                 content_id,

@@ -1,7 +1,7 @@
 use crate::game::role::Role;
 use serde::{Deserialize, Serialize};
 use serde_repr::*;
-use serde_with::{serde_as, formats::Flexible, BoolFromInt};
+use serde_with::{BoolFromInt, formats::Flexible, serde_as};
 
 #[derive(Serialize_repr, Deserialize_repr, PartialEq, Default, Debug)]
 #[repr(u32)]

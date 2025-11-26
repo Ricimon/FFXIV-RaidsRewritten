@@ -2,8 +2,6 @@ use crate::game::role::Role;
 use socketioxide::socket::Sid;
 
 pub enum MessageToEcs {
-    Test,
-
     UpdatePlayer {
         socket_id: Sid,
         content_id: u64,
