@@ -44,7 +44,8 @@ pub struct Message {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct UpdatePlayerPayload {
-    pub id: u64,
+    #[serde(rename = "contentId")]
+    pub content_id: u64,
     pub name: String,
     pub role: Role,
     pub party: String,
@@ -82,7 +83,7 @@ pub struct PlayVfxPayload {
     pub targets: Vec<u64>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Default, Debug)]
 pub struct ApplyConditionPayload {
     #[serde(rename = "c")]
     pub condition: Condition,

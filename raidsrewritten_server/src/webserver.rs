@@ -22,6 +22,8 @@ async fn on_connect_impl(
 ) {
     info!(ns = socket.ns(), ?socket.id, "Socket.IO connected");
 
+    socket.join(socket.id);
+
     let tx = tx_to_ecs.clone();
     let on_message = async |socket: SocketRef, Data(data): Data<message::Message>| {
         on_message_impl(socket, Data(data), tx).await;
@@ -42,14 +44,14 @@ async fn on_message_impl(
     tx: Sender<MessageToEcs>,
 ) {
     // info!(?socket.id, "Received message\n{:#?}", message);
-    socket.emit("message-back", &message).ok();
+    // socket.emit("message-back", &message).ok();
 
     match message.action {
         message::Action::UpdatePlayer => {
             if let Some(update_player) = message.update_player {
                 tx.send(MessageToEcs::UpdatePlayer {
                     socket_id: socket.id,
-                    content_id: update_player.id,
+                    content_id: update_player.content_id,
                     name: update_player.name,
                     role: update_player.role,
                     party: update_player.party,

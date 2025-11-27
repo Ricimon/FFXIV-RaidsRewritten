@@ -1,4 +1,5 @@
-use crate::game::role;
+use crate::game::mechanics;
+use crate::game::{mechanics::Mechanic, role};
 use crate::system_messages::MessageToEcs;
 use flecs_ecs::prelude::*;
 use socketioxide::{SocketIo, socket};
@@ -8,43 +9,41 @@ use tokio::time;
 use tracing::info;
 
 #[derive(Component)]
+pub struct SocketIoSingleton {
+    pub io: SocketIo,
+}
+
+#[derive(Component)]
 pub struct Socket {
-    id: socket::Sid,
+    pub id: socket::Sid,
 }
 
 #[derive(Component, Debug)]
 pub struct Player {
-    content_id: u64,
-    name: String,
+    pub content_id: u64,
+    pub name: String,
 }
 
 #[derive(Component, Debug)]
 pub struct Role {
-    role: role::Role,
+    pub role: role::Role,
 }
 
 #[derive(Component, Debug)]
 pub struct Party {
-    id: String,
+    pub id: String,
 }
 
 #[derive(Component, Debug)]
 pub struct Position {
-    x: f32,
-    y: f32,
-    z: f32,
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
 }
 
 #[derive(Component, Debug)]
 pub struct State {
-    is_alive: bool,
-}
-
-#[derive(Component, Debug)]
-pub struct Mechanic {
-    request_id: String,
-    mechanic_id: u32,
-    time_remaining: f32,
+    pub is_alive: bool,
 }
 
 struct CommonQueries<'a> {
@@ -58,6 +57,8 @@ pub fn create_world() -> World {
 
 #[allow(clippy::let_underscore_future)]
 pub fn run_world(world: World, rx_from_ws: Receiver<MessageToEcs>, io: &SocketIo) {
+    world.set(SocketIoSingleton { io: io.clone() });
+
     let common_queries = CommonQueries {
         query_socket: world.query::<&Socket>().set_cached().build(),
         query_mechanic: world.query::<(&Mechanic, &Party)>().set_cached().build(),
@@ -95,6 +96,7 @@ fn process_messages(world: &World, queries: &CommonQueries, rx_from_ws: &Receive
                         content_id,
                         name,
                         role_str = Into::<&str>::into(&role),
+                        party,
                         "Updating Player"
                     );
                     player_entity = e;
@@ -104,6 +106,7 @@ fn process_messages(world: &World, queries: &CommonQueries, rx_from_ws: &Receive
                         content_id,
                         name,
                         role_str = Into::<&str>::into(&role),
+                        party,
                         "Adding Player"
                     );
                     player_entity = world.entity();
@@ -175,16 +178,12 @@ fn process_messages(world: &World, queries: &CommonQueries, rx_from_ws: &Receive
                             socket_str = socket_id.as_str(),
                             request_id, mechanic_id, "Adding Mechanic"
                         );
-                        world
-                            .entity()
-                            .set(Mechanic {
-                                request_id,
-                                mechanic_id,
-                                time_remaining: 1.0,
-                            })
-                            .set(Party {
-                                id: party.id.clone(),
-                            });
+                        mechanics::create_mechanic(
+                            world,
+                            request_id,
+                            mechanic_id,
+                            party.id.clone(),
+                        );
                     }
                 });
             }
@@ -193,18 +192,7 @@ fn process_messages(world: &World, queries: &CommonQueries, rx_from_ws: &Receive
 }
 
 fn create_systems(world: &World) {
-    world
-        .system::<(&mut Mechanic, &Party)>()
-        .each_iter(|it, index, (mechanic, party)| {
-            mechanic.time_remaining -= it.delta_time();
-            if mechanic.time_remaining <= 0.0 {
-                info!(
-                    mechanic.request_id,
-                    mechanic.mechanic_id, party.id, "Removing Mechanic"
-                );
-                it.entity(index).destruct();
-            }
-        });
+    mechanics::create_systems(world);
 }
 
 fn create_observers(world: &World) {

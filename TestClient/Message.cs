@@ -32,7 +32,7 @@ public struct Message
             Healer = 2,
             Dps = 3,
         }
-        public ulong id;
+        public ulong contentId;
         public string name;
         public Role role;
         public string party;
