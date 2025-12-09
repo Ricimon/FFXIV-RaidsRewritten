@@ -180,7 +180,8 @@ public class MoreExaflares : Mechanic
                 if (!GoldenCanSpawnExa) { return; }
                 GoldenCanSpawnExa = false;
                 var angleNumber = MathF.Round(MathHelper.RadToDeg(source.Rotation)) / 45;
-                RandomExaflareRow(Convert.ToInt32(angleNumber));
+                var exaDirection = Convert.ToInt32(angleNumber) % 8;
+                RandomExaflareRow(exaDirection);
                 break;
             default:
                 return;
