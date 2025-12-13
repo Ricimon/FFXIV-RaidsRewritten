@@ -15,9 +15,10 @@ public class MoreExaflares : Mechanic
 {
     public enum Difficulties
     {
-        Low = 0,
-        Medium = 1,
-        High = 2,
+        Intended = 0,
+        Unnerfed = 1,
+        Insane = 2,
+        Impossible = 3,
     }
 
     private struct DifficultyData
@@ -27,6 +28,7 @@ public class MoreExaflares : Mechanic
         public List<uint> ActionEffectIds;
         public List<uint> ObjectIds;
         public List<uint> StartCastIds;
+        public bool NerfedGolden;
     }
 
     private static readonly Vector3 Center = new(0, 0, 0);
@@ -35,7 +37,7 @@ public class MoreExaflares : Mechanic
     private readonly Dictionary<Difficulties, DifficultyData> DifficultyInfo = new()
     {
         {
-            Difficulties.Low, new DifficultyData
+            Difficulties.Intended, new DifficultyData
             {
                 MaxConcurrentExaflares = 1,
                 RequiredNeuroNum = 2,
@@ -47,10 +49,27 @@ public class MoreExaflares : Mechanic
                     9967,  // exaflare part 1
                     9968,  // exaflare part 2
                 ],
+                NerfedGolden = true
             }
         },
         {
-            Difficulties.Medium, new DifficultyData
+            Difficulties.Unnerfed, new DifficultyData
+            {
+                MaxConcurrentExaflares = 1,
+                RequiredNeuroNum = 2,
+                ActionEffectIds = [
+                    9939,  // calamitous blaze (seventh umbral era)
+                ],
+                ObjectIds = [NeurolinkBaseId],
+                StartCastIds = [
+                    9967,  // exaflare part 1
+                    9968,  // exaflare part 2
+                ],
+                NerfedGolden = false
+            }
+        },
+        {
+            Difficulties.Insane, new DifficultyData
             {
                 MaxConcurrentExaflares = 1,
                 RequiredNeuroNum = 2,
@@ -63,10 +82,11 @@ public class MoreExaflares : Mechanic
                     9967,  // exaflare part 1
                     9968,  // exaflare part 2
                 ],
+                NerfedGolden = false
             }
         },
         {
-            Difficulties.High, new DifficultyData
+            Difficulties.Impossible, new DifficultyData
             {
                 MaxConcurrentExaflares = 2,
                 RequiredNeuroNum = 0,
@@ -85,8 +105,9 @@ public class MoreExaflares : Mechanic
                     9967,  // exaflare part 1
                     9968,  // exaflare part 2
                 ],
+                NerfedGolden = false
             }
-        }
+        },
     };
 
     private const uint NeurolinkBaseId = 0x1E88FF;
@@ -97,7 +118,7 @@ public class MoreExaflares : Mechanic
     private int ExaflareRowsSpawned = 0;
     private readonly List<Entity> attacks = [];
     public int RngSeed { get; set; }
-    public Difficulties Difficulty { get; set; } = Difficulties.Low;
+    public Difficulties Difficulty { get; set; } = Difficulties.Intended;
 
     public override void Reset()
     {
@@ -180,7 +201,8 @@ public class MoreExaflares : Mechanic
                 if (!GoldenCanSpawnExa) { return; }
                 GoldenCanSpawnExa = false;
                 var angleNumber = MathF.Round(MathHelper.RadToDeg(source.Rotation)) / 45;
-                RandomExaflareRow(Convert.ToInt32(angleNumber));
+                var exaDirection = Convert.ToInt32(angleNumber) % 8;
+                RandomExaflareRow(exaDirection, DifficultyInfo[Difficulty].NerfedGolden);
                 break;
             default:
                 return;
@@ -203,7 +225,23 @@ public class MoreExaflares : Mechanic
 
     }
 
-    private void RandomExaflareRow(int excludeAngle = -1)
+    private void RandomExaflareRow()
+    {
+        if (CountActiveAttacks() >= DifficultyInfo[Difficulty].MaxConcurrentExaflares) { return; }
+
+        var seed = RngSeed;
+        unchecked
+        {
+            seed += ExaflareRowsSpawned * 69420;
+        }
+        var random = new Random(seed);
+
+        var randVal = random.Next(8);
+
+        CalculateExaPosition(random, randVal);
+    }
+
+    private void RandomExaflareRow(int excludeAngle, bool onlyRelativeCardinal)
     {
         if (CountActiveAttacks() >= DifficultyInfo[Difficulty].MaxConcurrentExaflares) { return; }
 
@@ -215,16 +253,21 @@ public class MoreExaflares : Mechanic
         var random = new Random(seed);
 
         int randVal;
-        if (excludeAngle == -1)
-        {
-            randVal = random.Next(8);
-        } else
+        if (!onlyRelativeCardinal)
         {
             randVal = random.Next(7);
             if (randVal >= excludeAngle) { randVal++; }
+        } else
+        {
+            randVal = (excludeAngle + random.Next(1, 4) * 2) % 8;
         }
 
-        int deg = randVal * 45;
+        CalculateExaPosition(random, randVal);
+    }
+
+    private void CalculateExaPosition(Random random, int direction)
+    {
+        int deg = direction * 45;
         var X = Center.X - Radius * MathF.Sin(MathHelper.DegToRad(deg));
         var Z = Center.Z - Radius * MathF.Cos(MathHelper.DegToRad(deg));
 

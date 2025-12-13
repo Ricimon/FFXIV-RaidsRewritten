@@ -43,9 +43,10 @@ public class UcobRewritten : IEncounter
 
     private readonly List<Mechanic> mechanics = [];
     private readonly string[] moreExaflaresDifficulties = [
-        MoreExaflares.Difficulties.Low.ToString(),
-        MoreExaflares.Difficulties.Medium.ToString(),
-        MoreExaflares.Difficulties.High.ToString(),
+        MoreExaflares.Difficulties.Intended.ToString(),
+        MoreExaflares.Difficulties.Unnerfed.ToString(),
+        MoreExaflares.Difficulties.Insane.ToString(),
+        MoreExaflares.Difficulties.Impossible.ToString(),
     ];
     private readonly Dictionary<string, bool> defaultBoolSettings;
     private readonly Dictionary<string, int> defaultIntSettings;
@@ -77,7 +78,7 @@ public class UcobRewritten : IEncounter
 
         this.defaultIntSettings = new()
         {
-            { MoreExaflaresDifficultyKey, (int)MoreExaflares.Difficulties.Low },
+            { MoreExaflaresDifficultyKey, (int)MoreExaflares.Difficulties.Intended },
         };
     }
 
