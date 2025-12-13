@@ -41,7 +41,7 @@ public class ChangelogWindow : IPluginUIView
                 ImGui.Text("v1.1.0");
                 using (var i = ImRaii.PushIndent())
                 {
-                    ImGui.TextWrapped("Reduced the intended More Exaflares difficulty and renamed their labels.");
+                    ImGui.TextWrapped("Reduced the intended More Exaflares difficulty and renamed its labels.");
                 }
 
                 ImGui.Text("v1.0.3");
