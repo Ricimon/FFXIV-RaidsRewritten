@@ -44,9 +44,9 @@ public class UcobRewritten : IEncounter
     private readonly List<Mechanic> mechanics = [];
     private readonly string[] moreExaflaresDifficulties = [
         MoreExaflares.Difficulties.Intended.ToString(),
+        MoreExaflares.Difficulties.Unnerfed.ToString(),
         MoreExaflares.Difficulties.Insane.ToString(),
         MoreExaflares.Difficulties.Impossible.ToString(),
-        MoreExaflares.Difficulties.Unnerfed.ToString(),
     ];
     private readonly Dictionary<string, bool> defaultBoolSettings;
     private readonly Dictionary<string, int> defaultIntSettings;

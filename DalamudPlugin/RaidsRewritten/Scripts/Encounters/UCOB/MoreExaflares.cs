@@ -16,9 +16,9 @@ public class MoreExaflares : Mechanic
     public enum Difficulties
     {
         Intended = 0,
-        Insane = 1,
-        Impossible = 2,
-        Unnerfed = 3,
+        Unnerfed = 1,
+        Insane = 2,
+        Impossible = 3,
     }
 
     private struct DifficultyData
@@ -50,6 +50,22 @@ public class MoreExaflares : Mechanic
                     9968,  // exaflare part 2
                 ],
                 NerfedGolden = true
+            }
+        },
+        {
+            Difficulties.Unnerfed, new DifficultyData
+            {
+                MaxConcurrentExaflares = 1,
+                RequiredNeuroNum = 2,
+                ActionEffectIds = [
+                    9939,  // calamitous blaze (seventh umbral era)
+                ],
+                ObjectIds = [NeurolinkBaseId],
+                StartCastIds = [
+                    9967,  // exaflare part 1
+                    9968,  // exaflare part 2
+                ],
+                NerfedGolden = false
             }
         },
         {
@@ -86,22 +102,6 @@ public class MoreExaflares : Mechanic
                 ],
                 StartCastIds = [
                     9941,  // flatten
-                    9967,  // exaflare part 1
-                    9968,  // exaflare part 2
-                ],
-                NerfedGolden = false
-            }
-        },
-        {
-            Difficulties.Unnerfed, new DifficultyData
-            {
-                MaxConcurrentExaflares = 1,
-                RequiredNeuroNum = 2,
-                ActionEffectIds = [
-                    9939,  // calamitous blaze (seventh umbral era)
-                ],
-                ObjectIds = [NeurolinkBaseId],
-                StartCastIds = [
                     9967,  // exaflare part 1
                     9968,  // exaflare part 2
                 ],
