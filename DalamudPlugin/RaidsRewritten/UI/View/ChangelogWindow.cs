@@ -38,6 +38,12 @@ public class ChangelogWindow : IPluginUIView
         {
             if (child)
             {
+                ImGui.Text("v1.1.0");
+                using (var i = ImRaii.PushIndent())
+                {
+                    ImGui.TextWrapped("Reduced the intended More Exaflares difficulty and renamed their labels.");
+                }
+
                 ImGui.Text("v1.0.3");
                 using (var i = ImRaii.PushIndent())
                 {
