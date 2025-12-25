@@ -38,6 +38,12 @@ public class ChangelogWindow : IPluginUIView
         {
             if (child)
             {
+                ImGui.Text("v1.1.1");
+                using (var i = ImRaii.PushIndent())
+                {
+                    ImGui.TextWrapped("Update for patch 7.4 and Dalamud API 14.");
+                }
+
                 ImGui.Text("v1.1.0");
                 using (var i = ImRaii.PushIndent())
                 {
