@@ -1,7 +1,9 @@
-﻿using System;
+﻿// Adapted from https://github.com/PunishXIV/Splatoon/blob/main/Splatoon/Utility/Utils.cs
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -17,22 +19,369 @@ namespace RaidsRewritten.Utility;
 
 public static unsafe class Utils
 {
-    //    /// <summary>
-    //    /// 
-    //    /// </summary>
-    //    /// <param name="conf">Can pass null</param>
-    //    /// <param name="layout"></param>
-    //    /// <returns></returns>
-    //    public static string GetName(this LayoutSubconfiguration conf, Layout layout)
+    public static Vector3 ToXZY(this Vector3 xyzVector)
+    {
+        return new(xyzVector.X, xyzVector.Z, xyzVector.Y);
+    }
+
+    //public static List<IGameObject> AlterTargetIfNeeded(Element element, IGameObject go)
+    //{
+    //    List<IGameObject> ret = [go];
+    //    if (element.TargetAlteration == TargetAlteration.Tethered)
     //    {
-    //        var name = conf?.Name ?? "Default Configration";
-    //        if(name == "")
+    //        ret.Clear();
     //        {
-    //            var index = layout.Subconfigurations.IndexOf(conf);
-    //            name = $"Unnamed configuration {(index == -1 ? conf.Guid : index + 1)}";
+    //            if (go is ICharacter chr)
+    //            {
+    //                var c = chr.Struct();
+    //                for (int i = 0; i < c->Vfx.Tethers.Length; i++)
+    //                {
+    //                    var t = c->Vfx.Tethers[i];
+    //                    if (t.Id != 0)
+    //                    {
+    //                        var target = Svc.Objects.FirstOrDefault(x => x.GameObjectId == t.TargetId);
+    //                        if (target != null)
+    //                        {
+    //                            ret.Add(target);
+    //                        }
+    //                    }
+    //                }
+    //            }
     //        }
-    //        return name;
+
+    //        foreach (var x in Svc.Objects)
+    //        {
+    //            if (x is ICharacter chr)
+    //            {
+    //                var c = chr.Struct();
+    //                for (int i = 0; i < c->Vfx.Tethers.Length; i++)
+    //                {
+    //                    var t = c->Vfx.Tethers[i];
+    //                    if (t.Id != 0 && t.TargetId == go.GameObjectId)
+    //                    {
+    //                        ret.Add(x);
+    //                    }
+    //                }
+    //            }
+    //        }
     //    }
+    //    else if (element.TargetAlteration == TargetAlteration.Targeted)
+    //    {
+    //        ret.Clear();
+    //        if (go is ICharacter chr)
+    //        {
+    //            var t = chr.TargetObject;
+    //            if (t != null)
+    //            {
+    //                ret.Add(t);
+    //            }
+    //        }
+    //    }
+    //    else if ((int)element.TargetAlteration >= 1100 && (int)element.TargetAlteration <= 1200)
+    //    {
+    //        ret.Clear();
+    //        if (go != null)
+    //        {
+    //            var index = (int)element.TargetAlteration - 1100;
+    //            int i = 0;
+    //            foreach (var x in Svc.Objects.OfType<IPlayerCharacter>().OrderBy(o => Vector3.DistanceSquared(o.Position, go.Position)))
+    //            {
+    //                if (index == i)
+    //                {
+    //                    ret.Add(x);
+    //                    break;
+    //                }
+    //                i++;
+    //            }
+    //        }
+    //    }
+    //    else if ((int)element.TargetAlteration >= 2100 && (int)element.TargetAlteration <= 2200)
+    //    {
+    //        ret.Clear();
+    //        if (go != null)
+    //        {
+    //            var index = (int)element.TargetAlteration - 2100;
+    //            int i = 0;
+    //            foreach (var x in Svc.Objects.OfType<IPlayerCharacter>().OrderByDescending(o => Vector3.DistanceSquared(o.Position, go.Position)))
+    //            {
+    //                if (index == i)
+    //                {
+    //                    ret.Add(x);
+    //                    break;
+    //                }
+    //                i++;
+    //            }
+    //        }
+    //    }
+    //    return ret;
+    //}
+
+    //public static List<Vector3> GetFacePositions(Layout layout, Element element, IGameObject go, string placeholder)
+    //{
+    //    if (placeholder.StartsWith("<element:"))
+    //    {
+    //        var details = placeholder[1..^1].Split(":");
+    //        var list = details.Length == 2
+    //            ? Splatoon.CapturedPositions.SafeSelect(layout.GetName())?.SafeSelect(details[1])
+    //            : Splatoon.CapturedPositions.SafeSelect(details[1])?.SafeSelect(details[2]);
+    //        return list;
+    //    }
+    //    if (placeholder == "<tethered>")
+    //    {
+    //        var ret = new List<Vector3>();
+    //        {
+    //            if (go is ICharacter chr)
+    //            {
+    //                var c = chr.Struct();
+    //                for (int i = 0; i < c->Vfx.Tethers.Length; i++)
+    //                {
+    //                    var t = c->Vfx.Tethers[i];
+    //                    if (t.Id != 0)
+    //                    {
+    //                        var target = Svc.Objects.FirstOrDefault(x => x.GameObjectId == t.TargetId);
+    //                        if (target != null)
+    //                        {
+    //                            ret.Add(target.Position);
+    //                        }
+    //                    }
+    //                }
+    //            }
+    //        }
+
+    //        foreach (var x in Svc.Objects)
+    //        {
+    //            if (x is ICharacter chr)
+    //            {
+    //                var c = chr.Struct();
+    //                for (int i = 0; i < c->Vfx.Tethers.Length; i++)
+    //                {
+    //                    var t = c->Vfx.Tethers[i];
+    //                    if (t.Id != 0 && t.TargetId == go.GameObjectId)
+    //                    {
+    //                        ret.Add(x.Position);
+    //                    }
+    //                }
+    //            }
+    //        }
+    //        return ret;
+    //    }
+    //    var obj = ExtendedPronoun.Resolve(placeholder);
+    //    if (obj != null)
+    //    {
+    //        return [obj->Position];
+    //    }
+    //    return null;
+    //}
+
+    //public static string GetShortName(this Expansion ex)
+    //{
+    //    return ex switch
+    //    {
+    //        Expansion.A_Realm_Reborn => "ARR".Loc(),
+    //        Expansion.Heavensward => "HW".Loc(),
+    //        Expansion.Stormblood => "SB".Loc(),
+    //        Expansion.Shadowbringers => "ShB".Loc(),
+    //        Expansion.Endwalker => "EW".Loc(),
+    //        Expansion.Dawntrail => "DT".Loc(),
+    //        _ => ex.ToString().Replace('_', ' '),
+    //    };
+    //}
+
+    //public static Expansion DetermineExpansion(this Layout l)
+    //{
+    //    if (l.ZoneLockH.Count == 0)
+    //    {
+    //        return Expansion.Mixed;
+    //    }
+    //    else
+    //    {
+    //        var enumerator = l.ZoneLockH.GetEnumerator();
+    //        enumerator.MoveNext();
+    //        var initial = DetermineExpansion(enumerator.Current);
+    //        while (enumerator.MoveNext())
+    //        {
+    //            if (DetermineExpansion(enumerator.Current) != initial)
+    //            {
+    //                return Expansion.Mixed;
+    //            }
+    //        }
+    //        return initial;
+    //    }
+    //}
+
+    //static Dictionary<uint, Expansion> ExpansionCache = [];
+    //public static Expansion DetermineExpansion(uint territoryType)
+    //{
+    //    if (!ExpansionCache.TryGetValue(territoryType, out var ret))
+    //    {
+    //        ret = Expansion.A_Realm_Reborn;
+    //        var data = ExcelTerritoryHelper.Get(territoryType);
+    //        if (data != null)
+    //        {
+    //            var bg = data.Value.Bg.GetText();
+    //            for (int i = 1; i <= 5; i++)
+    //            {
+    //                if (bg.StartsWith($"ex{i}/"))
+    //                {
+    //                    ret = (Expansion)i;
+    //                    break;
+    //                }
+    //            }
+    //        }
+    //        ExpansionCache[territoryType] = ret;
+    //    }
+    //    return ret;
+    //}
+
+    //public static ContentCategory DetermineContentCategory(this Layout l)
+    //{
+    //    if (l.ZoneLockH.Count == 0)
+    //    {
+    //        return ContentCategory.Mixed;
+    //    }
+    //    else
+    //    {
+    //        var enumerator = l.ZoneLockH.GetEnumerator();
+    //        enumerator.MoveNext();
+    //        var initial = DetermineContentCategory(enumerator.Current);
+    //        while (enumerator.MoveNext())
+    //        {
+    //            if (DetermineContentCategory(enumerator.Current) != initial)
+    //            {
+    //                return ContentCategory.Mixed;
+    //            }
+    //        }
+    //        return initial;
+    //    }
+    //}
+    //static Dictionary<uint, ContentCategory> ContentCategoryCache = [];
+    //public static ContentCategory DetermineContentCategory(uint territoryType)
+    //{
+    //    if (!ContentCategoryCache.TryGetValue(territoryType, out var ret))
+    //    {
+    //        ret = ContentCategory.Other;
+    //        var data = ExcelTerritoryHelper.Get(territoryType);
+    //        if (data != null)
+    //        {
+    //            var use = data.Value.GetTerritoryIntendedUse();
+    //            if (use.EqualsAny([
+    //                TerritoryIntendedUseEnum.City_Area,
+    //                TerritoryIntendedUseEnum.Open_World,
+    //                TerritoryIntendedUseEnum.Residential_Area,
+    //                TerritoryIntendedUseEnum.Housing_Instances,
+    //                TerritoryIntendedUseEnum.Inn,
+    //                TerritoryIntendedUseEnum.Gold_Saucer,
+    //                TerritoryIntendedUseEnum.Diadem,
+    //                TerritoryIntendedUseEnum.Barracks,
+    //                TerritoryIntendedUseEnum.Island_Sanctuary,
+    //                TerritoryIntendedUseEnum.Diadem_2,
+    //                TerritoryIntendedUseEnum.Diadem_3,
+    //                ])) ret = ContentCategory.World;
+    //            else if (use.EqualsAny([
+    //                TerritoryIntendedUseEnum.Dungeon,
+    //                TerritoryIntendedUseEnum.Variant_Dungeon,
+    //                TerritoryIntendedUseEnum.Deep_Dungeon,
+    //                TerritoryIntendedUseEnum.Criterion_Duty,
+    //                TerritoryIntendedUseEnum.Criterion_Savage_Duty,
+    //                ])) ret = ContentCategory.Dungeon;
+    //            else if (use.EqualsAny([
+    //                TerritoryIntendedUseEnum.Trial,
+    //                ])) ret = ContentCategory.Trial;
+    //            else if (use.EqualsAny([
+    //                TerritoryIntendedUseEnum.Raid,
+    //                TerritoryIntendedUseEnum.Raid_2,
+    //                ])) ret = ContentCategory.Raid;
+    //            else if (use.EqualsAny([
+    //                TerritoryIntendedUseEnum.Alliance_Raid,
+    //                TerritoryIntendedUseEnum.Large_Scale_Raid,
+    //                TerritoryIntendedUseEnum.Large_Scale_Savage_Raid,
+    //                ])) ret = ContentCategory.Alliance;
+    //            else if (use.EqualsAny([
+    //                TerritoryIntendedUseEnum.Bozja,
+    //                TerritoryIntendedUseEnum.Eureka,
+    //                TerritoryIntendedUseEnum.Occult_Crescent,
+    //                ])) ret = ContentCategory.Foray;
+    //        }
+    //        ContentCategoryCache[territoryType] = ret;
+    //    }
+    //    return ret;
+    //}
+
+    //public static bool IsActorNameUsed(this Element e)
+    //{
+    //    if (e.refActorType != 0) return false;
+    //    if (!e.refActorComparisonAnd && e.refActorComparisonType != 0) return false;
+    //    if (e.refActorName.EqualsAny("", "*") && e.refActorNameIntl.IsEmpty()) return false;
+    //    return true;
+    //}
+
+    //public static bool IsValid(this Layout l)
+    //{
+    //    if (l == null) return false;
+    //    if (l.Name == null || !l.InternationalName.IsValid()) return false;
+    //    if (l.Description == null || !l.InternationalDescription.IsValid()) return false;
+    //    if (l.ZoneLockH == null) return false;
+    //    if (l.Group == null) return false;
+    //    if (l.Scenes == null) return false;
+    //    if (l.Subconfigurations == null) return false;
+    //    if (l.JobLockH == null) return false;
+    //    if (l.Triggers == null || !l.Triggers.All(IsValid)) return false;
+    //    if (l.ElementsL == null || !l.ElementsL.All(IsValid)) return false;
+    //    return true;
+    //}
+
+    //public static bool IsValid(this Trigger t)
+    //{
+    //    if (t == null) return false;
+    //    if (t.Match == null || !t.MatchIntl.IsValid()) return false;
+    //    if (t.EnableAt == null || t.DisableAt == null) return false;
+    //    return true;
+    //}
+
+    ///// <summary>
+    ///// Checks whether element is free of fields set to null.
+    ///// </summary>
+    ///// <param name="e"></param>
+    ///// <returns></returns>
+    //public static bool IsValid(this Element e)
+    //{
+    //    if (e == null) return false;
+    //    if (e.Name == null || !e.InternationalName.IsValid()) return false;
+    //    if (e.overlayText == null || !e.overlayTextIntl.IsValid()) return false;
+    //    if (e.refActorName == null || !e.refActorNameIntl.IsValid()) return false;
+    //    if (e.refActorPlaceholder == null || e.refActorPlaceholder.Contains(null)) return false;
+    //    if (e.refActorCastId == null) return false;
+    //    if (e.refActorBuffId == null) return false;
+    //    if (e.refActorTetherConnectedWithPlayer == null || e.refActorTetherConnectedWithPlayer.Contains(null)) return false;
+    //    if (e.faceplayer == null) return false;
+    //    if (e.RotationOverridePoint == null) return false;
+    //    if (e.ObjectKinds == null) return false;
+    //    return true;
+    //}
+
+    //public static bool IsValid(this InternationalString s)
+    //{
+    //    if (s == null) return false;
+    //    if (s.En == null || s.Fr == null || s.Other == null || s.Jp == null || s.De == null) return false;
+    //    return true;
+    //}
+
+    ///// <summary>
+    ///// 
+    ///// </summary>
+    ///// <param name="conf">Can pass null</param>
+    ///// <param name="layout"></param>
+    ///// <returns></returns>
+    //public static string GetName(this LayoutSubconfiguration conf, Layout layout)
+    //{
+    //    var name = conf?.Name ?? layout.DefaultConfigurationName.NullWhenEmpty() ?? "Default Configration";
+    //    if (name == "")
+    //    {
+    //        var index = layout.Subconfigurations.IndexOf(conf);
+    //        name = $"Unnamed configuration {(index == -1 ? conf.Guid : index + 1)}";
+    //    }
+    //    return name;
+    //}
 
     //    private static bool IsNullOrEmpty(this string s) => GenericHelpers.IsNullOrEmpty(s);
 
@@ -203,7 +552,7 @@ public static unsafe class Utils
         return false;
     }
 
-    public static bool IsInRange(this Status buff, float min, float max)
+    public static bool IsInRange(this IStatus buff, float min, float max)
     {
         if (buff.RemainingTime.InRange(min, max))
         {
@@ -521,10 +870,10 @@ public static unsafe class Utils
     //    return Vector3.Zero;
     //}
 
-    //public static Vector3 GetPositionXZY(this IGameObject a)
-    //{
-    //    return XZY(a.Position);
-    //}
+    public static Vector3 GetPositionXZY(this IGameObject a)
+    {
+        return XZY(a.Position);
+    }
 
     /// <summary>
     /// Swaps Y and Z coordinates in vector

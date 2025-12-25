@@ -1,5 +1,5 @@
 ﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/ExcelServices/ExcelWorldHelper.cs
-// 12b8473
+// c8167d2
 using ECommons.DalamudServices;
 using Lumina.Excel.Sheets;
 using System;
@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+using static FFXIVClientStructs.FFXIV.Client.UI.Misc.DataCenterHelper;
 
 namespace ECommons.ExcelServices;
 #nullable disable
@@ -20,15 +21,15 @@ public static class ExcelWorldHelper
 
     public static bool IsPublic(this World w)
     {
-        if(w.IsPublic) return true;
+        if (w.IsPublic) return true;
         return false;//w.RowId.EqualsAny<uint>(408, 409, 410, 411, 415);
     }
 
     public static World? Get(string name, bool onlyPublic = false)
     {
-        if(name == null) return null;
-        if(NameCache.TryGetValue(name, out var world)) return world;
-        if(Svc.Data.GetExcelSheet<World>().TryGetFirst(x => x.Name.ToString().EqualsIgnoreCase(name) && (!onlyPublic || x.Region.EqualsAny(Enum.GetValues<Region>().Select(z => (byte)z).ToArray())), out var result))
+        if (name == null) return null;
+        if (NameCache.TryGetValue(name, out var world)) return world;
+        if (Svc.Data.GetExcelSheet<World>().TryGetFirst(x => x.Name.ToString().EqualsIgnoreCase(name) && (!onlyPublic || x.GetRegion().EqualsAny(Enum.GetValues<Region>())), out var result))
         {
             NameCache[name] = result;
             return result;
@@ -39,7 +40,7 @@ public static class ExcelWorldHelper
     public static World? Get(uint id, bool onlyPublic = false)
     {
         var result = Svc.Data.GetExcelSheet<World>().GetRowOrDefault(id);
-        if(result != null && (!onlyPublic || result.Value.Region.EqualsAny(Enum.GetValues<Region>().Select(z => (byte)z).ToArray())))
+        if (result != null && (!onlyPublic || result.Value.GetRegion().EqualsAny(Enum.GetValues<Region>().Select(z => z))))
         {
             return result;
         }
@@ -68,9 +69,14 @@ public static class ExcelWorldHelper
         return Svc.Data.GetExcelSheet<World>().Where(x => x.IsPublic() && (region == null || x.GetRegion() == region.Value)).ToArray();
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="dataCenter">0 - all data centers</param>
+    /// <returns></returns>
     public static World[] GetPublicWorlds(uint dataCenter)
     {
-        return Svc.Data.GetExcelSheet<World>().Where(x => x.IsPublic() && x.DataCenter.RowId == dataCenter).ToArray();
+        return Svc.Data.GetExcelSheet<World>().Where(x => x.IsPublic() && (dataCenter == 0 || x.DataCenter.RowId == dataCenter)).ToArray();
     }
 
     public static WorldDCGroupType[] GetDataCenters(Region? region = null, bool checkForPublicWorlds = false)
@@ -118,7 +124,7 @@ public static class ExcelWorldHelper
     {
         var dc = world.DataCenter;
         var dcg = Svc.Data.GetExcelSheet<WorldDCGroupType>().GetRowOrDefault(dc.Value.RowId);
-        if(dcg == null) return 0;
+        if (dcg == null) return 0;
         return (Region)dcg.Value.Region;
     }
 }

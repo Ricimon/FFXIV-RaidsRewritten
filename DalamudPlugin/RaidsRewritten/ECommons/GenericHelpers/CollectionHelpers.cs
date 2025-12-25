@@ -1,5 +1,5 @@
 ﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/GenericHelpers/CollectionHelpers.cs
-// 3d66a4b
+// 4b124ef
 using ECommons.MathHelpers;
 using System;
 using System.Collections;
@@ -10,22 +10,23 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ECommons;
+
 public static unsafe partial class GenericHelpers
 {
     public static IEnumerable<T> TakeEvery<T>(this IEnumerable<T> values, int num)
     {
         var i = 0;
         var e = values.GetEnumerator();
-        while(e.MoveNext())
+        while (e.MoveNext())
         {
-            if(i % num == 0) yield return e.Current;
+            if (i % num == 0) yield return e.Current;
             i++;
         }
     }
 
     public static T? FirstOrNull<T>(this IEnumerable<T> values, Func<T, bool> predicate) where T : struct
     {
-        if(values.TryGetFirst(predicate, out var result))
+        if (values.TryGetFirst(predicate, out var result))
         {
             return result;
         }
@@ -34,7 +35,7 @@ public static unsafe partial class GenericHelpers
 
     public static T? FirstOrNull<T>(this IEnumerable<T> values) where T : struct
     {
-        if(values.TryGetFirst(out var result))
+        if (values.TryGetFirst(out var result))
         {
             return result;
         }
@@ -46,7 +47,7 @@ public static unsafe partial class GenericHelpers
 
     public static bool ContainsNullable<T>(this IEnumerable<T> values, T? value) where T : struct
     {
-        if(value == null) return false;
+        if (value == null) return false;
         return Enumerable.Contains(values, value.Value);
     }
 
@@ -58,7 +59,7 @@ public static unsafe partial class GenericHelpers
     /// <param name="values"></param>
     public static void AddRange<T>(this ICollection<T> collection, IEnumerable<T> values)
     {
-        foreach(var x in values)
+        foreach (var x in values)
         {
             collection.Add(x);
         }
@@ -87,9 +88,9 @@ public static unsafe partial class GenericHelpers
     /// <returns></returns>
     public static V? SafeSelect<K, V>(this IReadOnlyDictionary<K, V> dictionary, K key, V defaultValue)
     {
-        if(dictionary == null) return default;
-        if(key == null) return default;
-        if(dictionary.TryGetValue(key, out var ret))
+        if (dictionary == null) return default;
+        if (key == null) return default;
+        if (dictionary.TryGetValue(key, out var ret))
         {
             return ret;
         }
@@ -109,8 +110,8 @@ public static unsafe partial class GenericHelpers
     /// <returns></returns>
     public static T SafeSelect<T>(this IReadOnlyList<T> list, int index)
     {
-        if(list == null) return default;
-        if(index < 0 || index >= list.Count) return default;
+        if (list == null) return default;
+        if (index < 0 || index >= list.Count) return default;
         return list[index];
     }
 
@@ -123,7 +124,7 @@ public static unsafe partial class GenericHelpers
     /// <returns></returns>
     public static T SafeSelect<T>(this T[] array, int index)
     {
-        if(index < 0 || index >= array.Length) return default;
+        if (index < 0 || index >= array.Length) return default;
         return array[index];
     }
 
@@ -142,7 +143,7 @@ public static unsafe partial class GenericHelpers
     /// <returns></returns>
     public static bool TryDequeue<T>(this IList<T> List, out T result)
     {
-        if(List.Count > 0)
+        if (List.Count > 0)
         {
             result = List[0];
             List.RemoveAt(0);
@@ -164,7 +165,7 @@ public static unsafe partial class GenericHelpers
     /// <exception cref="InvalidOperationException"></exception>
     public static T Dequeue<T>(this IList<T> List)
     {
-        if(List.TryDequeue(out var ret))
+        if (List.TryDequeue(out var ret))
         {
             return ret;
         }
@@ -173,7 +174,7 @@ public static unsafe partial class GenericHelpers
 
     public static bool TryDequeueLast<T>(this IList<T> List, out T result)
     {
-        if(List.Count > 0)
+        if (List.Count > 0)
         {
             result = List[List.Count - 1];
             List.RemoveAt(List.Count - 1);
@@ -188,7 +189,7 @@ public static unsafe partial class GenericHelpers
 
     public static T DequeueLast<T>(this IList<T> List)
     {
-        if(List.TryDequeueLast(out var ret))
+        if (List.TryDequeueLast(out var ret))
         {
             return ret;
         }
@@ -203,7 +204,7 @@ public static unsafe partial class GenericHelpers
     /// <returns></returns>
     public static T DequeueOrDefault<T>(this IList<T> List)
     {
-        if(List.Count > 0)
+        if (List.Count > 0)
         {
             var ret = List[0];
             List.RemoveAt(0);
@@ -223,7 +224,7 @@ public static unsafe partial class GenericHelpers
     /// <returns></returns>
     public static T DequeueOrDefault<T>(this Queue<T> Queue)
     {
-        if(Queue.Count > 0)
+        if (Queue.Count > 0)
         {
             return Queue.Dequeue();
         }
@@ -240,10 +241,10 @@ public static unsafe partial class GenericHelpers
     public static int IndexOf<T>(this IEnumerable<T> values, Predicate<T> predicate)
     {
         var ret = -1;
-        foreach(var v in values)
+        foreach (var v in values)
         {
             ret++;
-            if(predicate(v))
+            if (predicate(v))
             {
                 return ret;
             }
@@ -261,10 +262,10 @@ public static unsafe partial class GenericHelpers
     public static int IndexOf<T>(this IEnumerable<T> values, T value)
     {
         var ret = -1;
-        foreach(var v in values)
+        foreach (var v in values)
         {
             ret++;
-            if(v.Equals(value))
+            if (v.Equals(value))
             {
                 return ret;
             }
@@ -274,9 +275,9 @@ public static unsafe partial class GenericHelpers
 
     public static bool ContainsIgnoreCase(this IEnumerable<string> haystack, string needle)
     {
-        foreach(var x in haystack)
+        foreach (var x in haystack)
         {
-            if(x.EqualsIgnoreCase(needle)) return true;
+            if (x.EqualsIgnoreCase(needle)) return true;
         }
         return false;
     }
@@ -292,7 +293,7 @@ public static unsafe partial class GenericHelpers
     /// <param name="values">Items</param>
     public static void Add<T>(this ICollection<T> collection, params T[] values)
     {
-        foreach(var x in values)
+        foreach (var x in values)
         {
             collection.Add(x);
         }
@@ -306,7 +307,7 @@ public static unsafe partial class GenericHelpers
     /// <param name="values">Items</param>
     public static void Remove<T>(this ICollection<T> collection, params T[] values)
     {
-        foreach(var x in values)
+        foreach (var x in values)
         {
             collection.Remove(x);
         }
@@ -314,14 +315,14 @@ public static unsafe partial class GenericHelpers
 
     public static V GetOrDefault<K, V>(this IDictionary<K, V> dic, K key)
     {
-        if(dic.TryGetValue(key, out var value)) return value;
+        if (dic.TryGetValue(key, out var value)) return value;
         return default;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int IncrementOrSet<K>(this IDictionary<K, int> dic, K key, int increment = 1)
     {
-        if(dic.ContainsKey(key))
+        if (dic.ContainsKey(key))
         {
             dic[key] += increment;
         }
@@ -341,7 +342,7 @@ public static unsafe partial class GenericHelpers
     [Obsolete("Use SafeSelect")]
     public static V GetSafe<K, V>(this IDictionary<K, V> dic, K key, V Default = default)
     {
-        if(dic?.TryGetValue(key, out var value) == true)
+        if (dic?.TryGetValue(key, out var value) == true)
         {
             return value;
         }
@@ -359,12 +360,12 @@ public static unsafe partial class GenericHelpers
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static V GetOrCreate<K, V>(this IDictionary<K, V> dictionary, K key)
     {
-        if(dictionary.TryGetValue(key, out var result))
+        if (dictionary.TryGetValue(key, out var result))
         {
             return result;
         }
         V newValue;
-        if(typeof(V).FullName == typeof(string).FullName)
+        if (typeof(V).FullName == typeof(string).FullName)
         {
             newValue = (V)(object)"";
         }
@@ -374,7 +375,7 @@ public static unsafe partial class GenericHelpers
             {
                 newValue = (V)Activator.CreateInstance(typeof(V));
             }
-            catch(Exception)
+            catch (Exception)
             {
                 newValue = default;
             }
@@ -385,7 +386,7 @@ public static unsafe partial class GenericHelpers
 
     public static V GetOrCreate<K, V>(this IDictionary<K, V> dictionary, K key, V defaultValue)
     {
-        if(dictionary.TryGetValue(key, out var result))
+        if (dictionary.TryGetValue(key, out var result))
         {
             return result;
         }
@@ -395,7 +396,7 @@ public static unsafe partial class GenericHelpers
 
     public static V GetOrCreate<K, V>(this IDictionary<K, V> dictionary, K key, Func<V> defaultValueGenerator)
     {
-        if(dictionary.TryGetValue(key, out var result))
+        if (dictionary.TryGetValue(key, out var result))
         {
             return result;
         }
@@ -412,7 +413,7 @@ public static unsafe partial class GenericHelpers
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Each<T>(this IEnumerable<T> collection, Action<T> function)
     {
-        foreach(var x in collection)
+        foreach (var x in collection)
         {
             function(x);
         }
@@ -424,7 +425,7 @@ public static unsafe partial class GenericHelpers
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void EachWithIndex<T>(this IEnumerable<T> collection, Action<T, int> function)
     {
-        foreach(var (x, i) in collection.WithIndex())
+        foreach (var (x, i) in collection.WithIndex())
         {
             function(x, i);
         }
@@ -439,7 +440,7 @@ public static unsafe partial class GenericHelpers
     /// <returns>Whether <paramref name="hashSet"/> contains <paramref name="value"/> after function has been executed.</returns>
     public static bool Toggle<T>(this HashSet<T> hashSet, T value)
     {
-        if(hashSet.Contains(value))
+        if (hashSet.Contains(value))
         {
             hashSet.Remove(value);
             return false;
@@ -453,7 +454,7 @@ public static unsafe partial class GenericHelpers
 
     public static bool Toggle<T>(this List<T> list, T value)
     {
-        if(list.Contains(value))
+        if (list.Contains(value))
         {
             list.RemoveAll(x => x.Equals(value));
             return false;
@@ -467,9 +468,9 @@ public static unsafe partial class GenericHelpers
 
     public static T FirstOr0<T>(this IEnumerable<T> collection, Func<T, bool> predicate)
     {
-        foreach(var x in collection)
+        foreach (var x in collection)
         {
-            if(predicate(x))
+            if (predicate(x))
             {
                 return x;
             }
@@ -479,19 +480,39 @@ public static unsafe partial class GenericHelpers
 
     public static IEnumerable<R> SelectMulti<T, R>(this IEnumerable<T> values, params Func<T, R>[] funcs)
     {
-        foreach(var v in values)
-            foreach(var x in funcs)
+        foreach (var v in values)
+            foreach (var x in funcs)
             {
                 yield return x(v);
             }
     }
 
+    /// <summary>
+    /// Projects each element of a nested sequence to an IEnumerable and flattens the resulting sequences into one sequence.
+    /// </summary>
+    public static IEnumerable<TResult> SelectNested<TSource, TResult>(this IEnumerable<IEnumerable<TSource>> source, Func<TSource, TResult> selector)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(selector);
+
+        foreach (var innerSequence in source)
+        {
+            if (innerSequence != null)
+            {
+                foreach (var item in innerSequence)
+                {
+                    yield return selector(item);
+                }
+            }
+        }
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool ContainsAll<T>(this IEnumerable<T> source, IEnumerable<T> values)
     {
-        foreach(var x in values)
+        foreach (var x in values)
         {
-            if(!source.Contains(x)) return false;
+            if (!source.Contains(x)) return false;
         }
         return true;
     }
@@ -505,9 +526,9 @@ public static unsafe partial class GenericHelpers
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool ContainsAny<T>(this IEnumerable<T> obj, params T[] values)
     {
-        foreach(var x in values)
+        foreach (var x in values)
         {
-            if(obj.Contains(x))
+            if (obj.Contains(x))
             {
                 return true;
             }
@@ -518,9 +539,9 @@ public static unsafe partial class GenericHelpers
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool ContainsAny<T>(this IEnumerable<T> obj, IEnumerable<T> values)
     {
-        foreach(var x in values)
+        foreach (var x in values)
         {
-            if(obj.Contains(x))
+            if (obj.Contains(x))
             {
                 return true;
             }
@@ -536,9 +557,9 @@ public static unsafe partial class GenericHelpers
 
     public static IEnumerable<K> FindKeysByValue<K, V>(this IDictionary<K, V> dictionary, V value)
     {
-        foreach(var x in dictionary)
+        foreach (var x in dictionary)
         {
-            if(value.Equals(x.Value))
+            if (value.Equals(x.Value))
             {
                 yield return x.Key;
             }
@@ -552,7 +573,7 @@ public static unsafe partial class GenericHelpers
             keyValuePair = dictionary.First(predicate);
             return true;
         }
-        catch(Exception)
+        catch (Exception)
         {
             keyValuePair = default;
             return false;
@@ -568,15 +589,15 @@ public static unsafe partial class GenericHelpers
     /// <returns></returns>
     public static bool TryGetFirst<TSource>(this IEnumerable<TSource> source, out TSource value)
     {
-        if(source == null)
+        if (source == null)
         {
             value = default;
             return false;
         }
         var list = source as IList<TSource>;
-        if(list != null)
+        if (list != null)
         {
-            if(list.Count > 0)
+            if (list.Count > 0)
             {
                 value = list[0];
                 return true;
@@ -584,9 +605,9 @@ public static unsafe partial class GenericHelpers
         }
         else
         {
-            using(var e = source.GetEnumerator())
+            using (var e = source.GetEnumerator())
             {
-                if(e.MoveNext())
+                if (e.MoveNext())
                 {
                     value = e.Current;
                     return true;
@@ -607,19 +628,19 @@ public static unsafe partial class GenericHelpers
     /// <returns></returns>
     public static bool TryGetFirst<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate, out TSource value)
     {
-        if(source == null)
+        if (source == null)
         {
             value = default;
             return false;
         }
-        if(predicate == null)
+        if (predicate == null)
         {
             value = default;
             return false;
         }
-        foreach(var element in source)
+        foreach (var element in source)
         {
-            if(predicate(element))
+            if (predicate(element))
             {
                 value = element;
                 return true;
@@ -644,7 +665,7 @@ public static unsafe partial class GenericHelpers
             value = enumerable.Last(predicate);
             return true;
         }
-        catch(Exception)
+        catch (Exception)
         {
             value = default;
             return false;
@@ -654,15 +675,15 @@ public static unsafe partial class GenericHelpers
     public static void MoveItemToPosition<T>(IList<T> list, Func<T, bool> sourceItemSelector, int targetedIndex)
     {
         var sourceIndex = -1;
-        for(var i = 0; i < list.Count; i++)
+        for (var i = 0; i < list.Count; i++)
         {
-            if(sourceItemSelector(list[i]))
+            if (sourceItemSelector(list[i]))
             {
                 sourceIndex = i;
                 break;
             }
         }
-        if(sourceIndex == targetedIndex) return;
+        if (sourceIndex == targetedIndex) return;
         var item = list[sourceIndex];
         list.RemoveAt(sourceIndex);
         list.Insert(targetedIndex, item);

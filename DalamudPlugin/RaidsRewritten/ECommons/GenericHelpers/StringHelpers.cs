@@ -1,5 +1,5 @@
 ﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/GenericHelpers/StringHelpers.cs
-// 1144846
+// 9a7e659
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Utility;
@@ -14,14 +14,15 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 namespace ECommons;
+
 public static unsafe partial class GenericHelpers
 {
     public static bool ContainsPartOf(this string haystack, SeString needle)
     {
         var text = haystack;
-        foreach(var x in needle.Payloads.OfType<TextPayload>().Where(p => p.Text != null && p.Text.Trim().Length > 0).OrderByDescending(p => p.Text.Length))
+        foreach (var x in needle.Payloads.OfType<TextPayload>().Where(p => p.Text != null && p.Text.Trim().Length > 0).OrderByDescending(p => p.Text.Length))
         {
-            if(text.Contains(x.Text)) return true;
+            if (text.Contains(x.Text)) return true;
         }
         return false;
     }
@@ -39,14 +40,14 @@ public static unsafe partial class GenericHelpers
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string ReplaceByChar(this string s, string replaceWhat, string replaceWith, bool replaceWithWhole = false)
     {
-        if(replaceWhat.Length != replaceWith.Length && !replaceWithWhole)
+        if (replaceWhat.Length != replaceWith.Length && !replaceWithWhole)
         {
             PluginLog.Error($"{nameof(replaceWhat)} and {nameof(replaceWith)} must be same length");
             return s;
         }
-        for(var i = 0; i < replaceWhat.Length; i++)
+        for (var i = 0; i < replaceWhat.Length; i++)
         {
-            if(replaceWithWhole)
+            if (replaceWithWhole)
             {
                 s = s.Replace(replaceWhat[i].ToString(), replaceWith);
             }
@@ -61,7 +62,7 @@ public static unsafe partial class GenericHelpers
     public static string ReplaceFirst(this string text, string search, string replace)
     {
         var pos = text.IndexOf(search);
-        if(pos < 0)
+        if (pos < 0)
         {
             return text;
         }
@@ -76,9 +77,9 @@ public static unsafe partial class GenericHelpers
     public static string Cleanup(this string s)
     {
         StringBuilder sb = new(s.Length);
-        foreach(var c in s)
+        foreach (var c in s)
         {
-            if(c == ' ' || c == '\n' || c == '\r' || c == '\t') continue;
+            if (c == ' ' || c == '\n' || c == '\r' || c == '\t') continue;
             sb.Append(c);
         }
         return sb.ToString();
@@ -92,14 +93,14 @@ public static unsafe partial class GenericHelpers
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string Default(this string s, string defaultValue)
     {
-        if(string.IsNullOrEmpty(s)) return defaultValue;
+        if (string.IsNullOrEmpty(s)) return defaultValue;
         return s;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string Cut(this string s, int num)
     {
-        if(s.Length <= num) return s;
+        if (s.Length <= num) return s;
         return s[0..num] + "...";
     }
 
@@ -107,7 +108,7 @@ public static unsafe partial class GenericHelpers
     public static string Repeat(this string s, int num)
     {
         StringBuilder str = new();
-        for(var i = 0; i < num; i++)
+        for (var i = 0; i < num; i++)
         {
             str.Append(s);
         }
@@ -125,9 +126,9 @@ public static unsafe partial class GenericHelpers
 
     public static bool StartsWithAny(this string source, IEnumerable<string> compareTo, StringComparison stringComparison = StringComparison.Ordinal)
     {
-        foreach(var x in compareTo)
+        foreach (var x in compareTo)
         {
-            if(source.StartsWith(x, stringComparison)) return true;
+            if (source.StartsWith(x, stringComparison)) return true;
         }
         return false;
     }
@@ -135,9 +136,9 @@ public static unsafe partial class GenericHelpers
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool ContainsAny(this string obj, IEnumerable<string> values)
     {
-        foreach(var x in values)
+        foreach (var x in values)
         {
-            if(obj.Contains(x))
+            if (obj.Contains(x))
             {
                 return true;
             }
@@ -148,9 +149,9 @@ public static unsafe partial class GenericHelpers
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool ContainsAny(this string obj, params string[] values)
     {
-        foreach(var x in values)
+        foreach (var x in values)
         {
-            if(obj.Contains(x))
+            if (obj.Contains(x))
             {
                 return true;
             }
@@ -161,9 +162,9 @@ public static unsafe partial class GenericHelpers
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool ContainsAny(this string obj, StringComparison comp, params string[] values)
     {
-        foreach(var x in values)
+        foreach (var x in values)
         {
-            if(obj.Contains(x, comp))
+            if (obj.Contains(x, comp))
             {
                 return true;
             }
@@ -184,7 +185,7 @@ public static unsafe partial class GenericHelpers
     public static string? NullWhenEmpty(this string s) => s == string.Empty ? null : s;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsNullOrEmpty(this string s) => string.IsNullOrEmpty(s);
+    public static bool IsNullOrEmpty(this string? s) => string.IsNullOrEmpty(s);
 
     /// <summary>
     /// Returns <paramref name="s"/> when <paramref name="b"/> is <see langword="true"/>, <see langword="null"/> otherwise
@@ -231,14 +232,14 @@ public static unsafe partial class GenericHelpers
     public static string GetText(this SeString seStr, bool onlyFirst = false)
     {
         StringBuilder sb = new();
-        foreach(var x in seStr.Payloads)
+        foreach (var x in seStr.Payloads)
         {
-            if(x is TextPayload tp)
+            if (x is TextPayload tp)
             {
                 sb.Append(tp.Text);
-                if(onlyFirst) break;
+                if (onlyFirst) break;
             }
-            if(x.Type == PayloadType.Unknown && x.Encode().SequenceEqual<byte>([0x02, 0x1d, 0x01, 0x03]))
+            if (x.Type == PayloadType.Unknown && x.Encode().SequenceEqual<byte>([0x02, 0x1d, 0x01, 0x03]))
             {
                 sb.Append(' ');
             }
@@ -260,24 +261,24 @@ public static unsafe partial class GenericHelpers
     /// <returns></returns>
     public static string Read(this Span<byte> bytes)
     {
-        for(var i = 0; i < bytes.Length; i++)
+        for (var i = 0; i < bytes.Length; i++)
         {
-            if(bytes[i] == 0)
+            if (bytes[i] == 0)
             {
-                fixed(byte* ptr = bytes)
+                fixed (byte* ptr = bytes)
                 {
                     return Marshal.PtrToStringUTF8((nint)ptr, i);
                 }
             }
         }
-        fixed(byte* ptr = bytes)
+        fixed (byte* ptr = bytes)
         {
             return Marshal.PtrToStringUTF8((nint)ptr, bytes.Length);
         }
     }
     public static SeString ReadSeString(Utf8String* utf8String)
     {
-        if(utf8String != null)
+        if (utf8String != null)
         {
             return SeString.Parse(utf8String->AsSpan());
         }

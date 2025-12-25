@@ -1,5 +1,5 @@
 ﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/GameFunctions/CharacterFunctions.cs
-// ee94cda
+// e87cec7
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
@@ -13,7 +13,7 @@ public static unsafe class CharacterFunctions
 {
     public static ushort GetVFXId(void* VfxData)
     {
-        if(VfxData == null) return 0;
+        if (VfxData == null) return 0;
         return *(ushort*)((IntPtr)(VfxData) + 8);
     }
 
@@ -45,7 +45,7 @@ public static unsafe class CharacterFunctions
     public static bool IsCharacterVisible(this ICharacter chr)
     {
         var v = (IntPtr)(((FFXIVClientStructs.FFXIV.Client.Game.Character.Character*)chr.Address)->GameObject.DrawObject);
-        if(v == IntPtr.Zero) return false;
+        if (v == IntPtr.Zero) return false;
         return Bitmask.IsBitSet(*(byte*)(v + 136), 0);
     }
 
@@ -62,28 +62,39 @@ public static unsafe class CharacterFunctions
 
     public static CombatRole GetRole(this ICharacter c)
     {
-        if(c.ClassJob.ValueNullable?.Role == 1) return CombatRole.Tank;
-        if(c.ClassJob.ValueNullable?.Role == 2) return CombatRole.DPS;
-        if(c.ClassJob.ValueNullable?.Role == 3) return CombatRole.DPS;
-        if(c.ClassJob.ValueNullable?.Role == 4) return CombatRole.Healer;
+        if (c.ClassJob.ValueNullable?.Role == 1) return CombatRole.Tank;
+        if (c.ClassJob.ValueNullable?.Role == 2) return CombatRole.DPS;
+        if (c.ClassJob.ValueNullable?.Role == 3) return CombatRole.DPS;
+        if (c.ClassJob.ValueNullable?.Role == 4) return CombatRole.Healer;
         return CombatRole.NonCombat;
     }
 
     public static bool IsCasting(this IBattleChara c, uint spellId = 0, ActionType? type = null)
     {
-        if(c.Struct()->GetCastInfo() == null) return false;
+        if (c.Struct()->GetCastInfo() == null) return false;
         return c.IsCasting && (spellId == 0 || (c.CastActionId.EqualsAny(spellId) && (type == null || c.CastActionType == (byte)type.Value)));
     }
 
     public static bool IsCasting(this IBattleChara c, params uint[] spellId)
     {
-        if(c.Struct()->GetCastInfo() == null) return false;
+        if (c.Struct()->GetCastInfo() == null) return false;
         return c.IsCasting && c.CastActionId.EqualsAny(spellId);
     }
 
     public static bool IsCasting(this IBattleChara c, IEnumerable<uint> spellId)
     {
-        if(c.Struct()->GetCastInfo() == null) return false;
+        if (c.Struct()->GetCastInfo() == null) return false;
         return c.IsCasting && c.CastActionId.EqualsAny(spellId);
+    }
+
+    extension(IGameObject obj)
+    {
+        public uint ObjectId => obj.EntityId;
+    }
+
+    extension(ICharacter chr)
+    {
+        public float Health => (float)chr.CurrentHp / (float)chr.MaxHp;
+        public uint MissingHp => chr.MaxHp - chr.CurrentHp;
     }
 }

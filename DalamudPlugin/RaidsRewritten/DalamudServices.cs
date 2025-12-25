@@ -12,6 +12,7 @@ public class DalamudServices
     public ICommandManager CommandManager => PluginInitializer.CommandManager;
     public IGameInteropProvider GameInteropProvider => PluginInitializer.GameInteropProvider;
     public IClientState ClientState => PluginInitializer.ClientState;
+    public IPlayerState PlayerState => PluginInitializer.PlayerState;
     public IChatGui ChatGui => PluginInitializer.ChatGui;
     public ICondition Condition => PluginInitializer.Condition;
     public IDutyState DutyState => PluginInitializer.DutyState;

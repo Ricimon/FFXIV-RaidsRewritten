@@ -1,5 +1,5 @@
 ﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/Hooks/ActionEffectTypes/ActionEffectSet.cs
-// 78da16b
+// 68171c0
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons.DalamudServices;
 using FFXIVClientStructs.FFXIV.Client.Game;
@@ -39,9 +39,9 @@ public readonly unsafe record struct ActionEffectSet
 
     public ActionEffectSet(uint sourceID, Character* sourceCharacter, Vector3* pos, EffectHeader* effectHeader, EffectEntry* effectArray, ulong* effectTail)
     {
-        switch(effectHeader->ActionType)
+        switch (effectHeader->ActionType)
         {
-            case ActionType.KeyItem:
+            case ActionType.EventItem:
                 EventItem = Svc.Data.GetExcelSheet<EventItem>()!.GetRowOrDefault(effectHeader->ActionID);
                 Name = EventItem?.Singular.ToString() ?? string.Empty;
                 IconId = EventItem?.Icon ?? 0;
@@ -79,7 +79,7 @@ public readonly unsafe record struct ActionEffectSet
         Header = *effectHeader;
 
         TargetEffects = new TargetEffect[effectHeader->TargetCount];
-        for(var i = 0; i < effectHeader->TargetCount; i++)
+        for (var i = 0; i < effectHeader->TargetCount; i++)
         {
             TargetEffects[i] = new TargetEffect(effectTail[i], effectArray + 8 * i);
         }
@@ -88,9 +88,9 @@ public readonly unsafe record struct ActionEffectSet
     public Dictionary<ulong, uint> GetSpecificTypeEffect(ActionEffectType type)
     {
         var result = new Dictionary<ulong, uint>();
-        foreach(var effect in TargetEffects)
+        foreach (var effect in TargetEffects)
         {
-            if(effect.GetSpecificTypeEffect(type, out var e))
+            if (effect.GetSpecificTypeEffect(type, out var e))
             {
                 //Is this value or Damage? IDK about it.
                 result[effect.TargetID] = e.value;
@@ -101,11 +101,11 @@ public readonly unsafe record struct ActionEffectSet
 
     public override string ToString()
     {
-        var str = $"S:{Source?.Name}, T:{Target?.Name}, Name: {Action?.Name}({Action?.RowId}) ";
-        str += $"Header.Type: {Header.ActionType}, Header.T: 0x{Header.AnimationTargetId:X}, Header.Lock:{Header.AnimationLockTime}";
-        if(TargetEffects != null)
+        var str = $"S:{Source?.Name}, T:{Target?.Name}, Lock:{Header.AnimationLockTime}";
+        str += $"\nType: {Header.ActionType}, Name: {Action?.Name}({Action?.RowId})";
+        if (TargetEffects != null)
         {
-            foreach(var effect in TargetEffects)
+            foreach (var effect in TargetEffects)
             {
                 str += "\n" + effect.ToString();
             }

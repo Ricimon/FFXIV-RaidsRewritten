@@ -1,5 +1,5 @@
 ﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/GameFunctions/ObjectFunctions.cs
-// 78da16b
+// e72386f
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons.DalamudServices;
 using ECommons.EzHookManager;
@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 
 namespace ECommons.GameFunctions;
 #nullable disable
+
 
 public static unsafe class ObjectFunctions
 {
@@ -49,14 +50,14 @@ public static unsafe class ObjectFunctions
 
     public static NameplateKind GetNameplateKind(this IGameObject o)
     {
-        if(o == null || o.Address == IntPtr.Zero)
+        if (o == null || o.Address == IntPtr.Zero)
         {
             // Log the error for debugging purposes
             Svc.Log.Debug($"IGameObject or its address is null.");
         }
 
         GetNameplateColorNative ??= EzDelegate.Get<GetNameplateColorDelegate>(GetNameplateColorSig);
-        if(GetNameplateColorNative == null)
+        if (GetNameplateColorNative == null)
         {
             // Log the error for debugging purposes
             Svc.Log.Debug($"Failed to get the native delegate for GetNameplateColor.");
@@ -68,12 +69,12 @@ public static unsafe class ObjectFunctions
     public static int GetAttackableEnemyCountAroundPoint(Vector3 point, float radius)
     {
         var num = 0;
-        foreach(var o in Svc.Objects)
+        foreach (var o in Svc.Objects)
         {
-            if(o is IBattleNpc)
+            if (o is IBattleNpc)
             {
                 var oStruct = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)o.Address;
-                if(oStruct->GetIsTargetable() && o.IsHostile()
+                if (oStruct->GetIsTargetable() && o.IsHostile()
                     && Vector3.Distance(point, o.Position) <= radius + o.HitboxRadius)
                 {
                     num++;
@@ -85,14 +86,14 @@ public static unsafe class ObjectFunctions
 
     public static bool TryGetPartyMemberObjectByObjectId(uint objectId, out IGameObject partyMemberObject)
     {
-        if(objectId == Svc.ClientState.LocalPlayer?.GameObjectId)
+        if (objectId == Svc.Objects.LocalPlayer?.GameObjectId)
         {
-            partyMemberObject = Svc.ClientState.LocalPlayer;
+            partyMemberObject = Svc.Objects.LocalPlayer;
             return true;
         }
-        foreach(var p in Svc.Party)
+        foreach (var p in Svc.Party)
         {
-            if(p.GameObject?.GameObjectId == objectId)
+            if (p.GameObject?.GameObjectId == objectId)
             {
                 partyMemberObject = p.GameObject;
                 return true;
@@ -104,14 +105,14 @@ public static unsafe class ObjectFunctions
 
     public static bool TryGetPartyMemberObjectByAddress(IntPtr address, out IGameObject partyMemberObject)
     {
-        if(address == Svc.ClientState.LocalPlayer?.Address)
+        if (address == Svc.Objects.LocalPlayer?.Address)
         {
-            partyMemberObject = Svc.ClientState.LocalPlayer;
+            partyMemberObject = Svc.Objects.LocalPlayer;
             return true;
         }
-        foreach(var p in Svc.Party)
+        foreach (var p in Svc.Party)
         {
-            if(p.GameObject?.Address == address)
+            if (p.GameObject?.Address == address)
             {
                 partyMemberObject = p.GameObject;
                 return true;

@@ -7,7 +7,7 @@ using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Plugin.Services;
 using ECommons;
 using ECommons.GameFunctions;
-using ECommons.GameHelpers;
+using ECommons.GameHelpers.LegacyPlayer;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ObjectLifeTracker;
@@ -55,8 +55,8 @@ public sealed class EncounterManager(
         objectEffectProcessor.Init(OnObjectEffect);
         actorControlProcessor.Init(OnActorControl);
         AttachedInfo.Init(logger, OnStartingCast, OnVFXSpawn);
-        DirectorUpdate.Init(OnDirectorUpdate, logger);
-        ObjectLife.Init(dalamud.GameInteropProvider, dalamud.SigScanner, dalamud.ObjectTable, logger);
+        DirectorUpdate.Init(OnDirectorUpdate);
+        ObjectLife.Init();
         ObjectLife.OnObjectCreation += OnObjectCreation;
         ActionEffect.ActionEffectEntryEvent += OnActionEffect;
         ActionEffect.ActionEffectEvent += OnActionEffectEvent;
@@ -171,7 +171,7 @@ public sealed class EncounterManager(
         if (obj is ICharacter c)
         {
             if (c is IPlayerCharacter && BlacklistedPcVfx.Contains(vfxPath)) { return; }
-            var targetText = c.AddressEquals(dalamud.ClientState.LocalPlayer) ? "me" : (c is IPlayerCharacter pc ? pc.GetJob().ToString() : c.BaseId.ToString() ?? "Unknown");
+            var targetText = c.AddressEquals(dalamud.ObjectTable.LocalPlayer) ? "me" : (c is IPlayerCharacter pc ? pc.GetJob().ToString() : c.BaseId.ToString() ?? "Unknown");
             unsafe
             {
                 text.Append($" spawned on {targetText}, npc id={c.NameId}, model id={c.Struct()->ModelContainer.ModelCharaId}, name npc id={c.NameId}, position={c.Position}, name={c.Name}");
@@ -196,9 +196,9 @@ public sealed class EncounterManager(
         }
     }
 
-    private void OnDirectorUpdate(long a1, long a2, DirectorUpdateCategory a3, uint a4, uint a5, int a6, int a7)
+    private void OnDirectorUpdate(long a1, long a2, DirectorUpdateCategory a3, uint a4, uint a5, int a6, int a7, int a8, int a9)
     {
-        var text = $"DIRECTOR_UPDATE: {a3}, {a4:X8}, {a5:X8}, {a6:X8}, {a7:X8}";
+        var text = $"DIRECTOR_UPDATE: {a3}, {a4:X8}, {a5:X8}, {a6:X8}, {a7:X8}, {a8:X8}, {a9:X8}";
         logger.Trace(text);
 
         if (configuration.EverythingDisabled) { return; }
@@ -332,11 +332,11 @@ public sealed class EncounterManager(
         var combatState = dalamud.Condition[ConditionFlag.InCombat];
         if (dalamud.Condition[ConditionFlag.DutyRecorderPlayback])
         {
-            if (dalamud.ClientState.LocalPlayer == null) { return; }
+            if (dalamud.ObjectTable.LocalPlayer == null) { return; }
 
             unsafe
             {
-                var chara = dalamud.ClientState.LocalPlayer.Character();
+                var chara = dalamud.ObjectTable.LocalPlayer.Character();
                 if (chara == null) { return; }
 
                 combatState = chara->InCombat;
