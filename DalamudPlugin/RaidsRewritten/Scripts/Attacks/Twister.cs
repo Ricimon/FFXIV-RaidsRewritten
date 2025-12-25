@@ -43,7 +43,7 @@ public sealed class Twister(DalamudServices dalamud, CommonQueries commonQueries
 
                     if (component.Cooldown > 0) { return; }
 
-                    var player = dalamud.ClientState.LocalPlayer;
+                    var player = dalamud.ObjectTable.LocalPlayer;
                     if (player == null || player.IsDead) { return; }
 
                     if (Vector2.Distance(position.Value.ToVector2(), player.Position.ToVector2()) <= Radius)

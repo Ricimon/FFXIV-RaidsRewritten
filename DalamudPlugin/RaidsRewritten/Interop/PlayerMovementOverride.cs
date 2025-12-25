@@ -187,7 +187,7 @@ public unsafe sealed class PlayerMovementOverride : IDisposable
 
     private (Angle h, Angle v)? GetDirectionAngles(bool allowVertical)
     {
-        var player = this.dalamud.ClientState.LocalPlayer;
+        var player = this.dalamud.ObjectTable.LocalPlayer;
         if (player == null) { return null; }
 
         if (this.OverrideMovementWorldDirection == Vector3.Zero) { return null; }

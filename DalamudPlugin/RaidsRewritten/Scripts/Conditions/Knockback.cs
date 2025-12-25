@@ -109,7 +109,7 @@ public sealed class Knockback : IDalamudHook
         // Do not Destruct entities in an undeferred query or else this will cause a crash.
         try
         {
-            var localPlayer = this.dalamud.ClientState.LocalPlayer;
+            var localPlayer = this.dalamud.ObjectTable.LocalPlayer;
             if (localPlayer == null) { return; }
 
             // Remove any fake knockbacks if the player performs some movement action

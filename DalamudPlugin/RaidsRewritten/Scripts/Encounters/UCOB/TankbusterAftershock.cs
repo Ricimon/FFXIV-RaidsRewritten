@@ -200,7 +200,7 @@ public class TankbusterAftershock : Mechanic
         {
             void OnHit(Entity e)
             {
-                var player = this.Dalamud.ClientState.LocalPlayer;
+                var player = this.Dalamud.ObjectTable.LocalPlayer;
                 if (player == null || player.IsDead) { return; }
                 if (player.HasTranscendance())
                 {

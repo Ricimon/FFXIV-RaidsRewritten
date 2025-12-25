@@ -163,7 +163,7 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
                     {
                         // attack
                         if (animationState.Value != AttackAnimation) { entity.Set(new TimelineBase(AttackAnimation)); }
-                        if (dalamud.ClientState.LocalPlayer == target.Value)
+                        if (dalamud.ObjectTable.LocalPlayer == target.Value)
                         {
                             StunPlayer(entity, StunDuration);
                             component.NextRefresh = component.ElapsedTime + 3f;
@@ -322,7 +322,7 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
 
     private void StunPlayer(Entity entity, float duration, float delay = StunDelay)
     {
-        var player = dalamud.ClientState.LocalPlayer;
+        var player = dalamud.ObjectTable.LocalPlayer;
         if (player == null || player.IsDead) { return; }
         commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
         {

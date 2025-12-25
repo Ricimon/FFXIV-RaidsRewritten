@@ -90,7 +90,7 @@ public sealed class JumpableShockwave(DalamudServices dalamud, CommonQueries com
                 }
                 component.CurrentRadius = radius;
 
-                var player = dalamud.ClientState.LocalPlayer;
+                var player = dalamud.ObjectTable.LocalPlayer;
                 if (player != null)
                 {
                     var distToPlayer = Vector2.DistanceSquared(p.ToVector2(), player.Position.ToVector2());

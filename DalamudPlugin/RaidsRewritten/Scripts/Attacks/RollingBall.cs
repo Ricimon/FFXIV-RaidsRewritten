@@ -143,7 +143,7 @@ public unsafe sealed class RollingBall(DalamudServices dalamud, CommonQueries co
                     component.Cooldown = Math.Max(component.Cooldown - it.DeltaTime(), 0);
                     if (component.Cooldown > 0) { return; }
 
-                    var player = dalamud.ClientState.LocalPlayer;
+                    var player = dalamud.ObjectTable.LocalPlayer;
                     if (player == null || player.IsDead) { return; }
 
                     if (Vector2.Distance(position.Value.ToVector2(), player.Position.ToVector2()) <= HitboxRadius)

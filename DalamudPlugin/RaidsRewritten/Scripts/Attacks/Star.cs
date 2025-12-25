@@ -126,7 +126,7 @@ public class Star(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn
 
     private void Snapshot(Entity entity, Component component)
     {
-        var player = dalamud.ClientState.LocalPlayer;
+        var player = dalamud.ObjectTable.LocalPlayer;
 
         if (player == null || player.IsDead) { return; }
 

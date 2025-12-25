@@ -93,7 +93,7 @@ public class NerveGasKaliya(DalamudServices dalamud, VfxSpawn vfxSpawn, CommonQu
                         {
                             if (!child.Has<Omen>()) { return; }
 
-                            var player = dalamud.ClientState.LocalPlayer;
+                            var player = dalamud.ObjectTable.LocalPlayer;
                             if (player != null && !player.IsDead)
                             {
                                 if (Fan120Omen.IsInOmen(child, player.Position))

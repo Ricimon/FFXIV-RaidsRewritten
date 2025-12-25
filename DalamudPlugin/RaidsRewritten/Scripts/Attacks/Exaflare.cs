@@ -148,7 +148,7 @@ public class Exaflare(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogger logger
 
     private void OnHit(Entity e)
     {
-        var player = dalamud.ClientState.LocalPlayer;
+        var player = dalamud.ObjectTable.LocalPlayer;
         if (player == null || player.IsDead) { return; }
         if (player.HasTranscendance())
         {

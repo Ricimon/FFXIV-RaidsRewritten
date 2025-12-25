@@ -119,7 +119,7 @@ public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogge
             .With<Player.LocalPlayer>().Up()
             .Each((Iter it, int i, ref Player.Component pc, ref ActorVfx vfx) =>
             {
-                var localPlayer = dalamud.ClientState.LocalPlayer;
+                var localPlayer = dalamud.ObjectTable.LocalPlayer;
                 if (vfx.VfxPtr == null && localPlayer != null)
                 {
                     vfx.VfxPtr = vfxSpawn.SpawnActorVfx(vfx.Path, localPlayer, localPlayer);

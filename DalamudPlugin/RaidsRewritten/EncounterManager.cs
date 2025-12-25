@@ -294,7 +294,7 @@ public sealed class EncounterManager(
         }
     }
 
-    private void OnActorControl(uint sourceId, uint command, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, ulong targetId, byte replaying)
+    private void OnActorControl(uint sourceId, uint command, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, uint p7, uint p8, ulong targetId, byte replaying)
     {
         var source = dalamud.ObjectTable.SearchByEntityId(sourceId);
         if (source == null) { return; }
@@ -306,7 +306,7 @@ public sealed class EncounterManager(
         }
 
         var text = new StringBuilder($"ACTOR_CONTROL: source {source.Name} (0x{sourceId})");
-        text.Append($", command {command}, {p1}, {p2}, {p3}, {p4}, {p5}, {p6}");
+        text.Append($", command {command}, {p1}, {p2}, {p3}, {p4}, {p5}, {p6}, {p7}, {p8}");
         text.Append($", targetId 0x{targetId:X}, replaying {replaying}");
         logger.Trace(text.ToString());
 

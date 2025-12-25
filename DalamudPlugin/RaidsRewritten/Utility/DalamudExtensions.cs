@@ -24,16 +24,6 @@ public static class DalamudExtensions
         return playerName;
     }
 
-    public static string? GetLocalPlayerFullName(this IClientState clientState)
-    {
-        var localPlayer = clientState.LocalPlayer;
-        if (localPlayer == null)
-        {
-            return null;
-        }
-        return localPlayer.GetPlayerFullName();
-    }
-
     public static IEnumerable<IPlayerCharacter> GetPlayers(this IObjectTable objectTable)
     {
         using var array = objectTable.AsValueEnumerable().Where(go => go.ObjectKind == ObjectKind.Player).OfType<IPlayerCharacter>().ToArrayPool();

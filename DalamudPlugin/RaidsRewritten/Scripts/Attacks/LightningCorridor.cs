@@ -95,7 +95,7 @@ public sealed class LightningCorridor(DalamudServices dalamud, CommonQueries com
                     {
                         if (!child.Has<Omen>()) { return; }
 
-                        var player = dalamud.ClientState.LocalPlayer;
+                        var player = dalamud.ObjectTable.LocalPlayer;
                         if (!hitLocalPlayer &&
                             player != null && !player.IsDead &&
                             RectangleOmen.IsInOmen(child, player.Position))
@@ -159,7 +159,7 @@ public sealed class LightningCorridor(DalamudServices dalamud, CommonQueries com
                     // Affect player
                     if (component.HitLocalPlayer)
                     {
-                        var player = dalamud.ClientState.LocalPlayer;
+                        var player = dalamud.ObjectTable.LocalPlayer;
                         if (player != null && !player.IsDead)
                         {
                             // This technically doesn't snapshot transcendance during snapshot calculation,

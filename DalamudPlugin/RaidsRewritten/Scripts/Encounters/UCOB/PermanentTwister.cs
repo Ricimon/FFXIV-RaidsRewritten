@@ -41,7 +41,7 @@ public class PermanentTwister : Mechanic
         if (newObject == null) { return; }
         if (newObject.BaseId != TWISTER_DATA_ID) { return; }
 
-        var player = this.Dalamud.ClientState.LocalPlayer;
+        var player = this.Dalamud.ObjectTable.LocalPlayer;
         if (player != null)
         {
             if (this.EntityManager.TryCreateEntity<Twister>(out var twister))

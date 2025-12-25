@@ -36,7 +36,7 @@ public sealed class Fan(DalamudServices dalamud, CommonQueries commonQueries, IL
             {
                 try
                 {
-                    var player = this.dalamud.ClientState.LocalPlayer;
+                    var player = this.dalamud.ObjectTable.LocalPlayer;
 
                     if (player != null && !player.IsDead)
                     {

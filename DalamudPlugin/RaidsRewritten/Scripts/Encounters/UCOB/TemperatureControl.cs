@@ -122,7 +122,7 @@ public class TemperatureControl : Mechanic
             if (set.Source == null) { return; }
             if (!HeatDict.TryGetValue(set.Action.Value.RowId, out var Heat)) { return; }
             
-            var localPlayer = Dalamud.ClientState.LocalPlayer;
+            var localPlayer = Dalamud.ObjectTable.LocalPlayer;
             if (localPlayer == null) { return; }
 
             var da = DelayedAction.Create(this.World, () =>     

@@ -60,7 +60,7 @@ public class LiquidHeaven(DalamudServices dalamud, CommonQueries commonQueries, 
                         entity.Set(new Alpha(alpha));
                     }
 
-                    var player = dalamud.ClientState.LocalPlayer;
+                    var player = dalamud.ObjectTable.LocalPlayer;
                     if (player == null || player.IsDead) { return; }
 
                     if (Vector2.Distance(position.Value.ToVector2(), player.Position.ToVector2()) <= HitBoxRadius)

@@ -143,7 +143,7 @@ public class Temperature(DalamudServices dalamud, CommonQueries commonQueries, I
             {
                 var e = it.Entity(i);
 
-                var player = dalamud.ClientState.LocalPlayer;
+                var player = dalamud.ObjectTable.LocalPlayer;
                 if (player != null && player.IsDead)
                 {
                     Temperature.CurrentTemperature = 0;

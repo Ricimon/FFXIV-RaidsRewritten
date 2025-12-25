@@ -86,8 +86,8 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
                 {
                     var playerEntity = it.Entity(i);
 
-                    var player = dalamud.ClientState.LocalPlayer;
-                    component.PlayerCharacter = dalamud.ClientState.LocalPlayer;
+                    var player = dalamud.ObjectTable.LocalPlayer;
+                    component.PlayerCharacter = dalamud.ObjectTable.LocalPlayer;
                     if (configuration.EverythingDisabled || player == null || player.IsDead)
                     {
                         playerEntity.Children(c =>

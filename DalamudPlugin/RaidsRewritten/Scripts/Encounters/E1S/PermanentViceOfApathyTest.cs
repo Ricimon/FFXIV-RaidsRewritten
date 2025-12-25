@@ -44,7 +44,7 @@ public class PermanentViceOfApathyTest : Mechanic
 
         void CreateTwister()
         {
-            var player = this.Dalamud.ClientState.LocalPlayer;
+            var player = this.Dalamud.ObjectTable.LocalPlayer;
             if (player != null)
             {
                 if (this.EntityManager.TryCreateEntity<Twister>(out var twister))

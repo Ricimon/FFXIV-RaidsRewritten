@@ -20,13 +20,13 @@
         "resolved": "1.2.39",
         "contentHash": "fcFN01tDTIQqDuTwr1jUQK/geofiwjG5DycJQOnC72i1SsLAk1ELe+apBOuZ11UMQG8YKFZG1FgvjZPbqHyatg=="
       },
-      "Flecs.NET.Release": {
+      "Flecs.NET.Debug": {
         "type": "Direct",
         "requested": "[4.0.3, )",
         "resolved": "4.0.3",
-        "contentHash": "QvXnyw6PHVT7CBYMxfc0hLB5D1wl8vSwTLqrsj3ZENpNapYczG7VglxbtcBXC+V3WdCrhvyXARPQsSpvSj02gw==",
+        "contentHash": "85duFokDrxLx11jD3DWtOU9Nx6HWF17+r5BNw1an6qaU/YntFZxzbnUR154zwyhRABJTg1yJc7cEh2LrTaDOvw==",
         "dependencies": {
-          "Flecs.NET.Bindings.Release": "4.0.3"
+          "Flecs.NET.Bindings.Debug": "4.0.3"
         }
       },
       "HelixToolkit.SharpDX.Core": {
@@ -149,18 +149,18 @@
         "resolved": "2.0.0",
         "contentHash": "t6vYF0sXgNb6dP9QNbJxJWw3RdCEWC6Llv47oPYpobYAhmKcgmAZJv6HXK03DEUmo7ff6yPvsyEWTkia+UAONw=="
       },
-      "Flecs.NET.Bindings.Release": {
+      "Flecs.NET.Bindings.Debug": {
         "type": "Transitive",
         "resolved": "4.0.3",
-        "contentHash": "ysyDbx8Tp+FNuWEmwd7Q/UbrCv8Dmm8Xpr9m/8cHPloo1rDmhQyBJ9kmk0EjH2OeSbTIpTTxmfW9FPIHJTD4AA==",
+        "contentHash": "lIHLDfr/P1Bc8p+QPwnlkrGj75/kF9CfTCcJtp0fWNgXQu9onX2K3w8Cu8rwxiUWMzi6gx49fwlTAQXB/w5S2A==",
         "dependencies": {
-          "Flecs.NET.Native.Release": "4.0.3"
+          "Flecs.NET.Native.Debug": "4.0.3"
         }
       },
-      "Flecs.NET.Native.Release": {
+      "Flecs.NET.Native.Debug": {
         "type": "Transitive",
         "resolved": "4.0.3",
-        "contentHash": "FwsgKLaiV/TbpqGUwuNJ8cJprGknj/37+OZPb14G3A5sN8N5gvN8h9szL/ElKj8H8e1RUzRC0XgIXDCv5OgsVA=="
+        "contentHash": "+myNejPdTcR9Glm7Pt11IywomNzjULwTr2nKrpkAmXJk+/2fWDf0zZImNSijwigYzFhqnWOaPdxCHLXaziiDjQ=="
       },
       "HelixToolkit": {
         "type": "Transitive",

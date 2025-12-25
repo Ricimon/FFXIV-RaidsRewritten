@@ -42,7 +42,7 @@ public class Tornado (DalamudServices dalamud, Random random, CommonQueries comm
                 if (component.ElapsedTime < TimeTillActive) { return; }
                 if (component.ElapsedTime < component.CooldownTime) { return; }
 
-                var player = dalamud.ClientState.LocalPlayer;
+                var player = dalamud.ObjectTable.LocalPlayer;
                 if (player == null || player.IsDead) { return; }
 
                 var playerPosV2 = player.Position.ToVector2();

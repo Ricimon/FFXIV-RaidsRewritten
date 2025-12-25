@@ -107,7 +107,7 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
                             return;
                         }
 
-                        var player = dalamud.ClientState.LocalPlayer;
+                        var player = dalamud.ObjectTable.LocalPlayer;
 
                         if (player != null && !player.IsDead && RectangleOmen.IsInOmen(child, player.Position))
                         {
@@ -192,7 +192,7 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
                                 return;
                             }
 
-                            var player = dalamud.ClientState.LocalPlayer;
+                            var player = dalamud.ObjectTable.LocalPlayer;
 
                             if (player != null && !player.IsDead && CircleOmen.IsInOmen(child, player.Position))
                             {

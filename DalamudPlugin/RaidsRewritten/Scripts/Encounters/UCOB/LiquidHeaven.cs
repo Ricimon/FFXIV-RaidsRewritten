@@ -41,7 +41,7 @@ public class LiquidHeaven : Mechanic
         if (newObject == null) { return; }
         if (newObject.BaseId != NEUROLINK_DATA_ID) { return; }
         
-        var player = this.Dalamud.ClientState.LocalPlayer;
+        var player = this.Dalamud.ObjectTable.LocalPlayer;
         if (player != null)
         {
             if (this.EntityManager.TryCreateEntity<Attacks.LiquidHeaven>(out var liquidHeaven))

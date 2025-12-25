@@ -38,7 +38,7 @@ public class Circle(DalamudServices dalamud, CommonQueries commonQueries, ILogge
             {
                 try
                 {
-                    var player = this.dalamud.ClientState.LocalPlayer;
+                    var player = this.dalamud.ObjectTable.LocalPlayer;
 
                     if (player != null && !player.IsDead)
                     {

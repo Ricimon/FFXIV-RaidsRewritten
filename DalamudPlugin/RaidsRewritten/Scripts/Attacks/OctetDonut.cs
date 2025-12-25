@@ -83,7 +83,7 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
                     {
                         if (!child.Has<Omen>()) { return; }
 
-                        var player = dalamud.ClientState.LocalPlayer;
+                        var player = dalamud.ObjectTable.LocalPlayer;
                         if (player != null && !player.IsDead)
                         {
                             if (OneThirdDonutOmen.IsInOmen(child, player.Position))

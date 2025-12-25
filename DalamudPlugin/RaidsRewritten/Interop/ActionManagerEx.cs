@@ -1,5 +1,5 @@
 ﻿// Adapted from https://github.com/awgil/ffxiv_bossmod/blob/master/BossMod/Framework/ActionManagerEx.cs
-// 4c1a83c
+// 8377690
 using System;
 using System.Numerics;
 using Dalamud.Hooking;
@@ -54,7 +54,7 @@ public unsafe sealed class ActionManagerEx : IDisposable
         var currentTime = this.dalamud.Framework.LastUpdateUTC;
         if (currentTime < this.nextAllowedCancelCast) { return; }
 
-        var localPlayer = this.dalamud.ClientState.LocalPlayer;
+        var localPlayer = this.dalamud.ObjectTable.LocalPlayer;
         if (localPlayer != null &&
             localPlayer.IsCasting)
         {

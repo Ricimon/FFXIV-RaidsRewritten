@@ -196,7 +196,7 @@ public class JunctionCoils : Mechanic
                 attacks.Add(da);
                 break;
             case Phase.Teraflare:
-                localPlayer = this.Dalamud.ClientState.LocalPlayer;
+                localPlayer = this.Dalamud.ObjectTable.LocalPlayer;
                 if (localPlayer == null) { return; }
                 List<IBattleChara> playerList = FillPlayerList();
 

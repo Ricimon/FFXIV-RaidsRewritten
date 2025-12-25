@@ -89,7 +89,7 @@ public class Tethers : Mechanic
                 {
                     Action<Entity>? onCondition1 = null;
 
-                    var localPlayer = this.Dalamud.ClientState.LocalPlayer;
+                    var localPlayer = this.Dalamud.ObjectTable.LocalPlayer;
                     if (src == localPlayer || target == localPlayer)
                     {
                         onCondition1 = (e) => {

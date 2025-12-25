@@ -59,7 +59,7 @@ public partial class MainWindow
 
         if (ImGui.Button("Print Player Data"))
         {
-            var player = this.dalamud.ClientState.LocalPlayer;
+            var player = this.dalamud.ObjectTable.LocalPlayer;
             if (player != null)
             {
                 this.logger.Info($"Player position:{player.Position}, address:0x{player.Address:X}, entityId:0x{player.EntityId:X}, gameObjectId:0x{player.GameObjectId:X}");
@@ -68,7 +68,7 @@ public partial class MainWindow
         ImGui.SameLine();
         if (ImGui.Button("Print Target Data"))
         {
-            var player = this.dalamud.ClientState.LocalPlayer;
+            var player = this.dalamud.ObjectTable.LocalPlayer;
             if (player != null && player.TargetObject != null)
             {
                 var target = player.TargetObject;
@@ -171,7 +171,7 @@ public partial class MainWindow
         ImGui.Text("Test Omens");
         if (ImGui.Button("Circle Omen"))
         {
-            var player = this.dalamud.ClientState.LocalPlayer;
+            var player = this.dalamud.ObjectTable.LocalPlayer;
             if (player != null)
             {
                 if (this.entityManager.TryCreateEntity<CircleOmen>(out var circle))
@@ -185,7 +185,7 @@ public partial class MainWindow
         ImGui.SameLine();
         if (ImGui.Button("Fan Omen"))
         {
-            var player = this.dalamud.ClientState.LocalPlayer;
+            var player = this.dalamud.ObjectTable.LocalPlayer;
             if (player != null)
             {
                 if (this.entityManager.TryCreateEntity<Fan90Omen>(out var fan))
@@ -199,7 +199,7 @@ public partial class MainWindow
         ImGui.SameLine();
         if (ImGui.Button("Rect Omen"))
         {
-            var player = this.dalamud.ClientState.LocalPlayer;
+            var player = this.dalamud.ObjectTable.LocalPlayer;
             if (player != null)
             {
                 if (this.entityManager.TryCreateEntity<RectangleOmen>(out var rect))
@@ -213,7 +213,7 @@ public partial class MainWindow
         ImGui.SameLine();
         if (ImGui.Button("Star Omen"))
         {
-            var player = this.dalamud.ClientState.LocalPlayer;
+            var player = this.dalamud.ObjectTable.LocalPlayer;
             if (player != null)
             {
                 if (this.entityManager.TryCreateEntity<ShortStarOmen>(out var star))
@@ -227,7 +227,7 @@ public partial class MainWindow
 
         if (ImGui.Button("One Third Donut Omen"))
         {
-            var player = this.dalamud.ClientState.LocalPlayer;
+            var player = this.dalamud.ObjectTable.LocalPlayer;
             if (player != null)
             {
                 if (this.entityManager.TryCreateEntity<OneThirdDonutOmen>(out var donut))
@@ -243,7 +243,7 @@ public partial class MainWindow
 
         if (ImGui.Button("Spawn Twister"))
         {
-            var player = this.dalamud.ClientState.LocalPlayer;
+            var player = this.dalamud.ObjectTable.LocalPlayer;
             if (player != null)
             {
                 if (this.entityManager.TryCreateEntity<Twister>(out var twister))
@@ -258,7 +258,7 @@ public partial class MainWindow
         {
             if (ImGui.Button("Spawn Ball"))
             {
-                var player = this.dalamud.ClientState.LocalPlayer;
+                var player = this.dalamud.ObjectTable.LocalPlayer;
                 if (player != null)
                 {
                     if (this.entityManager.TryCreateEntity<RollingBall>(out var ball))
@@ -273,7 +273,7 @@ public partial class MainWindow
             }
             if (ImGui.Button("LightningCorridor"))
             {
-                var player = this.dalamud.ClientState.LocalPlayer;
+                var player = this.dalamud.ObjectTable.LocalPlayer;
                 if (player != null)
                 {
                     if (this.entityManager.TryCreateEntity<LightningCorridor>(out var attack))
@@ -286,7 +286,7 @@ public partial class MainWindow
 
             if (ImGui.Button("Exaflare"))
             {
-                var player = this.dalamud.ClientState.LocalPlayer;
+                var player = this.dalamud.ObjectTable.LocalPlayer;
                 if (player != null)
                 {
                     if (this.entityManager.TryCreateEntity<Exaflare>(out var exaflare))
@@ -299,7 +299,7 @@ public partial class MainWindow
             ImGui.SameLine();
             if (ImGui.Button("Row of Exaflares"))
             {
-                var player = this.dalamud.ClientState.LocalPlayer;
+                var player = this.dalamud.ObjectTable.LocalPlayer;
                 if (player != null)
                 {
                     if (this.entityManager.TryCreateEntity<ExaflareRow>(out var exaflare))
@@ -312,7 +312,7 @@ public partial class MainWindow
 
             if (ImGui.Button("Jumpwave"))
             {
-                var player = this.dalamud.ClientState.LocalPlayer;
+                var player = this.dalamud.ObjectTable.LocalPlayer;
                 if (player != null)
                 {
                     if (this.entityManager.TryCreateEntity<JumpableShockwave>(out var jumpwave))
@@ -325,7 +325,7 @@ public partial class MainWindow
 
             if (ImGui.Button("Dreadknight"))
             {
-                var player = this.dalamud.ClientState.LocalPlayer;
+                var player = this.dalamud.ObjectTable.LocalPlayer;
                 if (player != null)
                 {
                     if (this.entityManager.TryCreateEntity<Dreadknight>(out var dreadknight))
@@ -339,7 +339,7 @@ public partial class MainWindow
 
             if (ImGui.Button("Dreadknight With Tether"))
             {
-                var player = this.dalamud.ClientState.LocalPlayer;
+                var player = this.dalamud.ObjectTable.LocalPlayer;
                 if (player != null)
                 {
                     if (this.entityManager.TryCreateEntity<Dreadknight>(out var dreadknight))
@@ -377,7 +377,7 @@ public partial class MainWindow
 
             if (ImGui.Button("ADS"))
             {
-                var player = this.dalamud.ClientState.LocalPlayer;
+                var player = this.dalamud.ObjectTable.LocalPlayer;
                 if (player != null)
                 {
                     if (this.entityManager.TryCreateEntity<ADS>(out var ads))
@@ -387,7 +387,7 @@ public partial class MainWindow
                             .Set(new Rotation(player.Rotation));
                         DelayedAction.Create(ads.CsWorld(), () =>
                         {
-                            var player = this.dalamud.ClientState.LocalPlayer;
+                            var player = this.dalamud.ObjectTable.LocalPlayer;
                             if (player != null)
                             {
                                 ADS.CastLineAoe(ads, MathUtilities.GetAbsoluteAngleFromSourceToTarget(originalPosition, player.Position));
@@ -395,7 +395,7 @@ public partial class MainWindow
                         }, 3f).ChildOf(ads);
                         DelayedAction.Create(ads.CsWorld(), () =>
                         {
-                            var player = this.dalamud.ClientState.LocalPlayer;
+                            var player = this.dalamud.ObjectTable.LocalPlayer;
                             if (player != null)
                             {
                                 ADS.CastLineAoe(ads, MathUtilities.GetAbsoluteAngleFromSourceToTarget(originalPosition, player.Position));
@@ -410,7 +410,7 @@ public partial class MainWindow
 
             if (ImGui.Button("ADS Stepped Leader"))
             {
-                var player = this.dalamud.ClientState.LocalPlayer;
+                var player = this.dalamud.ObjectTable.LocalPlayer;
                 if (player != null)
                 {
                     if (this.entityManager.TryCreateEntity<ADS>(out var ads))
@@ -420,7 +420,7 @@ public partial class MainWindow
                             .Set(new Rotation(player.Rotation));
                         DelayedAction.Create(ads.CsWorld(), () =>
                         {
-                            var player = this.dalamud.ClientState.LocalPlayer;
+                            var player = this.dalamud.ObjectTable.LocalPlayer;
                             if (player != null)
                             {
                                 ADS.CastSteppedLeader(ads, player.Position);
@@ -428,7 +428,7 @@ public partial class MainWindow
                         }, 3f).ChildOf(ads);
                         DelayedAction.Create(ads.CsWorld(), () =>
                         {
-                            var player = this.dalamud.ClientState.LocalPlayer;
+                            var player = this.dalamud.ObjectTable.LocalPlayer;
                             if (player != null)
                             {
                                 ADS.CastSteppedLeader(ads, player.Position);
@@ -441,7 +441,7 @@ public partial class MainWindow
 
             if (ImGui.Button("Close Tether to Target"))
             {
-                var player = this.dalamud.ClientState.LocalPlayer;
+                var player = this.dalamud.ObjectTable.LocalPlayer;
                 if (player != null)
                 {
                     var target = player.TargetObject;
@@ -467,7 +467,7 @@ public partial class MainWindow
 
             if (ImGui.Button("Far Tether to Target"))
             {
-                var player = this.dalamud.ClientState.LocalPlayer;
+                var player = this.dalamud.ObjectTable.LocalPlayer;
                 if (player != null)
                 {
                     var target = player.TargetObject;
@@ -491,7 +491,7 @@ public partial class MainWindow
 
             if (ImGui.Button("Expanding Puddle"))
             {
-                var player = this.dalamud.ClientState.LocalPlayer;
+                var player = this.dalamud.ObjectTable.LocalPlayer;
                 if (player != null)
                 {
                     if (this.entityManager.TryCreateEntity<ExpandingPuddle>(out var puddle))
@@ -511,7 +511,7 @@ public partial class MainWindow
 
             if (ImGui.Button("Star"))
             {
-                var player = this.dalamud.ClientState.LocalPlayer;
+                var player = this.dalamud.ObjectTable.LocalPlayer;
                 if (player != null)
                 {
                     if (this.entityManager.TryCreateEntity<Star>(out var star))
@@ -529,7 +529,7 @@ public partial class MainWindow
 
             if (ImGui.Button("Tornado"))
             {
-                var player = this.dalamud.ClientState.LocalPlayer;
+                var player = this.dalamud.ObjectTable.LocalPlayer;
 
                 if (player != null)
                 {
@@ -548,7 +548,7 @@ public partial class MainWindow
 
             if (ImGui.Button("Donut Tornado"))
             {
-                var player = this.dalamud.ClientState.LocalPlayer;
+                var player = this.dalamud.ObjectTable.LocalPlayer;
 
                 if (player != null)
                 {
@@ -565,7 +565,7 @@ public partial class MainWindow
 
             if (ImGui.Button("Transition ADS"))
             {
-                var player = this.dalamud.ClientState.LocalPlayer;
+                var player = this.dalamud.ObjectTable.LocalPlayer;
 
                 if (player != null)
                 {
@@ -580,7 +580,7 @@ public partial class MainWindow
 
             if (ImGui.Button("Transition Melusine"))
             {
-                var player = this.dalamud.ClientState.LocalPlayer;
+                var player = this.dalamud.ObjectTable.LocalPlayer;
 
                 if (player != null)
                 {
@@ -596,7 +596,7 @@ public partial class MainWindow
 
             if (ImGui.Button("Transition Kaliya"))
             {
-                var player = this.dalamud.ClientState.LocalPlayer;
+                var player = this.dalamud.ObjectTable.LocalPlayer;
 
                 if (player != null)
                 {
@@ -634,7 +634,7 @@ public partial class MainWindow
             }
             if (ImGui.Button("Spawn Liquid Heaven"))
             {
-                var player = this.dalamud.ClientState.LocalPlayer;
+                var player = this.dalamud.ObjectTable.LocalPlayer;
                 if (player != null)
                 {
                     if (this.entityManager.TryCreateEntity<LiquidHeaven>(out var LiquidHeaven))
@@ -648,7 +648,7 @@ public partial class MainWindow
             ImGui.Text("Models");
             if (ImGui.Button("Chefbingus"))
             {
-                var player = this.dalamud.ClientState.LocalPlayer;
+                var player = this.dalamud.ObjectTable.LocalPlayer;
                 if (player != null)
                 {
                     if (this.entityManager.TryCreateEntity<Chefbingus>(out var carby))
