@@ -26,9 +26,9 @@ pub fn create_mechanic(entity: EntityView<'_>) -> EntityView<'_> {
         .set(Spread {
             started: false,
             snapshotted: false,
-            effect_delay: 0.5,
-            omen_vfx_path: "spread/omen/vfx/path".to_string(),
-            attack_vfx_path: "spread/attack/vfx/path".to_string(),
+            effect_delay: 0.0,
+            omen_vfx_path: "vfx/lockon/eff/target_ae_s5f.avfx".to_string(),
+            attack_vfx_path: "vfx/monster/gimmick4/eff/n5r8_b_g15_t0k1.avfx".to_string(),
         })
 }
 
@@ -54,27 +54,31 @@ pub fn create_systems(world: &World) {
                     });
 
                 // Send omen vfx
-                let omen_vfx_path = &spread.omen_vfx_path;
                 it.world().get::<&SocketIoSingleton>(|sio| {
-                    it.world()
-                        .query::<(&Socket, &Party)>()
-                        .build()
-                        .each_entity(|_, (s, pa)| {
-                            if party.id == pa.id {
-                                send_play_vfx(
-                                    sio.io.clone(),
-                                    s.id,
-                                    PlayVfxPayload {
-                                        vfx_path: omen_vfx_path.clone(),
-                                        targets: targets.clone(),
-                                    },
-                                );
-                            }
-                        });
+                    // The mechanic entity's "Target" relationships cannot be used here as operations to the ECS system are deferred (only show up next tick).
+                    for target in targets.iter() {
+                        it.world()
+                            .query::<(&Socket, &Player)>()
+                            .build()
+                            .each(|(s, pl)| {
+                                if *target == pl.content_id {
+                                    send_play_vfx(
+                                        sio.io.clone(),
+                                        s.id,
+                                        PlayVfxPayload {
+                                            vfx_path: spread.omen_vfx_path.clone(),
+                                            targets: targets.clone(),
+                                        },
+                                    );
+                                }
+                            });
+                    }
                 });
             }
 
-            if !spread.snapshotted && timer.time_remaining < spread.effect_delay {
+            timer.time_remaining -= it.delta_time();
+
+            if !spread.snapshotted && timer.time_remaining <= spread.effect_delay {
                 spread.snapshotted = true;
 
                 // Snapshot
@@ -83,12 +87,30 @@ pub fn create_systems(world: &World) {
                     entity.add((Affect, e));
                 });
             }
-
-            timer.time_remaining -= it.delta_time();
-
-            if timer.time_remaining <= 0.0 {
-                // Send effects
+            // Snapshot must run before the mechanic can be completed
+            else if timer.time_remaining <= 0.0 {
                 it.world().get::<&SocketIoSingleton>(|sio| {
+                    // Send attack vfx
+                    let mut targets: Vec<u64> = Vec::new();
+                    entity.each_target(Target, |e| {
+                        e.try_get::<&Player>(|pl| {
+                            targets.push(pl.content_id);
+                        });
+                    });
+                    entity.each_target(Target, |e| {
+                        e.try_get::<&Socket>(|s| {
+                            send_play_vfx(
+                                sio.io.clone(),
+                                s.id,
+                                PlayVfxPayload {
+                                    vfx_path: spread.attack_vfx_path.clone(),
+                                    targets: targets.clone(),
+                                },
+                            );
+                        });
+                    });
+
+                    // Send effects
                     entity.each_target(Affect, |e| {
                         e.try_get::<&Socket>(|s| {
                             send_apply_condition(sio.io.clone(), s.id);
@@ -98,7 +120,7 @@ pub fn create_systems(world: &World) {
 
                 info!(
                     mechanic.request_id,
-                    mechanic.mechanic_id, party.id, "Removing Mechanic"
+                    mechanic.mechanic_id, party.id, "Completing Mechanic"
                 );
                 entity.destruct();
             }

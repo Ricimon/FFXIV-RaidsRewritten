@@ -1,3 +1,6 @@
+Thornmarch (Hard)
+Arrow rain spread omen: vfx/lockon/eff/target_ae_s6k1.avfx (actor)
+
 T5/UCOB
 Twister: BaseId 0x1E8910
 
@@ -7,7 +10,7 @@ Chain Lightning: vfx/monster/gimmick/eff/crystal2_chein_kakusan_c0c.avfx (actor)
 T13
 Earthshaker puddle: BaseId 0x1E9663 bgcommon/world/common/vfx_for_btl/b0282/eff/b0282_yuka_o.avfx (static)
 
-O10s
+O10S
 Ground Ice Effect: bgcommon/world/common/vfx_for_btl/b0195/eff/b0195_yuka_c.avfx, 5y radius
 
 The Dancing Plague
@@ -22,6 +25,13 @@ Raktapaska Hands of Flame Ground AOE: vfx/monster/gimmick3/eff/n4g6_b_g06c0k1.av
 
 E11S
 Lightning cleave: vfx/monster/m0683/eff/m0683_sp002_c0a1.avfx (actor)
+
+P4N
+Poison spread omen: vfx/lockon/eff/loc05sp_05af.avfx (actor), no sound effect
+
+P8N
+Hemitheos's Flare omen: vfx/lockon/eff/target_ae_s5f.avfx (actor)
+Hemitheos's Flare: vfx/monster/gimmick4/eff/n5r8_b_g15_t0k1.avfx (actor)
 
 The Puppet's Bunker
 Life's Last Song tell: vfx/monster/gimmick3/eff/n4r2_b1_g4c0w.avfx (actor)
