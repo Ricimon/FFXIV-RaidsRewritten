@@ -21,7 +21,7 @@ pub struct Spread {
 pub fn create_mechanic(entity: EntityView<'_>) -> EntityView<'_> {
     entity
         .set(MechanicTimer {
-            time_remaining: 1.0,
+            time_remaining: 5.0,
         })
         .set(Spread {
             started: false,

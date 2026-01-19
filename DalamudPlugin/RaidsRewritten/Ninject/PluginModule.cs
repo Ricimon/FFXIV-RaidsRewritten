@@ -5,6 +5,7 @@ using RaidsRewritten.Game;
 using RaidsRewritten.Interop;
 using RaidsRewritten.Log;
 using RaidsRewritten.Memory;
+using RaidsRewritten.Network;
 using RaidsRewritten.Scripts;
 using RaidsRewritten.Scripts.Attacks;
 using RaidsRewritten.Scripts.Attacks.Omens;
@@ -41,6 +42,7 @@ public class PluginModule : NinjectModule
         Bind<Mechanic.Factory>().ToSelf();
         Bind<EcsContainer>().ToSelf().InSingletonScope();
         Bind<CommonQueries>().ToSelf().InSingletonScope();
+        Bind<NetworkClient>().ToSelf().InSingletonScope();
         // Native control overrides
         Bind<PlayerManager>().ToSelf().InSingletonScope();
         Bind<PlayerMovementOverride>().ToSelf().WhenInjectedInto<PlayerManager>().InSingletonScope();

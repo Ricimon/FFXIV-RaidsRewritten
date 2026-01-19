@@ -8,6 +8,12 @@
         "resolved": "10.0.0",
         "contentHash": "HRK/K4MSlx0b3FZ+LMP3ZvbTS+Ts361lhwp47CQZaESX/9cl5UIKOC0fWb5AbGNZxj96pKRvl7/Wrxj/J8LG/g=="
       },
+      "Blake3": {
+        "type": "Direct",
+        "requested": "[2.2.0, )",
+        "resolved": "2.2.0",
+        "contentHash": "RM6sZLZDx2wGi00aTj9s2jUcrI4s9dS2ibcT7lSujpUpBGp+TLf71F3XdBKJyYSxHnZ+FL7Dm36Pl0Y+cfcXvw=="
+      },
       "DalamudPackager": {
         "type": "Direct",
         "requested": "[14.0.1, )",
@@ -112,6 +118,17 @@
         "dependencies": {
           "NETStandard.Library": "1.6.1",
           "SharpDX": "4.2.0"
+        }
+      },
+      "SocketIO.Serializer.NewtonsoftJson": {
+        "type": "Direct",
+        "requested": "[3.1.2, )",
+        "resolved": "3.1.2",
+        "contentHash": "vTCbbPo3UOC3KOma1VqNkZg33A/Y14ZHWT0y3JP65BWTmJN9B2NdeA1mkPkncponq6UkdszMobJ5WXHIOkvqtg==",
+        "dependencies": {
+          "Newtonsoft.Json": "13.0.3",
+          "SocketIO.Core": "3.1.2",
+          "SocketIO.Serializer.Core": "3.1.2"
         }
       },
       "SocketIOClient": {
@@ -262,6 +279,11 @@
         "dependencies": {
           "Microsoft.NETCore.Platforms": "1.1.0"
         }
+      },
+      "Newtonsoft.Json": {
+        "type": "Transitive",
+        "resolved": "13.0.3",
+        "contentHash": "HrC5BXdl00IP9zeV+0Z848QWPAoCr9P3bDEZguI+gkLcBKAOxix/tLEAAHC+UvDNPv4a2d18lOReHMOagPa+zQ=="
       },
       "ReactiveProperty.Core": {
         "type": "Transitive",

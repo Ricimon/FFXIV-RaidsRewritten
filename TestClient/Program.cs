@@ -72,7 +72,7 @@ client.OnConnected += async (sender, _) =>
         await client.EmitAsync("message", startMechanic);
     }
 
-    await Task.Delay(3000);
+    await Task.Delay(6000);
 
     startMechanic = new Message
     {
@@ -131,7 +131,7 @@ _ = Task.Run(async () =>
     }
 });
 
-await Task.Delay(5000);
+await Task.Delay(10000);
 
 await client.DisconnectAsync();
 
