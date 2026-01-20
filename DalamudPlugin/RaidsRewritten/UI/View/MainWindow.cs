@@ -11,6 +11,7 @@ using Dalamud.Interface.Windowing;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
+using RaidsRewritten.Network;
 using RaidsRewritten.Scripts;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Spawn;
@@ -43,6 +44,8 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
     private readonly EcsContainer ecsContainer;
     private readonly CommonQueries commonQueries;
     private readonly VfxSpawn vfxSpawn;
+    private readonly NetworkClient networkClient;
+    private readonly NetworkClientUi networkClientUi;
     private readonly Random random;
     private readonly ILogger logger;
 
@@ -61,6 +64,8 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
         EcsContainer ecsContainer,
         CommonQueries commonQueries,
         VfxSpawn vfxSpawn,
+        NetworkClient networkClient,
+        NetworkClientUi networkClientUi,
         Random random,
         ILogger logger) :
         base(PluginInitializer.Name)
@@ -76,6 +81,8 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
         this.ecsContainer = ecsContainer;
         this.commonQueries = commonQueries;
         this.vfxSpawn = vfxSpawn;
+        this.networkClient = networkClient;
+        this.networkClientUi = networkClientUi;
         this.random = random;
         this.logger = logger;
 

@@ -1,10 +1,15 @@
 ﻿using System.Collections.Generic;
 using Dalamud.Bindings.ImGui;
+using RaidsRewritten.Network;
 using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Encounters.E1S;
 
-public class EdenPrimeTest(Mechanic.Factory mechanicFactory, DalamudServices dalamud, Configuration configuration) : IEncounter
+public class EdenPrimeTest(
+    Mechanic.Factory mechanicFactory,
+    DalamudServices dalamud,
+    Configuration configuration,
+    NetworkClientUi networkClientUi) : IEncounter
 {
     public ushort TerritoryId => 853;
 
@@ -63,6 +68,8 @@ public class EdenPrimeTest(Mechanic.Factory mechanicFactory, DalamudServices dal
 
     public void DrawConfig()
     {
+        networkClientUi.DrawConfig();
+
         ImGui.PushItemWidth(120);
         string rngSeed = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
         if (ImGui.InputText("RNG Seed", ref rngSeed, 100))

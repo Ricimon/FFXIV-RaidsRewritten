@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
-using Dalamud.Game;
-using Dalamud.Game.ClientState.Objects;
+using AsyncAwaitBestPractices;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
@@ -9,6 +8,7 @@ using Ninject;
 using Ninject.Extensions.Factory;
 using RaidsRewritten.Log;
 using RaidsRewritten.Ninject;
+using RaidsRewritten.Utility;
 
 namespace RaidsRewritten;
 
@@ -51,6 +51,7 @@ public sealed class PluginInitializer : IDalamudPlugin
 
         // Logging
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
+        SafeFireAndForgetExtensions.SetDefaultExceptionHandling(e => this.kernel.Get<ILogger>().Error(e.ToStringFull()));
 
         // Entrypoint
         this.kernel.Get<Plugin>().Initialize();

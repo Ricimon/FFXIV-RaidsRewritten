@@ -5,16 +5,17 @@ using JsonConverters;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using RaidsRewritten.Log;
+using RaidsRewritten.Utility;
 using SocketIO.Serializer.NewtonsoftJson;
 
 namespace RaidsRewritten.Network;
 
-public sealed class NetworkClient(DalamudServices dalamud, ILogger logger) : IDisposable
+public sealed class NetworkClient(NetworkClientMessageHandler messageHandler, DalamudServices dalamud, ILogger logger) : IDisposable
 {
     public bool IsConnecting { get; private set; }
     public bool IsConnected { get; private set; }
 
-    private const string ServerUrl = "http://localhost:3000";
+    public const string ServerUrl = "http://localhost:3000";
 
     private readonly JsonSerializerSettings printSettings = new()
     {
@@ -35,6 +36,7 @@ public sealed class NetworkClient(DalamudServices dalamud, ILogger logger) : IDi
         client = new SocketIOClient.SocketIO(ServerUrl, new()
         {
             Transport = SocketIOClient.Transport.TransportProtocol.WebSocket,
+            ReconnectionAttempts = 3,
         })
         {
             Serializer = new NewtonsoftJsonSerializer(new JsonSerializerSettings
@@ -61,9 +63,10 @@ public sealed class NetworkClient(DalamudServices dalamud, ILogger logger) : IDi
         client.OnDisconnected += OnDisconnected;
         client.OnError += OnError;
         client.OnReconnectAttempt += OnReconnectAttempt;
+        client.On("message", messageHandler.OnMessage);
 
         IsConnecting = true;
-        client.ConnectAsync().SafeFireAndForget();
+        client.ConnectAsync().SafeFireAndForget(_ => Dispose());
 
         return true;
     }
@@ -79,9 +82,9 @@ public sealed class NetworkClient(DalamudServices dalamud, ILogger logger) : IDi
         await client.EmitAsync("message", message);
     }
 
-    public async Task Disconnect()
+    public async Task DisconnectAsync()
     {
-        if (client == null || !IsConnected)
+        if (client == null)
         {
             return;
         }
@@ -92,6 +95,7 @@ public sealed class NetworkClient(DalamudServices dalamud, ILogger logger) : IDi
 
     public void Dispose()
     {
+        client?.DisconnectAsync().SafeFireAndForget();
         client?.Dispose();
         client = null;
         IsConnecting = IsConnected = false;
@@ -110,7 +114,7 @@ public sealed class NetworkClient(DalamudServices dalamud, ILogger logger) : IDi
         if (!dalamud.PlayerState.IsLoaded)
         {
             logger.Error("PlayerState is not loaded. Disconnecting client.");
-            Disconnect().SafeFireAndForget();
+            DisconnectAsync().SafeFireAndForget();
             return;
         }
 

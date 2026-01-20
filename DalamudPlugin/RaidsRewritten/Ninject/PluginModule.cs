@@ -43,6 +43,8 @@ public class PluginModule : NinjectModule
         Bind<EcsContainer>().ToSelf().InSingletonScope();
         Bind<CommonQueries>().ToSelf().InSingletonScope();
         Bind<NetworkClient>().ToSelf().InSingletonScope();
+        Bind<NetworkClientMessageHandler>().ToSelf().WhenInjectedInto<NetworkClient>().InSingletonScope();
+        Bind<NetworkClientUi>().ToSelf();
         // Native control overrides
         Bind<PlayerManager>().ToSelf().InSingletonScope();
         Bind<PlayerMovementOverride>().ToSelf().WhenInjectedInto<PlayerManager>().InSingletonScope();
