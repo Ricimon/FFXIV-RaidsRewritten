@@ -17,7 +17,8 @@ ARG APP_NAME
 WORKDIR /app
 
 # Install host build dependencies.
-RUN apt install libclang libclang-dev git
+RUN apt update && \
+    apt install -y libclang-dev git
 
 # Build the application.
 # Leverage a cache mount to /usr/local/cargo/registry/
