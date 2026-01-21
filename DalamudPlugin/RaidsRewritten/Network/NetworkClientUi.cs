@@ -5,14 +5,15 @@ using RaidsRewritten.UI.Util;
 
 namespace RaidsRewritten.Network;
 
-public class NetworkClientUi(NetworkClient client)
+public class NetworkClientUi(NetworkClient client, Configuration configuration)
 {
     public void DrawConfig()
     {
-        string serverUrl = NetworkClient.ServerUrl;
+        string serverUrl = client.GetServerUrl();
         if (ImGui.InputText("Server URL", ref serverUrl))
         {
-
+            configuration.ServerUrl = serverUrl;
+            configuration.Save();
         }
 
         var buttonWidth = ImGui.CalcTextSize("Disconnect").X + 2 * ImGui.GetStyle().CellPadding.X;

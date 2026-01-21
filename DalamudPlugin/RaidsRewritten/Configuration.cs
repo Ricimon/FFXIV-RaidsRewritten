@@ -17,21 +17,12 @@ namespace RaidsRewritten
 
         public Vector3 StatusTextColor { get; set; } = Vector4Colors.Red.AsVector3();
 
-        public bool PunishmentImmunity { get; set; } = false;
+        public string ServerUrl { get; set; } = string.Empty;
 
         public Dictionary<string, string> EncounterSettings = [];
 
-        // Saved UI inputs
-        public bool PublicRoom { get; set; }
-        public string RoomName { get; set; } = string.Empty;
-        public string RoomPassword { get; set; } = string.Empty;
+        public bool PunishmentImmunity { get; set; } = false;
 
-        public int SelectedAudioOutputDeviceIndex { get; set; } = -1;
-
-        public float MasterVolume { get; set; } = 2.0f;
-
-        public bool PlayRoomJoinAndLeaveSounds { get; set; } = true;
-        public bool KeybindsRequireGameFocus { get; set; }
         public bool PrintLogsToChat { get; set; }
 
         public int EffectsRendererPositionX { get; set; } = 0;

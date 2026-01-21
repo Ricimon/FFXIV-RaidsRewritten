@@ -5,17 +5,20 @@ using JsonConverters;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using RaidsRewritten.Log;
-using RaidsRewritten.Utility;
 using SocketIO.Serializer.NewtonsoftJson;
 
 namespace RaidsRewritten.Network;
 
-public sealed class NetworkClient(NetworkClientMessageHandler messageHandler, DalamudServices dalamud, ILogger logger) : IDisposable
+public sealed class NetworkClient(
+    NetworkClientMessageHandler messageHandler,
+    DalamudServices dalamud,
+    Configuration configuration,
+    ILogger logger) : IDisposable
 {
     public bool IsConnecting { get; private set; }
     public bool IsConnected { get; private set; }
 
-    public const string ServerUrl = "http://localhost:3000";
+    public const string DefaultServerUrl = "http://localhost:3000";
 
     private readonly JsonSerializerSettings printSettings = new()
     {
@@ -26,6 +29,8 @@ public sealed class NetworkClient(NetworkClientMessageHandler messageHandler, Da
 
     private SocketIOClient.SocketIO? client;
 
+    public string GetServerUrl() => string.IsNullOrEmpty(configuration.ServerUrl) ? DefaultServerUrl : configuration.ServerUrl;
+
     public bool Connect()
     {
         if (client != null)
@@ -33,7 +38,7 @@ public sealed class NetworkClient(NetworkClientMessageHandler messageHandler, Da
             return false;
         }
 
-        client = new SocketIOClient.SocketIO(ServerUrl, new()
+        client = new SocketIOClient.SocketIO(GetServerUrl(), new()
         {
             Transport = SocketIOClient.Transport.TransportProtocol.WebSocket,
             ReconnectionAttempts = 3,
@@ -89,7 +94,8 @@ public sealed class NetworkClient(NetworkClientMessageHandler messageHandler, Da
             return;
         }
 
-        await client.DisconnectAsync();
+        logger.Info($"Disconnecting client.");
+        client.DisconnectAsync().SafeFireAndForget();
         Dispose();
     }
 
@@ -97,6 +103,13 @@ public sealed class NetworkClient(NetworkClientMessageHandler messageHandler, Da
     {
         client?.DisconnectAsync().SafeFireAndForget();
         client?.Dispose();
+        if (client != null)
+        {
+            client.OnConnected -= OnConnected;
+            client.OnDisconnected -= OnDisconnected;
+            client.OnError -= OnError;
+            client.OnReconnectAttempt -= OnReconnectAttempt;
+        }
         client = null;
         IsConnecting = IsConnected = false;
     }
@@ -107,7 +120,7 @@ public sealed class NetworkClient(NetworkClientMessageHandler messageHandler, Da
     {
         if (client == null) { return; }
 
-        logger.Info($"Client connected to {ServerUrl}");
+        logger.Info($"Client connected to {GetServerUrl()}");
         IsConnecting = false;
         IsConnected = true;
 
