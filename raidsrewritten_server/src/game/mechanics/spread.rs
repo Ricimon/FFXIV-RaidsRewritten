@@ -1,16 +1,18 @@
 use crate::{
-    ecs_container::{Party, Player, Socket, SocketIoSingleton},
+    ecs_container::{Party, Player, Position, Socket, SocketIoSingleton},
     game::{condition::Condition, mechanics::MechanicTimer},
     webserver::message::{Action, ApplyConditionPayload, Message, PlayVfxPayload},
 };
 
 use super::{Affect, Mechanic, Target};
+use distances::vectors::euclidean_sq;
 use flecs_ecs::prelude::*;
 use socketioxide::{SocketIo, socket::Sid};
 use tracing::info;
 
 #[derive(Component, Debug)]
 pub struct Spread {
+    targets_assigned: bool,
     started: bool,
     snapshotted: bool,
     effect_delay: f32,
@@ -24,6 +26,7 @@ pub fn create_mechanic(entity: EntityView<'_>) -> EntityView<'_> {
             time_remaining: 5.0,
         })
         .set(Spread {
+            targets_assigned: false,
             started: false,
             snapshotted: false,
             effect_delay: 0.0,
@@ -38,41 +41,39 @@ pub fn create_systems(world: &World) {
         .each_iter(|it, index, (mechanic, timer, spread, party)| {
             let entity = it.entity(index);
 
-            if !spread.started {
-                spread.started = true;
+            if !spread.targets_assigned {
+                spread.targets_assigned = true;
 
                 // Assign targets
-                let mut targets: Vec<u64> = Vec::new();
                 it.world()
                     .query::<(&Player, &Party)>()
                     .build()
-                    .each_entity(|e, (pl, pa)| {
+                    .each_entity(|e, (_pl, pa)| {
                         if party.id == pa.id {
                             entity.add((Target, e));
-                            targets.push(pl.content_id);
                         }
                     });
+                return;
+            }
+
+            if !spread.started {
+                spread.started = true;
 
                 // Send omen vfx
                 it.world().get::<&SocketIoSingleton>(|sio| {
-                    // The mechanic entity's "Target" relationships cannot be used here as operations to the ECS system are deferred (only show up next tick).
-                    for target in targets.iter() {
-                        it.world()
-                            .query::<(&Socket, &Player)>()
-                            .build()
-                            .each(|(s, pl)| {
-                                if *target == pl.content_id {
-                                    send_play_vfx(
-                                        sio.io.clone(),
-                                        s.id,
-                                        PlayVfxPayload {
-                                            vfx_path: spread.omen_vfx_path.clone(),
-                                            targets: targets.clone(),
-                                        },
-                                    );
-                                }
-                            });
-                    }
+                    let targets = get_target_ids(&entity);
+                    entity.each_target(Target, |e| {
+                        e.try_get::<&Socket>(|s| {
+                            send_play_vfx(
+                                sio.io.clone(),
+                                s.id,
+                                PlayVfxPayload {
+                                    vfx_path: spread.omen_vfx_path.clone(),
+                                    targets: targets.clone(),
+                                },
+                            );
+                        });
+                    });
                 });
             }
 
@@ -82,21 +83,32 @@ pub fn create_systems(world: &World) {
                 spread.snapshotted = true;
 
                 // Snapshot
-                entity.each_target(Target, |e| {
-                    // Testing: affect every target
-                    entity.add((Affect, e));
+                entity.each_target(Target, |e1| {
+                    let mut affected = false;
+                    // For every target player, check their position against every other target player for overlap
+                    e1.try_get::<(&Player, &Position)>(|(pl1, p1)| {
+                        entity.each_target(Target, |e2| {
+                            e2.try_get::<(&Player, &Position)>(|(pl2, p2)|{
+                                if !affected && pl1.content_id != pl2.content_id {
+                                    let p1 = [p1.x, p1.z];
+                                    let p2 = [p2.x, p2.z];
+                                    let distance_sq: f32 = euclidean_sq(&p1, &p2);
+
+                                    if distance_sq <= f32::powi(6.0, 2) {
+                                        entity.add((Affect, e1));
+                                        affected = true;
+                                    }
+                                }
+                            });
+                        });
+                    });
                 });
             }
             // Snapshot must run before the mechanic can be completed
             else if timer.time_remaining <= 0.0 {
                 it.world().get::<&SocketIoSingleton>(|sio| {
                     // Send attack vfx
-                    let mut targets: Vec<u64> = Vec::new();
-                    entity.each_target(Target, |e| {
-                        e.try_get::<&Player>(|pl| {
-                            targets.push(pl.content_id);
-                        });
-                    });
+                    let targets = get_target_ids(&entity);
                     entity.each_target(Target, |e| {
                         e.try_get::<&Socket>(|s| {
                             send_play_vfx(
@@ -125,6 +137,16 @@ pub fn create_systems(world: &World) {
                 entity.destruct();
             }
         });
+}
+
+fn get_target_ids(entity: &EntityView<'_>) -> Vec<u64> {
+    let mut targets: Vec<u64> = Vec::new();
+    entity.each_target(Target, |e| {
+        e.try_get::<&Player>(|pl| {
+            targets.push(pl.content_id);
+        });
+    });
+    targets
 }
 
 fn send_play_vfx(io: SocketIo, socket_id: Sid, play_vfx_payload: PlayVfxPayload) {
