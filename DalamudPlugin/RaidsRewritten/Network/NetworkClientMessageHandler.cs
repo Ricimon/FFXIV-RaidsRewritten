@@ -12,9 +12,14 @@ using ZLinq;
 
 namespace RaidsRewritten.Network;
 
-public class NetworkClientMessageHandler(DalamudServices dalamud, VfxSpawn vfxSpawn, EcsContainer ecsContainer, CommonQueries commonQueries, ILogger logger)
+public class NetworkClientMessageHandler(
+    DalamudServices dalamud,
+    VfxSpawn vfxSpawn,
+    Lazy<EcsContainer> ecsContainer,
+    CommonQueries commonQueries,
+    ILogger logger)
 {
-    private World World => ecsContainer.World;
+    private World World => ecsContainer.Value.World;
 
     public void OnMessage(SocketIOResponse response)
     {
