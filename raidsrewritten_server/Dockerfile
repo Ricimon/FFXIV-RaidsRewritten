@@ -12,12 +12,12 @@ ARG APP_NAME=raidsrewritten_server
 ################################################################################
 # Create a stage for building the application.
 
-FROM rust:${RUST_VERSION}-alpine AS build
+FROM rust:${RUST_VERSION}-bookworm AS build
 ARG APP_NAME
 WORKDIR /app
 
 # Install host build dependencies.
-RUN apk add --no-cache clang clang-dev lld musl-dev git
+RUN apt install libclang libclang-dev git
 
 # Build the application.
 # Leverage a cache mount to /usr/local/cargo/registry/
