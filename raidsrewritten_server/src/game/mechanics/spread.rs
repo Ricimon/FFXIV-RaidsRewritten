@@ -1,5 +1,5 @@
 use crate::{
-    ecs_container::{Party, Player, Position, Socket, SocketIoSingleton},
+    ecs_container::{Party, Player, Position, Socket, SocketIoSingleton, State},
     game::{condition::Condition, mechanics::MechanicTimer},
     webserver::message::{Action, ApplyConditionPayload, Message, PlayVfxPayload},
 };
@@ -86,7 +86,9 @@ pub fn create_systems(world: &World) {
                 entity.each_target(Target, |e1| {
                     let mut affected = false;
                     // For every target player, check their position against every other target player for overlap
-                    e1.try_get::<(&Player, &Position)>(|(pl1, p1)| {
+                    e1.try_get::<(&Player, &Position, &State)>(|(pl1, p1, s1)| {
+                        if !s1.is_alive { return; }
+
                         entity.each_target(Target, |e2| {
                             e2.try_get::<(&Player, &Position)>(|(pl2, p2)|{
                                 if !affected && pl1.content_id != pl2.content_id {

@@ -34,6 +34,7 @@ public class NetworkClientPositionSystem(DalamudServices dalamud, NetworkClient 
                         worldPositionX = player.Position.X,
                         worldPositionY = player.Position.Y,
                         worldPositionZ = player.Position.Z,
+                        isAlive = !player.IsDead,
                     }
                 }).SafeFireAndForget();
             });
