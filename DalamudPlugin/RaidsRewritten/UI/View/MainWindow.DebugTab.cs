@@ -670,6 +670,19 @@ public partial class MainWindow
                         }
                     }).SafeFireAndForget();
                 }
+                ImGui.SameLine();
+                if (ImGui.Button("Enum"))
+                {
+                    this.networkClient.SendAsync(new Message
+                    {
+                        action = Message.Action.StartMechanic,
+                        startMechanic = new Message.StartMechanicPayload
+                        {
+                            requestId = Guid.NewGuid().ToString(),
+                            mechanicId = 10,
+                        }
+                    }).SafeFireAndForget();
+                }
             }
         }
 

@@ -21,10 +21,25 @@ E1S
 Vice of Apathy: BaseId 0x1EAE20
 
 E6S
+Enumeration omen: vfx/lockon/eff/m0618trg_a0k1.avfx (actor), 4y radius 5.5s duration
+Enumeration attack: vfx/monster/gimmick3/eff/n4g6_b_g12t0k1.avfx (actor)
 Raktapaska Hands of Flame Ground AOE: vfx/monster/gimmick3/eff/n4g6_b_g06c0k1.avfx (actor)
 
 E11S
 Lightning cleave: vfx/monster/m0683/eff/m0683_sp002_c0a1.avfx (actor)
+
+Barbariccia EX
+Enumeration omen: vfx/lockon/eff/2tagup_6m_8s_0v.avfx (actor), 3y radius 8s duration
+Enumeration attack: vfx/monster/gimmick4/eff/z5fa_boss_g05_c0v.avfx (actor)
+
+Golbez EX
+Void Stardust enumeration omen: vfx/lockon/eff/2tagup_6m_8s_0v.avfx (actor), 3y radius 8s duration
+Void Stardust enumeration attack: vfx/monster/gimmick4/eff/z5fb_b_g15t0x.avfx (actor)
+Gale Sphere enumeration omen: vfx/lockon/eff/2tagup_3m_6s_x.avfx (actor), 3y radius 6s duration
+Gale Sphere enumeration attack: vfx/monster/gimmick4/eff/z5fb_b_g10c0x.avfx (actor) & vfx/monster/gimmick4/eff/z5fb_b_g10c1x.avfx (actor)
+
+The Puppet's Bunker
+Life's Last Song tell: vfx/monster/gimmick3/eff/n4r2_b1_g4c0w.avfx (actor)
 
 P4N
 Poison spread omen: vfx/lockon/eff/loc05sp_05af.avfx (actor), no sound effect
@@ -32,9 +47,6 @@ Poison spread omen: vfx/lockon/eff/loc05sp_05af.avfx (actor), no sound effect
 P8N
 Hemitheos's Flare omen: vfx/lockon/eff/target_ae_s5f.avfx (actor)
 Hemitheos's Flare: vfx/monster/gimmick4/eff/n5r8_b_g15_t0k1.avfx (actor)
-
-The Puppet's Bunker
-Life's Last Song tell: vfx/monster/gimmick3/eff/n4r2_b1_g4c0w.avfx (actor)
 
 M4S
 Half room cleave: vfx/monster/m0888/eff/m0888sp_015c0t1.avfx (actor)

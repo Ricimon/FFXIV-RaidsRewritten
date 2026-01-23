@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using AsyncAwaitBestPractices;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
@@ -74,7 +75,7 @@ public class NetworkClientMessageHandler(
             {
                 vfxSpawn.SpawnActorVfx(payload.vfxPath, target, target);
             }
-        });
+        }).SafeFireAndForget();
     }
 
     private void ApplyCondition(Message.ApplyConditionPayload payload)

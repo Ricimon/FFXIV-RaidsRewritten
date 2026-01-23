@@ -1,4 +1,7 @@
-pub mod spread;
+#[path = "mechanics/0001-spread.rs"]
+pub mod m0001_spread;
+#[path = "mechanics/0010-enumeration.rs"]
+pub mod m0010_enumeration;
 
 use flecs_ecs::prelude::*;
 use tracing::info;
@@ -9,11 +12,6 @@ use crate::ecs_container::Party;
 pub struct Mechanic {
     pub request_id: String,
     pub mechanic_id: u32,
-}
-
-#[derive(Component, Debug)]
-pub struct MechanicTimer {
-    pub time_remaining: f32,
 }
 
 #[derive(Component)]
@@ -28,8 +26,9 @@ pub fn create_mechanic(
     mechanic_id: u32,
     party: String,
 ) -> Option<EntityView<'_>> {
-    let mechanic_fn = match mechanic_id {
-        1 => Some(spread::create_mechanic),
+    let mechanic_fn: Option<fn(EntityView<'_>) -> EntityView<'_>> = match mechanic_id {
+        1 => Some(m0001_spread::create_mechanic),
+        10 => Some(m0010_enumeration::create_mechanic),
         _ => None,
     };
     if let Some(f) = mechanic_fn {
@@ -48,5 +47,6 @@ pub fn create_mechanic(
 }
 
 pub fn create_systems(world: &World) {
-    spread::create_systems(world);
+    m0001_spread::create_systems(world);
+    m0010_enumeration::create_systems(world);
 }
