@@ -77,19 +77,20 @@ pub fn create_systems(world: &World) {
                 let io = get_socket_io(&it.world());
                 let targets = get_target_ids(&entity);
                 it.world()
-                    .query::<(&Socket, &Party)>()
+                    .query::<(&Socket, &Player, &Party)>()
                     .build()
-                    .each(|(s, pa)| {
-                        if party.id == pa.id {
-                            send_play_vfx(
-                                io.clone(),
-                                s.id,
-                                PlayVfxPayload {
-                                    vfx_path: enumeration.omen_vfx_path.clone(),
-                                    targets: targets.clone(),
-                                },
-                            );
+                    .each(|(s, _pl, pa)| {
+                        if party.id != pa.id {
+                            return;
                         }
+                        send_play_vfx(
+                            io.clone(),
+                            s.id,
+                            PlayVfxPayload {
+                                vfx_path: enumeration.omen_vfx_path.clone(),
+                                targets: targets.clone(),
+                            },
+                        );
                     });
             }
 
@@ -106,29 +107,33 @@ pub fn create_systems(world: &World) {
                 entity.each_target(Target, |e1| {
                     let mut affected = true;
                     // For every target player, check their position against every other target player for overlap
-                    e1.try_get::<(&Player, &Position, &State)>(|(pl1, p1, s1)| {
+                    e1.try_get::<(&Player, &Position, &State)>(|(pl1, pos1, s1)| {
                         // Attacks do not go off on dead bodies
                         if !s1.is_alive {
                             entity.remove((Target, e1));
                             return;
                         }
 
-                        entity.each_target(Target, |e2| {
-                            e2.try_get::<(&Player, &Position, &State)>(|(pl2, p2, s2)| {
+                        it.world()
+                            .query::<(&Player, &Party, &Position, &State)>()
+                            .build()
+                            .each(|(pl2, pa2, pos2, s2)| {
+                                if party.id != pa2.id {
+                                    return;
+                                }
                                 if !s2.is_alive {
                                     return;
                                 }
                                 if affected && pl1.content_id != pl2.content_id {
-                                    let p1 = [p1.x, p1.z];
-                                    let p2 = [p2.x, p2.z];
-                                    let distance_sq: f32 = euclidean_sq(&p1, &p2);
+                                    let pos1 = [pos1.x, pos1.z];
+                                    let pos2 = [pos2.x, pos2.z];
+                                    let distance_sq: f32 = euclidean_sq(&pos1, &pos2);
 
                                     if distance_sq <= f32::powi(enumeration.radius, 2) {
                                         affected = false;
                                     }
                                 }
                             });
-                        });
 
                         if affected {
                             entity.add((Affect, e1));
@@ -145,20 +150,21 @@ pub fn create_systems(world: &World) {
                 let io = get_socket_io(&it.world());
                 let targets = get_target_ids(&entity);
                 it.world()
-                    .query::<(&Socket, &Party)>()
+                    .query::<(&Socket, &Player, &Party)>()
                     .build()
-                    .each(|(s, pa)| {
-                        if party.id == pa.id {
-                            for vfx in &enumeration.attack_vfx_paths {
-                                send_play_vfx(
-                                    io.clone(),
-                                    s.id,
-                                    PlayVfxPayload {
-                                        vfx_path: vfx.clone(),
-                                        targets: targets.clone(),
-                                    },
-                                );
-                            }
+                    .each(|(s, _pl, pa)| {
+                        if party.id != pa.id {
+                            return;
+                        }
+                        for vfx in &enumeration.attack_vfx_paths {
+                            send_play_vfx(
+                                io.clone(),
+                                s.id,
+                                PlayVfxPayload {
+                                    vfx_path: vfx.clone(),
+                                    targets: targets.clone(),
+                                },
+                            );
                         }
                     });
             }
