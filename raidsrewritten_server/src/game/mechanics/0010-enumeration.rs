@@ -54,7 +54,7 @@ pub fn create_systems(world: &World) {
                 // Assign targets
                 let player_query = it.world().query::<(&Player, &Party)>().build();
                 let mut players: Vec<u64> = Vec::new();
-                player_query.each_entity(|e, (pl, pa)| {
+                player_query.each(|(pl, pa)| {
                     if party.id == pa.id {
                         players.push(pl.content_id);
                     }
@@ -76,18 +76,21 @@ pub fn create_systems(world: &World) {
                 // Send omen vfx
                 let io = get_socket_io(&it.world());
                 let targets = get_target_ids(&entity);
-                entity.each_target(Target, |e| {
-                    e.try_get::<&Socket>(|s| {
-                        send_play_vfx(
-                            io.clone(),
-                            s.id,
-                            PlayVfxPayload {
-                                vfx_path: enumeration.omen_vfx_path.clone(),
-                                targets: targets.clone(),
-                            },
-                        );
+                it.world()
+                    .query::<(&Socket, &Party)>()
+                    .build()
+                    .each(|(s, pa)| {
+                        if party.id == pa.id {
+                            send_play_vfx(
+                                io.clone(),
+                                s.id,
+                                PlayVfxPayload {
+                                    vfx_path: enumeration.omen_vfx_path.clone(),
+                                    targets: targets.clone(),
+                                },
+                            );
+                        }
                     });
-                });
             }
 
             enumeration.time_remaining -= it.delta_time();
@@ -141,20 +144,23 @@ pub fn create_systems(world: &World) {
                 // Send attack vfx
                 let io = get_socket_io(&it.world());
                 let targets = get_target_ids(&entity);
-                entity.each_target(Target, |e| {
-                    e.try_get::<&Socket>(|s| {
-                        for vfx in &enumeration.attack_vfx_paths {
-                            send_play_vfx(
-                                io.clone(),
-                                s.id,
-                                PlayVfxPayload {
-                                    vfx_path: vfx.clone(),
-                                    targets: targets.clone(),
-                                },
-                            );
+                it.world()
+                    .query::<(&Socket, &Party)>()
+                    .build()
+                    .each(|(s, pa)| {
+                        if party.id == pa.id {
+                            for vfx in &enumeration.attack_vfx_paths {
+                                send_play_vfx(
+                                    io.clone(),
+                                    s.id,
+                                    PlayVfxPayload {
+                                        vfx_path: vfx.clone(),
+                                        targets: targets.clone(),
+                                    },
+                                );
+                            }
                         }
                     });
-                });
             }
 
             if enumeration.time_remaining > 0.0 {
