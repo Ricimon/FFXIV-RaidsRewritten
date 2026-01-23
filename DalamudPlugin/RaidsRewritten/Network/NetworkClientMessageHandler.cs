@@ -63,10 +63,13 @@ public class NetworkClientMessageHandler(
         {
             var targetCharas = dalamud.ObjectTable.PlayerObjects.AsValueEnumerable().Where(pl =>
             {
+                if (pl == null) { return false; }
                 BattleChara bc;
                 unsafe
                 {
-                    bc = *(BattleChara*)pl.Address;
+                    var bcA = (BattleChara*)pl.Address;
+                    if (bcA == null) { return false; }
+                    bc = *bcA;
                 }
                 return payload.targets.Contains(bc.ContentId);
             });
