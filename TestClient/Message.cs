@@ -16,6 +16,7 @@ public struct Message
         // To client
         PlayVfx = 51,
         ApplyCondition = 52,
+        UpdatePartyStatus = 53,
     }
 
     [JsonProperty(PropertyName = "a")]
@@ -101,4 +102,12 @@ public struct Message
     }
     [JsonProperty(PropertyName = "ac")]
     public ApplyConditionPayload? applyCondition;
+
+    public struct UpdatePartyStatusPayload
+    {
+        [JsonProperty(PropertyName = "c")]
+        public byte connectedPlayersInParty;
+    }
+    [JsonProperty(PropertyName = "ups")]
+    public UpdatePartyStatusPayload? updatePartyStatus;
 }

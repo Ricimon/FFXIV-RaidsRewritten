@@ -46,8 +46,8 @@ client.OnConnected += async (sender, _) =>
         action = Message.Action.UpdatePlayer,
         updatePlayer = new Message.UpdatePlayerPayload
         {
-            contentId = 1001,
-            name = "Test Client1",
+            contentId = (ulong)(new Random().NextInt64()),
+            name = $"Testclient {Guid.NewGuid().ToString()[..4]}",
             role = Message.UpdatePlayerPayload.Role.Tank,
             party = "test_party",
         },

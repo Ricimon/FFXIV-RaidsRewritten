@@ -17,6 +17,7 @@ pub enum Action {
     // To client
     PlayVfx = 51,
     ApplyCondition = 52,
+    UpdatePartyStatus = 53,
 }
 
 #[serde_with::skip_serializing_none]
@@ -38,6 +39,8 @@ pub struct Message {
     pub play_vfx: Option<PlayVfxPayload>,
     #[serde(rename = "ac")]
     pub apply_condition: Option<ApplyConditionPayload>,
+    #[serde(rename = "ups")]
+    pub update_party_status: Option<UpdatePartyStatusPayload>,
 }
 
 // To server ===============
@@ -93,4 +96,10 @@ pub struct ApplyConditionPayload {
     pub knockback_direction_x: Option<f32>,
     #[serde(rename = "kbz")]
     pub knockback_direction_z: Option<f32>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UpdatePartyStatusPayload {
+    #[serde(rename = "c")]
+    pub connected_players_in_party: u8,
 }
