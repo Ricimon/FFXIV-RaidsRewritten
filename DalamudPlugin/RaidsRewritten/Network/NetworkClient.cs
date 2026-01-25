@@ -17,6 +17,7 @@ public sealed class NetworkClient(
 {
     public bool IsConnecting { get; private set; }
     public bool IsConnected { get; private set; }
+    public byte ConnectedPlayersInParty { get; set; }
 
     public const string DefaultServerUrl = "http://localhost:3000";
 
@@ -112,6 +113,7 @@ public sealed class NetworkClient(
         }
         client = null;
         IsConnecting = IsConnected = false;
+        ConnectedPlayersInParty = 0;
     }
 
     private string Serialize(object obj) => JsonConvert.SerializeObject(obj, printSettings);
@@ -139,7 +141,7 @@ public sealed class NetworkClient(
                 contentId = dalamud.PlayerState.ContentId,
                 name = dalamud.PlayerState.CharacterName,
                 role = GetRole(),
-                party = CalculatePartyHash(),
+                party = configuration.UseCustomPartyId ? configuration.CustomPartyId : CalculatePartyHash(),
             },
         };
         SendAsync(updatePlayer).SafeFireAndForget();

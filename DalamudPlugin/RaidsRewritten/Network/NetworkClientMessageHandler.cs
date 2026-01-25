@@ -14,6 +14,7 @@ using ZLinq;
 namespace RaidsRewritten.Network;
 
 public class NetworkClientMessageHandler(
+    Lazy<NetworkClient> networkClient,
     DalamudServices dalamud,
     VfxSpawn vfxSpawn,
     Lazy<EcsContainer> ecsContainer,
@@ -47,6 +48,9 @@ public class NetworkClientMessageHandler(
                 break;
             case Message.Action.ApplyCondition:
                 if (message.applyCondition != null) { ApplyCondition(message.applyCondition.Value); }
+                break;
+            case Message.Action.UpdatePartyStatus:
+                if (message.updatePartyStatus != null) { UpdatePartyStatus(message.updatePartyStatus.Value); }
                 break;
         }
     }
@@ -92,5 +96,10 @@ public class NetworkClientMessageHandler(
                 });
                 break;
         }
+    }
+
+    private void UpdatePartyStatus(Message.UpdatePartyStatusPayload payload)
+    {
+        networkClient.Value.ConnectedPlayersInParty = payload.connectedPlayersInParty;
     }
 }

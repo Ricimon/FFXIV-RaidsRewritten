@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using AsyncAwaitBestPractices;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility.Raii;
 using RaidsRewritten.UI.Util;
 
 namespace RaidsRewritten.Network;
@@ -14,6 +15,32 @@ public class NetworkClientUi(NetworkClient client, Configuration configuration)
         {
             configuration.ServerUrl = serverUrl;
             configuration.Save();
+        }
+
+        ImGui.SameLine();
+        bool useCustomPartyId = configuration.UseCustomPartyId;
+        if (ImGui.RadioButton("##UseCustomPartyId", useCustomPartyId))
+        {
+            configuration.UseCustomPartyId = !configuration.UseCustomPartyId;
+            configuration.Save();
+        }
+        if (ImGui.IsItemHovered())
+        {
+            ImGui.SetTooltip("Use custom party ID.\nEnable this if custom mechanics need to be synced across non-party members.");
+        }
+
+        if (configuration.UseCustomPartyId)
+        {
+            string customPartyId = configuration.CustomPartyId;
+            if (ImGui.InputText("Custom Party ID", ref customPartyId))
+            {
+                configuration.CustomPartyId = customPartyId;
+                configuration.Save();
+            }
+            if (ImGui.IsItemHovered() && !ImGui.IsItemActive())
+            {
+                ImGui.SetTooltip("Treat this field like a password and share only with players that you expect to be connected with.");
+            }
         }
 
         var buttonWidth = ImGui.CalcTextSize("Disconnect").X + 2 * ImGui.GetStyle().CellPadding.X;
@@ -59,8 +86,12 @@ public class NetworkClientUi(NetworkClient client, Configuration configuration)
         {
             ImGui.SetTooltip(tooltip);
         }
-        pos += new Vector2(radius + 3, -h / 2.25f);
+        pos += new Vector2(0.6f * h, -h / 2f);
         ImGui.SetCursorScreenPos(pos);
-        ImGui.NewLine();
+
+        using (ImRaii.Disabled(!client.IsConnected))
+        {
+            ImGui.Text($"Connected players: {client.ConnectedPlayersInParty}");
+        }
     }
 }
