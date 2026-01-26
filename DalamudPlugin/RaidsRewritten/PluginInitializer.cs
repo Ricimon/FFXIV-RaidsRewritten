@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+using System;
+using System.Threading.Tasks;
 using AsyncAwaitBestPractices;
 using Dalamud.IoC;
 using Dalamud.Plugin;
@@ -25,7 +26,7 @@ public sealed class PluginInitializer : IDalamudPlugin
     [PluginService] internal static ICondition Condition { get; private set; } = null!;
     [PluginService] internal static IDutyState DutyState { get; private set; } = null!;
     [PluginService] internal static IDataManager DataManager { get; private set; } = null!;
-    [PluginService] internal static IObjectTable ObjectTable { get ; private set; } = null!;
+    [PluginService] internal static IObjectTable ObjectTable { get; private set; } = null!;
     [PluginService] internal static IGameGui GameGui { get; private set; } = null!;
     [PluginService] internal static IGameConfig GameConfig { get; private set; } = null!;
     [PluginService] internal static IAddonEventManager AddonEventManager { get; private set; } = null!;
@@ -65,7 +66,12 @@ public sealed class PluginInitializer : IDalamudPlugin
 
     private void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
     {
-        this.kernel.Get<ILogger>().Error(e.Exception.ToString());
+        try
+        {
+            var exceptionMessage = e.Exception.ToStringFull();
+            this.kernel.Get<ILogger>().Error(exceptionMessage);
+        }
+        catch (FormatException) { return; }
         e.SetObserved();
     }
 }
