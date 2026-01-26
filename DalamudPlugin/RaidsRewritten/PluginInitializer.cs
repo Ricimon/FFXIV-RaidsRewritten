@@ -1,6 +1,6 @@
-﻿using System.Threading.Tasks;
-using Dalamud.Game;
-using Dalamud.Game.ClientState.Objects;
+﻿using System;
+using System.Threading.Tasks;
+using AsyncAwaitBestPractices;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
@@ -9,6 +9,7 @@ using Ninject;
 using Ninject.Extensions.Factory;
 using RaidsRewritten.Log;
 using RaidsRewritten.Ninject;
+using RaidsRewritten.Utility;
 
 namespace RaidsRewritten;
 
@@ -25,7 +26,7 @@ public sealed class PluginInitializer : IDalamudPlugin
     [PluginService] internal static ICondition Condition { get; private set; } = null!;
     [PluginService] internal static IDutyState DutyState { get; private set; } = null!;
     [PluginService] internal static IDataManager DataManager { get; private set; } = null!;
-    [PluginService] internal static IObjectTable ObjectTable { get ; private set; } = null!;
+    [PluginService] internal static IObjectTable ObjectTable { get; private set; } = null!;
     [PluginService] internal static IGameGui GameGui { get; private set; } = null!;
     [PluginService] internal static IGameConfig GameConfig { get; private set; } = null!;
     [PluginService] internal static IAddonEventManager AddonEventManager { get; private set; } = null!;
@@ -51,6 +52,7 @@ public sealed class PluginInitializer : IDalamudPlugin
 
         // Logging
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
+        SafeFireAndForgetExtensions.SetDefaultExceptionHandling(e => this.kernel.Get<ILogger>().Error(e.ToStringFull()));
 
         // Entrypoint
         this.kernel.Get<Plugin>().Initialize();
@@ -64,7 +66,12 @@ public sealed class PluginInitializer : IDalamudPlugin
 
     private void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
     {
-        this.kernel.Get<ILogger>().Error(e.Exception.ToString());
+        try
+        {
+            var exceptionMessage = e.Exception.ToStringFull();
+            this.kernel.Get<ILogger>().Error(exceptionMessage);
+        }
+        catch (FormatException) { return; }
         e.SetObserved();
     }
 }
