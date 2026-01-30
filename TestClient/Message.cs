@@ -14,9 +14,13 @@ public struct Message
         StartMechanic = 3,
 
         // To client
-        PlayVfx = 51,
+        // Deprecated: 51
         ApplyCondition = 52,
         UpdatePartyStatus = 53,
+        PlayStaticVfx = 54,
+        StopStaticVfx = 55,
+        PlayActorVfxOnTarget = 56,
+        PlayActorVfxOnPosition = 57,
     }
 
     [JsonProperty(PropertyName = "a")]
@@ -67,16 +71,6 @@ public struct Message
 
     // To client ============
 
-    public struct PlayVfxPayload
-    {
-        [JsonProperty(PropertyName = "v")]
-        public string vfxPath;
-        [JsonProperty(PropertyName = "t")]
-        public ulong[] targets;
-    }
-    [JsonProperty(PropertyName = "pv")]
-    public PlayVfxPayload? playVfx;
-
     public struct ApplyConditionPayload
     {
         public enum Condition : uint
@@ -110,4 +104,52 @@ public struct Message
     }
     [JsonProperty(PropertyName = "ups")]
     public UpdatePartyStatusPayload? updatePartyStatus;
+
+    public struct PlayStaticVfxPayload
+    {
+        public string id;
+        [JsonProperty(PropertyName = "v")]
+        public string vfxPath;
+        [JsonProperty(PropertyName = "x")]
+        public float worldPositionX;
+        [JsonProperty(PropertyName = "y")]
+        public float worldPositionY;
+        [JsonProperty(PropertyName = "z")]
+        public float worldPositionZ;
+    }
+    [JsonProperty(PropertyName = "psv")]
+    public PlayStaticVfxPayload? playStaticVfx;
+
+    public struct StopStaticVfxPayload
+    {
+        public string id;
+    }
+    [JsonProperty(PropertyName = "ssv")]
+    public StopStaticVfxPayload? stopStaticVfx;
+
+    public struct PlayActorVfxOnTargetPayload
+    {
+        [JsonProperty(PropertyName = "v")]
+        public string vfxPath;
+        [JsonProperty(PropertyName = "ct")]
+        public ulong[] contentIdTargets;
+        [JsonProperty(PropertyName = "it")]
+        public string[] customIdTargets;
+    }
+    [JsonProperty(PropertyName = "pavt")]
+    public PlayActorVfxOnTargetPayload? playActorVfxOnTarget;
+
+    public struct PlayActorVfxOnPositionPayload
+    {
+        [JsonProperty(PropertyName = "v")]
+        public string vfxPath;
+        [JsonProperty(PropertyName = "x")]
+        public float worldPositionX;
+        [JsonProperty(PropertyName = "y")]
+        public float worldPositionY;
+        [JsonProperty(PropertyName = "z")]
+        public float worldPositionZ;
+    }
+    [JsonProperty(PropertyName = "pavp")]
+    public PlayActorVfxOnPositionPayload? playActorVfxOnPosition;
 }

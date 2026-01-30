@@ -15,9 +15,13 @@ pub enum Action {
     StartMechanic = 3,
 
     // To client
-    PlayVfx = 51,
+    // Deprecated: 51
     ApplyCondition = 52,
     UpdatePartyStatus = 53,
+    PlayStaticVfx = 54,
+    StopStaticVfx = 55,
+    PlayActorVfxOnTarget = 56,
+    PlayActorVfxOnPosition = 57,
 }
 
 #[serde_with::skip_serializing_none]
@@ -35,12 +39,18 @@ pub struct Message {
     pub start_mechanic: Option<StartMechanicPayload>,
 
     // To client
-    #[serde(rename = "pv")]
-    pub play_vfx: Option<PlayVfxPayload>,
     #[serde(rename = "ac")]
     pub apply_condition: Option<ApplyConditionPayload>,
     #[serde(rename = "ups")]
     pub update_party_status: Option<UpdatePartyStatusPayload>,
+    #[serde(rename = "psv")]
+    pub play_static_vfx: Option<PlayStaticVfxPayload>,
+    #[serde(rename = "ssv")]
+    pub stop_static_vfx: Option<StopStaticVfxPayload>,
+    #[serde(rename = "pavt")]
+    pub play_actor_vfx_on_target: Option<PlayActorVfxOnTargetPayload>,
+    #[serde(rename = "pavp")]
+    pub play_actor_vfx_on_position: Option<PlayActorVfxOnPositionPayload>,
 }
 
 // To server ===============
@@ -78,14 +88,6 @@ pub struct StartMechanicPayload {
 
 // To client ===============
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct PlayVfxPayload {
-    #[serde(rename = "v")]
-    pub vfx_path: String,
-    #[serde(rename = "t")]
-    pub targets: Vec<u64>,
-}
-
 #[derive(Serialize, Deserialize, Default, Debug)]
 pub struct ApplyConditionPayload {
     #[serde(rename = "c")]
@@ -102,4 +104,44 @@ pub struct ApplyConditionPayload {
 pub struct UpdatePartyStatusPayload {
     #[serde(rename = "c")]
     pub connected_players_in_party: u8,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct PlayStaticVfxPayload {
+    pub id: String,
+    #[serde(rename = "v")]
+    pub vfx_path: String,
+    #[serde(rename = "x")]
+    pub world_position_x: f32,
+    #[serde(rename = "y")]
+    pub world_position_y: f32,
+    #[serde(rename = "z")]
+    pub world_position_z: f32,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct StopStaticVfxPayload {
+    pub id: String,
+}
+
+#[derive(Serialize, Deserialize, Default, Debug)]
+pub struct PlayActorVfxOnTargetPayload {
+    #[serde(rename = "v")]
+    pub vfx_path: String,
+    #[serde(rename = "ct")]
+    pub content_id_targets: Vec<u64>,
+    #[serde(rename = "it")]
+    pub custom_id_targets: Vec<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct PlayActorVfxOnPositionPayload {
+    #[serde(rename = "v")]
+    pub vfx_path: String,
+    #[serde(rename = "x")]
+    pub world_position_x: f32,
+    #[serde(rename = "y")]
+    pub world_position_y: f32,
+    #[serde(rename = "z")]
+    pub world_position_z: f32,
 }

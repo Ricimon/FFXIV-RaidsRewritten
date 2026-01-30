@@ -2,7 +2,7 @@ use super::{Affect, Mechanic, Target};
 use crate::{
     ecs_container::{Party, Player, Position, Socket, State},
     game::{condition::Condition, utils::*},
-    webserver::message::{ApplyConditionPayload, PlayVfxPayload},
+    webserver::message::{ApplyConditionPayload, PlayActorVfxOnTargetPayload},
 };
 use distances::vectors::euclidean_sq;
 use flecs_ecs::prelude::*;
@@ -83,12 +83,13 @@ pub fn create_systems(world: &World) {
                         if party.id != pa.id {
                             return;
                         }
-                        send_play_vfx(
+                        send_play_actor_vfx_on_target(
                             io.clone(),
                             s.id,
-                            PlayVfxPayload {
+                            PlayActorVfxOnTargetPayload {
                                 vfx_path: enumeration.omen_vfx_path.clone(),
-                                targets: targets.clone(),
+                                content_id_targets: targets.clone(),
+                                ..Default::default()
                             },
                         );
                     });
@@ -157,12 +158,13 @@ pub fn create_systems(world: &World) {
                             return;
                         }
                         for vfx in &enumeration.attack_vfx_paths {
-                            send_play_vfx(
+                            send_play_actor_vfx_on_target(
                                 io.clone(),
                                 s.id,
-                                PlayVfxPayload {
+                                PlayActorVfxOnTargetPayload {
                                     vfx_path: vfx.clone(),
-                                    targets: targets.clone(),
+                                    content_id_targets: targets.clone(),
+                                    ..Default::default()
                                 },
                             );
                         }

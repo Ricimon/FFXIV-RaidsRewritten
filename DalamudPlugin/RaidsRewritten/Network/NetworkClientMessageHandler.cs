@@ -19,12 +19,18 @@ public class NetworkClientMessageHandler(
     VfxSpawn vfxSpawn,
     Lazy<EcsContainer> ecsContainer,
     CommonQueries commonQueries,
+    Configuration configuration,
     ILogger logger)
 {
     private World World => ecsContainer.Value.World;
 
     public void OnMessage(SocketIOResponse response)
     {
+        if (configuration.EverythingDisabled)
+        {
+            return;
+        }
+
         Message message;
         try
         {
@@ -43,19 +49,37 @@ public class NetworkClientMessageHandler(
 
         switch (message.action)
         {
-            case Message.Action.PlayVfx:
-                if (message.playVfx != null) { PlayVfx(message.playVfx.Value); }
-                break;
             case Message.Action.ApplyCondition:
                 if (message.applyCondition != null) { ApplyCondition(message.applyCondition.Value); }
                 break;
             case Message.Action.UpdatePartyStatus:
                 if (message.updatePartyStatus != null) { UpdatePartyStatus(message.updatePartyStatus.Value); }
                 break;
+            case Message.Action.PlayActorVfxOnTarget:
+                if (message.playActorVfxOnTarget != null) { PlayActorVfxOnTarget(message.playActorVfxOnTarget.Value); }
+                break;
         }
     }
 
-    private void PlayVfx(Message.PlayVfxPayload payload)
+    private void ApplyCondition(Message.ApplyConditionPayload payload)
+    {
+        switch (payload.condition)
+        {
+            case Message.ApplyConditionPayload.Condition.Stun:
+                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+                {
+                    Stun.ApplyToTarget(e, payload.duration);
+                });
+                break;
+        }
+    }
+
+    private void UpdatePartyStatus(Message.UpdatePartyStatusPayload payload)
+    {
+        networkClient.Value.ConnectedPlayersInParty = payload.connectedPlayersInParty;
+    }
+
+    private void PlayActorVfxOnTarget(Message.PlayActorVfxOnTargetPayload payload)
     {
         if (!Regex.IsMatch(payload.vfxPath, @"^vfx\/[\w\/]*\w+\.avfx$"))
         {
@@ -75,31 +99,15 @@ public class NetworkClientMessageHandler(
                     if (bcA == null) { return false; }
                     bc = *bcA;
                 }
-                return payload.targets.Contains(bc.ContentId);
+                return payload.contentIdTargets.Contains(bc.ContentId);
             });
 
             foreach (var target in targetCharas)
             {
                 vfxSpawn.SpawnActorVfx(payload.vfxPath, target, target);
             }
+
+            // TODO: Use customIdTargets
         }).SafeFireAndForget();
-    }
-
-    private void ApplyCondition(Message.ApplyConditionPayload payload)
-    {
-        switch (payload.condition)
-        {
-            case Message.ApplyConditionPayload.Condition.Stun:
-                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
-                {
-                    Stun.ApplyToTarget(e, payload.duration);
-                });
-                break;
-        }
-    }
-
-    private void UpdatePartyStatus(Message.UpdatePartyStatusPayload payload)
-    {
-        networkClient.Value.ConnectedPlayersInParty = payload.connectedPlayersInParty;
     }
 }

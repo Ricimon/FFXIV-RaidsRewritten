@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Numerics;
 using System.Reactive.Linq;
 using System.Text;
+using AsyncAwaitBestPractices;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility;
@@ -161,6 +162,7 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
                     this.World.DeleteWith<Condition.Component>();
                     this.World.DeleteWith<DelayedAction.Component>();
                     this.vfxSpawn.Clear();
+                    this.networkClient.DisconnectAsync().SafeFireAndForget();
                 }
             }
         }

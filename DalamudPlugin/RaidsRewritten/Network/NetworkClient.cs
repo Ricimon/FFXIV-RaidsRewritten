@@ -34,7 +34,7 @@ public sealed class NetworkClient(
 
     public bool Connect()
     {
-        if (client != null)
+        if (client != null || configuration.EverythingDisabled)
         {
             return false;
         }

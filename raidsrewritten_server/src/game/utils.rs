@@ -1,7 +1,7 @@
 use crate::{
     ecs_container::{Player, SocketIoSingleton},
     game::mechanics::Target,
-    webserver::message::{Action, ApplyConditionPayload, Message, PlayVfxPayload},
+    webserver::message::{Action, ApplyConditionPayload, Message, PlayActorVfxOnTargetPayload},
 };
 use flecs_ecs::prelude::*;
 use socketioxide::{SocketIo, socket::Sid};
@@ -21,18 +21,22 @@ pub fn get_socket_io(world: &WorldRef<'_>) -> SocketIo {
     world.get::<&SocketIoSingleton>(|sio| sio.io.clone())
 }
 
-pub fn send_play_vfx(io: SocketIo, socket_id: Sid, play_vfx_payload: PlayVfxPayload) {
+pub fn send_play_actor_vfx_on_target(
+    io: SocketIo,
+    socket_id: Sid,
+    payload: PlayActorVfxOnTargetPayload,
+) {
     info!(
         socket_str = socket_id.as_str(),
-        play_vfx_payload.vfx_path, "Sending play_vfx"
+        payload.vfx_path, "Sending play_actor_vfx_on_target"
     );
     tokio::spawn(async move {
         io.to(socket_id)
             .emit(
                 "message",
                 &Message {
-                    action: Action::PlayVfx,
-                    play_vfx: Some(play_vfx_payload),
+                    action: Action::PlayActorVfxOnTarget,
+                    play_actor_vfx_on_target: Some(payload),
                     ..Default::default()
                 },
             )

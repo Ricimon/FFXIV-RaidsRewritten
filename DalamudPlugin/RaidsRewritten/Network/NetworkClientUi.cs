@@ -53,9 +53,12 @@ public class NetworkClientUi(NetworkClient client, Configuration configuration)
         }
         else
         {
-            if (ImGui.Button("Connect", new(buttonWidth, 0)))
+            using (ImRaii.Disabled(configuration.EverythingDisabled))
             {
-                client.Connect();
+                if (ImGui.Button("Connect", new(buttonWidth, 0)))
+                {
+                    client.Connect();
+                }
             }
         }
 
