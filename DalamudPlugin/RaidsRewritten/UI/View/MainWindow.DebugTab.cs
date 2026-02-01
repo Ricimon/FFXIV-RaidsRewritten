@@ -243,6 +243,15 @@ public partial class MainWindow
                     }
                 }
             }
+
+            if (ImGui.Button("Place Trap"))
+            {
+                var placeEntity = World.Entity()
+                    .Set(new PlaceMechanicWithMouse(3));
+                World.Entity()
+                    .Set(new StaticVfx("bg/ex3/01_nvt_n4/common/vfx/eff/b2155trp01_o.avfx"))
+                    .ChildOf(placeEntity);
+            }
         }
 
         if (ImGui.CollapsingHeader("Test Attacks (Local)"))
@@ -262,6 +271,7 @@ public partial class MainWindow
 
             if (debug)
             {
+                ImGui.SameLine();
                 if (ImGui.Button("Spawn Ball"))
                 {
                     var player = this.dalamud.ObjectTable.LocalPlayer;
@@ -277,6 +287,7 @@ public partial class MainWindow
                         }
                     }
                 }
+                ImGui.SameLine();
                 if (ImGui.Button("LightningCorridor"))
                 {
                     var player = this.dalamud.ObjectTable.LocalPlayer;
@@ -514,7 +525,7 @@ public partial class MainWindow
                         }
                     }
                 }
-
+                ImGui.SameLine();
                 if (ImGui.Button("Star"))
                 {
                     var player = this.dalamud.ObjectTable.LocalPlayer;

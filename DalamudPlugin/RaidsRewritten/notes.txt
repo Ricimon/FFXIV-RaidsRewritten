@@ -63,5 +63,16 @@ Tendrils of Terror: vfx/monster/gimmick5/eff/x6r7_b3_g08_c0p.avfx (actor)
 
 Rectangle Omen: vfx/omen/eff/general02f.avfx (static)
 
+Explosive trap: bg/ex3/01_nvt_n4/common/vfx/eff/b2155trp01_o.avfx (static), 3y radius
+Poison trap: bg/ex3/01_nvt_n4/common/vfx/eff/b2156trp01_o.avfx (static), 3y radius
+Ice trap: bg/ex3/01_nvt_n4/common/vfx/eff/b2153trp01_o.avfx (static), 2.5y radius
+Minification trap: bg/ex3/01_nvt_n4/common/vfx/eff/b2154trp01_o.avfx (static), 2.5y radius
+Trap explosion: vfx/monster/gimmick/eff/kappa_hard_bakudan_c0h.avfx (actor)
+Poison trap effect: vfx/common/eff/dk05ht_poi0s.avfx (actor)
+
+Place pet reticle: vfx/common/eff/gt_sommon0f.avfx (static)
+Place attack reticle: vfx/common/eff/gl_target1.avfx (static)
+Place attack reticle (unavailable): vfx/common/eff/gl_target2.avfx (static)
+
 Animations
 Minion normal/idle_inactive1: 4

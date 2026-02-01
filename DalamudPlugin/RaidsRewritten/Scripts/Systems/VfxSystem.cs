@@ -78,7 +78,12 @@ public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogge
                     }
 
                     Entity fadeOutEntity;
-                    if (e.Has<Omen>())
+                    if (e.TryGet<VfxFadeOutDuration>(out var d))
+                    {
+                        fadeOutEntity = e.CsWorld().Entity()
+                            .Set(new VfxFadeOut(vfx.VfxPtr, d.Value, d.Value));
+                    }
+                    else if (e.Has<Omen>())
                     {
                         // Finish the fade
                         var duration = 0.25f * a / 1.0f;

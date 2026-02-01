@@ -2,6 +2,7 @@
 using Ninject.Activation;
 using Ninject.Modules;
 using RaidsRewritten.Game;
+using RaidsRewritten.Input;
 using RaidsRewritten.Interop;
 using RaidsRewritten.Log;
 using RaidsRewritten.Memory;
@@ -40,6 +41,7 @@ public class PluginModule : NinjectModule
         Bind<IDalamudHook, EncounterManager>().To<EncounterManager>().InSingletonScope();
         Bind<IDalamudHook>().To<EntityManager>().InSingletonScope();
         Bind<Mechanic.Factory>().ToSelf();
+        Bind<InputEventSource>().ToSelf().InSingletonScope();
         Bind<EcsContainer>().ToSelf().InSingletonScope();
         Bind<CommonQueries>().ToSelf().InSingletonScope();
         Bind<NetworkClient>().ToSelf().InSingletonScope();
@@ -108,6 +110,7 @@ public class PluginModule : NinjectModule
         Bind<ISystem>().To<OmenSystem>();
         Bind<ISystem>().To<ModelSystem>();
         Bind<ISystem>().To<FileReplacementSystem>();
+        Bind<ISystem>().To<InputSystem>();
         Bind<ISystem>().To<NetworkClientPositionSystem>();
 
         // Conditions

@@ -141,6 +141,12 @@
           "SocketIO.Serializer.SystemTextJson": "3.1.2"
         }
       },
+      "WindowsInput": {
+        "type": "Direct",
+        "requested": "[6.4.1, )",
+        "resolved": "6.4.1",
+        "contentHash": "wfg9uu5xDvBcaNqvR1ZTFQqBf4bKzkxdd5WviTZPy4cAywEzLzofuYswZB3nGIEnnlwGLBGSgrNOEZH/w8JI9w=="
+      },
       "YamlDotNet": {
         "type": "Direct",
         "requested": "[16.3.0, )",
