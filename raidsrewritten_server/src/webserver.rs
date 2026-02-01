@@ -1,6 +1,6 @@
 pub mod message;
 
-use crate::ecs_container;
+use crate::{game::components::Player};
 use crate::system_messages::MessageToEcs;
 use axum::routing::get;
 use flecs_ecs::prelude::*;
@@ -77,9 +77,18 @@ async fn on_message_impl(
                     socket_id: socket.id,
                     request_id: start_mechanic.request_id.clone(),
                     mechanic_id: start_mechanic.mechanic_id,
+                    world_position_x: start_mechanic.world_position_x,
+                    world_position_y: start_mechanic.world_position_y,
+                    world_position_z: start_mechanic.world_position_z,
                 })
                 .unwrap();
             }
+        }
+        message::Action::ClearMechanics => {
+            tx.send(MessageToEcs::ClearMechanics {
+                socket_id: socket.id,
+            })
+            .unwrap();
         }
         _ => {}
     }
@@ -125,7 +134,7 @@ pub async fn run_webserver(
                 let mut players = 0;
                 let world = world.lock().unwrap();
                 world
-                    .query::<&ecs_container::Player>()
+                    .query::<&Player>()
                     .build()
                     .each_entity(|_, _| {
                         players += 1;

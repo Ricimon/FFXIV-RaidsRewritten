@@ -3,10 +3,9 @@ pub mod m0001_spread;
 #[path = "mechanics/0010-enumeration.rs"]
 pub mod m0010_enumeration;
 
+use crate::game::components::{Party, Position};
 use flecs_ecs::prelude::*;
 use tracing::info;
-
-use crate::ecs_container::Party;
 
 #[derive(Component, Debug)]
 pub struct Mechanic {
@@ -25,6 +24,9 @@ pub fn create_mechanic(
     request_id: String,
     mechanic_id: u32,
     party: String,
+    world_position_x: Option<f32>,
+    world_position_y: Option<f32>,
+    world_position_z: Option<f32>,
 ) -> Option<EntityView<'_>> {
     let mechanic_fn: Option<fn(EntityView<'_>) -> EntityView<'_>> = match mechanic_id {
         1 => Some(m0001_spread::create_mechanic),
@@ -39,6 +41,14 @@ pub fn create_mechanic(
                 mechanic_id,
             })
             .set(Party { id: party });
+
+        if let Some(x) = world_position_x
+            && let Some(y) = world_position_y
+            && let Some(z) = world_position_z
+        {
+            e.set(Position { x, y, z });
+        }
+
         Some(f(e))
     } else {
         info!(mechanic_id, "Unsupported mechanic_id");

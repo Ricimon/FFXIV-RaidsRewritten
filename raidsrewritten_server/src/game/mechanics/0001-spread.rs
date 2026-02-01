@@ -1,7 +1,6 @@
 use super::{Affect, Mechanic, Target};
 use crate::{
-    ecs_container::{Party, Player, Position, Socket, SocketIoSingleton, State},
-    game::{condition::Condition, utils::*},
+    game::{components::*, condition::Condition, utils::*},
     webserver::message::{ApplyConditionPayload, PlayActorVfxOnTargetPayload},
 };
 use distances::vectors::euclidean_sq;

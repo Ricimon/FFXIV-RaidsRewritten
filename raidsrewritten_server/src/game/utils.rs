@@ -1,7 +1,6 @@
 use crate::{
-    ecs_container::{Player, SocketIoSingleton},
-    game::mechanics::Target,
-    webserver::message::{Action, ApplyConditionPayload, Message, PlayActorVfxOnTargetPayload},
+    game::{components::*, mechanics::Target},
+    webserver::message::*,
 };
 use flecs_ecs::prelude::*;
 use socketioxide::{SocketIo, socket::Sid};
@@ -21,6 +20,55 @@ pub fn get_socket_io(world: &WorldRef<'_>) -> SocketIo {
     world.get::<&SocketIoSingleton>(|sio| sio.io.clone())
 }
 
+pub fn send_apply_condition(
+    io: SocketIo,
+    socket_id: Sid,
+    condition_payload: ApplyConditionPayload,
+) {
+    info!(socket_str = socket_id.as_str(), "Sending apply_condition");
+    send_message(
+        io,
+        socket_id,
+        Message {
+            action: Action::ApplyCondition,
+            apply_condition: Some(condition_payload),
+            ..Default::default()
+        },
+    );
+}
+
+pub fn send_play_static_vfx(io: SocketIo, socket_id: Sid, payload: PlayStaticVfxPayload) {
+    info!(
+        socket_str = socket_id.as_str(),
+        payload.id, payload.vfx_path, "Sending play_static_vfx"
+    );
+    send_message(
+        io,
+        socket_id,
+        Message {
+            action: Action::PlayStaticVfx,
+            play_static_vfx: Some(payload),
+            ..Default::default()
+        },
+    );
+}
+
+pub fn send_stop_static_vfx(io: SocketIo, socket_id: Sid, payload: StopStaticVfxPayload) {
+    info!(
+        socket_str = socket_id.as_str(),
+        payload.id, "Sending stop_static_vfx"
+    );
+    send_message(
+        io,
+        socket_id,
+        Message {
+            action: Action::StopStaticVfx,
+            stop_static_vfx: Some(payload),
+            ..Default::default()
+        },
+    );
+}
+
 pub fn send_play_actor_vfx_on_target(
     io: SocketIo,
     socket_id: Sid,
@@ -30,38 +78,39 @@ pub fn send_play_actor_vfx_on_target(
         socket_str = socket_id.as_str(),
         payload.vfx_path, "Sending play_actor_vfx_on_target"
     );
-    tokio::spawn(async move {
-        io.to(socket_id)
-            .emit(
-                "message",
-                &Message {
-                    action: Action::PlayActorVfxOnTarget,
-                    play_actor_vfx_on_target: Some(payload),
-                    ..Default::default()
-                },
-            )
-            .await
-            .unwrap();
-    });
+    send_message(
+        io,
+        socket_id,
+        Message {
+            action: Action::PlayActorVfxOnTarget,
+            play_actor_vfx_on_target: Some(payload),
+            ..Default::default()
+        },
+    );
 }
 
-pub fn send_apply_condition(
+pub fn send_play_actor_vfx_on_position(
     io: SocketIo,
     socket_id: Sid,
-    condition_payload: ApplyConditionPayload,
+    payload: PlayActorVfxOnPositionPayload,
 ) {
-    info!(socket_str = socket_id.as_str(), "Sending apply_condition");
+    info!(
+        socket_str = socket_id.as_str(),
+        payload.vfx_path, "Sending play_actor_vfx_on_position"
+    );
+    send_message(
+        io,
+        socket_id,
+        Message {
+            action: Action::PlayActorVfxOnPosition,
+            play_actor_vfx_on_position: Some(payload),
+            ..Default::default()
+        },
+    );
+}
+
+fn send_message(io: SocketIo, socket_id: Sid, message: Message) {
     tokio::spawn(async move {
-        io.to(socket_id)
-            .emit(
-                "message",
-                &Message {
-                    action: Action::ApplyCondition,
-                    apply_condition: Some(condition_payload),
-                    ..Default::default()
-                },
-            )
-            .await
-            .unwrap();
+        io.to(socket_id).emit("message", &message).await.unwrap();
     });
 }

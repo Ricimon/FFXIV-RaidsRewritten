@@ -13,6 +13,7 @@ pub enum Action {
     UpdatePlayer = 1,
     UpdateStatus = 2,
     StartMechanic = 3,
+    ClearMechanics = 4,
 
     // To client
     // Deprecated: 51
@@ -78,12 +79,18 @@ pub struct UpdateStatusPayload {
     pub is_alive: bool,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Default, Debug)]
 pub struct StartMechanicPayload {
     #[serde(rename = "ri")]
     pub request_id: String,
     #[serde(rename = "mi")]
     pub mechanic_id: u32,
+    #[serde(rename = "x")]
+    pub world_position_x: Option<f32>,
+    #[serde(rename = "y")]
+    pub world_position_y: Option<f32>,
+    #[serde(rename = "z")]
+    pub world_position_z: Option<f32>,
 }
 
 // To client ===============

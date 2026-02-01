@@ -1,6 +1,6 @@
 use crate::game::mechanics;
 use crate::game::utils::get_socket_io;
-use crate::game::{mechanics::Mechanic, role};
+use crate::game::{components::*, mechanics::Mechanic};
 use crate::system_messages::MessageToEcs;
 use crate::webserver::message::{Action, Message, UpdatePartyStatusPayload};
 use flecs_ecs::prelude::*;
@@ -10,44 +10,6 @@ use std::sync::mpsc::Receiver;
 use std::time::Duration;
 use tokio::time;
 use tracing::info;
-
-#[derive(Component)]
-pub struct SocketIoSingleton {
-    pub io: SocketIo,
-}
-
-#[derive(Component)]
-pub struct Socket {
-    pub id: socket::Sid,
-}
-
-#[derive(Component, Debug)]
-pub struct Player {
-    pub content_id: u64,
-    pub name: String,
-}
-
-#[derive(Component, Debug)]
-pub struct Role {
-    pub role: role::Role,
-}
-
-#[derive(Component, Debug)]
-pub struct Party {
-    pub id: String,
-}
-
-#[derive(Component, Debug)]
-pub struct Position {
-    pub x: f32,
-    pub y: f32,
-    pub z: f32,
-}
-
-#[derive(Component, Debug)]
-pub struct State {
-    pub is_alive: bool,
-}
 
 struct CommonQueries<'a> {
     query_socket: Query<&'a Socket>,
@@ -167,6 +129,9 @@ fn process_messages(world: &World, queries: &CommonQueries, rx_from_ws: &Receive
                 socket_id,
                 request_id,
                 mechanic_id,
+                world_position_x,
+                world_position_y,
+                world_position_z,
             } => {
                 let Some(e) = find_socket(&queries.query_socket, socket_id) else {
                     return;
@@ -179,15 +144,35 @@ fn process_messages(world: &World, queries: &CommonQueries, rx_from_ws: &Receive
                     {
                         info!(
                             socket_str = socket_id.as_str(),
-                            request_id, mechanic_id, "Adding Mechanic"
+                            party.id, request_id, mechanic_id, "Adding Mechanic"
                         );
                         mechanics::create_mechanic(
                             world,
                             request_id,
                             mechanic_id,
                             party.id.clone(),
+                            world_position_x,
+                            world_position_y,
+                            world_position_z,
                         );
                     }
+                });
+            }
+
+            MessageToEcs::ClearMechanics { socket_id } => {
+                let Some(e) = find_socket(&queries.query_socket, socket_id) else {
+                    return;
+                };
+                e.try_get::<&Party>(|party| {
+                    queries.query_mechanic.each_entity(|e, (_, p)| {
+                        if p.id == party.id {
+                            info!(
+                                socket_str = socket_id.as_str(),
+                                party.id, "Clearing Mechanics"
+                            );
+                            e.destruct();
+                        }
+                    });
                 });
             }
         }

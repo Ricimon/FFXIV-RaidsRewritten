@@ -669,6 +669,14 @@ public partial class MainWindow
             this.networkClientUi.DrawConfig();
             using (ImRaii.Disabled(!this.networkClient.IsConnected))
             {
+                if (ImGui.Button("Clear Networked Mechanics"))
+                {
+                    this.networkClient.SendAsync(new Message
+                    {
+                        action = Message.Action.ClearMechanics,
+                    }).SafeFireAndForget();
+                }
+
                 if (ImGui.Button("Spread"))
                 {
                     this.networkClient.SendAsync(new Message

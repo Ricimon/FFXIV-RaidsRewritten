@@ -12,6 +12,7 @@ public struct Message
         UpdatePlayer = 1,
         UpdateStatus = 2,
         StartMechanic = 3,
+        ClearMechanics = 4,
 
         // To client
         // Deprecated: 51
@@ -65,6 +66,12 @@ public struct Message
         public string requestId;
         [JsonProperty(PropertyName = "mi")]
         public uint mechanicId;
+        [JsonProperty(PropertyName = "x")]
+        public float? worldPositionX;
+        [JsonProperty(PropertyName = "y")]
+        public float? worldPositionY;
+        [JsonProperty(PropertyName = "z")]
+        public float? worldPositionZ;
     }
     [JsonProperty(PropertyName = "sm")]
     public StartMechanicPayload? startMechanic;
