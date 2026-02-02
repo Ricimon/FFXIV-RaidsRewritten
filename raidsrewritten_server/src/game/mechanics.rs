@@ -89,7 +89,7 @@ pub fn create_observers(world: &World) {
                 let io = get_socket_io(&it.world());
                 pc.each_child(|c| {
                     c.try_get::<(&Socket, &Player)>(|(s, _)| {
-                        send_stop_vfx(io.clone(), s.id, StopVfxPayload { id: vfx.id.clone() });
+                        send_stop_vfx(io.clone(), s.id, StopVfxPayload { id: vfx.id });
                     });
                 });
             }

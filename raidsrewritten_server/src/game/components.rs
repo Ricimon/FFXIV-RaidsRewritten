@@ -50,5 +50,5 @@ pub struct State {
 
 #[derive(Component, Debug)]
 pub struct Vfx {
-    pub id: String,
+    pub id: u128,
 }

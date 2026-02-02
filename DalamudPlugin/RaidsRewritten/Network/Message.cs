@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System.Numerics;
+using Newtonsoft.Json;
 
 namespace RaidsRewritten.Network;
 
@@ -116,7 +117,7 @@ public struct Message
 
     public struct PlayStaticVfxPayload
     {
-        public string id;
+        public BigInteger id;
         [JsonProperty(PropertyName = "v")]
         public string vfxPath;
         [JsonProperty(PropertyName = "o")]
@@ -163,7 +164,7 @@ public struct Message
 
     public struct StopVfxPayload
     {
-        public string id;
+        public BigInteger id;
     }
     [JsonProperty(PropertyName = "sv")]
     public StopVfxPayload? stopVfx;

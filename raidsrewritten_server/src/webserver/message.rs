@@ -117,7 +117,7 @@ pub struct UpdatePartyStatusPayload {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct PlayStaticVfxPayload {
-    pub id: String,
+    pub id: u128,
     #[serde(rename = "v")]
     pub vfx_path: String,
     #[serde(rename = "o")]
@@ -158,5 +158,5 @@ pub struct PlayActorVfxOnPositionPayload {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct StopVfxPayload {
-    pub id: String,
+    pub id: u128,
 }

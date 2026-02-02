@@ -67,8 +67,8 @@ pub fn create_systems(world: &World) {
             if !trap.activated {
                 // Send all players the trap vfx
                 if !entity.has(Vfx::id()) {
-                    let vfx_id = Uuid::new_v4().to_string();
-                    entity.set(Vfx { id: vfx_id.clone() });
+                    let vfx_id = Uuid::new_v4().as_u128();
+                    entity.set(Vfx { id: vfx_id });
 
                     if let Some(pc) = find_party_container(&it.world(), &party.id) {
                         let io = get_socket_io(&it.world());
@@ -78,7 +78,7 @@ pub fn create_systems(world: &World) {
                                     io.clone(),
                                     s.id,
                                     PlayStaticVfxPayload {
-                                        id: vfx_id.clone(),
+                                        id: vfx_id,
                                         vfx_path: trap.omen_vfx_path.clone(),
                                         is_omen: true,
                                         world_position_x: position.x,
