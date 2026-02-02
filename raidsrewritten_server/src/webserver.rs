@@ -1,6 +1,6 @@
 pub mod message;
 
-use crate::{game::components::Player};
+use crate::game::components::Player;
 use crate::system_messages::MessageToEcs;
 use axum::routing::get;
 use flecs_ecs::prelude::*;
@@ -80,6 +80,7 @@ async fn on_message_impl(
                     world_position_x: start_mechanic.world_position_x,
                     world_position_y: start_mechanic.world_position_y,
                     world_position_z: start_mechanic.world_position_z,
+                    rotation: start_mechanic.rotation,
                 })
                 .unwrap();
             }
@@ -133,12 +134,9 @@ pub async fn run_webserver(
             get(|| async move {
                 let mut players = 0;
                 let world = world.lock().unwrap();
-                world
-                    .query::<&Player>()
-                    .build()
-                    .each_entity(|_, _| {
-                        players += 1;
-                    });
+                world.query::<&Player>().build().each_entity(|_, _| {
+                    players += 1;
+                });
                 format!("Players connected: {players}")
             }),
         )

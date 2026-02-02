@@ -26,6 +26,7 @@ pub enum MessageToEcs {
         world_position_x: Option<f32>,
         world_position_y: Option<f32>,
         world_position_z: Option<f32>,
+        rotation: Option<f32>,
     },
     ClearMechanics {
         socket_id: Sid,

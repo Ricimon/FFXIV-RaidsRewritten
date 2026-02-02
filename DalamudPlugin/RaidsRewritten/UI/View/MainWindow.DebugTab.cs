@@ -702,6 +702,19 @@ public partial class MainWindow
                         }
                     }).SafeFireAndForget();
                 }
+
+                if (ImGui.Button("Place Trap"))
+                {
+                    var placeEntity = World.Entity()
+                        .Set(new PlaceMechanicWithMouse(3));
+                    World.Entity()
+                        .Set(new Message.StartMechanicPayload
+                        {
+                            requestId = Guid.NewGuid().ToString(),
+                            mechanicId = 20,
+                        })
+                        .ChildOf(placeEntity);
+                }
             }
         }
 

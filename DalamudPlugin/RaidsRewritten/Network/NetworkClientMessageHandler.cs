@@ -6,6 +6,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
+using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Spawn;
 using SocketIOClient;
@@ -55,23 +56,47 @@ public class NetworkClientMessageHandler(
             case Message.Action.UpdatePartyStatus:
                 if (message.updatePartyStatus != null) { UpdatePartyStatus(message.updatePartyStatus.Value); }
                 break;
+            case Message.Action.PlayStaticVfx:
+                if (message.playStaticVfx != null) { PlayStaticVfx(message.playStaticVfx.Value); }
+                break;
             case Message.Action.PlayActorVfxOnTarget:
                 if (message.playActorVfxOnTarget != null) { PlayActorVfxOnTarget(message.playActorVfxOnTarget.Value); }
+                break;
+            case Message.Action.PlayActorVfxOnPosition:
+                if (message.playActorVfxOnPosition != null) { PlayActorVfxOnPosition(message.playActorVfxOnPosition.Value); }
+                break;
+            case Message.Action.StopVfx:
+                if (message.stopVfx != null) { StopVfx(message.stopVfx.Value); }
                 break;
         }
     }
 
+    private bool CheckIsValidVfxPath(string path)
+    {
+        if (!Regex.IsMatch(path, @"(^vfx|^bg)\/[\w\/]*\w+\.avfx$"))
+        {
+            logger.Error($"{path} is not a valid VFX to play.");
+            return false;
+        }
+        return true;
+    }
+
     private void ApplyCondition(Message.ApplyConditionPayload payload)
     {
-        switch (payload.condition)
+        // Despite these operations not destructing any entities, any kind of operations on the EcsWorld have to be forwarded
+        // to the main thread here or else Flecs could cause the game to crash.
+        dalamud.Framework.Run(() =>
         {
-            case Message.ApplyConditionPayload.Condition.Stun:
-                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
-                {
-                    Stun.ApplyToTarget(e, payload.duration);
-                });
-                break;
-        }
+            switch (payload.condition)
+            {
+                case Message.ApplyConditionPayload.Condition.Stun:
+                    commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+                    {
+                        Stun.ApplyToTarget(e, payload.duration, overrideExistingDuration: true);
+                    });
+                    break;
+            }
+        }).SafeFireAndForget();
     }
 
     private void UpdatePartyStatus(Message.UpdatePartyStatusPayload payload)
@@ -79,13 +104,30 @@ public class NetworkClientMessageHandler(
         networkClient.Value.ConnectedPlayersInParty = payload.connectedPlayersInParty;
     }
 
+    private void PlayStaticVfx(Message.PlayStaticVfxPayload payload)
+    {
+        if (!CheckIsValidVfxPath(payload.vfxPath)) { return; }
+
+        dalamud.Framework.Run(() =>
+        {
+            var e = World.Entity()
+                .Set(new StaticVfx(payload.vfxPath))
+                .Set(new VfxId(payload.id))
+                .Set(new Position(new(payload.worldPositionX, payload.worldPositionY, payload.worldPositionZ)))
+                .Set(new Rotation(payload.rotation))
+                .Set(new Scale())
+                .Add<Attack>();
+
+            if (payload.isOmen)
+            {
+                e.Add<Omen>();
+            }
+        }).SafeFireAndForget();
+    }
+
     private void PlayActorVfxOnTarget(Message.PlayActorVfxOnTargetPayload payload)
     {
-        if (!Regex.IsMatch(payload.vfxPath, @"^vfx\/[\w\/]*\w+\.avfx$"))
-        {
-            logger.Error($"{payload.vfxPath} is not a valid VFX to play.");
-            return;
-        }
+        if (!CheckIsValidVfxPath(payload.vfxPath)) { return; }
 
         dalamud.Framework.Run(() =>
         {
@@ -108,6 +150,36 @@ public class NetworkClientMessageHandler(
             }
 
             // TODO: Use customIdTargets
+        }).SafeFireAndForget();
+    }
+
+    private void PlayActorVfxOnPosition(Message.PlayActorVfxOnPositionPayload payload)
+    {
+        if (!CheckIsValidVfxPath(payload.vfxPath)) { return; }
+
+        dalamud.Framework.Run(() =>
+        {
+            FakeActor.Create(World)
+                .Set(new ActorVfx(payload.vfxPath))
+                .Set(new Position(new(payload.worldPositionX, payload.worldPositionY, payload.worldPositionZ)))
+                .Set(new Rotation(payload.rotation));
+        }).SafeFireAndForget();
+    }
+
+    private void StopVfx(Message.StopVfxPayload payload)
+    {
+        dalamud.Framework.Run(() =>
+        {
+            World.Defer(() =>
+            {
+                World.Query<VfxId>().Each((Iter it, int i, ref VfxId vfxId) =>
+                {
+                    if (vfxId.Value == payload.id)
+                    {
+                        it.Entity(i).Destruct();
+                    }
+                });
+            });
         }).SafeFireAndForget();
     }
 }

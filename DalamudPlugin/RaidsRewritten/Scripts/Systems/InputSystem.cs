@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using AsyncAwaitBestPractices;
 using Dalamud.Bindings.ImGui;
 using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -6,6 +7,7 @@ using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Input;
 using RaidsRewritten.Log;
+using RaidsRewritten.Network;
 using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Utility;
 
@@ -14,15 +16,22 @@ namespace RaidsRewritten.Scripts.Systems;
 public class InputSystem : ISystem
 {
     private readonly DalamudServices dalamud;
+    private readonly NetworkClient networkClient;
     private readonly Configuration configuration;
     private readonly ILogger logger;
 
     private bool mouseLeftState;
     private bool mouseRightState;
 
-    public InputSystem(DalamudServices dalamud, InputEventSource inputEventSource, Configuration configuration, ILogger logger)
+    public InputSystem(
+        DalamudServices dalamud,
+        InputEventSource inputEventSource,
+        NetworkClient networkClient,
+        Configuration configuration,
+        ILogger logger)
     {
         this.dalamud = dalamud;
+        this.networkClient = networkClient;
         this.configuration = configuration;
         this.logger = logger;
 
@@ -113,7 +122,6 @@ public class InputSystem : ISystem
                     !IsHoveringUi() &&
                     dalamud.GameGui.ScreenToWorld(mousePosition, out var worldPos))
                 {
-                    worldPos.Y = localPlayer.Position.Y;
                     var playerToWorldPos = worldPos - localPlayer.Position;
                     var rotation = MathUtilities.VectorToRotation(playerToWorldPos.ToVector2());
                     entity.Children(c =>
@@ -129,8 +137,23 @@ public class InputSystem : ISystem
                     {
                         entity.Children(c =>
                         {
+                            if (c.Has<PlacementReticle>()) { return; }
+
+                            if (c.TryGet<Message.StartMechanicPayload>(out var payload))
+                            {
+                                payload.worldPositionX = worldPos.X;
+                                payload.worldPositionY = worldPos.Y;
+                                payload.worldPositionZ = worldPos.Z;
+                                payload.rotation = rotation;
+                                networkClient.SendAsync(new Message
+                                {
+                                    action = Message.Action.StartMechanic,
+                                    startMechanic = payload,
+                                }).SafeFireAndForget();
+                            }
+
                             // Used for testing arbitrarily placing static vfx
-                            if (!c.Has<PlacementReticle>() && c.TryGet<StaticVfx>(out var sv))
+                            if (c.TryGet<StaticVfx>(out var sv))
                             {
                                 it.World().Entity()
                                     .Set(sv)

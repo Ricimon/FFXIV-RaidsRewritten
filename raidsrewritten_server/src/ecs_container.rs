@@ -1,6 +1,5 @@
-use crate::game::mechanics;
-use crate::game::utils::get_socket_io;
 use crate::game::{components::*, mechanics::Mechanic};
+use crate::game::{mechanics, utils::*};
 use crate::system_messages::MessageToEcs;
 use crate::webserver::message::{Action, Message, UpdatePartyStatusPayload};
 use flecs_ecs::prelude::*;
@@ -65,6 +64,7 @@ fn process_messages(world: &World, queries: &CommonQueries, rx_from_ws: &Receive
                         "Updating Player"
                     );
                     player_entity = e;
+                    player_entity.remove((flecs::ChildOf, flecs::Wildcard::ID));
                 } else {
                     info!(
                         socket_str = socket_id.as_str(),
@@ -81,7 +81,15 @@ fn process_messages(world: &World, queries: &CommonQueries, rx_from_ws: &Receive
                     .set(Socket { id: socket_id })
                     .set(Player { content_id, name })
                     .set(Role { role })
-                    .set(Party { id: party });
+                    .set(Party { id: party.clone() });
+
+                let party_container;
+                if let Some(pc) = find_party_container(world, &party) {
+                    party_container = pc;
+                } else {
+                    party_container = world.entity().set(Party { id: party }).add(PartyContainer);
+                };
+                player_entity.child_of(party_container);
             }
 
             MessageToEcs::UpdateStatus {
@@ -132,6 +140,7 @@ fn process_messages(world: &World, queries: &CommonQueries, rx_from_ws: &Receive
                 world_position_x,
                 world_position_y,
                 world_position_z,
+                rotation,
             } => {
                 let Some(e) = find_socket(&queries.query_socket, socket_id) else {
                     return;
@@ -146,14 +155,18 @@ fn process_messages(world: &World, queries: &CommonQueries, rx_from_ws: &Receive
                             socket_str = socket_id.as_str(),
                             party.id, request_id, mechanic_id, "Adding Mechanic"
                         );
+                        let transform = convert_to_transform(
+                            world_position_x,
+                            world_position_y,
+                            world_position_z,
+                            rotation,
+                        );
                         mechanics::create_mechanic(
                             world,
                             request_id,
                             mechanic_id,
                             party.id.clone(),
-                            world_position_x,
-                            world_position_y,
-                            world_position_z,
+                            transform,
                         );
                     }
                 });
@@ -184,6 +197,8 @@ fn create_systems(world: &World) {
 }
 
 fn create_observers(world: &World) {
+    mechanics::create_observers(world);
+
     // Send UpdatePartyStatus to all party members when a player joins or leaves
     world
         .observer::<flecs::OnSet, (&Player, &Party)>()

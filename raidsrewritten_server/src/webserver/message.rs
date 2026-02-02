@@ -16,13 +16,13 @@ pub enum Action {
     ClearMechanics = 4,
 
     // To client
-    // Deprecated: 51
+    // Deprecated: 51, 55
     ApplyCondition = 52,
     UpdatePartyStatus = 53,
     PlayStaticVfx = 54,
-    StopStaticVfx = 55,
     PlayActorVfxOnTarget = 56,
     PlayActorVfxOnPosition = 57,
+    StopVfx = 58,
 }
 
 #[serde_with::skip_serializing_none]
@@ -46,12 +46,12 @@ pub struct Message {
     pub update_party_status: Option<UpdatePartyStatusPayload>,
     #[serde(rename = "psv")]
     pub play_static_vfx: Option<PlayStaticVfxPayload>,
-    #[serde(rename = "ssv")]
-    pub stop_static_vfx: Option<StopStaticVfxPayload>,
     #[serde(rename = "pavt")]
     pub play_actor_vfx_on_target: Option<PlayActorVfxOnTargetPayload>,
     #[serde(rename = "pavp")]
     pub play_actor_vfx_on_position: Option<PlayActorVfxOnPositionPayload>,
+    #[serde(rename = "sv")]
+    pub stop_vfx: Option<StopVfxPayload>,
 }
 
 // To server ===============
@@ -91,6 +91,8 @@ pub struct StartMechanicPayload {
     pub world_position_y: Option<f32>,
     #[serde(rename = "z")]
     pub world_position_z: Option<f32>,
+    #[serde(rename = "r")]
+    pub rotation: Option<f32>,
 }
 
 // To client ===============
@@ -118,17 +120,16 @@ pub struct PlayStaticVfxPayload {
     pub id: String,
     #[serde(rename = "v")]
     pub vfx_path: String,
+    #[serde(rename = "o")]
+    pub is_omen: bool,
     #[serde(rename = "x")]
     pub world_position_x: f32,
     #[serde(rename = "y")]
     pub world_position_y: f32,
     #[serde(rename = "z")]
     pub world_position_z: f32,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct StopStaticVfxPayload {
-    pub id: String,
+    #[serde(rename = "r")]
+    pub rotation: f32,
 }
 
 #[derive(Serialize, Deserialize, Default, Debug)]
@@ -151,4 +152,11 @@ pub struct PlayActorVfxOnPositionPayload {
     pub world_position_y: f32,
     #[serde(rename = "z")]
     pub world_position_z: f32,
+    #[serde(rename = "r")]
+    pub rotation: f32,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct StopVfxPayload {
+    pub id: String,
 }

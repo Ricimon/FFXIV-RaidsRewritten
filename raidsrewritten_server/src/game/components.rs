@@ -28,6 +28,9 @@ pub struct Party {
     pub id: String,
 }
 
+#[derive(Component)]
+pub struct PartyContainer;
+
 #[derive(Component, Debug)]
 pub struct Position {
     pub x: f32,
@@ -36,6 +39,16 @@ pub struct Position {
 }
 
 #[derive(Component, Debug)]
+pub struct Rotation {
+    pub value: f32,
+}
+
+#[derive(Component, Debug)]
 pub struct State {
     pub is_alive: bool,
+}
+
+#[derive(Component, Debug)]
+pub struct Vfx {
+    pub id: String,
 }
