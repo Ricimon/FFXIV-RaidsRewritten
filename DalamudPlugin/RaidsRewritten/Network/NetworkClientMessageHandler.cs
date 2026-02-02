@@ -92,7 +92,7 @@ public class NetworkClientMessageHandler(
                 case Message.ApplyConditionPayload.Condition.Stun:
                     commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
                     {
-                        Stun.ApplyToTarget(e, payload.duration, overrideExistingDuration: true);
+                        Stun.ApplyToTarget(e, payload.duration);
                     });
                     break;
             }
