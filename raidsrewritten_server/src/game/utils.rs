@@ -1,6 +1,7 @@
 use crate::{game::components::*, webserver::message::*};
 use flecs_ecs::prelude::*;
 use socketioxide::{SocketIo, socket::Sid};
+use std::collections::HashMap;
 use tracing::info;
 
 pub fn convert_to_transform(
@@ -25,23 +26,21 @@ pub fn convert_to_transform(
     }
 }
 
+pub fn get_entity_view<'a>(entity: &Entity, world: &WorldRef<'a>) -> Option<EntityView<'a>> {
+    let ev = entity.entity_view(world);
+    if ev.is_valid() { Some(ev) } else { None }
+}
+
 pub fn get_target_ids(entity: &EntityView<'_>) -> Vec<u64> {
     let mut targets: Vec<u64> = Vec::new();
     entity.try_get::<&Targets>(|t| {
         for e in &t.player_entities {
-            let ev = e.entity_view(entity.world());
-            if ev.is_valid() {
+            if let Some(ev) = get_entity_view(e, &entity.world()) {
                 ev.try_get::<&Player>(|pl| {
                     targets.push(pl.content_id);
                 });
             }
         }
-    });
-    // To deprecate
-    entity.each_target(Target, |e| {
-        e.try_get::<&Player>(|pl| {
-            targets.push(pl.content_id);
-        });
     });
     targets
 }
@@ -56,6 +55,14 @@ pub fn find_party_container<'a>(world: &World, party: &String) -> Option<EntityV
         .with(&PartyContainer)
         .build()
         .find(|p| p.id == *party)
+}
+
+pub fn add_affect(affects: &mut HashMap<Entity, u8>, entity: &Entity, affect_count: u8) {
+    if let Some(c) = affects.get_mut(entity) {
+        *c += affect_count;
+    } else {
+        affects.insert(*entity, affect_count);
+    }
 }
 
 pub fn send_apply_condition(

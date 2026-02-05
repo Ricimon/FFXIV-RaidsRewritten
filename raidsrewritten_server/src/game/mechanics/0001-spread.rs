@@ -1,11 +1,10 @@
-use std::collections::HashMap;
-
 use crate::{
     game::{components::*, condition::Condition, utils::*},
     webserver::message::{ApplyConditionPayload, PlayActorVfxOnTargetPayload},
 };
 use distances::vectors::euclidean_sq;
 use flecs_ecs::prelude::*;
+use std::collections::HashMap;
 use tracing::info;
 
 // This spread is placed on every player (no doubling-up) and does not go off on dead bodies.
@@ -36,10 +35,10 @@ pub fn create_systems(world: &World) {
             let entity = it.entity(index);
 
             if !entity.has(Targets::id()) {
+                // Assign targets
                 let mut target_players: Vec<Entity> = Vec::new();
                 let mut targets: Vec<u64> = Vec::new();
 
-                // Assign targets
                 if let Some(pc) = find_party_container(&it.world(), &party.id) {
                     pc.each_child(|c| {
                         c.try_get::<&Player>(|p| {
@@ -87,8 +86,7 @@ pub fn create_systems(world: &World) {
                     // Prune valid targets
                     t.player_entities.retain(|e| {
                         let mut valid_target = false;
-                        let ev = e.entity_view(it.world());
-                        if ev.is_valid() {
+                        if let Some(ev) = get_entity_view(e, &it.world()) {
                             ev.try_get::<&State>(|s| valid_target = s.is_alive);
                         }
                         valid_target
@@ -111,11 +109,7 @@ pub fn create_systems(world: &World) {
                                         let distance_sq: f32 = euclidean_sq(&p1, &p2);
 
                                         if distance_sq <= f32::powi(spread.radius, 2) {
-                                            if let Some(affect_count) = affects.get_mut(&*c) {
-                                                *affect_count += 1;
-                                            } else {
-                                                affects.insert(*c, 1);
-                                            }
+                                            add_affect(&mut affects, &c, 1);
                                         }
                                     });
                                 });
@@ -159,11 +153,9 @@ pub fn create_systems(world: &World) {
                 let io = get_socket_io(&it.world());
                 for (e, affect_count) in &a.player_entities {
                     let condition_duration = (affect_count - 1) as f32 * 5.0;
-                    if condition_duration > 0.0 {
-                        let ev = e.entity_view(it.world());
-                        if !ev.is_valid() {
-                            return;
-                        }
+                    if condition_duration > 0.0
+                        && let Some(ev) = get_entity_view(e, &it.world())
+                    {
                         ev.try_get::<&Socket>(|s| {
                             send_apply_condition(
                                 io.clone(),

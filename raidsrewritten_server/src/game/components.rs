@@ -72,12 +72,6 @@ pub struct Affects {
     pub player_entities: HashMap<Entity, u8>,
 }
 
-#[derive(Component)]
-pub struct Target; // Relation
-
-#[derive(Component)]
-pub struct Affect; // Relation
-
 #[derive(Debug)]
 pub struct Transform {
     pub x: f32,

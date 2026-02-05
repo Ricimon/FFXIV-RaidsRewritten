@@ -4,7 +4,10 @@ use crate::{
 };
 use distances::vectors::euclidean_sq;
 use flecs_ecs::prelude::*;
-use std::time::{Duration, Instant};
+use std::{
+    collections::HashMap,
+    time::{Duration, Instant},
+};
 use tracing::info;
 use uuid::Uuid;
 
@@ -118,6 +121,7 @@ pub fn create_systems(world: &World) {
 
                     // Get affected
                     if trap.activated {
+                        let mut affects: HashMap<Entity, u8> = HashMap::new();
                         let io = get_socket_io(&it.world());
                         pc.each_child(|c| {
                             c.try_get::<(&Socket, &Player, &Position)>(|(s, _, pos)| {
@@ -125,7 +129,7 @@ pub fn create_systems(world: &World) {
                                 let distance_sq: f32 = euclidean_sq(&pos1, &pos2);
 
                                 if distance_sq <= f32::powi(trap.effect_radius, 2) {
-                                    entity.add((Affect, c));
+                                    add_affect(&mut affects, &c, 1);
                                 }
 
                                 // Stop trap vfx
@@ -145,6 +149,10 @@ pub fn create_systems(world: &World) {
                                 );
                             });
                         });
+
+                        entity.set(Affects {
+                            player_entities: affects,
+                        });
                     }
                 }
                 return;
@@ -156,19 +164,23 @@ pub fn create_systems(world: &World) {
             }
 
             // Send effects
-            let io = get_socket_io(&it.world());
-            entity.each_target(Affect, |e| {
-                e.try_get::<&Socket>(|s| {
-                    send_apply_condition(
-                        io.clone(),
-                        s.id,
-                        ApplyConditionPayload {
-                            condition: Condition::Stun,
-                            duration: 10.0,
-                            ..Default::default()
-                        },
-                    );
-                });
+            entity.try_get::<&Affects>(|a| {
+                let io = get_socket_io(&it.world());
+                for e in a.player_entities.keys() {
+                    if let Some(ev) = get_entity_view(e, &it.world()) {
+                        ev.try_get::<&Socket>(|s| {
+                            send_apply_condition(
+                                io.clone(),
+                                s.id,
+                                ApplyConditionPayload {
+                                    condition: Condition::Stun,
+                                    duration: 8.0,
+                                    ..Default::default()
+                                },
+                            );
+                        });
+                    }
+                }
             });
 
             info!(
