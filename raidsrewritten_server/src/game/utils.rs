@@ -1,7 +1,4 @@
-use crate::{
-    game::{components::*, mechanics::{Target, Transform}},
-    webserver::message::*,
-};
+use crate::{game::components::*, webserver::message::*};
 use flecs_ecs::prelude::*;
 use socketioxide::{SocketIo, socket::Sid};
 use tracing::info;
@@ -30,6 +27,17 @@ pub fn convert_to_transform(
 
 pub fn get_target_ids(entity: &EntityView<'_>) -> Vec<u64> {
     let mut targets: Vec<u64> = Vec::new();
+    entity.try_get::<&Targets>(|t| {
+        for e in &t.player_entities {
+            let ev = e.entity_view(entity.world());
+            if ev.is_valid() {
+                ev.try_get::<&Player>(|pl| {
+                    targets.push(pl.content_id);
+                });
+            }
+        }
+    });
+    // To deprecate
     entity.each_target(Target, |e| {
         e.try_get::<&Player>(|pl| {
             targets.push(pl.content_id);

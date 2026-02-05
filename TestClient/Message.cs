@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System.Numerics;
+using Newtonsoft.Json;
 
 namespace TestClient;
 
@@ -12,15 +13,16 @@ public struct Message
         UpdatePlayer = 1,
         UpdateStatus = 2,
         StartMechanic = 3,
+        ClearMechanics = 4,
 
         // To client
-        // Deprecated: 51
+        // Deprecated: 51, 55
         ApplyCondition = 52,
         UpdatePartyStatus = 53,
         PlayStaticVfx = 54,
-        StopStaticVfx = 55,
         PlayActorVfxOnTarget = 56,
         PlayActorVfxOnPosition = 57,
+        StopVfx = 58,
     }
 
     [JsonProperty(PropertyName = "a")]
@@ -65,6 +67,14 @@ public struct Message
         public string requestId;
         [JsonProperty(PropertyName = "mi")]
         public uint mechanicId;
+        [JsonProperty(PropertyName = "x")]
+        public float? worldPositionX;
+        [JsonProperty(PropertyName = "y")]
+        public float? worldPositionY;
+        [JsonProperty(PropertyName = "z")]
+        public float? worldPositionZ;
+        [JsonProperty(PropertyName = "r")]
+        public float? rotation;
     }
     [JsonProperty(PropertyName = "sm")]
     public StartMechanicPayload? startMechanic;
@@ -107,25 +117,22 @@ public struct Message
 
     public struct PlayStaticVfxPayload
     {
-        public string id;
+        public BigInteger id;
         [JsonProperty(PropertyName = "v")]
         public string vfxPath;
+        [JsonProperty(PropertyName = "o")]
+        public bool isOmen;
         [JsonProperty(PropertyName = "x")]
         public float worldPositionX;
         [JsonProperty(PropertyName = "y")]
         public float worldPositionY;
         [JsonProperty(PropertyName = "z")]
         public float worldPositionZ;
+        [JsonProperty(PropertyName = "r")]
+        public float rotation;
     }
     [JsonProperty(PropertyName = "psv")]
     public PlayStaticVfxPayload? playStaticVfx;
-
-    public struct StopStaticVfxPayload
-    {
-        public string id;
-    }
-    [JsonProperty(PropertyName = "ssv")]
-    public StopStaticVfxPayload? stopStaticVfx;
 
     public struct PlayActorVfxOnTargetPayload
     {
@@ -149,7 +156,16 @@ public struct Message
         public float worldPositionY;
         [JsonProperty(PropertyName = "z")]
         public float worldPositionZ;
+        [JsonProperty(PropertyName = "r")]
+        public float rotation;
     }
     [JsonProperty(PropertyName = "pavp")]
     public PlayActorVfxOnPositionPayload? playActorVfxOnPosition;
+
+    public struct StopVfxPayload
+    {
+        public BigInteger id;
+    }
+    [JsonProperty(PropertyName = "sv")]
+    public StopVfxPayload? stopVfx;
 }

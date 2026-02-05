@@ -1,4 +1,4 @@
-use crate::game::{components::*, mechanics::Mechanic};
+use crate::game::components::*;
 use crate::game::{mechanics, utils::*};
 use crate::system_messages::MessageToEcs;
 use crate::webserver::message::{Action, Message, UpdatePartyStatusPayload};

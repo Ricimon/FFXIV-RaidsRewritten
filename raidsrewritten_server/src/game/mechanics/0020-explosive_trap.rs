@@ -1,10 +1,5 @@
 use crate::{
-    game::{
-        components::*,
-        condition::Condition,
-        mechanics::{Affect, Mechanic},
-        utils::*,
-    },
+    game::{components::*, condition::Condition, utils::*},
     webserver::message::*,
 };
 use distances::vectors::euclidean_sq;

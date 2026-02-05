@@ -12,26 +12,6 @@ use crate::{
 use flecs_ecs::prelude::*;
 use tracing::info;
 
-#[derive(Component, Debug)]
-pub struct Mechanic {
-    pub request_id: String,
-    pub mechanic_id: u32,
-}
-
-#[derive(Component)]
-pub struct Target;
-
-#[derive(Component)]
-pub struct Affect;
-
-#[derive(Debug)]
-pub struct Transform {
-    pub x: f32,
-    pub y: f32,
-    pub z: f32,
-    pub rotation: f32,
-}
-
 pub fn create_mechanic(
     world: &World,
     request_id: String,
