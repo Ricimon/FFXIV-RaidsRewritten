@@ -5,6 +5,7 @@
 using System;
 using System.Runtime.InteropServices;
 using RaidsRewritten.Log;
+using RaidsRewritten.Memory;
 using RaidsRewritten.Spawn;
 
 namespace RaidsRewritten.Interop;
@@ -41,17 +42,23 @@ public unsafe sealed partial class ResourceLoader : IDisposable
     public const string LoadScdLocalSig = "48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 30 8B 79 ?? 48 8B DA 8B D7";
     public const string SoundOnLoadSig = "40 56 57 41 54 48 81 EC 90 00 00 00 80 3A 0B 45 0F B6 E0 48 8B F2";
 
+    public const string LoadIconByIdSig = "E8 ?? ?? ?? ?? 41 8D 45 3D";
+    public const string AtkComponentIconTextReceiveEventSig = "44 0F B7 C2 4D 8B D1";
+
     private DalamudServices dalamud;
     private readonly Lazy<VfxSpawn> vfxSpawn;
+    private readonly Lazy<StatusCommonProcessor> statusCommonProcessor;
     private readonly ILogger logger;
 
     public ResourceLoader(
         DalamudServices dalamud,
         Lazy<VfxSpawn> vfxSpawn,
+        Lazy<StatusCommonProcessor> statusCommonProcessor,
         ILogger logger)
     {
         this.dalamud = dalamud;
         this.vfxSpawn = vfxSpawn;
+        this.statusCommonProcessor = statusCommonProcessor;
         this.logger = logger;
 
         var sigScanner = dalamud.SigScanner;
@@ -129,6 +136,14 @@ public unsafe sealed partial class ResourceLoader : IDisposable
         //ApricotListenerSoundPlayHook.Enable();
         //ApricotListenerSoundPlayCallerHook.Enable();
         //PlaySoundHook.Enable();
+
+        // Textures
+
+        var loadIconByIdAddress = sigScanner.ScanText(LoadIconByIdSig);
+        LoadIconByID = Marshal.GetDelegateForFunctionPointer<LoadIconByIDDelegate>(loadIconByIdAddress);
+        AtkComponentIconTextReceiveEventHook = hooks.HookFromSignature<AtkComponentIconText_ReceiveEvent>(AtkComponentIconTextReceiveEventSig, AtkComponentIconText_ReceiveEventDetour);
+
+        AtkComponentIconTextReceiveEventHook.Enable();
     }
 
     public void Dispose()
@@ -154,5 +169,7 @@ public unsafe sealed partial class ResourceLoader : IDisposable
         //ApricotListenerSoundPlayHook.Dispose();
         //ApricotListenerSoundPlayCallerHook.Dispose();
         //PlaySoundHook.Dispose();
+
+        AtkComponentIconTextReceiveEventHook.Dispose();
     }
 }

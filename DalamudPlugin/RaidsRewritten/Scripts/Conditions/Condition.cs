@@ -13,6 +13,11 @@ public class Condition(ILogger logger) : ISystem
     public struct Hidden;
     public struct IgnoreOnDeath;
 
+    public record struct Status(int Icon, string Title, string Description, int TooltipShown = -1);
+    public struct StatusEnhancement;
+    public struct StatusEnfeeblement;
+    public struct StatusOther;
+
     /// <summary>
     /// This method is used to refresh the duration of an existing condition with the same ID.
     /// An ID of 0 is treated as an unrefreshable condition.

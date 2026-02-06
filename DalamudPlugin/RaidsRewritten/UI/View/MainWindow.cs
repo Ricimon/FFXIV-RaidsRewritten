@@ -47,6 +47,7 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
     private readonly VfxSpawn vfxSpawn;
     private readonly NetworkClient networkClient;
     private readonly NetworkClientUi networkClientUi;
+    private readonly StatusManager statusManager;
     private readonly Random random;
     private readonly ILogger logger;
 
@@ -67,6 +68,7 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
         VfxSpawn vfxSpawn,
         NetworkClient networkClient,
         NetworkClientUi networkClientUi,
+        StatusManager statusManager,
         Random random,
         ILogger logger) :
         base(PluginInitializer.Name)
@@ -84,6 +86,7 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
         this.vfxSpawn = vfxSpawn;
         this.networkClient = networkClient;
         this.networkClientUi = networkClientUi;
+        this.statusManager = statusManager;
         this.random = random;
         this.logger = logger;
 

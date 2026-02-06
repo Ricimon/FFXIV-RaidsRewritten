@@ -33,6 +33,8 @@ public class PluginModule : NinjectModule
         Bind<ActorControlProcessor>().ToSelf().InSingletonScope();
         Bind<ResourceLoader>().ToSelf().InSingletonScope();
         Bind<VfxSpawn>().ToSelf().InSingletonScope();
+        Bind<StatusCommonProcessor>().ToSelf().InSingletonScope();
+        Bind<StatusCustomProcessor>().ToSelf().InSingletonScope();
 
         // Plugin classes
         Bind<Plugin>().ToSelf().InSingletonScope();
@@ -53,6 +55,7 @@ public class PluginModule : NinjectModule
         Bind<PlayerCameraOverride>().ToSelf().WhenInjectedInto<PlayerManager>().InSingletonScope();
         Bind<ActionManagerEx>().ToSelf().WhenInjectedInto<PlayerManager>().InSingletonScope();
         Bind<HotbarManager>().ToSelf().WhenInjectedInto<PlayerManager>().InSingletonScope();
+        Bind<StatusManager>().ToSelf().InSingletonScope();
 
         // Views and Presenters
         Bind<WindowSystem>().ToMethod(_ => new(PluginInitializer.Name)).InSingletonScope();
