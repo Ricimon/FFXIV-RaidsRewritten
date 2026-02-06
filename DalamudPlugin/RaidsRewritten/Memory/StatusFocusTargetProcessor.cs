@@ -46,6 +46,15 @@ public unsafe class StatusFocusTargetProcessor
         this.dalamudServices.AddonLifecycle.UnregisterListener(AddonEvent.PostRequestedUpdate, "_FocusTargetInfo", OnFocusTargetInfoRequestedUpdate);
     }
 
+    public void HideAll()
+    {
+        var addon = statusCommonProcessor.GetAddon("_FocusTargetInfo");
+        if (StatusCommonProcessor.IsAddonReady(addon))
+        {
+            UpdateAddon(addon, true);
+        }
+    }
+
     // Func helper to get around 7.4's internal AddonArgs while removing ArtificialAddonArgs usage 
     private void OnFocusTargetInfoRequestedUpdate(AddonEvent t, AddonArgs args) => AddonRequestedUpdate((AtkUnitBase*)args.Addon.Address);
 
@@ -81,10 +90,12 @@ public unsafe class StatusFocusTargetProcessor
                 var c = addon->UldManager.NodeList[i];
                 if (c->IsVisible()) c->NodeFlags ^= NodeFlags.Visible;
             }
+
+            if (hideAll) { return; }
             commonQueries.AllPlayersQuery.Each((Entity e, ref Player.Component player) =>
             {
                 if (player.PlayerCharacter == null || player.PlayerCharacter.Address != pc.Address) { return; }
-                var statusQuery = StatusCommonProcessor.GetAllStatusesOfEntity(ecsContainer.World, e);
+                var statusQuery = StatusCommonProcessor.GetAllStatusesOfEntity(e);
                 statusQuery.Each((ref condition, ref status) =>
                 {
                     if (baseCnt < 4) { return; }

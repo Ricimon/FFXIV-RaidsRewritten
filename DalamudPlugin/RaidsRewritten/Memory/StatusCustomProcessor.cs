@@ -9,6 +9,7 @@ using RaidsRewritten.Scripts.Conditions;
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
+using static RaidsRewritten.Game.Player;
 
 namespace RaidsRewritten.Memory;
 
@@ -78,6 +79,28 @@ public unsafe class StatusCustomProcessor : IDisposable
         dalamudServices.AddonLifecycle.UnregisterListener(AddonEvent.PostRequestedUpdate, "_StatusCustom1", OnStatusCustom1RequestedUpdate);
         dalamudServices.AddonLifecycle.UnregisterListener(AddonEvent.PostRequestedUpdate, "_StatusCustom2", OnStatusCustom2RequestedUpdate);
         Marshal.FreeHGlobal(TooltipMemory);
+    }
+    public void HideAll()
+    {
+        if (!StatusCommonProcessor.LocalPlayerAvailable()) return;
+
+        var addon0 = statusCommonProcessor.GetAddon("_StatusCustom0");
+        if (StatusCommonProcessor.IsAddonReady(addon0))
+        {
+            AddonStatusCustomPrerequisite(addon0, NumStatuses0);
+        }
+
+        var addon1 = statusCommonProcessor.GetAddon("_StatusCustom1");
+        if (StatusCommonProcessor.IsAddonReady(addon1))
+        {
+            AddonStatusCustomPrerequisite(addon0, NumStatuses0);
+        }
+
+        var addon2 = statusCommonProcessor.GetAddon("_StatusCustom2");
+        if (StatusCommonProcessor.IsAddonReady(addon2))
+        {
+            AddonStatusCustomPrerequisite(addon0, NumStatuses0);
+        }
     }
 
     private void OnStatusCustom0RequestedUpdate(AddonEvent t, AddonArgs args) => Custom0RequestedUpdate((AtkUnitBase*)args.Addon.Address);

@@ -88,11 +88,14 @@ public unsafe class StatusTargetInfoBuffDebuffProcessor
                     var c = addon->UldManager.SearchNodeById((uint)i);
                     if (c->IsVisible()) c->NodeFlags ^= NodeFlags.Visible;
                 }
+                
+                if (hideAll) { return; }
+
                 commonQueries.AllPlayersQuery.Each((Entity e, ref Player.Component player) =>
                 {
                     if (player.PlayerCharacter != null && player.PlayerCharacter.Address == target.Address)
                     {
-                        var statusQuery = StatusCommonProcessor.GetAllStatusesOfEntity(ecsContainer.World, e);
+                        var statusQuery = StatusCommonProcessor.GetAllStatusesOfEntity(e);
                         statusQuery.Each((ref condition, ref status) =>
                         {
                             if (condition.TimeRemaining > 0)

@@ -141,6 +141,6 @@ public unsafe class StatusCommonProcessor : IDisposable
 
     public static unsafe bool LocalPlayerAvailable() => Control.Instance()->LocalPlayer is not null;
     public static unsafe nint LocalPlayer() => (nint)Control.Instance()->LocalPlayer;
-    public static Query<Condition.Component, Condition.Status> GetAllStatusesOfEntity(World world, Entity e) => world.QueryBuilder<Condition.Component, Condition.Status>().With(flecs.EcsChildOf, e).Build();
+    public static Query<Condition.Component, Condition.Status> GetAllStatusesOfEntity(Entity e) => e.CsWorld().QueryBuilder<Condition.Component, Condition.Status>().With(flecs.EcsChildOf, e).Build();
     public AtkUnitBase* GetAddon(string addonName) => (AtkUnitBase*)this.dalamudServices.GameGui.GetAddonByName(addonName).Address;
 }

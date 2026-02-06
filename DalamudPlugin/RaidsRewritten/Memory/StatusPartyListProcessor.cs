@@ -46,6 +46,15 @@ public unsafe class StatusPartyListProcessor
         }
     }
 
+    public void HideAll()
+    {
+        var addon = statusCommonProcessor.GetAddon("_PartyList");
+        if (StatusCommonProcessor.IsAddonReady(addon))
+        {
+            UpdatePartyList(addon, true);
+        }
+    }
+
     public void Dispose()
     {
         this.dalamudServices.AddonLifecycle.UnregisterListener(AddonEvent.PostUpdate, "_PartyList", OnPartyListUpdate);
@@ -89,7 +98,7 @@ public unsafe class StatusPartyListProcessor
     }
 
     private record struct UpdatePartyListHelper(AtkResNode*[] IconArray, int CurIndex);
-    public void UpdatePartyList(AtkUnitBase* addon)
+    public void UpdatePartyList(AtkUnitBase* addon, bool hideAll = false)
     {
         if (!StatusCommonProcessor.LocalPlayerAvailable()) { return; }
         if (!StatusCommonProcessor.IsAddonReady(addon)) { return; }
@@ -115,13 +124,13 @@ public unsafe class StatusPartyListProcessor
             }
             partyMemberNodeIndex--;
         }
-
+        if (hideAll) { return; }
         commonQueries.AllPlayersQuery.Each((Entity e, ref Player.Component p) =>
         {
             if (p.PlayerCharacter is null) { return; }
             if (!pPlayerDict.TryGetValue(p.PlayerCharacter.Address, out var player)) { return; }
 
-            var statusQuery = StatusCommonProcessor.GetAllStatusesOfEntity(ecsContainer.World, e);
+            var statusQuery = StatusCommonProcessor.GetAllStatusesOfEntity(e);
             statusQuery.Each((ref condition, ref status) =>
             {
                 if (player.CurIndex >= player.IconArray.Length) { return; }
