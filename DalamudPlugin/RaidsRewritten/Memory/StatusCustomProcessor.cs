@@ -9,7 +9,6 @@ using RaidsRewritten.Scripts.Conditions;
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
-using static RaidsRewritten.Game.Player;
 
 namespace RaidsRewritten.Memory;
 
@@ -40,7 +39,6 @@ public unsafe class StatusCustomProcessor : IDisposable
 
         TooltipMemory = Marshal.AllocHGlobal(2 * 1024);
 
-        // TODO: account for case where user has combined status UI (no separate buffs/debuffs/others)
         dalamudServices.AddonLifecycle.RegisterListener(AddonEvent.PostUpdate, "_StatusCustom0", OnStatusCustom0Update);
         dalamudServices.AddonLifecycle.RegisterListener(AddonEvent.PostRequestedUpdate, "_StatusCustom0", OnStatusCustom0RequestedUpdate);
         dalamudServices.AddonLifecycle.RegisterListener(AddonEvent.PostUpdate, "_StatusCustom1", OnStatusCustom1Update);
@@ -212,7 +210,6 @@ public unsafe class StatusCustomProcessor : IDisposable
 
     private unsafe void SetIcon(AtkUnitBase* addon, int index, ref Condition.Status status, ref Condition.Component condition)
     {
-        // icon
         var container = addon->UldManager.NodeList[index];
         statusCommonProcessor.SetIcon(addon, ref status, ref condition, container);
     }
