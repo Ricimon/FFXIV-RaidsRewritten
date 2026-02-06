@@ -9,10 +9,12 @@ public class StatusManager(
         StatusCommonProcessor statusCommonProcessor,
         StatusCustomProcessor statusCustomProcessor,
         StatusPartyListProcessor statusPartyListProcessor,
-        StatusTargetInfoBuffDebuffProcessor statusTargetInfoBuffDebuffProcessor)
+        StatusTargetInfoBuffDebuffProcessor statusTargetInfoBuffDebuffProcessor,
+        StatusFocusTargetProcessor statusFocusTargetProcessor)
 {
     private readonly StatusCommonProcessor statusCommonProcessor = statusCommonProcessor;
     private readonly StatusCustomProcessor statusCustomProcessor = statusCustomProcessor;
     private readonly StatusPartyListProcessor statusPartyListProcessor = statusPartyListProcessor;
     private readonly StatusTargetInfoBuffDebuffProcessor statusTargetInfoBuffDebuffProcessor = statusTargetInfoBuffDebuffProcessor;
+    private readonly StatusFocusTargetProcessor statusFocusTargetProcessor = statusFocusTargetProcessor;
 }
