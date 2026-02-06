@@ -27,6 +27,7 @@ public unsafe class StatusCommonProcessor : IDisposable
     private readonly CommonQueries commonQueries;
 
     private nint TooltipMemory;
+    private int ActiveTooltip = -1;
 
     public StatusCommonProcessor(Configuration configuration, DalamudServices dalamudServices, ResourceLoader resourceLoader, CommonQueries commonQueries)
     {
@@ -41,6 +42,15 @@ public unsafe class StatusCommonProcessor : IDisposable
     public void Dispose()
     {
         Marshal.FreeHGlobal(TooltipMemory);
+    }
+
+    public void DisableActiveTooltip()
+    {
+        if (ActiveTooltip != -1)
+        {
+            AtkStage.Instance()->TooltipManager.HideTooltip((ushort)ActiveTooltip);
+            ActiveTooltip = -1;
+        }
     }
 
     public void SetIcon(AtkUnitBase* addon, ref Condition.Status status, ref Condition.Component condition, AtkResNode* container)
@@ -83,6 +93,7 @@ public unsafe class StatusCommonProcessor : IDisposable
                 status.TooltipShown = -1;
             });
             status.TooltipShown = addon->Id;
+            ActiveTooltip = addon->Id;
             AtkStage.Instance()->TooltipManager.HideTooltip(addon->Id);
             var str = status.Title;
             if (status.Description != "")
