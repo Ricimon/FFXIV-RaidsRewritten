@@ -161,6 +161,7 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
                     this.configuration.EverythingDisabled = true;
                     this.configuration.Save();
                     // Delete everything
+                    this.statusManager.HideAll();
                     this.entityManager.ClearAllManagedEntities();
                     this.World.DeleteWith<Condition.Component>();
                     this.World.DeleteWith<DelayedAction.Component>();
@@ -290,6 +291,17 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
             configuration.Save();
         }
 
+        // TODO: add check and disclaimer for moodles due to incompatibility
+        var disableCustomStatuses = this.configuration.DisableCustomStatuses;
+        if (ImGui.Checkbox("Disable custom statuses on in-game UI", ref disableCustomStatuses))
+        {
+            if (disableCustomStatuses)
+            {
+                statusManager.HideAll();
+            }
+            this.configuration.DisableCustomStatuses = disableCustomStatuses;
+            this.configuration.Save();
+        }
         var encounterText = new StringBuilder("Active Encounter: ");
         if (encounterManager.ActiveEncounter == null)
         {

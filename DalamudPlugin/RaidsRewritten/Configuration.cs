@@ -29,6 +29,8 @@ namespace RaidsRewritten
 
         public int EffectsRendererPositionX { get; set; } = 0;
         public int EffectsRendererPositionY { get; set; } = 0;
+        
+        public bool DisableCustomStatuses { get; set; } = false;
 
         public int MinimumVisibleLogLevel { get; set; } = LogLevel.Info.Ordinal;
 

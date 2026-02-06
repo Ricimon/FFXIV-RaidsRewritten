@@ -12,14 +12,16 @@ namespace RaidsRewritten.Memory;
 
 public unsafe class StatusTargetInfoBuffDebuffProcessor
 {
+    private readonly Configuration configuration;
     private readonly DalamudServices dalamudServices;
     private readonly StatusCommonProcessor statusCommonProcessor;
     private readonly EcsContainer ecsContainer;
     private readonly CommonQueries commonQueries;
 
     public int NumStatuses = 0;
-    public StatusTargetInfoBuffDebuffProcessor(DalamudServices dalamudServices, StatusCommonProcessor statusCommonProcessor, EcsContainer ecsContainer, CommonQueries commonQueries)
+    public StatusTargetInfoBuffDebuffProcessor(Configuration configuration, DalamudServices dalamudServices, StatusCommonProcessor statusCommonProcessor, EcsContainer ecsContainer, CommonQueries commonQueries)
     {
+        this.configuration = configuration;
         this.dalamudServices = dalamudServices;
         this.statusCommonProcessor = statusCommonProcessor;
         this.ecsContainer = ecsContainer;
@@ -77,6 +79,7 @@ public unsafe class StatusTargetInfoBuffDebuffProcessor
     // Didn't really know how to transfer to get the DalamudStatusList from here, so had to use IPlayerCharacter.
     public unsafe void UpdateAddon(AtkUnitBase* addon, bool hideAll = false)
     {
+        if (configuration.DisableCustomStatuses) { return; }
         var target = this.dalamudServices.TargetManager.SoftTarget! ?? this.dalamudServices.TargetManager.Target!;
         if (target is IPlayerCharacter pc)
         {

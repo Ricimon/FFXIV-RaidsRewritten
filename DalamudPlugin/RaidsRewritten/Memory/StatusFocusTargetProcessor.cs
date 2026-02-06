@@ -15,6 +15,7 @@ namespace RaidsRewritten.Memory;
 
 public unsafe class StatusFocusTargetProcessor
 {
+    private readonly Configuration configuration;
     private readonly DalamudServices dalamudServices;
     private readonly StatusCommonProcessor statusCommonProcessor;
     private readonly EcsContainer ecsContainer;
@@ -23,8 +24,9 @@ public unsafe class StatusFocusTargetProcessor
 
     private int NumStatuses = 0;
 
-    public StatusFocusTargetProcessor(DalamudServices dalamudServices, StatusCommonProcessor statusCommonProcessor, EcsContainer ecsContainer, CommonQueries commonQueries, ILogger logger)
+    public StatusFocusTargetProcessor(Configuration configuration, DalamudServices dalamudServices, StatusCommonProcessor statusCommonProcessor, EcsContainer ecsContainer, CommonQueries commonQueries, ILogger logger)
     {
+        this.configuration = configuration;
         this.dalamudServices = dalamudServices;
         this.statusCommonProcessor = statusCommonProcessor;
         this.ecsContainer = ecsContainer;
@@ -82,6 +84,7 @@ public unsafe class StatusFocusTargetProcessor
 
     public void UpdateAddon(AtkUnitBase* addon, bool hideAll = false)
     {
+        if (configuration.DisableCustomStatuses) { return; }
         if (StatusCommonProcessor.IsAddonReady(addon) && dalamudServices.TargetManager.FocusTarget is IPlayerCharacter pc)
         {
             int baseCnt = 8 - NumStatuses;

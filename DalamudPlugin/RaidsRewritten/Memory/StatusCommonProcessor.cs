@@ -21,14 +21,16 @@ public unsafe class StatusCommonProcessor : IDisposable
 {
     public nint HoveringOver = 0;
 
+    private readonly Configuration configuration;
     private readonly DalamudServices dalamudServices;
     private readonly ResourceLoader resourceLoader;
     private readonly CommonQueries commonQueries;
 
     private nint TooltipMemory;
 
-    public StatusCommonProcessor(DalamudServices dalamudServices, ResourceLoader resourceLoader, CommonQueries commonQueries)
+    public StatusCommonProcessor(Configuration configuration, DalamudServices dalamudServices, ResourceLoader resourceLoader, CommonQueries commonQueries)
     {
+        this.configuration = configuration;
         this.dalamudServices = dalamudServices;
         this.resourceLoader = resourceLoader;
         this.commonQueries = commonQueries;
@@ -43,6 +45,7 @@ public unsafe class StatusCommonProcessor : IDisposable
 
     public void SetIcon(AtkUnitBase* addon, ref Condition.Status status, ref Condition.Component condition, AtkResNode* container)
     {
+        if (configuration.DisableCustomStatuses) { return; }
         if (!container->IsVisible())
         {
             container->NodeFlags ^= NodeFlags.Visible;

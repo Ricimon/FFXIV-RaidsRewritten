@@ -18,6 +18,7 @@ namespace RaidsRewritten.Memory;
 
 public unsafe class StatusPartyListProcessor
 {
+    private readonly Configuration configuration;
     private readonly DalamudServices dalamudServices;
     private readonly StatusCommonProcessor statusCommonProcessor;
     private readonly EcsContainer ecsContainer;
@@ -25,8 +26,9 @@ public unsafe class StatusPartyListProcessor
     private readonly ILogger logger;
 
     private int[] NumStatuses = [0, 0, 0, 0, 0, 0, 0, 0];
-    public StatusPartyListProcessor(DalamudServices dalamudServices, StatusCommonProcessor statusCommonProcessor, EcsContainer ecsContainer, CommonQueries commonQueries, ILogger logger)
+    public StatusPartyListProcessor(Configuration configuration, DalamudServices dalamudServices, StatusCommonProcessor statusCommonProcessor, EcsContainer ecsContainer, CommonQueries commonQueries, ILogger logger)
     {
+        this.configuration = configuration;
         this.dalamudServices = dalamudServices;
         this.statusCommonProcessor = statusCommonProcessor;
         this.ecsContainer = ecsContainer;
@@ -100,6 +102,7 @@ public unsafe class StatusPartyListProcessor
     private record struct UpdatePartyListHelper(AtkResNode*[] IconArray, int CurIndex);
     public void UpdatePartyList(AtkUnitBase* addon, bool hideAll = false)
     {
+        if (configuration.DisableCustomStatuses) { return; }
         if (!StatusCommonProcessor.LocalPlayerAvailable()) { return; }
         if (!StatusCommonProcessor.IsAddonReady(addon)) { return; }
 

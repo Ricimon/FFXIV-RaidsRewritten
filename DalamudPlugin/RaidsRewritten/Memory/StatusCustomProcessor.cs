@@ -15,6 +15,7 @@ namespace RaidsRewritten.Memory;
 
 public unsafe class StatusCustomProcessor : IDisposable
 {
+    private readonly Configuration configuration;
     private readonly DalamudServices dalamudServices;
     private readonly EcsContainer ecsContainer;
     private readonly CommonQueries commonQueries;
@@ -28,8 +29,9 @@ public unsafe class StatusCustomProcessor : IDisposable
     public nint HoveringOver = 0;
     private readonly nint TooltipMemory;
 
-    public StatusCustomProcessor(DalamudServices dalamudServices, EcsContainer ecsContainer, CommonQueries commonQueries, StatusCommonProcessor statusCommonProcessor, ILogger logger)
+    public StatusCustomProcessor(Configuration configuration, DalamudServices dalamudServices, EcsContainer ecsContainer, CommonQueries commonQueries, StatusCommonProcessor statusCommonProcessor, ILogger logger)
     {
+        this.configuration = configuration;
         this.dalamudServices = dalamudServices;
         this.ecsContainer = ecsContainer;
         this.commonQueries = commonQueries;
@@ -93,13 +95,13 @@ public unsafe class StatusCustomProcessor : IDisposable
         var addon1 = statusCommonProcessor.GetAddon("_StatusCustom1");
         if (StatusCommonProcessor.IsAddonReady(addon1))
         {
-            AddonStatusCustomPrerequisite(addon0, NumStatuses0);
+            AddonStatusCustomPrerequisite(addon1, NumStatuses1);
         }
 
         var addon2 = statusCommonProcessor.GetAddon("_StatusCustom2");
         if (StatusCommonProcessor.IsAddonReady(addon2))
         {
-            AddonStatusCustomPrerequisite(addon0, NumStatuses0);
+            AddonStatusCustomPrerequisite(addon2, NumStatuses2);
         }
     }
 
@@ -128,7 +130,8 @@ public unsafe class StatusCustomProcessor : IDisposable
     // others
     private void OnStatusCustom2Update(AddonEvent type, AddonArgs args)
     {
-        if (!StatusCommonProcessor.LocalPlayerAvailable()) return;
+        if (configuration.DisableCustomStatuses) { return; }
+        if (!StatusCommonProcessor.LocalPlayerAvailable()) { return; }
         //PluginLog.Verbose($"Post1 update {args.Addon:X16}");
         var addon = (AtkUnitBase*)args.Addon.Address;
         int baseCnt = AddonStatusCustomPrerequisite(addon, NumStatuses2);
@@ -143,7 +146,8 @@ public unsafe class StatusCustomProcessor : IDisposable
     // enfeeblements
     private void OnStatusCustom1Update(AddonEvent type, AddonArgs args)
     {
-        if (!StatusCommonProcessor.LocalPlayerAvailable()) return;
+        if (configuration.DisableCustomStatuses) { return; }
+        if (!StatusCommonProcessor.LocalPlayerAvailable()) { return; }
         //PluginLog.Verbose($"Post1 update {args.Addon:X16}");
         var addon = (AtkUnitBase*)args.Addon.Address;
         int baseCnt = AddonStatusCustomPrerequisite(addon, NumStatuses1);
@@ -158,7 +162,8 @@ public unsafe class StatusCustomProcessor : IDisposable
     // enhancements
     private void OnStatusCustom0Update(AddonEvent type, AddonArgs args)
     {
-        if (!StatusCommonProcessor.LocalPlayerAvailable()) return;
+        if (configuration.DisableCustomStatuses) { return; }
+        if (!StatusCommonProcessor.LocalPlayerAvailable()) { return; }
         //PluginLog.Verbose($"Post1 update {args.Addon:X16}");
         var addon = (AtkUnitBase*)args.Addon.Address;
         int baseCnt = AddonStatusCustomPrerequisite(addon, NumStatuses0);
@@ -192,16 +197,15 @@ public unsafe class StatusCustomProcessor : IDisposable
 
     private void AddonRequestedUpdate(AtkUnitBase* addon, ref int StatusCnt)
     {
-        if (StatusCommonProcessor.IsAddonReady(addon))
+        if (configuration.DisableCustomStatuses) { return; }
+        if (!StatusCommonProcessor.IsAddonReady(addon)) { return; }
+        StatusCnt = 0;
+        for (var i = 24; i >= 5; i--)
         {
-            StatusCnt = 0;
-            for (var i = 24; i >= 5; i--)
+            var c = addon->UldManager.NodeList[i];
+            if (c->IsVisible())
             {
-                var c = addon->UldManager.NodeList[i];
-                if (c->IsVisible())
-                {
-                    StatusCnt++;
-                }
+                StatusCnt++;
             }
         }
     }

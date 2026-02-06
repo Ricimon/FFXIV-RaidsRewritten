@@ -6,12 +6,15 @@ using System.Text;
 namespace RaidsRewritten;
 
 public class StatusManager(
+        Configuration configuration,
         StatusCommonProcessor statusCommonProcessor,
         StatusCustomProcessor statusCustomProcessor,
         StatusPartyListProcessor statusPartyListProcessor,
         StatusTargetInfoBuffDebuffProcessor statusTargetInfoBuffDebuffProcessor,
         StatusFocusTargetProcessor statusFocusTargetProcessor) : IDisposable
 {
+    private readonly Configuration configuration = configuration;
+
     private readonly StatusCommonProcessor statusCommonProcessor = statusCommonProcessor;
     private readonly StatusCustomProcessor statusCustomProcessor = statusCustomProcessor;
     private readonly StatusPartyListProcessor statusPartyListProcessor = statusPartyListProcessor;
@@ -30,5 +33,4 @@ public class StatusManager(
         statusTargetInfoBuffDebuffProcessor.HideAll();
         statusFocusTargetProcessor.HideAll();
     }
-
 }
