@@ -37,6 +37,7 @@ public class PluginModule : NinjectModule
         Bind<StatusProcessor>().ToSelf().InSingletonScope();
         Bind<StatusCustomProcessor>().ToSelf().InSingletonScope();
         Bind<StatusPartyListProcessor>().ToSelf().InSingletonScope();
+        Bind<StatusTargetInfoProcessor>().ToSelf().InSingletonScope();
         Bind<StatusTargetInfoBuffDebuffProcessor>().ToSelf().InSingletonScope();
         Bind<StatusFocusTargetProcessor>().ToSelf().InSingletonScope();
 

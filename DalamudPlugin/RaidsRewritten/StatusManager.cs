@@ -11,6 +11,7 @@ public class StatusManager(
         StatusProcessor statusProcessor,
         StatusCustomProcessor statusCustomProcessor,
         StatusPartyListProcessor statusPartyListProcessor,
+        StatusTargetInfoProcessor statusTargetInfoProcessor,
         StatusTargetInfoBuffDebuffProcessor statusTargetInfoBuffDebuffProcessor,
         StatusFocusTargetProcessor statusFocusTargetProcessor) : IDisposable
 {
@@ -20,6 +21,7 @@ public class StatusManager(
     private readonly StatusProcessor statusProcessor = statusProcessor;
     private readonly StatusCustomProcessor statusCustomProcessor = statusCustomProcessor;
     private readonly StatusPartyListProcessor statusPartyListProcessor = statusPartyListProcessor;
+    private readonly StatusTargetInfoProcessor statusTargetInfoProcessor = statusTargetInfoProcessor;
     private readonly StatusTargetInfoBuffDebuffProcessor statusTargetInfoBuffDebuffProcessor = statusTargetInfoBuffDebuffProcessor;
     private readonly StatusFocusTargetProcessor statusFocusTargetProcessor = statusFocusTargetProcessor;
 
@@ -33,6 +35,7 @@ public class StatusManager(
         statusProcessor.HideAll();
         statusCustomProcessor.HideAll();
         statusPartyListProcessor.HideAll();
+        statusTargetInfoProcessor.HideAll();
         statusTargetInfoBuffDebuffProcessor.HideAll();
         statusFocusTargetProcessor.HideAll();
     }
