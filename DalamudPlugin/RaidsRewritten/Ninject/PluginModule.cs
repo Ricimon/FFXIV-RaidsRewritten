@@ -35,6 +35,7 @@ public class PluginModule : NinjectModule
         Bind<VfxSpawn>().ToSelf().InSingletonScope();
         Bind<StatusCommonProcessor>().ToSelf().InSingletonScope();
         Bind<StatusCustomProcessor>().ToSelf().InSingletonScope();
+        Bind<StatusPartyListProcessor>().ToSelf().InSingletonScope();
 
         // Plugin classes
         Bind<Plugin>().ToSelf().InSingletonScope();

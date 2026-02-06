@@ -139,4 +139,5 @@ public class StatusCommonProcessor : IDisposable
     }
 
     public static unsafe bool LocalPlayerAvailable() => Control.Instance()->LocalPlayer is not null;
+    public static unsafe nint LocalPlayer() => (nint)Control.Instance()->LocalPlayer;
 }
