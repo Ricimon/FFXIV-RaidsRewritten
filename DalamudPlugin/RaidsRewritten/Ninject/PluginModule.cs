@@ -36,6 +36,7 @@ public class PluginModule : NinjectModule
         Bind<StatusCommonProcessor>().ToSelf().InSingletonScope();
         Bind<StatusCustomProcessor>().ToSelf().InSingletonScope();
         Bind<StatusPartyListProcessor>().ToSelf().InSingletonScope();
+        Bind<StatusTargetInfoBuffDebuffProcessor>().ToSelf().InSingletonScope();
 
         // Plugin classes
         Bind<Plugin>().ToSelf().InSingletonScope();
@@ -50,13 +51,14 @@ public class PluginModule : NinjectModule
         Bind<NetworkClient>().ToSelf().InSingletonScope();
         Bind<NetworkClientMessageHandler>().ToSelf().WhenInjectedInto<NetworkClient>().InSingletonScope();
         Bind<NetworkClientUi>().ToSelf();
+        Bind<StatusManager>().ToSelf().InSingletonScope();
+
         // Native control overrides
         Bind<PlayerManager>().ToSelf().InSingletonScope();
         Bind<PlayerMovementOverride>().ToSelf().WhenInjectedInto<PlayerManager>().InSingletonScope();
         Bind<PlayerCameraOverride>().ToSelf().WhenInjectedInto<PlayerManager>().InSingletonScope();
         Bind<ActionManagerEx>().ToSelf().WhenInjectedInto<PlayerManager>().InSingletonScope();
         Bind<HotbarManager>().ToSelf().WhenInjectedInto<PlayerManager>().InSingletonScope();
-        Bind<StatusManager>().ToSelf().InSingletonScope();
 
         // Views and Presenters
         Bind<WindowSystem>().ToMethod(_ => new(PluginInitializer.Name)).InSingletonScope();

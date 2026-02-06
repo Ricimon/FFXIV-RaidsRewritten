@@ -5,6 +5,7 @@ using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Graphics;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+using Flecs.NET.Bindings;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Interop;
@@ -16,7 +17,7 @@ using System.Text;
 
 namespace RaidsRewritten.Memory;
 
-public class StatusCommonProcessor : IDisposable
+public unsafe class StatusCommonProcessor : IDisposable
 {
     public nint HoveringOver = 0;
 
@@ -40,7 +41,7 @@ public class StatusCommonProcessor : IDisposable
         Marshal.FreeHGlobal(TooltipMemory);
     }
 
-    public unsafe void SetIcon(AtkUnitBase* addon, ref Condition.Status status, ref Condition.Component condition, AtkResNode* container)
+    public void SetIcon(AtkUnitBase* addon, ref Condition.Status status, ref Condition.Component condition, AtkResNode* container)
     {
         if (!container->IsVisible())
         {
@@ -140,4 +141,6 @@ public class StatusCommonProcessor : IDisposable
 
     public static unsafe bool LocalPlayerAvailable() => Control.Instance()->LocalPlayer is not null;
     public static unsafe nint LocalPlayer() => (nint)Control.Instance()->LocalPlayer;
+    public static Query<Condition.Component, Condition.Status> GetAllStatusesOfEntity(World world, Entity e) => world.QueryBuilder<Condition.Component, Condition.Status>().With(flecs.EcsChildOf, e).Build();
+    public AtkUnitBase* GetAddon(string addonName) => (AtkUnitBase*)this.dalamudServices.GameGui.GetAddonByName(addonName).Address;
 }

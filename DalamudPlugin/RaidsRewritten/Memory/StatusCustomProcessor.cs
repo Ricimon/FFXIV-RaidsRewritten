@@ -17,7 +17,7 @@ public unsafe class StatusCustomProcessor : IDisposable
     private readonly DalamudServices dalamudServices;
     private readonly EcsContainer ecsContainer;
     private readonly CommonQueries commonQueries;
-    private readonly StatusCommonProcessor statusCommonProceesor;
+    private readonly StatusCommonProcessor statusCommonProcessor;
     private readonly ILogger logger;
 
     public int NumStatuses0 = 0;
@@ -32,7 +32,7 @@ public unsafe class StatusCustomProcessor : IDisposable
         this.dalamudServices = dalamudServices;
         this.ecsContainer = ecsContainer;
         this.commonQueries = commonQueries;
-        this.statusCommonProceesor = statusCommonProcessor;
+        this.statusCommonProcessor = statusCommonProcessor;
         this.logger = logger;
 
         TooltipMemory = Marshal.AllocHGlobal(2 * 1024);
@@ -48,21 +48,21 @@ public unsafe class StatusCustomProcessor : IDisposable
         if (StatusCommonProcessor.LocalPlayerAvailable())
         {
             // enhancements
-            var addon0 = (AtkUnitBase*)dalamudServices.GameGui.GetAddonByName("_StatusCustom0").Address;
+            var addon0 = this.statusCommonProcessor.GetAddon("_StatusCustom0");
             if (StatusCommonProcessor.IsAddonReady(addon0))
             {
                 Custom0RequestedUpdate(addon0);
             }
 
             // enfeeblements
-            var addon1 = (AtkUnitBase*)dalamudServices.GameGui.GetAddonByName("_StatusCustom1").Address;
+            var addon1 = this.statusCommonProcessor.GetAddon("_StatusCustom1");
             if (StatusCommonProcessor.IsAddonReady(addon1))
             {
                 Custom1RequestedUpdate(addon1);
             }
 
             // others
-            var addon2 = (AtkUnitBase*)dalamudServices.GameGui.GetAddonByName("_StatusCustom2").Address;
+            var addon2 = this.statusCommonProcessor.GetAddon("_StatusCustom2");
             if (StatusCommonProcessor.IsAddonReady(addon2))
             {
                 Custom2RequestedUpdate(addon2);
@@ -187,7 +187,7 @@ public unsafe class StatusCustomProcessor : IDisposable
     {
         // icon
         var container = addon->UldManager.NodeList[index];
-        statusCommonProceesor.SetIcon(addon, ref status, ref condition, container);
+        statusCommonProcessor.SetIcon(addon, ref status, ref condition, container);
     }
 
 }

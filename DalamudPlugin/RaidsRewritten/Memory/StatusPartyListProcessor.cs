@@ -38,7 +38,7 @@ public unsafe class StatusPartyListProcessor
 
         if (StatusCommonProcessor.LocalPlayerAvailable())
         {
-            var addon = (AtkUnitBase*)dalamudServices.GameGui.GetAddonByName("_PartyList").Address;
+            var addon = statusCommonProcessor.GetAddon("_PartyList");
             if (StatusCommonProcessor.IsAddonReady(addon))
             {
                 AddonRequestedUpdate(addon);
@@ -121,7 +121,7 @@ public unsafe class StatusPartyListProcessor
             if (p.PlayerCharacter is null) { return; }
             if (!pPlayerDict.TryGetValue(p.PlayerCharacter.Address, out var player)) { return; }
 
-            var statusQuery = ecsContainer.World.QueryBuilder<Condition.Component, Condition.Status>().With(flecs.EcsChildOf, e).Build();
+            var statusQuery = StatusCommonProcessor.GetAllStatusesOfEntity(ecsContainer.World, e);
             statusQuery.Each((ref condition, ref status) =>
             {
                 if (player.CurIndex >= player.IconArray.Length) { return; }
