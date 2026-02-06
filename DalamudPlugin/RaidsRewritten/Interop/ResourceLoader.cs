@@ -4,6 +4,7 @@
 // 908ddef
 using System;
 using System.Runtime.InteropServices;
+using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 using RaidsRewritten.Memory;
 using RaidsRewritten.Spawn;
@@ -45,19 +46,24 @@ public unsafe sealed partial class ResourceLoader : IDisposable
     public const string LoadIconByIdSig = "E8 ?? ?? ?? ?? 41 8D 45 3D";
     public const string AtkComponentIconTextReceiveEventSig = "44 0F B7 C2 4D 8B D1";
 
+    public const string BattleLog_AddToScreenLogWithScreenLogKindSig = "48 85 C9 0F 84 ?? ?? ?? ?? 56 41 56";
+
     private DalamudServices dalamud;
+    private CommonQueries commonQueries;
     private readonly Lazy<VfxSpawn> vfxSpawn;
     private readonly Lazy<StatusCommonProcessor> statusCommonProcessor;
     private readonly ILogger logger;
 
     public ResourceLoader(
         DalamudServices dalamud,
+        CommonQueries commonQueries,
         Lazy<VfxSpawn> vfxSpawn,
         Lazy<StatusCommonProcessor> statusCommonProcessor,
         ILogger logger)
     {
         this.dalamud = dalamud;
         this.vfxSpawn = vfxSpawn;
+        this.commonQueries = commonQueries;
         this.statusCommonProcessor = statusCommonProcessor;
         this.logger = logger;
 
@@ -144,6 +150,12 @@ public unsafe sealed partial class ResourceLoader : IDisposable
         AtkComponentIconTextReceiveEventHook = hooks.HookFromSignature<AtkComponentIconText_ReceiveEvent>(AtkComponentIconTextReceiveEventSig, AtkComponentIconText_ReceiveEventDetour);
 
         AtkComponentIconTextReceiveEventHook.Enable();
+
+        // Misc
+
+        var addToScreenLogAddress = sigScanner.ScanText(BattleLog_AddToScreenLogWithScreenLogKindSig);
+        BattleLog_AddToScreenLogWithScreenLogKind = Marshal.GetDelegateForFunctionPointer<BattleLog_AddToScreenLogWithScreenLogKindDelegate>(addToScreenLogAddress);
+
     }
 
     public void Dispose()

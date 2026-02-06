@@ -31,6 +31,7 @@ namespace RaidsRewritten
         public int EffectsRendererPositionY { get; set; } = 0;
         
         public bool DisableCustomStatuses { get; set; } = false;
+        public int FlyPopupTextLimit { get; set; } = 10;
 
         public int MinimumVisibleLogLevel { get; set; } = LogLevel.Info.Ordinal;
 

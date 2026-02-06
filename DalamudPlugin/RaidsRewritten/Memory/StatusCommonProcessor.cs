@@ -17,27 +17,23 @@ using System.Text;
 
 namespace RaidsRewritten.Memory;
 
-public unsafe class StatusCommonProcessor : IDisposable
+public unsafe class StatusCommonProcessor(
+    Configuration configuration,
+    DalamudServices dalamudServices,
+    ResourceLoader resourceLoader,
+    CommonQueries commonQueries,
+    Lazy<StatusFlyPopupTextProcessor> statusFlyPopupTextProcessor) : IDisposable
 {
     public nint HoveringOver = 0;
 
-    private readonly Configuration configuration;
-    private readonly DalamudServices dalamudServices;
-    private readonly ResourceLoader resourceLoader;
-    private readonly CommonQueries commonQueries;
+    private readonly Configuration configuration = configuration;
+    private readonly DalamudServices dalamudServices = dalamudServices;
+    private readonly ResourceLoader resourceLoader = resourceLoader;
+    private readonly CommonQueries commonQueries = commonQueries;
+    private readonly Lazy<StatusFlyPopupTextProcessor> statusFlyPopupTextProcessor = statusFlyPopupTextProcessor;
 
-    private nint TooltipMemory;
+    private readonly nint TooltipMemory = Marshal.AllocHGlobal(2 * 1024);
     private int ActiveTooltip = -1;
-
-    public StatusCommonProcessor(Configuration configuration, DalamudServices dalamudServices, ResourceLoader resourceLoader, CommonQueries commonQueries)
-    {
-        this.configuration = configuration;
-        this.dalamudServices = dalamudServices;
-        this.resourceLoader = resourceLoader;
-        this.commonQueries = commonQueries;
-
-        TooltipMemory = Marshal.AllocHGlobal(2 * 1024);
-    }
 
     public void Dispose()
     {

@@ -40,6 +40,7 @@ public class PluginModule : NinjectModule
         Bind<StatusTargetInfoProcessor>().ToSelf().InSingletonScope();
         Bind<StatusTargetInfoBuffDebuffProcessor>().ToSelf().InSingletonScope();
         Bind<StatusFocusTargetProcessor>().ToSelf().InSingletonScope();
+        Bind<StatusFlyPopupTextProcessor>().ToSelf().InSingletonScope();
 
         // Plugin classes
         Bind<Plugin>().ToSelf().InSingletonScope();
