@@ -8,6 +8,7 @@ namespace RaidsRewritten;
 public class StatusManager(
         Configuration configuration,
         StatusCommonProcessor statusCommonProcessor,
+        StatusProcessor statusProcessor,
         StatusCustomProcessor statusCustomProcessor,
         StatusPartyListProcessor statusPartyListProcessor,
         StatusTargetInfoBuffDebuffProcessor statusTargetInfoBuffDebuffProcessor,
@@ -16,6 +17,7 @@ public class StatusManager(
     private readonly Configuration configuration = configuration;
 
     private readonly StatusCommonProcessor statusCommonProcessor = statusCommonProcessor;
+    private readonly StatusProcessor statusProcessor = statusProcessor;
     private readonly StatusCustomProcessor statusCustomProcessor = statusCustomProcessor;
     private readonly StatusPartyListProcessor statusPartyListProcessor = statusPartyListProcessor;
     private readonly StatusTargetInfoBuffDebuffProcessor statusTargetInfoBuffDebuffProcessor = statusTargetInfoBuffDebuffProcessor;
@@ -28,6 +30,7 @@ public class StatusManager(
 
     public void HideAll()
     {
+        statusProcessor.HideAll();
         statusCustomProcessor.HideAll();
         statusPartyListProcessor.HideAll();
         statusTargetInfoBuffDebuffProcessor.HideAll();
