@@ -1,4 +1,6 @@
-﻿using Dalamud.Game.Addon.Lifecycle;
+﻿// adapted from https://github.com/kawaii/Moodles/blob/main/Moodles/GameGuiProcessors/FocusTargetInfoProcessor.cs
+// 37e76d3
+using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using ECommons.DalamudServices;
