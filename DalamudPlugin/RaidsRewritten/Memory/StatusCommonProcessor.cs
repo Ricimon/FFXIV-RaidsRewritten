@@ -51,7 +51,7 @@ public unsafe class StatusCommonProcessor(
 
     public void SetIcon(AtkUnitBase* addon, ref Condition.Status status, ref Condition.Component condition, AtkResNode* container)
     {
-        if (configuration.DisableCustomStatuses) { return; }
+        if (configuration.UseLegacyStatusRendering) { return; }
         if (!container->IsVisible())
         {
             container->NodeFlags ^= NodeFlags.Visible;

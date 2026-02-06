@@ -11,6 +11,7 @@ using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
+using RaidsRewritten.IPC;
 using RaidsRewritten.Log;
 using RaidsRewritten.Network;
 using RaidsRewritten.Scripts;
@@ -48,11 +49,14 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
     private readonly NetworkClient networkClient;
     private readonly NetworkClientUi networkClientUi;
     private readonly StatusManager statusManager;
+    private readonly MoodlesIPC moodlesIPC;
     private readonly Random random;
     private readonly ILogger logger;
 
     private readonly string windowName;
     private readonly string[] allLoggingLevels;
+
+    private readonly string incompatibilityId = "Incompatibility with Moodles##RaidsRewritten";
 
     public MainWindow(
         WindowSystem windowSystem,
@@ -69,6 +73,7 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
         NetworkClient networkClient,
         NetworkClientUi networkClientUi,
         StatusManager statusManager,
+        MoodlesIPC moodlesIPC,
         Random random,
         ILogger logger) :
         base(PluginInitializer.Name)
@@ -87,6 +92,7 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
         this.networkClient = networkClient;
         this.networkClientUi = networkClientUi;
         this.statusManager = statusManager;
+        this.moodlesIPC = moodlesIPC;
         this.random = random;
         this.logger = logger;
 
@@ -196,6 +202,46 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
         using var tabs = ImRaii.TabBar("rr-tabs");
         if (!tabs) return;
 
+        if (moodlesIPC.MoodlesPresent)
+        {
+            using (var iconFont = ImRaii.PushFont(UiBuilder.IconFont))
+            {
+                var errorIcon = FontAwesomeIcon.ExclamationTriangle.ToIconString();
+                ImGui.SameLine(ImGui.GetWindowContentRegionMax().X - ImGui.GetWindowContentRegionMin().X - 2 * ImGuiHelpers.GetButtonSize(errorIcon).X);
+                using var basic = ImRaii.PushColor(ImGuiCol.Button, new Vector4(0.75f, 0.55f, 0.00f, 1.0f));
+                using var hover = ImRaii.PushColor(ImGuiCol.ButtonHovered, new Vector4(0.85f, 0.65f, 0.10f, 1.0f));
+                using var active = ImRaii.PushColor(ImGuiCol.ButtonActive, new Vector4(0.60f, 0.40f, 0.00f, 1.0f));
+                if (ImGui.Button(errorIcon))
+                {
+                    ImGui.OpenPopup(incompatibilityId);
+                }
+            }
+
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.SetTooltip("Native custom status rendering is incompatible with Moodles. Click here for more info");
+            }
+
+            var center = ImGui.GetMainViewport().GetCenter();
+            ImGui.SetNextWindowPos(center, ImGuiCond.Appearing, new Vector2(0.5f, 0.5f));
+            ImGui.SetNextWindowSize(new Vector2(500, 205));
+            using (var popup = ImRaii.PopupModal(incompatibilityId))
+            {
+                if (popup.Success)
+                {
+                    ImGui.TextWrapped("Native custom status rendering is incompatible with Moodles as this also uses the same system. " +
+                        "There is currently no functionality implemented in each plugin that makes it possible for both native custom status rendering to work in tandem. " +
+                        "While Moodles is enabled, RaidsRewritten will automatically use legacy custom status rendering so it's still possible raid with Moodles on. " +
+                        "However, we do think that your experience will be greatly improved with native custom status rendering.");
+                    ImGui.TextWrapped("Please temporarily disable Moodles while you use this plugin for the best experience!");
+                    if (ImGui.Button("Close"))
+                    {
+                        ImGui.CloseCurrentPopup();
+                    }
+                }
+            }
+        }
+
         using (var iconFont = ImRaii.PushFont(UiBuilder.IconFont))
         {
             var questionIcon = FontAwesomeIcon.Question.ToIconString();
@@ -291,17 +337,6 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
             configuration.Save();
         }
 
-        // TODO: add check and disclaimer for moodles due to incompatibility
-        var disableCustomStatuses = this.configuration.DisableCustomStatuses;
-        if (ImGui.Checkbox("Disable custom statuses on in-game UI", ref disableCustomStatuses))
-        {
-            if (disableCustomStatuses)
-            {
-                statusManager.HideAll();
-            }
-            this.configuration.DisableCustomStatuses = disableCustomStatuses;
-            this.configuration.Save();
-        }
         var encounterText = new StringBuilder("Active Encounter: ");
         if (encounterManager.ActiveEncounter == null)
         {
@@ -327,6 +362,39 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
     {
         using var miscTab = ImRaii.TabItem("Misc");
         if (!miscTab) return;
+
+        var useLegacyStatusRendering = this.configuration.UseLegacyStatusRendering;
+        if (!useLegacyStatusRendering && moodlesIPC.MoodlesPresent)
+        {
+            statusManager.HideAll();
+            useLegacyStatusRendering = true;
+            this.configuration.UseLegacyStatusRendering = useLegacyStatusRendering;
+            this.configuration.Save();
+        }
+        {
+            using var disabled = ImRaii.Disabled(moodlesIPC.MoodlesPresent);
+            if (ImGui.Checkbox("Use legacy status rendering", ref useLegacyStatusRendering))
+            {
+                if (useLegacyStatusRendering)
+                {
+                    statusManager.HideAll();
+                }
+                this.configuration.UseLegacyStatusRendering = useLegacyStatusRendering;
+                this.configuration.Save();
+            }
+        }
+        if (moodlesIPC.MoodlesPresent)
+        {
+            ImGui.TextWrapped("Native custom status rendering is incompatible with Moodles.\nPlease disable Moodles temporarily.");
+            if (ImGui.Button("Check Moodles status"))
+            {
+                if (!moodlesIPC.CheckMoodles())
+                {
+                    this.configuration.UseLegacyStatusRendering = false;
+                    this.configuration.Save();
+                }
+            }
+        }
 
         var printLogsToChat = this.configuration.PrintLogsToChat;
         if (ImGui.Checkbox("Print logs to chat", ref printLogsToChat))

@@ -77,7 +77,7 @@ public unsafe class StatusFlyPopupTextProcessor
 
     public void Enqueue(FlyPopupTextData data)
     {
-        if (!this.configuration.DisableCustomStatuses)
+        if (!this.configuration.UseLegacyStatusRendering)
         {
             Queue.Add(data);
         }

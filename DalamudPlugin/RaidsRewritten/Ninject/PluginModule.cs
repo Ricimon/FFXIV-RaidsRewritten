@@ -4,6 +4,7 @@ using Ninject.Modules;
 using RaidsRewritten.Game;
 using RaidsRewritten.Input;
 using RaidsRewritten.Interop;
+using RaidsRewritten.IPC;
 using RaidsRewritten.Log;
 using RaidsRewritten.Memory;
 using RaidsRewritten.Network;
@@ -41,6 +42,9 @@ public class PluginModule : NinjectModule
         Bind<StatusTargetInfoBuffDebuffProcessor>().ToSelf().InSingletonScope();
         Bind<StatusFocusTargetProcessor>().ToSelf().InSingletonScope();
         Bind<StatusFlyPopupTextProcessor>().ToSelf().InSingletonScope();
+
+        // IPC
+        Bind<MoodlesIPC>().ToSelf().InSingletonScope();
 
         // Plugin classes
         Bind<Plugin>().ToSelf().InSingletonScope();

@@ -102,7 +102,7 @@ public unsafe class StatusPartyListProcessor
     private record struct UpdatePartyListHelper(AtkResNode*[] IconArray, int CurIndex);
     public void UpdatePartyList(AtkUnitBase* addon, bool hideAll = false)
     {
-        if (configuration.DisableCustomStatuses) { return; }
+        if (configuration.UseLegacyStatusRendering) { return; }
         if (!StatusCommonProcessor.LocalPlayerAvailable()) { return; }
         if (!StatusCommonProcessor.IsAddonReady(addon)) { return; }
 
