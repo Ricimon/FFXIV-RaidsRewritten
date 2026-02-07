@@ -22,6 +22,8 @@ public class Hysteria(Random random, ILogger logger) : ISystem
 
             var condition = Condition.ApplyToTarget(target, "Hysteria", duration, Id, extendDuration, overrideExistingDuration);
 
+            condition.Set(new Condition.Status(215552, "Hysteria", "Unable to act on your own free will.")).Add<Condition.StatusEnfeeblement>();
+
             world.Entity()
                 .Set(new ActorVfx("vfx/common/eff/dk05th_stdn0t.avfx"))
                 .ChildOf(condition);

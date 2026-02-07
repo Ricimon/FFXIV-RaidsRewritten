@@ -17,6 +17,8 @@ public class Pacify
 
             var condition = Condition.ApplyToTarget(target, "Pacified", duration, Id, extendDuration, overrideExistingDuration);
 
+            condition.Set(new Condition.Status(215017, "Pacification", "Unable to use attack-oriented abilities, spells, and weaponskills.")).Add<Condition.StatusEnfeeblement>();
+
             world.Entity()
                 .Set(new ActorVfx("vfx/common/eff/dk05ht_ipws0t.avfx"))
                 .ChildOf(condition);
