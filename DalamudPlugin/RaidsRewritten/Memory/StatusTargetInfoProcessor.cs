@@ -82,7 +82,7 @@ public unsafe class StatusTargetInfoProcessor
     {
         //if (P == null) return;
         if (!StatusCommonProcessor.LocalPlayerAvailable()) { return; }
-        if (configuration.UseLegacyStatusRendering) { return; }
+        if (configuration.UseLegacyStatusRendering || configuration.EverythingDisabled) { return; }
         UpdateAddon((AtkUnitBase*)args.Addon.Address);
     }
 

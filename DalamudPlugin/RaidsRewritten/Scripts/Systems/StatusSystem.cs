@@ -30,7 +30,7 @@ public unsafe class StatusSystem(
             .Event(Ecs.OnSet)
             .Each((Entity e, ref Condition.Status status) =>
             {
-                if (!configuration.UseLegacyStatusRendering)
+                if (!configuration.EverythingDisabled && !configuration.UseLegacyStatusRendering)
                 {
                     //logger.Debug($"ADD: {status.Icon} {status.Title} {status.Description}");
                     var chara = (Character*)StatusCommonProcessor.LocalPlayer();
@@ -44,7 +44,7 @@ public unsafe class StatusSystem(
             .Event(Ecs.OnRemove)
             .Each((Entity e, ref Condition.Status status) =>
             {
-                if (!configuration.UseLegacyStatusRendering)
+                if (!configuration.EverythingDisabled && !configuration.UseLegacyStatusRendering)
                 {
                     // ensure tooltip doesn't get stuck when debuff expires while showing tooltip
                     statusCommonProcessor.DisableActiveTooltip();

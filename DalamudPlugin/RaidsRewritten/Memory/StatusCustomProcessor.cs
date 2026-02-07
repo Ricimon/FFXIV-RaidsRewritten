@@ -128,7 +128,7 @@ public unsafe class StatusCustomProcessor : IDisposable
     // others
     private void OnStatusCustom2Update(AddonEvent type, AddonArgs args)
     {
-        if (configuration.UseLegacyStatusRendering) { return; }
+        if (configuration.UseLegacyStatusRendering || configuration.EverythingDisabled) { return; }
         if (!StatusCommonProcessor.LocalPlayerAvailable()) { return; }
         //PluginLog.Verbose($"Post1 update {args.Addon:X16}");
         var addon = (AtkUnitBase*)args.Addon.Address;
@@ -144,7 +144,7 @@ public unsafe class StatusCustomProcessor : IDisposable
     // enfeeblements
     private void OnStatusCustom1Update(AddonEvent type, AddonArgs args)
     {
-        if (configuration.UseLegacyStatusRendering) { return; }
+        if (configuration.UseLegacyStatusRendering || configuration.EverythingDisabled) { return; }
         if (!StatusCommonProcessor.LocalPlayerAvailable()) { return; }
         //PluginLog.Verbose($"Post1 update {args.Addon:X16}");
         var addon = (AtkUnitBase*)args.Addon.Address;
@@ -160,7 +160,7 @@ public unsafe class StatusCustomProcessor : IDisposable
     // enhancements
     private void OnStatusCustom0Update(AddonEvent type, AddonArgs args)
     {
-        if (configuration.UseLegacyStatusRendering) { return; }
+        if (configuration.UseLegacyStatusRendering || configuration.EverythingDisabled) { return; }
         if (!StatusCommonProcessor.LocalPlayerAvailable()) { return; }
         //PluginLog.Verbose($"Post1 update {args.Addon:X16}");
         var addon = (AtkUnitBase*)args.Addon.Address;
@@ -195,7 +195,7 @@ public unsafe class StatusCustomProcessor : IDisposable
 
     private void AddonRequestedUpdate(AtkUnitBase* addon, ref int StatusCnt)
     {
-        if (configuration.UseLegacyStatusRendering) { return; }
+        if (configuration.UseLegacyStatusRendering || configuration.EverythingDisabled) { return; }
         if (!StatusCommonProcessor.IsAddonReady(addon)) { return; }
         StatusCnt = 0;
         for (var i = 24; i >= 5; i--)
