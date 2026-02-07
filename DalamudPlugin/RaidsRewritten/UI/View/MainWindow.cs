@@ -364,13 +364,6 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
         if (!miscTab) return;
 
         var useLegacyStatusRendering = this.configuration.UseLegacyStatusRendering;
-        if (!useLegacyStatusRendering && moodlesIPC.MoodlesPresent)
-        {
-            statusManager.HideAll();
-            useLegacyStatusRendering = true;
-            this.configuration.UseLegacyStatusRendering = useLegacyStatusRendering;
-            this.configuration.Save();
-        }
         {
             using var disabled = ImRaii.Disabled(moodlesIPC.MoodlesPresent);
             if (ImGui.Checkbox("Use legacy status rendering", ref useLegacyStatusRendering))
