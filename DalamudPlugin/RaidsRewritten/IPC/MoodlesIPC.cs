@@ -35,16 +35,15 @@ public class MoodlesIPC
         try
         {
             _moodlesVersion.InvokeFunc();
-            statusManager.HideAll();
-            MoodlesPresent = true;
-            this.configuration.UseLegacyStatusRendering = true;
-            this.configuration.Save();
-            return true;
         } catch
         {
-
+            MoodlesPresent = false;
+            return MoodlesPresent;
         }
-        MoodlesPresent = false;
-        return false;
+        statusManager.HideAll();
+        MoodlesPresent = true;
+        this.configuration.UseLegacyStatusRendering = true;
+        this.configuration.Save();
+        return MoodlesPresent;
     }
 }
