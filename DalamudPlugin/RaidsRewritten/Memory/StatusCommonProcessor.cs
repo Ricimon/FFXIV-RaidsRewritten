@@ -21,16 +21,9 @@ public unsafe class StatusCommonProcessor(
     Configuration configuration,
     DalamudServices dalamudServices,
     ResourceLoader resourceLoader,
-    CommonQueries commonQueries,
-    Lazy<StatusFlyPopupTextProcessor> statusFlyPopupTextProcessor) : IDisposable
+    CommonQueries commonQueries) : IDisposable
 {
     public nint HoveringOver = 0;
-
-    private readonly Configuration configuration = configuration;
-    private readonly DalamudServices dalamudServices = dalamudServices;
-    private readonly ResourceLoader resourceLoader = resourceLoader;
-    private readonly CommonQueries commonQueries = commonQueries;
-    private readonly Lazy<StatusFlyPopupTextProcessor> statusFlyPopupTextProcessor = statusFlyPopupTextProcessor;
 
     private readonly nint TooltipMemory = Marshal.AllocHGlobal(2 * 1024);
     private int ActiveTooltip = -1;
@@ -152,5 +145,5 @@ public unsafe class StatusCommonProcessor(
     public static unsafe bool LocalPlayerAvailable() => Control.Instance()->LocalPlayer is not null;
     public static unsafe nint LocalPlayer() => (nint)Control.Instance()->LocalPlayer;
     public static Query<Condition.Component, Condition.Status> GetAllStatusesOfEntity(Entity e) => e.CsWorld().QueryBuilder<Condition.Component, Condition.Status>().With(flecs.EcsChildOf, e).Build();
-    public AtkUnitBase* GetAddon(string addonName) => (AtkUnitBase*)this.dalamudServices.GameGui.GetAddonByName(addonName).Address;
+    public AtkUnitBase* GetAddon(string addonName) => (AtkUnitBase*)dalamudServices.GameGui.GetAddonByName(addonName).Address;
 }
