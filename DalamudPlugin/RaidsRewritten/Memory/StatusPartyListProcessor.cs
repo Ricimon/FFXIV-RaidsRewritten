@@ -162,15 +162,16 @@ public unsafe class StatusPartyListProcessor
             for (var i = 1; i < Math.Min(8, Svc.Party.Length); i++)
             {
                 var obj = this.dalamudServices.PartyList[i]; 
-                
-                // Ensure validity.
-                if (obj != null && ((Character*)obj.Address)->IsCharacter())
+                if (obj != null)
                 {
-                    ret.Add(obj.Address);
-                } else
-                {
-                    ret.Add(nint.Zero);
+                    var pPlayer = (Character*)obj.Address;
+                    if (pPlayer != null && pPlayer->EntityId != 0 && pPlayer->IsCharacter())
+                    {
+                        ret.Add(obj.Address);
+                        break;
+                    }
                 }
+                ret.Add(nint.Zero);
             }
             return ret;
         }
