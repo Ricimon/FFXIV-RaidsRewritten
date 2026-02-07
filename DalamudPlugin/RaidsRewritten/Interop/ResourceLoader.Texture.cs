@@ -1,6 +1,7 @@
 ﻿// adapted from https://github.com/kawaii/Moodles/blob/main/Moodles/Memory/Memory.cs
 // 0ed07e8
 using Dalamud.Hooking;
+using RaidsRewritten.Utility;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -37,7 +38,7 @@ public unsafe partial class ResourceLoader
             //}
         } catch (Exception e)
         {
-            logger.Error(e.ToString());
+            logger.Error(e.ToStringFull());
         }
         AtkComponentIconTextReceiveEventHook.Original(a1, a2, a3, a4, a5);
     }
