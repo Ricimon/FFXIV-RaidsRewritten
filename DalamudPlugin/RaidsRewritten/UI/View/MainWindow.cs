@@ -188,6 +188,7 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
                     var mechanics = this.encounterManager.ActiveEncounter?.GetMechanics();
                     if (mechanics != null)
                     {
+                        moodlesIPC.CheckMoodles();
                         foreach (var mechanic in mechanics)
                         {
                             mechanic.Reset();
