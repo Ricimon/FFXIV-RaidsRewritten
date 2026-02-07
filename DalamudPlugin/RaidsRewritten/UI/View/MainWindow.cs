@@ -202,7 +202,7 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
         using var tabs = ImRaii.TabBar("rr-tabs");
         if (!tabs) return;
 
-        if (moodlesIPC.MoodlesPresent)
+        if (MoodlesIPC.MoodlesPresent)
         {
             using (var iconFont = ImRaii.PushFont(UiBuilder.IconFont))
             {
@@ -276,7 +276,7 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
 
         var useLegacyStatusRendering = this.configuration.UseLegacyStatusRendering;
         {
-            using var disabled = ImRaii.Disabled(moodlesIPC.MoodlesPresent);
+            using var disabled = ImRaii.Disabled(MoodlesIPC.MoodlesPresent);
             if (ImGui.Checkbox("Use legacy status rendering", ref useLegacyStatusRendering))
             {
                 if (useLegacyStatusRendering)
@@ -458,14 +458,12 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
                 {
                     if (!moodlesIPC.CheckMoodles())
                     {
-                        this.configuration.UseLegacyStatusRendering = false;
-                        this.configuration.Save();
                         ImGui.CloseCurrentPopup();
                     }
                 }
 
                 ImGui.SameLine();
-                if (moodlesIPC.MoodlesPresent)
+                if (MoodlesIPC.MoodlesPresent)
                 {
                     using (ImRaii.PushColor(ImGuiCol.Text, Vector4Colors.Red))
                     {

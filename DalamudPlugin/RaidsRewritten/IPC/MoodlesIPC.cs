@@ -15,7 +15,7 @@ public class MoodlesIPC
     private ILogger logger;
 
     private readonly ICallGateSubscriber<int> _moodlesVersion;
-    public bool MoodlesPresent = false;
+    public static bool MoodlesPresent = false;
 
     public MoodlesIPC(Configuration configuration, StatusManager statusManager,DalamudServices dalamudServices, ILogger logger)
     {
@@ -42,8 +42,6 @@ public class MoodlesIPC
         }
         statusManager.HideAll();
         MoodlesPresent = true;
-        this.configuration.UseLegacyStatusRendering = true;
-        this.configuration.Save();
         return MoodlesPresent;
     }
 }
