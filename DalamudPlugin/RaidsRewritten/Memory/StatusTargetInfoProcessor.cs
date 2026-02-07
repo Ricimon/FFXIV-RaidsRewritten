@@ -80,14 +80,13 @@ public unsafe class StatusTargetInfoProcessor
 
     private void OnTargetInfoUpdate(AddonEvent type, AddonArgs args)
     {
-        //if (P == null) return;
         if (!StatusCommonProcessor.LocalPlayerAvailable()) { return; }
-        if (configuration.UseLegacyStatusRendering || configuration.EverythingDisabled) { return; }
         UpdateAddon((AtkUnitBase*)args.Addon.Address);
     }
 
     public void UpdateAddon(AtkUnitBase* addon, bool hideAll = false)
     {
+        if (!hideAll && (configuration.UseLegacyStatusRendering || configuration.EverythingDisabled)) { return; }
         var target = this.dalamudServices.TargetManager.SoftTarget! ?? this.dalamudServices.TargetManager.Target!;
         if (target is IPlayerCharacter pc)
         {
@@ -100,7 +99,6 @@ public unsafe class StatusTargetInfoProcessor
             }
 
             if (hideAll) { return; }
-
 
             commonQueries.AllPlayersQuery.Each((Entity e, ref Player.Component player) =>
             {

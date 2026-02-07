@@ -63,7 +63,6 @@ public unsafe class StatusProcessor
     private void OnAlcStatusRequestedUpdate(AddonEvent t, AddonArgs args) => AddonRequestedUpdate((AtkUnitBase*)args.Addon.Address);
     private void OnStatusUpdate(AddonEvent type, AddonArgs args)
     {
-        if (configuration.UseLegacyStatusRendering || configuration.EverythingDisabled) { return; }
         if (!StatusCommonProcessor.LocalPlayerAvailable()) return;
 
         UpdateStatus((AtkUnitBase*)args.Addon.Address, NumStatuses);
@@ -85,6 +84,7 @@ public unsafe class StatusProcessor
 
     public void UpdateStatus(AtkUnitBase* addon, int StatusCnt, bool hideAll = false)
     {
+        if (!hideAll && (configuration.UseLegacyStatusRendering || configuration.EverythingDisabled)) { return; }
         if (addon != null && StatusCommonProcessor.IsAddonReady(addon))
         {
             int baseCnt = 25 - StatusCnt;

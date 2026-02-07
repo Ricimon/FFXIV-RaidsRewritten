@@ -86,7 +86,7 @@ public unsafe class StatusFocusTargetProcessor
 
     public void UpdateAddon(AtkUnitBase* addon, bool hideAll = false)
     {
-        if (configuration.UseLegacyStatusRendering || configuration.EverythingDisabled) { return; }
+        if (!hideAll && (configuration.UseLegacyStatusRendering || configuration.EverythingDisabled)) { return; }
         if (StatusCommonProcessor.IsAddonReady(addon) && dalamudServices.TargetManager.FocusTarget is IPlayerCharacter pc)
         {
             int baseCnt = 8 - NumStatuses;

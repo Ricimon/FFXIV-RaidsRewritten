@@ -81,7 +81,7 @@ public unsafe class StatusTargetInfoBuffDebuffProcessor
     // Didn't really know how to transfer to get the DalamudStatusList from here, so had to use IPlayerCharacter.
     public unsafe void UpdateAddon(AtkUnitBase* addon, bool hideAll = false)
     {
-        if (configuration.UseLegacyStatusRendering || configuration.EverythingDisabled) { return; }
+        if (!hideAll && (configuration.UseLegacyStatusRendering || configuration.EverythingDisabled)) { return; }
         var target = this.dalamudServices.TargetManager.SoftTarget! ?? this.dalamudServices.TargetManager.Target!;
         if (target is IPlayerCharacter pc)
         {
