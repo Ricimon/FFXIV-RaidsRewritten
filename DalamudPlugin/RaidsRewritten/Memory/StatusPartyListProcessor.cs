@@ -2,10 +2,13 @@
 // 41fc913
 using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
+using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory;
 using ECommons.DalamudServices;
+using ECommons.GameFunctions;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
@@ -159,7 +162,7 @@ public unsafe class StatusPartyListProcessor
             if (p.PlayerCharacter.EntityId == 0 ) { return; }
             if (!pPlayerDict.TryGetValue(p.PlayerCharacter.Address, out var iconArray)) { return; }
 
-            var pChara = (Character*)p.PlayerCharacter.Address;
+            var pChara = p.PlayerCharacter.Character();
             List<StatusCommonProcessor.Status> statusList = [];
             foreach (var status in pChara->GetStatusManager()->Status)
             {
@@ -215,10 +218,18 @@ public unsafe class StatusPartyListProcessor
                 var obj = this.dalamudServices.PartyList[i]; 
                 if (obj != null)
                 {
-                    var pPlayer = (Character*)obj.Address;
-                    if (pPlayer != null && pPlayer->EntityId != 0 && pPlayer->IsCharacter())
+                    if (obj.EntityId != 0)
                     {
-                        ret.Add(obj.Address);
+                        IGameObject? gameObj = null;
+                        dalamudServices.Framework.RunOnFrameworkThread(() =>
+                        {
+                            gameObj = dalamudServices.ObjectTable.SearchByEntityId(obj.EntityId);
+                        });
+                        if (gameObj != null)
+                        {
+                            
+                            ret.Add(gameObj.Address);
+                        }
                         break;
                     }
                 }
