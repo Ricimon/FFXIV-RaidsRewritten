@@ -2,16 +2,19 @@
 // 41fc913
 using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
+using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Memory;
 using ECommons.DalamudServices;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using Flecs.NET.Bindings;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
+using RaidsRewritten.Interop;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Conditions;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace RaidsRewritten.Memory;
@@ -22,16 +25,29 @@ public unsafe class StatusPartyListProcessor
     private readonly DalamudServices dalamudServices;
     private readonly StatusCommonProcessor statusCommonProcessor;
     private readonly EcsContainer ecsContainer;
+    private readonly ResourceLoader resourceLoader;
     private readonly CommonQueries commonQueries;
     private readonly ILogger logger;
 
+    private int prevNumStatuses = -1;
+    private int ActiveNodeIdForTooltip = -1;
+    private AtkResNode* ActiveContainerForTooltip = null;
+
     private int[] NumStatuses = [0, 0, 0, 0, 0, 0, 0, 0];
-    public StatusPartyListProcessor(Configuration configuration, DalamudServices dalamudServices, StatusCommonProcessor statusCommonProcessor, EcsContainer ecsContainer, CommonQueries commonQueries, ILogger logger)
+    public StatusPartyListProcessor(
+        Configuration configuration,
+        DalamudServices dalamudServices,
+        StatusCommonProcessor statusCommonProcessor,
+        EcsContainer ecsContainer,
+        ResourceLoader resourceLoader,
+        CommonQueries commonQueries,
+        ILogger logger)
     {
         this.configuration = configuration;
         this.dalamudServices = dalamudServices;
         this.statusCommonProcessor = statusCommonProcessor;
         this.ecsContainer = ecsContainer;
+        this.resourceLoader = resourceLoader;
         this.commonQueries = commonQueries;
         this.logger = logger;
 
@@ -96,7 +112,16 @@ public unsafe class StatusPartyListProcessor
             storeIndex++;
             index--;
         }
+        RefreshTooltip(addonBase);
         //logger.Info($"PartyList Requested update: {NumStatuses.Print()}");
+    }
+
+    public unsafe void RefreshTooltip(AtkUnitBase* addon)
+    {
+        if (ActiveContainerForTooltip != null)
+        {
+            AtkStage.Instance()->TooltipManager.ShowTooltip(addon->Id, ActiveContainerForTooltip, (byte*)statusCommonProcessor.TooltipMemory);
+        }
     }
 
     private record struct UpdatePartyListHelper(AtkResNode*[] IconArray, int CurIndex);
@@ -109,21 +134,21 @@ public unsafe class StatusPartyListProcessor
         var partyMemberNodeIndex = 23;
         var party = GetVisibleParty();
 
-        var pPlayerDict = new Dictionary<nint, UpdatePartyListHelper>();
+        var pPlayerDict = new Dictionary<nint, AtkResNode*[]>();
         for (var n = 0; n < party.Count; n++)
         {
             var player = party[n];
             if (player != nint.Zero)
             {
                 var iconArray = GetNodeIconArray(addon->UldManager.NodeList[partyMemberNodeIndex]);
-                //InternalLog.Information($"Icon array length for {player} is {iconArray.Length}");
+                //logger.Debug($"Icon array length for {player} is {iconArray.Length}");
                 for (var i = NumStatuses[n]; i < iconArray.Length; i++)
                 {
                     var c = iconArray[i];
                     if (c->IsVisible()) c->NodeFlags ^= NodeFlags.Visible;
                 }
                 var curIndex = NumStatuses[n];
-                pPlayerDict[player] = new UpdatePartyListHelper(iconArray, curIndex);
+                pPlayerDict[player] = iconArray;
             }
             partyMemberNodeIndex--;
         }
@@ -131,19 +156,45 @@ public unsafe class StatusPartyListProcessor
         commonQueries.AllPlayersQuery.Each((Entity e, ref Player.Component p) =>
         {
             if (p.PlayerCharacter is null) { return; }
-            if (!pPlayerDict.TryGetValue(p.PlayerCharacter.Address, out var player)) { return; }
+            if (p.PlayerCharacter.EntityId == 0 ) { return; }
+            if (!pPlayerDict.TryGetValue(p.PlayerCharacter.Address, out var iconArray)) { return; }
+
+            var pChara = (Character*)p.PlayerCharacter.Address;
+            List<StatusCommonProcessor.Status> statusList = [];
+            foreach (var status in pChara->GetStatusManager()->Status)
+            {
+                var temp = new StatusCommonProcessor.Status(status);
+                if (!temp.IsEnhancement && !temp.IsEnfeeblement && !temp.IsConditionalEnhancement) { continue; }
+                if (status.SourceObject == pChara->GetGameObjectId()) { temp.SourceIsSelf = true; }
+                statusList.Add(temp);
+            }
 
             var statusQuery = StatusCommonProcessor.GetAllStatusesOfEntity(e);
             statusQuery.Each((ref condition, ref status) =>
             {
-                if (player.CurIndex >= player.IconArray.Length) { return; }
-
                 if (condition.TimeRemaining > 0)
                 {
-                    SetIcon(addon, player.IconArray[player.CurIndex], ref status, ref condition);
-                    player.CurIndex++;
+                    statusList.Add(new StatusCommonProcessor.Status(status, condition, StatusCommonProcessor.StatusType.SelfEnfeeblement));
                 }
             });
+
+            var sortedList = statusList
+                .OrderBy(s => s.SourceIsSelf)
+                .ThenByDescending(s => s.PartyListPriority);
+
+            var shouldRedrawTooltip = prevNumStatuses > -1 && sortedList.Count() != prevNumStatuses;
+            prevNumStatuses = sortedList.Count();
+
+            int curIndex = 0;
+            var hasConfig = this.dalamudServices.GameConfig.UiConfig.TryGet("PartyListStatus", out uint optionInt);
+
+            var maxLength = hasConfig ? Math.Min(iconArray.Length, optionInt - 1) : iconArray.Length;
+            foreach (var status in sortedList)
+            {
+                if (curIndex >= maxLength) { return; }
+                SetIcon(addon, iconArray[curIndex], status, shouldRedrawTooltip);
+                curIndex++;
+            }
         });
     }
 
@@ -177,9 +228,76 @@ public unsafe class StatusPartyListProcessor
         }
     }
 
-    private void SetIcon(AtkUnitBase* addon, AtkResNode* container, ref Condition.Status status, ref Condition.Component component)
+    private void SetIcon(AtkUnitBase* addon, AtkResNode* container, StatusCommonProcessor.Status status, bool redrawTooltip)
     {
-        statusCommonProcessor.SetIcon(addon, ref status, ref component, container);
+        if (configuration.UseLegacyStatusRendering || configuration.EverythingDisabled) { return; }
+        if (!container->IsVisible())
+        {
+            container->NodeFlags ^= NodeFlags.Visible;
+        }
+
+        resourceLoader.LoadIconByID(container->GetAsAtkComponentNode()->Component, (int)status.IconId);
+
+        //var dispelNode = container->GetAsAtkComponentNode()->Component->UldManager.NodeList[0];
+
+        // timer
+        var textNode = container->GetAsAtkComponentNode()->Component->UldManager.NodeList[2];
+        var timerText = "";
+        if (!float.IsInfinity(status.TimeRemaining))
+        {
+            timerText = status.TimeRemaining > 0 ? StatusCommonProcessor.GetTimerText(status.TimeRemaining) : "";
+        }
+
+        if (timerText != null)
+        {
+            if (!textNode->IsVisible()) { textNode->NodeFlags ^= NodeFlags.Visible; }
+        }
+
+        var t = textNode->GetAsAtkTextNode();
+        t->SetText((timerText ?? SeString.Empty).Encode());
+
+        if (status.SourceIsSelf)
+        {
+            t->TextColor = StatusCommonProcessor.CreateColor(0xC9ffe4ff);
+            t->EdgeColor = StatusCommonProcessor.CreateColor(0x0a5f24ff);
+            t->BackgroundColor = StatusCommonProcessor.CreateColor(0);
+        } else
+        {
+            t->TextColor = StatusCommonProcessor.CreateColor(0xffffffff);
+            t->EdgeColor = StatusCommonProcessor.CreateColor(0x333333ff);
+            t->BackgroundColor = StatusCommonProcessor.CreateColor(0);
+        }
+
+        // tooltip
+        var addr = (nint)container->GetAsAtkComponentNode()->Component;
+        if (statusCommonProcessor.HoveringOver == addr && (ActiveNodeIdForTooltip == -1 || redrawTooltip))
+        {
+            commonQueries.StatusQuery.Each((ref _, ref status) =>
+            {
+                status.TooltipShown = -1;
+            });
+            ActiveNodeIdForTooltip = (int)container->NodeId;
+
+            var str = status.Name;
+            if (status.Description != "")
+            {
+                str += $"\n{status.Description}";
+            }
+            str += "\0";
+            MemoryHelper.WriteSeString(statusCommonProcessor.TooltipMemory, str);
+            AtkStage.Instance()->TooltipManager.ShowTooltip(addon->Id, container, (byte*)statusCommonProcessor.TooltipMemory);
+            ActiveContainerForTooltip = container;
+        }
+
+        if (ActiveNodeIdForTooltip == container->NodeId && statusCommonProcessor.HoveringOver != addr)
+        {
+            ActiveNodeIdForTooltip = -1;
+            ActiveContainerForTooltip = null;
+            if (statusCommonProcessor.HoveringOver == 0)
+            {
+                AtkStage.Instance()->TooltipManager.HideTooltip(addon->Id);
+            }
+        }
     }
 
     public static AtkResNode*[] GetNodeIconArray(AtkResNode* node, bool reverse = false)
