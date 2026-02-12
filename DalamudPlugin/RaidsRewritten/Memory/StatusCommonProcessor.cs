@@ -14,6 +14,7 @@ using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Interop;
 using RaidsRewritten.Log;
+using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
 using System;
 using System.Buffers.Binary;
@@ -52,22 +53,28 @@ public unsafe class StatusCommonProcessor(
         public bool SourceIsSelf;
         public int TooltipShown = -1;
 
+        public string OriginalPath = "";
+
         public readonly bool IsEnhancement => StatusCategory == 1 && CanIncreaseRewards == 0;
         public readonly bool IsOtherEnhancement => StatusCategory == 1 && CanIncreaseRewards == 1;
         public readonly bool IsConditionalEnhancement => StatusCategory == 1 && CanIncreaseRewards == 2;
         public readonly bool IsEnfeeblement => StatusCategory == 2;
         public readonly bool IsOtherEnfeeblement => IsEnfeeblement && CanIncreaseRewards == 1;
-        public readonly bool IsCustom;
+        public readonly bool IsCustom = false;
         // Some statuses are invisible and are in the status list but are not shown in any UI
         // Class-based damage buff in Criterion (ParamEffect 31)
         // Hoofing It in Occult Crescent (Id 1778)
         public readonly bool IsVisible => ParamEffect != 31 && Id != 1778;
 
-        public Status(Condition.Status status, Condition.Component condition, StatusType statusType)
+        public Status(Condition.Status status, Condition.Component condition, StatusType statusType, FileReplacement? replacement = null)
         {
             IsCustom = true;
             IconId = (uint)status.Icon;
             Name = status.Title;
+            if (replacement != null)
+            {
+                OriginalPath = replacement.Value.OriginalPath;
+            }
             Description = status.Description;
             TimeRemaining = condition.TimeRemaining;
             StatusCategory = 2;  // TODO: think about logic for enhancement buffs later, just gonna make them all enfeeblements for now
@@ -140,19 +147,30 @@ public unsafe class StatusCommonProcessor(
         }
     }
 
-    public void SetIcon(AtkUnitBase* addon, ref Condition.Status status, ref Condition.Component condition, AtkResNode* container)
+    public void SetIcon(AtkUnitBase* addon, ref Condition.Status status, ref Condition.Component condition, AtkResNode* container, FileReplacement? replacement = null)
     {
         if (configuration.UseLegacyStatusRendering || configuration.EverythingDisabled) { return; }
         if (!container->IsVisible())
         {
             container->NodeFlags ^= NodeFlags.Visible;
         }
-        resourceLoader.LoadIconByID(container->GetAsAtkComponentNode()->Component, status.Icon);
 
-        //var dispelNode = container->GetAsAtkComponentNode()->Component->UldManager.NodeList[0];
+        if (replacement == null)
+        {
+            resourceLoader.LoadIconByID(container->GetAsAtkComponentNode()->Component, status.Icon);
+        } else
+        {
+            container->GetAsAtkComponentNode()->Component->GetImageNodeById(3)->LoadTexture(replacement.Value.OriginalPath);
+            // these are sometimes hidden for whatever reason
+            // visibility of component node will take care of hiding, so force these to be visible
+            container->GetAsAtkComponentNode()->Component->GetImageNodeById(3)->ToggleVisibility(true);
+        }
+
+        //var dispelNode = container->GetAsAtkComponentNode()->Component->UldManager.NodeList[0];09:56:24.378 | DBG | [RaidsRewritten] 2A726060DF0
+
 
         // timer
-        var textNode = container->GetAsAtkComponentNode()->Component->UldManager.NodeList[2];
+        var textNode = container->GetAsAtkComponentNode()->Component->GetTextNodeById(2);
         var timerText = "";
         if (!float.IsInfinity(condition.TimeRemaining))
         {

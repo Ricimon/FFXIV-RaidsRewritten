@@ -13,8 +13,11 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Interop;
+using RaidsRewritten.Interop.Structs;
 using RaidsRewritten.Log;
+using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
+using RaidsRewritten.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -173,11 +176,17 @@ public unsafe class StatusPartyListProcessor
             }
 
             var statusQuery = StatusCommonProcessor.GetAllStatusesOfEntity(e);
-            statusQuery.Each((ref condition, ref status) =>
+            statusQuery.Each((e, ref condition, ref status) =>
             {
                 if (condition.TimeRemaining > 0)
                 {
-                    statusList.Add(new StatusCommonProcessor.Status(status, condition, StatusCommonProcessor.StatusType.SelfEnfeeblement));
+                    if (e.TryGet<FileReplacement>(out var replacement))
+                    {
+                        statusList.Add(new StatusCommonProcessor.Status(status, condition, StatusCommonProcessor.StatusType.SelfEnfeeblement, replacement));
+                    } else
+                    {
+                        statusList.Add(new StatusCommonProcessor.Status(status, condition, StatusCommonProcessor.StatusType.SelfEnfeeblement));
+                    }
                 }
             });
 
@@ -247,7 +256,17 @@ public unsafe class StatusPartyListProcessor
             container->NodeFlags ^= NodeFlags.Visible;
         }
 
-        resourceLoader.LoadIconByID(container->GetAsAtkComponentNode()->Component, (int)status.IconId);
+        if (status.IsCustom)
+        {
+            container->GetAsAtkComponentNode()->Component->GetImageNodeById(3)->LoadTexture(status.OriginalPath);
+
+            // mark node image as "dirty"
+            var temp = (Interop.Structs.AtkComponentIconText*)container->GetAsAtkComponentNode()->Component;
+            temp->IconId = 0;
+        } else
+        {
+            resourceLoader.LoadIconByID(container->GetAsAtkComponentNode()->Component, (int)status.IconId);
+        }
 
         //var dispelNode = container->GetAsAtkComponentNode()->Component->UldManager.NodeList[0];
 

@@ -14,6 +14,7 @@ using Lumina.Excel.Sheets;
 using RaidsRewritten.Game;
 using RaidsRewritten.Interop;
 using RaidsRewritten.Log;
+using RaidsRewritten.Scripts.Components;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,9 +25,10 @@ namespace RaidsRewritten.Memory;
 
 public unsafe class StatusFlyPopupTextProcessor
 {
-    public class FlyPopupTextData (Entity entity, Scripts.Conditions.Condition.Status status, bool isAddition, uint owner)
+    public class FlyPopupTextData (Entity entity, Scripts.Conditions.Condition.Status status, bool isAddition, uint owner, FileReplacement? replacement = null)
     {
         public Scripts.Conditions.Condition.Status Status = status;
+        public FileReplacement? Replacement = replacement;
         public bool IsEnfeeblement = entity.Has<Scripts.Conditions.Condition.StatusEnfeeblement>();
         public bool IsAddition = isAddition;
         public uint OwnerEntityId = owner;
@@ -43,6 +45,7 @@ public unsafe class StatusFlyPopupTextProcessor
     private readonly ILogger logger;
 
     private List<FlyPopupTextData> Queue = [];
+    private nint LastNode = nint.Zero;
     public FlyPopupTextData CurrentElement = null!;
     public Dictionary<uint, IconStatusData> StatusData = [];
 
@@ -189,6 +192,12 @@ public unsafe class StatusFlyPopupTextProcessor
                 var c = candidate->GetAsAtkComponentNode()->Component;
                 var sestr = new SeStringBuilder().AddText(CurrentElement.IsAddition ? "+ " : "- ").Append(CurrentElement.Status.Title);
                 c->UldManager.NodeList[1]->GetAsAtkTextNode()->SetText(sestr.Encode());
+
+                if (CurrentElement.Replacement != null)
+                {
+                    c->UldManager.NodeList[2]->GetAsAtkImageNode()->LoadTexture(CurrentElement.Replacement.Value.OriginalPath);
+                }
+
                 CurrentElement = null!;
                 return;
             }
@@ -197,7 +206,13 @@ public unsafe class StatusFlyPopupTextProcessor
 
     private bool IsCandidateValid(AtkResNode* node)
     {
-        if (!node->IsVisible()) return false;
+        if (!node->IsVisible()) {
+            if ((nint)node == LastNode)
+            {
+                LastNode = nint.Zero;
+            }
+            return false;
+        }
         var c = node->GetAsAtkComponentNode()->Component;
         if (c->UldManager.NodeListCount < 3 || c->UldManager.NodeListCount > 4) return false;
         if (c->UldManager.NodeList[1]->Type != NodeType.Text) return false;
@@ -215,6 +230,7 @@ public unsafe class StatusFlyPopupTextProcessor
         {
             return false;
         }
+        LastNode = (nint)node;
         return true;
     }
 

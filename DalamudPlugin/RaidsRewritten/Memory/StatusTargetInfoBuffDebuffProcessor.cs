@@ -6,7 +6,10 @@ using Dalamud.Game.ClientState.Objects.SubKinds;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
+using RaidsRewritten.Interop;
+using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
+using RaidsRewritten.Utility;
 using System;
 using System.Text;
 
@@ -17,16 +20,24 @@ public unsafe class StatusTargetInfoBuffDebuffProcessor
     private readonly Configuration configuration;
     private readonly DalamudServices dalamudServices;
     private readonly StatusCommonProcessor statusCommonProcessor;
+    private readonly ResourceLoader resourceLoader;
     private readonly EcsContainer ecsContainer;
     private readonly CommonQueries commonQueries;
 
     public int NumStatuses = 0;
-    public StatusTargetInfoBuffDebuffProcessor(Configuration configuration, DalamudServices dalamudServices, StatusCommonProcessor statusCommonProcessor, EcsContainer ecsContainer, CommonQueries commonQueries)
+    public StatusTargetInfoBuffDebuffProcessor(
+        Configuration configuration,
+        DalamudServices dalamudServices,
+        StatusCommonProcessor statusCommonProcessor,
+        EcsContainer ecsContainer,
+        ResourceLoader resourceLoader,
+        CommonQueries commonQueries)
     {
         this.configuration = configuration;
         this.dalamudServices = dalamudServices;
         this.statusCommonProcessor = statusCommonProcessor;
         this.ecsContainer = ecsContainer;
+        this.resourceLoader = resourceLoader;
         this.commonQueries = commonQueries;
 
         this.dalamudServices.AddonLifecycle.RegisterListener(AddonEvent.PostUpdate, "_TargetInfoBuffDebuff", OnTargetInfoBuffDebuffUpdate);
@@ -67,6 +78,12 @@ public unsafe class StatusTargetInfoBuffDebuffProcessor
             if (c->IsVisible())
             {
                 NumStatuses++;
+
+                // mark node as dirty
+                var temp = (Interop.Structs.AtkComponentIconText*)c->GetAsAtkComponentNode()->Component;
+                var iconId = temp->IconId;
+                temp->IconId = 0;
+                resourceLoader.LoadIconByID(c->GetAsAtkComponentNode()->Component, (int)iconId);
             }
         }
         //InternalLog.Verbose($"TargetInfo Requested update: {NumStatuses}");
@@ -101,11 +118,17 @@ public unsafe class StatusTargetInfoBuffDebuffProcessor
                     if (player.PlayerCharacter != null && player.PlayerCharacter.Address == target.Address)
                     {
                         var statusQuery = StatusCommonProcessor.GetAllStatusesOfEntity(e);
-                        statusQuery.Each((ref condition, ref status) =>
+                        statusQuery.Each((e, ref condition, ref status) =>
                         {
                             if (condition.TimeRemaining > 0)
                             {
-                                SetIcon(addon, baseCnt, ref status, ref condition);
+                                if (e.TryGet<FileReplacement>(out var replacement))
+                                {
+                                    SetIcon(addon, baseCnt, ref status, ref condition, replacement);
+                                } else
+                                {
+                                    SetIcon(addon, baseCnt, ref status, ref condition, replacement);
+                                }
                                 baseCnt++;
                             }
                         });
@@ -115,10 +138,10 @@ public unsafe class StatusTargetInfoBuffDebuffProcessor
         }
     }
 
-    private void SetIcon(AtkUnitBase* addon, int id, ref Condition.Status status, ref Condition.Component condition)
+    private void SetIcon(AtkUnitBase* addon, int id, ref Condition.Status status, ref Condition.Component condition, FileReplacement? replacement = null)
     {
         var container = addon->UldManager.SearchNodeById((uint)id);
-        statusCommonProcessor.SetIcon(addon, ref status, ref condition, container);
+        statusCommonProcessor.SetIcon(addon, ref status, ref condition, container, replacement);
     }
 
 
