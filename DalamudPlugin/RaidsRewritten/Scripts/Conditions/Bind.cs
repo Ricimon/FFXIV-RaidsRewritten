@@ -17,6 +17,8 @@ public class Bind
 
             var condition = Condition.ApplyToTarget(target, "Bound", duration, Id, extendDuration, overrideExistingDuration);
 
+            condition.Set(new Condition.Status(215003, "Bind", "Unable to move.")).Add<Condition.StatusEnfeeblement>();
+
             // Application VFX
             world.Entity()
                 .Set(new ActorVfx("vfx/common/eff/dk05ht_bind0t.avfx"))

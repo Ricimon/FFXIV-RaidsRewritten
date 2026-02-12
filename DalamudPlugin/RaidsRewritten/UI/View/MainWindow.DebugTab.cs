@@ -2,6 +2,7 @@
 using System.Numerics;
 using AsyncAwaitBestPractices;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Interface.Utility.Raii;
 using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
@@ -95,6 +96,33 @@ public partial class MainWindow
 
         if (ImGui.CollapsingHeader("Fake Statuses"))
         {
+            if (ImGui.Button("ECS Target Player"))
+            {
+                var localPlayer = dalamud.ObjectTable.LocalPlayer;
+                if (localPlayer != null) {
+                    var target = localPlayer.TargetObject;
+                    if (target != null)
+                    {
+                        ecsContainer.World.Entity().Set(new Player.Component((IPlayerCharacter)target));
+                    }
+                }
+            }
+            if (ImGui.Button("Bind target"))
+            {
+                var localPlayer = dalamud.ObjectTable.LocalPlayer;
+                if (localPlayer != null)
+                {
+                    var target = localPlayer.TargetObject;
+                    if (target != null)
+                    {
+                        commonQueries.AllPlayersQuery.Each((Entity e, ref Player.Component pc) =>
+                        {
+                            if (pc.PlayerCharacter == (IPlayerCharacter)target)
+                                Bind.ApplyToTarget(e, 20.0f);
+                        });
+                    }
+                }
+            }
             if (ImGui.Button("Bind"))
             {
                 commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
