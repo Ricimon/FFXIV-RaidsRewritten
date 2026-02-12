@@ -11,6 +11,9 @@ public class Overheat
     {
         var world = target.CsWorld();
         var entity = Condition.ApplyToTarget(target, "Overheated", duration, id, false, false);
+
+        entity.Set(new Condition.Status(214278, "Overheated", "Body is overheated, forcing forward movement.")).Add<Condition.StatusEnfeeblement>();
+
         if (!entity.Has<Component>())
         {
             entity.Set(new Component());
