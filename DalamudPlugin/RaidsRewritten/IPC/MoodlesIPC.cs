@@ -1,0 +1,47 @@
+﻿using Dalamud.Plugin.Ipc;
+using FFXIVClientStructs.FFXIV.Client.Game;
+using RaidsRewritten.Log;
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace RaidsRewritten.IPC;
+
+public class MoodlesIPC
+{
+    private Configuration configuration;
+    private DalamudServices dalamudServices;
+    private StatusManager statusManager;
+    private ILogger logger;
+
+    private readonly ICallGateSubscriber<int> _moodlesVersion;
+    public static bool MoodlesPresent = false;
+
+    public MoodlesIPC(Configuration configuration, StatusManager statusManager,DalamudServices dalamudServices, ILogger logger)
+    {
+        
+        this.dalamudServices = dalamudServices;
+        this.configuration = configuration;
+        this.statusManager = statusManager;
+        this.logger = logger;
+
+        _moodlesVersion = this.dalamudServices.PluginInterface.GetIpcSubscriber<int>("Moodles.Version");
+
+        CheckMoodles();
+    }
+
+    public bool CheckMoodles()
+    {
+        try
+        {
+            _moodlesVersion.InvokeFunc();
+        } catch
+        {
+            MoodlesPresent = false;
+            return MoodlesPresent;
+        }
+        statusManager.HideAll();
+        MoodlesPresent = true;
+        return MoodlesPresent;
+    }
+}

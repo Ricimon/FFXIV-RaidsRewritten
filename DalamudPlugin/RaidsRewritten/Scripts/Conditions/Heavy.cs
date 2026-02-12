@@ -17,6 +17,8 @@ public class Heavy
 
             var condition = Condition.ApplyToTarget(target, "Slowed", duration, Id, extendDuration, overrideExistingDuration);
 
+            condition.Set(new Condition.Status(215002, "Heavy", "Movement speed is reduced.")).Add<Condition.StatusEnfeeblement>();
+
             // Application VFX
             world.Entity()
                 .Set(new ActorVfx("vfx/common/eff/dk05ht_grv0h.avfx"))

@@ -115,10 +115,13 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
 
         using (font.Push())
         {
-            this.componentsQuery.Each((ref Condition.Component status) =>
+            if (configuration.UseLegacyStatusRendering)
             {
-                AddStatus(toDraw, status, ref offsetY, ref maxWidth);
-            });
+                this.componentsQuery.Each((ref Condition.Component status) =>
+                {
+                    AddStatus(toDraw, status, ref offsetY, ref maxWidth);
+                });
+            }
 
             this.temperatureQuery.Each((ref Temperature.Component temperature) => { 
                 AddTemperature(toGaugeDraw, temperature);

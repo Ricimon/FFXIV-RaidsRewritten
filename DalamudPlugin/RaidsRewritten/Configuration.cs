@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Text.Json.Serialization;
 using Dalamud.Configuration;
 using Dalamud.Plugin;
 using NLog;
+using RaidsRewritten.IPC;
 using RaidsRewritten.UI.Util;
 
 namespace RaidsRewritten
@@ -29,13 +31,23 @@ namespace RaidsRewritten
 
         public int EffectsRendererPositionX { get; set; } = 0;
         public int EffectsRendererPositionY { get; set; } = 0;
+        
+        private bool _useLegacyStatusRendering { get; set; } = false;
+        [JsonIgnore]
+        public bool UseLegacyStatusRendering
+        {
+            get => _useLegacyStatusRendering | MoodlesIPC.MoodlesPresent;
+            set => _useLegacyStatusRendering = value;
+        }
+
+        public int FlyPopupTextLimit { get; set; } = 10;
 
         public int MinimumVisibleLogLevel { get; set; } = LogLevel.Info.Ordinal;
 
         // the below exist just to make saving less cumbersome
         [NonSerialized]
         private IDalamudPluginInterface? pluginInterface;
-
+        
         public void Initialize(IDalamudPluginInterface pluginInterface)
         {
             this.pluginInterface = pluginInterface;

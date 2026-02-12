@@ -11,6 +11,7 @@ using ECommons.GameHelpers.LegacyPlayer;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ObjectLifeTracker;
+using RaidsRewritten.IPC;
 using RaidsRewritten.Log;
 using RaidsRewritten.Memory;
 using RaidsRewritten.Scripts.Encounters;
@@ -25,6 +26,7 @@ public sealed class EncounterManager(
     MapEffectProcessor mapEffectProcessor,
     ObjectEffectProcessor objectEffectProcessor,
     ActorControlProcessor actorControlProcessor,
+    MoodlesIPC moodlesIPC,
     Lazy<MainWindow> mainWindow,
     Configuration configuration,
     IEncounter[] encounters,
@@ -87,6 +89,7 @@ public sealed class EncounterManager(
             logger.Info("Active encounter set to {0}", encounter.Name);
             if (!configuration.EverythingDisabled)
             {
+                moodlesIPC.CheckMoodles();
                 mainWindow.Value.Visible = true;
             }
         }
@@ -208,6 +211,7 @@ public sealed class EncounterManager(
                 a3 == DirectorUpdateCategory.Recommence)
             {
                 ActiveEncounter.IncrementRngSeed();
+                moodlesIPC.CheckMoodles();
             }
             foreach (var mechanic in ActiveEncounter.GetMechanics())
             {

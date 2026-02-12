@@ -77,10 +77,13 @@ public sealed class Knockback : IDalamudHook
                 }
             });
 
-            it.World().Entity()
+            var condition = it.World().Entity()
                 .Set(new Condition.Component("Knocked Back", duration, DateTime.UtcNow))
                 .Set(new Component(knockbackDirection))
                 .ChildOf(target);
+
+            condition.Set(new Condition.Status(215723, "Knockback", "Ordained to move in a specific direction.")).Add<Condition.StatusEnfeeblement>();
+
         }, 0, true).ChildOf(target);
     }
 

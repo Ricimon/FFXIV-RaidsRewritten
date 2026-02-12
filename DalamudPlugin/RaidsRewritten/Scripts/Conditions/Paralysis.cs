@@ -24,6 +24,9 @@ public class Paralysis(Random random, ILogger logger) : ISystem
             {
                 condition.Set(new Component(stunInterval, stunDuration, TimeOffset: stunInterval));
             }
+
+            condition.Set(new Condition.Status(215006, "Paralysis", "Deadened nerves are sometimes preventing the execution of actions.")).Add<Condition.StatusEnfeeblement>();
+
         }, 0, true).ChildOf(target);
     }
 

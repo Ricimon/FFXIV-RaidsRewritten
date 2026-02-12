@@ -17,6 +17,8 @@ public class Stun
 
             var condition = Condition.ApplyToTarget(target, "Stunned", duration, Id, extendDuration, overrideExistingDuration);
 
+            condition.Set(new Condition.Status(215004, "Stun", "Unable to execute actions.")).Add<Condition.StatusEnfeeblement>();
+
             // Application VFX
             world.Entity()
                 .Set(new ActorVfx("vfx/common/eff/dk05ht_sta0h.avfx"))

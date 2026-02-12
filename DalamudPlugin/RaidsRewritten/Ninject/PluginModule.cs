@@ -4,6 +4,7 @@ using Ninject.Modules;
 using RaidsRewritten.Game;
 using RaidsRewritten.Input;
 using RaidsRewritten.Interop;
+using RaidsRewritten.IPC;
 using RaidsRewritten.Log;
 using RaidsRewritten.Memory;
 using RaidsRewritten.Network;
@@ -33,6 +34,17 @@ public class PluginModule : NinjectModule
         Bind<ActorControlProcessor>().ToSelf().InSingletonScope();
         Bind<ResourceLoader>().ToSelf().InSingletonScope();
         Bind<VfxSpawn>().ToSelf().InSingletonScope();
+        Bind<StatusCommonProcessor>().ToSelf().InSingletonScope();
+        Bind<StatusProcessor>().ToSelf().InSingletonScope();
+        Bind<StatusCustomProcessor>().ToSelf().InSingletonScope();
+        Bind<StatusPartyListProcessor>().ToSelf().InSingletonScope();
+        Bind<StatusTargetInfoProcessor>().ToSelf().InSingletonScope();
+        Bind<StatusTargetInfoBuffDebuffProcessor>().ToSelf().InSingletonScope();
+        Bind<StatusFocusTargetProcessor>().ToSelf().InSingletonScope();
+        Bind<StatusFlyPopupTextProcessor>().ToSelf().InSingletonScope();
+
+        // IPC
+        Bind<MoodlesIPC>().ToSelf().InSingletonScope();
 
         // Plugin classes
         Bind<Plugin>().ToSelf().InSingletonScope();
@@ -47,6 +59,8 @@ public class PluginModule : NinjectModule
         Bind<NetworkClient>().ToSelf().InSingletonScope();
         Bind<NetworkClientMessageHandler>().ToSelf().WhenInjectedInto<NetworkClient>().InSingletonScope();
         Bind<NetworkClientUi>().ToSelf();
+        Bind<StatusManager>().ToSelf().InSingletonScope();
+
         // Native control overrides
         Bind<PlayerManager>().ToSelf().InSingletonScope();
         Bind<PlayerMovementOverride>().ToSelf().WhenInjectedInto<PlayerManager>().InSingletonScope();
@@ -112,6 +126,7 @@ public class PluginModule : NinjectModule
         Bind<ISystem>().To<FileReplacementSystem>();
         Bind<ISystem>().To<InputSystem>();
         Bind<ISystem>().To<NetworkClientPositionSystem>();
+        Bind<ISystem>().To<StatusSystem>();
 
         // Conditions
         Bind<ISystem>().To<Condition>();

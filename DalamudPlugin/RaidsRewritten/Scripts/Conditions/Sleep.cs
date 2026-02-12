@@ -17,6 +17,8 @@ public class Sleep
 
             var condition = Condition.ApplyToTarget(target, "Slept", duration, Id, extendDuration, overrideExistingDuration);
 
+            condition.Set(new Condition.Status(215013, "Sleep", "Overwhelming drowsiness is preventing the execution of actions.")).Add<Condition.StatusEnfeeblement>();
+
             // Application VFX
             world.Entity()
                 .Set(new ActorVfx("vfx/common/eff/dk05ht_slp0s.avfx"))

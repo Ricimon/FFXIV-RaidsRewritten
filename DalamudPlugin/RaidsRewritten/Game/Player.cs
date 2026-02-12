@@ -54,6 +54,11 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
         return world.QueryBuilder<Component>().With<LocalPlayer>().Cached().Build();
     }
 
+    public static Query<Component> QueryForAllPlayers(World world)
+    {
+        return world.QueryBuilder<Component>().Cached().Build();
+    }
+
     public void Register(World world)
     {
         this.knockbackQuery = world.QueryBuilder<Condition.Component, Knockback.Component>()
