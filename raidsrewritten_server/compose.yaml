@@ -1,7 +1,24 @@
+volumes:
+  prometheus_data: {}
+
 services:
   server:
     build:
       context: .
       target: final
+    restart: unless-stopped
+    expose:
+      - 3000
     ports:
       - 3000:3000
+
+  prometheus:
+    image: prom/prometheus
+    restart: unless-stopped
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - prometheus_data:/prometheus
+    expose:
+      - 9090
+    ports:
+      - 9090:9090
