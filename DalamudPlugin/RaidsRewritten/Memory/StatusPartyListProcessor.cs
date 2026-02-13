@@ -141,6 +141,8 @@ public unsafe class StatusPartyListProcessor
         if (!StatusCommonProcessor.LocalPlayerAvailable()) { return; }
         if (!StatusCommonProcessor.IsAddonReady(addon)) { return; }
 
+        HashSet<nint> validPC = [.. this.dalamudServices.ObjectTable.PlayerObjects.Select(pc => pc.Address)];
+
         var party = GetVisibleParty();
         // some players could be dced, so pPlayerDict.Count is not suitable
         if (party.Count != prevPartyListSize) { iconArrayRequestUpdate = true; }
@@ -174,6 +176,7 @@ public unsafe class StatusPartyListProcessor
 
                 if (hideAll)
                 {
+                    if (!validPC.Contains(player)) { continue; }
                     ResetPartyList(addon, player, element.IconArray);
                     continue;
                 }
@@ -187,9 +190,12 @@ public unsafe class StatusPartyListProcessor
         {
             var playerChara = p.PlayerCharacter;
             if (playerChara is null) { return; }
-            if (!this.dalamudServices.ObjectTable.PlayerObjects.Any(player => player.Address == playerChara.Address)) { return; }
+            if (!validPC.Contains(playerChara.Address)) { return; }
             if (!pPlayerDict.TryGetValue(playerChara.Address, out var element))
             {
+                // this assumes that any active Player.Component
+                // is a valid party member. if there are players referenced by Player.Component
+                // that aren't a party member, it will continuously rebuild pPlayerDict
                 //logger.Debug($"{p.PlayerCharacter.Name}");
                 iconArrayRequestUpdate = true;
                 return;
@@ -453,8 +459,6 @@ public unsafe class StatusPartyListProcessor
 
     private void ResetPartyList(AtkUnitBase* addon, nint player, AtkResNode*[] iconArray)
     {
-        if (!this.dalamudServices.ObjectTable.PlayerObjects.Any(p => p.Address == player)) { return; }
-
         var gameObj = (GameObject*)player;
         if (gameObj->IsCharacter())
         {
