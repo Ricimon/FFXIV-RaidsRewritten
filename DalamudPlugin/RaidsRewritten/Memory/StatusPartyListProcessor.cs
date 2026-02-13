@@ -2,22 +2,20 @@
 // 41fc913
 using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
-using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory;
+using ECommons;
 using ECommons.DalamudServices;
 using ECommons.GameFunctions;
-using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
+using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using Flecs.NET.Core;
 using RaidsRewritten.Data;
 using RaidsRewritten.Game;
 using RaidsRewritten.Interop;
-using RaidsRewritten.Interop.Structs;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Components;
-using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Utility;
 using System;
 using System.Collections.Generic;
@@ -28,6 +26,9 @@ namespace RaidsRewritten.Memory;
 
 public unsafe class StatusPartyListProcessor
 {
+    private record struct PlayerDictElement(AtkResNode*[] IconArray, bool Dirty, int PrevNumStatuses, int Order);
+    private record struct VisiblePartyElement(nint GameObj, int Order);
+
     private readonly Configuration configuration;
     private readonly DalamudServices dalamudServices;
     private readonly StatusCommonProcessor statusCommonProcessor;
@@ -36,10 +37,13 @@ public unsafe class StatusPartyListProcessor
     private readonly CommonQueries commonQueries;
     private readonly ILogger logger;
 
-    private int prevNumStatuses = -1;
     private int ActiveNodeIdForTooltip = -1;
     private AtkResNode* ActiveContainerForTooltip = null;
-    private bool dirty = false;
+    private Dictionary<nint, PlayerDictElement> pPlayerDict = [];
+    private bool iconArrayRequestUpdate = true;
+    private int prevPartyListSize = -1;
+
+    private List<nint> GetNodeIconArrayList = [];
 
     private int[] NumStatuses = [0, 0, 0, 0, 0, 0, 0, 0];
     public StatusPartyListProcessor(
@@ -90,10 +94,7 @@ public unsafe class StatusPartyListProcessor
     // Func helper to get around 7.4's internal AddonArgs while removing ArtificialAddonArgs usage 
     private void OnAlcPartyListRequestedUpdate(AddonEvent t, AddonArgs args) => AddonRequestedUpdate((AtkUnitBase*)args.Addon.Address);
 
-    private void OnPartyListUpdate(AddonEvent type, AddonArgs args)
-    {
-        UpdatePartyList((AtkUnitBase*)args.Addon.Address);
-    }
+    private void OnPartyListUpdate(AddonEvent type, AddonArgs args) => UpdatePartyList((AtkUnitBase*)args.Addon.Address);
 
     private void AddonRequestedUpdate(AtkUnitBase* addonBase)
     {
@@ -104,32 +105,33 @@ public unsafe class StatusPartyListProcessor
         {
             NumStatuses[i] = 0;
         }
-        var index = 23;
+
         var storeIndex = 0;
-        foreach (nint player in GetVisibleParty())
+        foreach (var partyElement in GetVisibleParty())
         {
             //InternalLog.Verbose($"  Now checking {index} for {player}");
-            if (player != nint.Zero)
+            if (partyElement.GameObj != nint.Zero)
             {
-                var iconArray = GetNodeIconArray(addonBase->UldManager.NodeList[index]);
-                foreach (var x in iconArray)
+                if (this.pPlayerDict.TryGetValue(partyElement.GameObj, out var playerElement))
                 {
-                    if (x->IsVisible()) NumStatuses[storeIndex]++;
+                    // if party list was reordered, rebuild pPlayerDict
+                    if (partyElement.Order != playerElement.Order)
+                    {
+                        iconArrayRequestUpdate = true;
+                    }
+                    foreach (var x in playerElement.IconArray)
+                    {
+                        if (x->IsVisible()) NumStatuses[storeIndex]++;
+                    }
+                } else
+                {
+                    iconArrayRequestUpdate = true;
                 }
             }
             storeIndex++;
-            index--;
         }
         RefreshTooltip(addonBase);
         //logger.Info($"PartyList Requested update: {NumStatuses.Print()}");
-    }
-
-    public unsafe void RefreshTooltip(AtkUnitBase* addon)
-    {
-        if (ActiveContainerForTooltip != null)
-        {
-            AtkStage.Instance()->TooltipManager.ShowTooltip(addon->Id, ActiveContainerForTooltip, (byte*)statusCommonProcessor.TooltipMemory);
-        }
     }
 
     public void UpdatePartyList(AtkUnitBase* addon, bool hideAll = false)
@@ -138,41 +140,58 @@ public unsafe class StatusPartyListProcessor
         if (!StatusCommonProcessor.LocalPlayerAvailable()) { return; }
         if (!StatusCommonProcessor.IsAddonReady(addon)) { return; }
 
-        var partyMemberNodeIndex = 23;
         var party = GetVisibleParty();
+        // some players could be dced, so pPlayerDict.Count is not suitable
+        if (party.Count != prevPartyListSize) { iconArrayRequestUpdate = true; }
 
-        // for each player on the party list, get the array of icon elements on the party list UI
-        var pPlayerDict = new Dictionary<nint, AtkResNode*[]>();
+        //for each player on the party list, get the array of icon elements on the party list UI
+        if (iconArrayRequestUpdate)
+        {
+            iconArrayRequestUpdate = false;
+            BuildIconArrayDict(addon);
+        }
+
+        // if dirty, hide all visible status icons
+        // this is to handle statuses falling off
+        // visibility will be reenabled in SetIcon()
         for (var n = 0; n < party.Count; n++)
         {
-            var player = party[n];
+            var player = party[n].GameObj;
             if (player != nint.Zero)
             {
-                var iconArray = GetNodeIconArray(addon->UldManager.NodeList[partyMemberNodeIndex]);
-                //logger.Debug($"Icon array length for {player} is {iconArray.Length}");
-                for (var i = NumStatuses[n]; i < iconArray.Length; i++)
+                if (!this.pPlayerDict.TryGetValue(player, out var element))
                 {
-                    var c = iconArray[i];
-                    if (c->IsVisible()) c->NodeFlags ^= NodeFlags.Visible;
+                    iconArrayRequestUpdate = true;
+                    continue;
+                }
+
+                for (var i = NumStatuses[n]; i < element.IconArray!.Length; i++)
+                {
+                    var c = element.IconArray[i];
+                    if (c->IsVisible() && element.Dirty) { c->NodeFlags ^= NodeFlags.Visible; }
                 }
 
                 if (hideAll)
                 {
-                    ResetPartyList(addon, player, iconArray);
+                    ResetPartyList(addon, player, element.IconArray);
                     continue;
                 }
-
-                var curIndex = NumStatuses[n];
-                pPlayerDict[player] = iconArray;
             }
-            partyMemberNodeIndex--;
         }
+
         if (hideAll) { return; }
+
+        var redrawTooltip = false;
         commonQueries.AllPlayersQuery.Each((Entity e, ref Player.Component p) =>
         {
             if (p.PlayerCharacter is null) { return; }
             if (p.PlayerCharacter.EntityId == 0 ) { return; }
-            if (!pPlayerDict.TryGetValue(p.PlayerCharacter.Address, out var iconArray)) { return; }
+            if (!pPlayerDict.TryGetValue(p.PlayerCharacter.Address, out var element))
+            {
+                //logger.Debug($"{p.PlayerCharacter.Name}");
+                iconArrayRequestUpdate = true;
+                return;
+            }
 
             // avoid processing statuses when custom statuses are absent
             // but ensure that it runs once without custom statuses
@@ -180,12 +199,19 @@ public unsafe class StatusPartyListProcessor
             var statusQuery = StatusCommonProcessor.GetAllStatusesOfEntity(e);
             if (statusQuery.Count() == 0)
             {
-                if (!dirty)
+                if (!element.Dirty)
                 {
                     return;
                 } else
                 {
-                    dirty = false;
+                    element.Dirty = false;
+                    pPlayerDict[p.PlayerCharacter.Address] = element;
+                    if (ActiveContainerForTooltip != null)
+                    {
+                        AtkStage.Instance()->TooltipManager.HideTooltip(addon->Id);
+                        ActiveContainerForTooltip = null;
+                        ActiveNodeIdForTooltip = -1;
+                    }
                 }
             }
 
@@ -211,7 +237,8 @@ public unsafe class StatusPartyListProcessor
                     {
                         statusList.Add(new Status(status, condition, StatusType.SelfEnfeeblement));
                     }
-                    dirty = true;
+                    element.Dirty = true;
+                    pPlayerDict[(nint)pChara] = element;
                 }
             });
 
@@ -220,59 +247,97 @@ public unsafe class StatusPartyListProcessor
                 .ThenByDescending(s => s.PartyListPriority);
 
             // force tooltips to be redrawn whenever there's a shift in statuses
-            var shouldRedrawTooltip = prevNumStatuses > -1 && sortedList.Count() != prevNumStatuses;
-            prevNumStatuses = sortedList.Count();
+            var shouldRedrawTooltip = element.PrevNumStatuses > -1 && sortedList.Count() != element.PrevNumStatuses;
+            element.PrevNumStatuses = sortedList.Count();
+            pPlayerDict[(nint)pChara] = element;
+            redrawTooltip |= shouldRedrawTooltip;
 
             int curIndex = 0;
             var hasConfig = this.dalamudServices.GameConfig.UiConfig.TryGet("PartyListStatus", out uint optionInt);
-            var maxLength = hasConfig ? Math.Min(iconArray.Length, optionInt - 1) : iconArray.Length;
+            var maxLength = hasConfig ? Math.Min(element.IconArray.Length, optionInt) : element.IconArray.Length;
             foreach (var status in sortedList)
             {
                 if (curIndex >= maxLength) { return; }
-                SetIcon(addon, iconArray[curIndex], status, shouldRedrawTooltip);
+                SetIcon(addon, element.IconArray[curIndex], status);
                 curIndex++;
             }
+
+            if (redrawTooltip) { ResetTooltip(addon); }
         });
+    }
+
+    private void BuildIconArrayDict(AtkUnitBase* addonBase)
+    {
+        this.pPlayerDict.Clear();
+        var index = 23;
+        var ctr = 0;
+        var party = GetVisibleParty();
+        prevPartyListSize = party.Count;
+        foreach (var element in party)
+        {
+            var player = element.GameObj;
+            if (player != nint.Zero)
+            {
+                var iconArray = GetNodeIconArray(addonBase->UldManager.NodeList[index]);
+                this.pPlayerDict[player] = new(iconArray, false, -1, element.Order);
+            }
+            ctr++;
+            index--;
+        }
+    }
+
+    public unsafe void RefreshTooltip(AtkUnitBase* addon)
+    {
+        if (ActiveContainerForTooltip != null)
+        {
+            var addr = (nint)ActiveContainerForTooltip->GetAsAtkComponentNode()->Component;
+            if (statusCommonProcessor.HoveringOver == addr)
+            {
+                AtkStage.Instance()->TooltipManager.ShowTooltip(addon->Id, ActiveContainerForTooltip, (byte*)statusCommonProcessor.TooltipMemory);
+            } else
+            {
+                ActiveContainerForTooltip = null;
+                ActiveNodeIdForTooltip = -1;
+            }
+        }
     }
 
     /// <summary>
     ///     Returns a list of pointer addresses that are Character* references for the visible party members.
     /// </summary>
     /// <returns></returns>
-    public List<nint> GetVisibleParty()
+    private List<VisiblePartyElement> GetVisibleParty()
     {
+        List<VisiblePartyElement> ret = [new(StatusCommonProcessor.LocalPlayer(), 0)];
         if (this.dalamudServices.PartyList.Length < 2)
         {
-            return [StatusCommonProcessor.LocalPlayer()];
+            return ret;
         } else
         {
-            List<nint> ret = [StatusCommonProcessor.LocalPlayer()];
-            for (var i = 1; i < Math.Min(8, Svc.Party.Length); i++)
+            var pListIndex = 1;
+            for (var i = 0; i < Math.Min(8, Svc.Party.Length); i++)
             {
-                var obj = this.dalamudServices.PartyList[i]; 
+                var obj = Resolve($"<{pListIndex}>");
                 if (obj != null)
                 {
-                    if (obj.EntityId != 0)
+                    if ((nint)obj != StatusCommonProcessor.LocalPlayer())
                     {
-                        IGameObject? gameObj = null;
-                        dalamudServices.Framework.RunOnFrameworkThread(() =>
-                        {
-                            gameObj = dalamudServices.ObjectTable.SearchByEntityId(obj.EntityId);
-                        });
-                        if (gameObj != null)
-                        {
-                            ret.Add(gameObj.Address);
-                        }
-                        break;
+                        ret.Add(new((nint)obj, pListIndex));
                     }
+                } else
+                {
+                    ret.Add(new(nint.Zero, pListIndex));
                 }
-                ret.Add(nint.Zero);
+                pListIndex++;
             }
             return ret;
         }
     }
 
-    private void SetIcon(AtkUnitBase* addon, AtkResNode* container, Status status, bool redrawTooltip)
+    // Resolves placeholders from strings like <1> like in macros 
+    private GameObject* Resolve(string str) => Framework.Instance()->GetUIModule()->GetPronounModule()->ResolvePlaceholder($"{str}", 0, 0);
+
+    private void SetIcon(AtkUnitBase* addon, AtkResNode* container, Status status)
     {
         if (!container->IsVisible())
         {
@@ -281,7 +346,13 @@ public unsafe class StatusPartyListProcessor
 
         if (status.IsCustom)
         {
-            container->GetAsAtkComponentNode()->Component->GetImageNodeById(3)->LoadTexture(status.OriginalPath);
+            var imageNode = container->GetAsAtkComponentNode()->Component->GetImageNodeById(3);
+            imageNode->LoadTexture(status.OriginalPath);
+
+            if (!imageNode->IsVisible())
+            {
+                imageNode->NodeFlags ^= NodeFlags.Visible;
+            }
 
             // mark node image as "dirty"
             var temp = (Interop.Structs.AtkComponentIconText*)container->GetAsAtkComponentNode()->Component;
@@ -323,7 +394,7 @@ public unsafe class StatusPartyListProcessor
 
         // tooltip
         var addr = (nint)container->GetAsAtkComponentNode()->Component;
-        if (statusCommonProcessor.HoveringOver == addr && (ActiveNodeIdForTooltip == -1 || redrawTooltip))
+        if (statusCommonProcessor.HoveringOver == addr && (ActiveNodeIdForTooltip == -1))
         {
             commonQueries.StatusQuery.Each((ref _, ref status) =>
             {
@@ -353,9 +424,9 @@ public unsafe class StatusPartyListProcessor
         }
     }
 
-    public static AtkResNode*[] GetNodeIconArray(AtkResNode* node, bool reverse = false)
+    public AtkResNode*[] GetNodeIconArray(AtkResNode* node, bool reverse = false)
     {
-        var lst = new List<nint>();
+        this.GetNodeIconArrayList.Clear();
         var atk = node->GetAsAtkComponentNode();
         if (atk is null) return [];
         var uldm = atk->Component->UldManager;
@@ -366,13 +437,13 @@ public unsafe class StatusPartyListProcessor
             if ((int)next->Type < 1000) continue;
             if (((AtkUldComponentInfo*)next->GetAsAtkComponentNode()->Component->UldManager.Objects)->ComponentType == ComponentType.IconText)
             {
-                lst.Add((nint)next);
+                this.GetNodeIconArrayList.Add((nint)next);
             }
         }
-        var ret = new AtkResNode*[lst.Count];
-        for (var i = 0; i < lst.Count; i++)
+        var ret = new AtkResNode*[this.GetNodeIconArrayList.Count];
+        for (var i = 0; i < this.GetNodeIconArrayList.Count; i++)
         {
-            ret[i] = (AtkResNode*)lst[reverse ? lst.Count - 1 - i : i];
+            ret[i] = (AtkResNode*)this.GetNodeIconArrayList[reverse ? this.GetNodeIconArrayList.Count - 1 - i : i];
         }
         return ret;
     }
@@ -398,13 +469,21 @@ public unsafe class StatusPartyListProcessor
             int currIndex = 0;
             var hasConfig = this.dalamudServices.GameConfig.UiConfig.TryGet("PartyListStatus", out uint optionInt);
 
-            var maxLength = hasConfig ? Math.Min(iconArray.Length, optionInt - 1) : iconArray.Length;
+            var maxLength = hasConfig ? Math.Min(iconArray.Length, optionInt) : iconArray.Length;
             foreach (var status in sortedList)
             {
                 if (currIndex >= maxLength) { return; }
-                SetIcon(addon, iconArray[currIndex], status, true);
+                SetIcon(addon, iconArray[currIndex], status);
                 currIndex++;
             }
+            ResetTooltip(addon);
         }
+    }
+
+    private void ResetTooltip(AtkUnitBase* addon)
+    {
+        ActiveContainerForTooltip = null;
+        ActiveNodeIdForTooltip = -1;
+        AtkStage.Instance()->TooltipManager.HideTooltip(addon->Id);
     }
 }
