@@ -1,8 +1,10 @@
 pub mod message;
+pub mod metrics;
 
-use crate::game::components::Player;
 use crate::system_messages::MessageToEcs;
-use axum::routing::get;
+use crate::{game::components::*, webserver::metrics::*};
+use axum::{Router, middleware};
+use axum::{response::Html, routing::get};
 use flecs_ecs::prelude::*;
 use rmpv::Value;
 use socketioxide::{
@@ -20,6 +22,8 @@ async fn on_connect_impl(
     Data(_data): Data<Value>,
     tx_to_ecs: Sender<MessageToEcs>,
 ) {
+    CONNECTED_CLIENTS.inc();
+    CONNECTED_CLIENTS_TOTAL.inc();
     info!(ns = socket.ns(), ?socket.id, "Socket.IO connected");
 
     socket.join(socket.id);
@@ -101,6 +105,7 @@ async fn on_message_with_ack(socket: SocketRef, Data(data): Data<Value>, ack: Ac
 }
 
 async fn on_disconnect_impl(socket: SocketRef, reason: DisconnectReason, tx: Sender<MessageToEcs>) {
+    CONNECTED_CLIENTS.dec();
     info!(?socket.id, ?reason, "Socket disconnected");
 
     tx.send(MessageToEcs::RemovePlayer {
@@ -114,11 +119,13 @@ pub fn create_layer() -> (SocketIoLayer, SocketIo) {
 }
 
 pub async fn run_webserver(
-    layer: SocketIoLayer,
+    socket_layer: SocketIoLayer,
     io: SocketIo,
     tx_to_ecs: Sender<MessageToEcs>,
     world: World,
 ) -> Result<(), Box<dyn std::error::Error>> {
+    metrics::init_metrics();
+
     // https://doc.rust-lang.org/book/ch16-03-shared-state.html#atomic-reference-counting-with-arct
     let world = Arc::new(Mutex::new(world));
 
@@ -128,19 +135,14 @@ pub async fn run_webserver(
 
     io.ns("/", on_connect);
 
-    let app = axum::Router::new()
-        .route(
-            "/",
-            get(|| async move {
-                let mut players = 0;
-                let world = world.lock().unwrap();
-                world.query::<&Player>().build().each_entity(|_, _| {
-                    players += 1;
-                });
-                format!("Players connected: {players}")
-            }),
-        )
-        .layer(layer);
+    let metrics_app = Router::new().route("/metrics", get(metrics::get_metrics));
+
+    let app = Router::new()
+        .route("/", get(get_root))
+        .route("/status", get(|| async move { get_status(&world) }))
+        .layer(middleware::from_fn(metrics::metrics_middleware))
+        .merge(metrics_app)
+        .layer(socket_layer);
 
     info!("Starting server.");
 
@@ -148,4 +150,26 @@ pub async fn run_webserver(
     axum::serve(listener, app).await.unwrap();
 
     Ok(())
+}
+
+async fn get_root() -> Html<String> {
+    let mut builder = string_builder::Builder::default();
+    builder.append("<h1>Welcome to the RaidsRewritten server.</h1>");
+    builder.append("<p><a href=\"https://github.com/Ricimon/FFXIV-RaidsRewritten\">https://github.com/Ricimon/FFXIV-RaidsRewritten</a></p>");
+    Html(builder.string().unwrap())
+}
+
+fn get_status(world: &Arc<Mutex<World>>) -> String {
+    let mut builder = string_builder::Builder::default();
+    let mut players = 0;
+    let world = world.lock().unwrap();
+    world.query::<(&Player, &Party)>().build().each(|(pl, pa)| {
+        builder.append(format!("{} - {}\n", pa.id, pl.name));
+        players += 1;
+    });
+    format!(
+        "Players connected: {}\n\n{}",
+        players,
+        builder.string().unwrap()
+    )
 }

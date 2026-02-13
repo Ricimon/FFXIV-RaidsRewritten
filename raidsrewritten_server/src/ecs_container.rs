@@ -2,6 +2,7 @@ use crate::game::components::*;
 use crate::game::{mechanics, utils::*};
 use crate::system_messages::MessageToEcs;
 use crate::webserver::message::{Action, Message, UpdatePartyStatusPayload};
+use crate::webserver::metrics::*;
 use flecs_ecs::prelude::*;
 use socketioxide::socket::Sid;
 use socketioxide::{SocketIo, socket};
@@ -75,6 +76,8 @@ fn process_messages(world: &World, queries: &CommonQueries, rx_from_ws: &Receive
                         "Adding Player"
                     );
                     player_entity = world.entity();
+                    CONNECTED_PLAYERS.inc();
+                    CONNECTED_PLAYERS_TOTAL.inc();
                 }
 
                 player_entity
@@ -128,6 +131,7 @@ fn process_messages(world: &World, queries: &CommonQueries, rx_from_ws: &Receive
                                 );
                             });
                             e.destruct();
+                            CONNECTED_PLAYERS.dec();
                         }
                     });
                 });
@@ -168,6 +172,9 @@ fn process_messages(world: &World, queries: &CommonQueries, rx_from_ws: &Receive
                             party.id.clone(),
                             transform,
                         );
+                        MECHANICS_STARTED
+                            .with_label_values(&[mechanic_id.to_string()])
+                            .inc();
                     }
                 });
             }
