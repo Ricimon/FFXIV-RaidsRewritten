@@ -131,7 +131,6 @@ public unsafe class StatusPartyListProcessor
         }
     }
 
-    private record struct UpdatePartyListHelper(AtkResNode*[] IconArray, int CurIndex);
     public void UpdatePartyList(AtkUnitBase* addon, bool hideAll = false)
     {
         if (!hideAll && (configuration.UseLegacyStatusRendering || configuration.EverythingDisabled)) { return; }
@@ -141,6 +140,7 @@ public unsafe class StatusPartyListProcessor
         var partyMemberNodeIndex = 23;
         var party = GetVisibleParty();
 
+        // for each player on the party list, get the array of icon elements on the party list UI
         var pPlayerDict = new Dictionary<nint, AtkResNode*[]>();
         for (var n = 0; n < party.Count; n++)
         {
@@ -173,6 +173,9 @@ public unsafe class StatusPartyListProcessor
             if (p.PlayerCharacter.EntityId == 0 ) { return; }
             if (!pPlayerDict.TryGetValue(p.PlayerCharacter.Address, out var iconArray)) { return; }
 
+            // avoid processing statuses when custom statuses are absent
+            // but ensure that it runs once without custom statuses
+            // to clean up
             var statusQuery = StatusCommonProcessor.GetAllStatusesOfEntity(e);
             if (statusQuery.Count() == 0)
             {
@@ -185,6 +188,7 @@ public unsafe class StatusPartyListProcessor
                 }
             }
 
+            // compile a list of statuses and sort them
             var pChara = p.PlayerCharacter.Character();
             List<Structures.Status> statusList = [];
             foreach (var status in pChara->GetStatusManager()->Status)
@@ -214,12 +218,12 @@ public unsafe class StatusPartyListProcessor
                 .OrderBy(s => s.SourceIsSelf)
                 .ThenByDescending(s => s.PartyListPriority);
 
+            // force tooltips to be redrawn whenever there's a shift in statuses
             var shouldRedrawTooltip = prevNumStatuses > -1 && sortedList.Count() != prevNumStatuses;
             prevNumStatuses = sortedList.Count();
 
             int curIndex = 0;
             var hasConfig = this.dalamudServices.GameConfig.UiConfig.TryGet("PartyListStatus", out uint optionInt);
-
             var maxLength = hasConfig ? Math.Min(iconArray.Length, optionInt - 1) : iconArray.Length;
             foreach (var status in sortedList)
             {
