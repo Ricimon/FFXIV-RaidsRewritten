@@ -38,6 +38,7 @@ public unsafe class StatusPartyListProcessor
     private int prevNumStatuses = -1;
     private int ActiveNodeIdForTooltip = -1;
     private AtkResNode* ActiveContainerForTooltip = null;
+    private bool dirty = false;
 
     private int[] NumStatuses = [0, 0, 0, 0, 0, 0, 0, 0];
     public StatusPartyListProcessor(
@@ -165,6 +166,18 @@ public unsafe class StatusPartyListProcessor
             if (p.PlayerCharacter.EntityId == 0 ) { return; }
             if (!pPlayerDict.TryGetValue(p.PlayerCharacter.Address, out var iconArray)) { return; }
 
+            var statusQuery = StatusCommonProcessor.GetAllStatusesOfEntity(e);
+            if (statusQuery.Count() == 0)
+            {
+                if (!dirty)
+                {
+                    return;
+                } else
+                {
+                    dirty = false;
+                }
+            }
+
             var pChara = p.PlayerCharacter.Character();
             List<StatusCommonProcessor.Status> statusList = [];
             foreach (var status in pChara->GetStatusManager()->Status)
@@ -175,7 +188,6 @@ public unsafe class StatusPartyListProcessor
                 statusList.Add(temp);
             }
 
-            var statusQuery = StatusCommonProcessor.GetAllStatusesOfEntity(e);
             statusQuery.Each((e, ref condition, ref status) =>
             {
                 if (condition.TimeRemaining > 0)
@@ -187,6 +199,7 @@ public unsafe class StatusPartyListProcessor
                     {
                         statusList.Add(new StatusCommonProcessor.Status(status, condition, StatusCommonProcessor.StatusType.SelfEnfeeblement));
                     }
+                    dirty = true;
                 }
             });
 
