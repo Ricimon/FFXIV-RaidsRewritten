@@ -186,10 +186,10 @@ public unsafe class StatusPartyListProcessor
             }
 
             var pChara = p.PlayerCharacter.Character();
-            List<StatusCommonProcessor.Status> statusList = [];
+            List<Structures.Status> statusList = [];
             foreach (var status in pChara->GetStatusManager()->Status)
             {
-                var temp = new StatusCommonProcessor.Status(status);
+                var temp = new Structures.Status(status);
                 if (!temp.IsEnhancement && !temp.IsEnfeeblement && !temp.IsConditionalEnhancement) { continue; }
                 if (status.SourceObject == pChara->GetGameObjectId()) { temp.SourceIsSelf = true; }
                 statusList.Add(temp);
@@ -201,10 +201,10 @@ public unsafe class StatusPartyListProcessor
                 {
                     if (e.TryGet<FileReplacement>(out var replacement))
                     {
-                        statusList.Add(new StatusCommonProcessor.Status(status, condition, StatusCommonProcessor.StatusType.SelfEnfeeblement, replacement));
+                        statusList.Add(new Structures.Status(status, condition, Structures.StatusType.SelfEnfeeblement, replacement));
                     } else
                     {
-                        statusList.Add(new StatusCommonProcessor.Status(status, condition, StatusCommonProcessor.StatusType.SelfEnfeeblement));
+                        statusList.Add(new Structures.Status(status, condition, Structures.StatusType.SelfEnfeeblement));
                     }
                     dirty = true;
                 }
@@ -267,7 +267,7 @@ public unsafe class StatusPartyListProcessor
         }
     }
 
-    private void SetIcon(AtkUnitBase* addon, AtkResNode* container, StatusCommonProcessor.Status status, bool redrawTooltip)
+    private void SetIcon(AtkUnitBase* addon, AtkResNode* container, Structures.Status status, bool redrawTooltip)
     {
         if (!container->IsVisible())
         {
@@ -378,10 +378,10 @@ public unsafe class StatusPartyListProcessor
         if (gameObj->IsCharacter())
         {
             var pChara = gameObj->GetAsCharacter();
-            List<StatusCommonProcessor.Status> statusList = [];
+            List<Structures.Status> statusList = [];
             foreach (var status in pChara->GetStatusManager()->Status)
             {
-                var temp = new StatusCommonProcessor.Status(status);
+                var temp = new Structures.Status(status);
                 if (!temp.IsEnhancement && !temp.IsEnfeeblement && !temp.IsConditionalEnhancement) { continue; }
                 if (status.SourceObject == pChara->GetGameObjectId()) { temp.SourceIsSelf = true; }
                 statusList.Add(temp);
