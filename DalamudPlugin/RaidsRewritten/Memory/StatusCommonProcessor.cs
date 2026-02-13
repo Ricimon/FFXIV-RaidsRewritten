@@ -22,7 +22,7 @@ using System.Text;
 
 namespace RaidsRewritten.Memory;
 
-public unsafe partial class StatusCommonProcessor(
+public unsafe class StatusCommonProcessor(
     Configuration configuration,
     DalamudServices dalamudServices,
     ResourceLoader resourceLoader,
