@@ -228,15 +228,16 @@ public unsafe class StatusCommonProcessor(
 
     public static string GetTimerText(float rem)
     {
-        var seconds = MathF.Ceiling(rem);
-        if (seconds <= 59) return seconds.ToString();
-        var minutes = MathF.Floor(seconds / 60f);
-        if (minutes <= 59) return $"{minutes}m";
-        var hours = MathF.Floor(minutes / 60f);
-        if (hours <= 59) return $"{hours}h";
-        var days = MathF.Floor(hours / 24f);
-        if (days <= 9) return $"{days}d";
-        return $">9d";
+        var seconds = MathF.Round(rem);
+        if (seconds <= 0) { return ""; }
+        if (seconds < 60) { return seconds.ToString(); }
+        var minutes = MathF.Floor(seconds / 60);
+        if (minutes < 60) { return $"{minutes}m"; }
+        var hours = MathF.Floor(seconds / 3600);
+        if (hours < 24) { return $"{hours}h"; }
+        var days = MathF.Floor(seconds / 86400);
+        if (days < 10) { return $"{days}d"; }
+        return ">9d";
     }
 
     public static Query<Condition.Component, Condition.Status> QueryForStatus(World world) => world.QueryBuilder<Condition.Component, Condition.Status>().Up().Cached().Build();
