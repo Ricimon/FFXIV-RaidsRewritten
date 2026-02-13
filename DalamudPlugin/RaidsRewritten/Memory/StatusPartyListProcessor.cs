@@ -2,6 +2,7 @@
 // 41fc913
 using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
+using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory;
 using ECommons;
@@ -184,9 +185,10 @@ public unsafe class StatusPartyListProcessor
         var redrawTooltip = false;
         commonQueries.AllPlayersQuery.Each((Entity e, ref Player.Component p) =>
         {
-            if (p.PlayerCharacter is null) { return; }
-            if (p.PlayerCharacter.EntityId == 0 ) { return; }
-            if (!pPlayerDict.TryGetValue(p.PlayerCharacter.Address, out var element))
+            var playerChara = p.PlayerCharacter;
+            if (playerChara is null) { return; }
+            if (!this.dalamudServices.ObjectTable.PlayerObjects.Any(player => player.Address == playerChara.Address)) { return; }
+            if (!pPlayerDict.TryGetValue(playerChara.Address, out var element))
             {
                 //logger.Debug($"{p.PlayerCharacter.Name}");
                 iconArrayRequestUpdate = true;
@@ -205,7 +207,7 @@ public unsafe class StatusPartyListProcessor
                 } else
                 {
                     element.Dirty = false;
-                    pPlayerDict[p.PlayerCharacter.Address] = element;
+                    pPlayerDict[playerChara.Address] = element;
                     if (ActiveContainerForTooltip != null)
                     {
                         AtkStage.Instance()->TooltipManager.HideTooltip(addon->Id);
@@ -216,7 +218,8 @@ public unsafe class StatusPartyListProcessor
             }
 
             // compile a list of statuses and sort them
-            var pChara = p.PlayerCharacter.Character();
+
+            var pChara = playerChara.Character();
             List<Status> statusList = [];
             foreach (var status in pChara->GetStatusManager()->Status)
             {
@@ -450,6 +453,8 @@ public unsafe class StatusPartyListProcessor
 
     private void ResetPartyList(AtkUnitBase* addon, nint player, AtkResNode*[] iconArray)
     {
+        if (!this.dalamudServices.ObjectTable.PlayerObjects.Any(p => p.Address == player)) { return; }
+
         var gameObj = (GameObject*)player;
         if (gameObj->IsCharacter())
         {
