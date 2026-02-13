@@ -135,19 +135,23 @@ pub async fn run_webserver(
 
     io.ns("/", on_connect);
 
-    let metrics_app = Router::new().route("/metrics", get(metrics::get_metrics));
-
     let app = Router::new()
         .route("/", get(get_root))
         .route("/status", get(|| async move { get_status(&world) }))
         .layer(middleware::from_fn(metrics::metrics_middleware))
-        .merge(metrics_app)
         .layer(socket_layer);
+
+    let metrics_app = Router::new().route("/metrics", get(metrics::get_metrics));
 
     info!("Starting server.");
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
-    axum::serve(listener, app).await.unwrap();
+    let t_app = tokio::task::spawn(async move { axum::serve(listener, app).await.unwrap() });
+
+    let listener_metrics = tokio::net::TcpListener::bind("0.0.0.0:3001").await.unwrap();
+    let t_metrics = tokio::task::spawn(async move { axum::serve(listener_metrics, metrics_app).await.unwrap() });
+
+    let _ = tokio::join!(t_app, t_metrics);
 
     Ok(())
 }
