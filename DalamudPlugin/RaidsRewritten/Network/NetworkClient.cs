@@ -1,11 +1,16 @@
 ﻿using System;
+using System.IO;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AsyncAwaitBestPractices;
 using JsonConverters;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using RaidsRewritten.Data;
 using RaidsRewritten.Log;
+using RaidsRewritten.Utility;
 using SocketIO.Serializer.NewtonsoftJson;
+using SocketIOClient;
 
 namespace RaidsRewritten.Network;
 
@@ -30,7 +35,34 @@ public sealed class NetworkClient(
 
     private SocketIOClient.SocketIO? client;
 
-    public string GetServerUrl() => string.IsNullOrEmpty(configuration.ServerUrl) ? DefaultServerUrl : configuration.ServerUrl;
+    public string GetServerUrl()
+    {
+        var serverUrl = DefaultServerUrl;
+
+        var configPath = dalamud.PluginInterface.GetResourcePath("config.json");
+        if (File.Exists(configPath))
+        {
+            var configString = File.ReadAllText(configPath);
+            try
+            {
+                var loadConfig = System.Text.Json.JsonSerializer.Deserialize<LoadConfig>(configString);
+                if (loadConfig != null && !string.IsNullOrEmpty(loadConfig.serverUrl))
+                {
+                    serverUrl = loadConfig.serverUrl;
+                }
+            }
+            catch (Exception) { }
+        }
+
+#if DEBUG
+        if (!string.IsNullOrEmpty(configuration.ServerUrl))
+        {
+            serverUrl = configuration.ServerUrl;
+        }
+#endif
+
+        return serverUrl;
+    }
 
     public bool Connect()
     {
@@ -39,18 +71,37 @@ public sealed class NetworkClient(
             return false;
         }
 
-        client = new SocketIOClient.SocketIO(GetServerUrl(), new()
+        try
         {
-            Transport = SocketIOClient.Transport.TransportProtocol.WebSocket,
-            ReconnectionAttempts = 3,
-        })
-        {
-            Serializer = new NewtonsoftJsonSerializer(new JsonSerializerSettings
+            var socketOptions = new SocketIOOptions()
             {
-                NullValueHandling = NullValueHandling.Ignore,
-                Converters = [new BooleanJsonConverter()],
-            })
-        };
+                Transport = SocketIOClient.Transport.TransportProtocol.WebSocket,
+                ReconnectionAttempts = 3,
+            };
+
+            var serverUrl = GetServerUrl();
+            // https://regex101.com/r/u8QBnU/2
+            var pathMatch = Regex.Match(serverUrl, @"(.+\/\/.[^\/]+)(.*)");
+            if (pathMatch.Success && pathMatch.Groups.Count > 2)
+            {
+                serverUrl = pathMatch.Groups[1].Value;
+                socketOptions.Path = pathMatch.Groups[2].Value;
+            }
+
+            client = new SocketIOClient.SocketIO(serverUrl, socketOptions)
+            {
+                Serializer = new NewtonsoftJsonSerializer(new JsonSerializerSettings
+                {
+                    NullValueHandling = NullValueHandling.Ignore,
+                    Converters = [new BooleanJsonConverter()],
+                })
+            };
+        }
+        catch(Exception e)
+        {
+            logger.Error(e.ToStringFull());
+            return false;
+        }
 
         client.OnAny((eventName, response) =>
         {

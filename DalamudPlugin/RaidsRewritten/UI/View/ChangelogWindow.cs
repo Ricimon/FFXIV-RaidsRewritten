@@ -38,6 +38,12 @@ public class ChangelogWindow : IPluginUIView
         {
             if (child)
             {
+                ImGui.Text("v2.0.0+");
+                using (var i = ImRaii.PushIndent())
+                {
+                    ImGui.TextWrapped("Network client testing.");
+                }
+
                 ImGui.Text("v1.1.2");
                 using (var i = ImRaii.PushIndent())
                 {
