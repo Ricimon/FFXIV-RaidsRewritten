@@ -11,6 +11,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using Flecs.NET.Core;
+using RaidsRewritten.Data;
 using RaidsRewritten.Game;
 using RaidsRewritten.Interop;
 using RaidsRewritten.Interop.Structs;
@@ -190,10 +191,10 @@ public unsafe class StatusPartyListProcessor
 
             // compile a list of statuses and sort them
             var pChara = p.PlayerCharacter.Character();
-            List<Structures.Status> statusList = [];
+            List<Status> statusList = [];
             foreach (var status in pChara->GetStatusManager()->Status)
             {
-                var temp = new Structures.Status(status);
+                var temp = new Status(status);
                 if (!temp.IsEnhancement && !temp.IsEnfeeblement && !temp.IsConditionalEnhancement) { continue; }
                 if (status.SourceObject == pChara->GetGameObjectId()) { temp.SourceIsSelf = true; }
                 statusList.Add(temp);
@@ -205,10 +206,10 @@ public unsafe class StatusPartyListProcessor
                 {
                     if (e.TryGet<FileReplacement>(out var replacement))
                     {
-                        statusList.Add(new Structures.Status(status, condition, Structures.StatusType.SelfEnfeeblement, replacement));
+                        statusList.Add(new Status(status, condition, StatusType.SelfEnfeeblement, replacement));
                     } else
                     {
-                        statusList.Add(new Structures.Status(status, condition, Structures.StatusType.SelfEnfeeblement));
+                        statusList.Add(new Status(status, condition, StatusType.SelfEnfeeblement));
                     }
                     dirty = true;
                 }
@@ -271,7 +272,7 @@ public unsafe class StatusPartyListProcessor
         }
     }
 
-    private void SetIcon(AtkUnitBase* addon, AtkResNode* container, Structures.Status status, bool redrawTooltip)
+    private void SetIcon(AtkUnitBase* addon, AtkResNode* container, Status status, bool redrawTooltip)
     {
         if (!container->IsVisible())
         {
@@ -382,10 +383,10 @@ public unsafe class StatusPartyListProcessor
         if (gameObj->IsCharacter())
         {
             var pChara = gameObj->GetAsCharacter();
-            List<Structures.Status> statusList = [];
+            List<Status> statusList = [];
             foreach (var status in pChara->GetStatusManager()->Status)
             {
-                var temp = new Structures.Status(status);
+                var temp = new Status(status);
                 if (!temp.IsEnhancement && !temp.IsEnfeeblement && !temp.IsConditionalEnhancement) { continue; }
                 if (status.SourceObject == pChara->GetGameObjectId()) { temp.SourceIsSelf = true; }
                 statusList.Add(temp);

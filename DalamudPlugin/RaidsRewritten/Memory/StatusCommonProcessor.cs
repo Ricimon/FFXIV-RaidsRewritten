@@ -9,6 +9,7 @@ using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using Flecs.NET.Bindings;
 using Flecs.NET.Core;
+using RaidsRewritten.Data;
 using RaidsRewritten.Game;
 using RaidsRewritten.Interop;
 using RaidsRewritten.Log;
@@ -34,7 +35,7 @@ public unsafe class StatusCommonProcessor(
     public readonly nint TooltipMemory = Marshal.AllocHGlobal(2 * 1024);
     private int ActiveTooltip = -1;
 
-    public readonly List<List<Structures.Status>> SortedStatusList = [[], [], [], [], [], [], [], []];
+    public readonly List<List<Status>> SortedStatusList = [[], [], [], [], [], [], [], []];
 
     public void Dispose()
     {

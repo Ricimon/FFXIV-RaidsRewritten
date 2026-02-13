@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace RaidsRewritten.Structures;
+namespace RaidsRewritten.Data;
 
 public struct Status
 {
