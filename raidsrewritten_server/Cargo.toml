@@ -1,6 +1,6 @@
 [package]
 name = "raidsrewritten_server"
-version = "0.1.0"
+version = "2.0.3"
 edition = "2024"
 
 [dependencies]
@@ -19,3 +19,6 @@ futures = "0.3"
 distances = "1.8.0"
 rand = "0.9.2"
 uuid = { version = "1.20.0", features = ["v4"] }
+string-builder = "0.2.0"
+prometheus = { version = "0.14.0", features = ["process"] }
+lazy_static = "1.5.0"
