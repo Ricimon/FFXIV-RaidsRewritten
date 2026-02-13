@@ -154,6 +154,13 @@ public unsafe class StatusPartyListProcessor
                     var c = iconArray[i];
                     if (c->IsVisible()) c->NodeFlags ^= NodeFlags.Visible;
                 }
+
+                if (hideAll)
+                {
+                    ResetPartyList(addon, player, iconArray);
+                    continue;
+                }
+
                 var curIndex = NumStatuses[n];
                 pPlayerDict[player] = iconArray;
             }
@@ -249,7 +256,6 @@ public unsafe class StatusPartyListProcessor
                         });
                         if (gameObj != null)
                         {
-                            
                             ret.Add(gameObj.Address);
                         }
                         break;
@@ -263,7 +269,6 @@ public unsafe class StatusPartyListProcessor
 
     private void SetIcon(AtkUnitBase* addon, AtkResNode* container, StatusCommonProcessor.Status status, bool redrawTooltip)
     {
-        if (configuration.UseLegacyStatusRendering || configuration.EverythingDisabled) { return; }
         if (!container->IsVisible())
         {
             container->NodeFlags ^= NodeFlags.Visible;
@@ -365,5 +370,36 @@ public unsafe class StatusPartyListProcessor
             ret[i] = (AtkResNode*)lst[reverse ? lst.Count - 1 - i : i];
         }
         return ret;
+    }
+
+    private void ResetPartyList(AtkUnitBase* addon, nint player, AtkResNode*[] iconArray)
+    {
+        var gameObj = (GameObject*)player;
+        if (gameObj->IsCharacter())
+        {
+            var pChara = gameObj->GetAsCharacter();
+            List<StatusCommonProcessor.Status> statusList = [];
+            foreach (var status in pChara->GetStatusManager()->Status)
+            {
+                var temp = new StatusCommonProcessor.Status(status);
+                if (!temp.IsEnhancement && !temp.IsEnfeeblement && !temp.IsConditionalEnhancement) { continue; }
+                if (status.SourceObject == pChara->GetGameObjectId()) { temp.SourceIsSelf = true; }
+                statusList.Add(temp);
+            }
+            var sortedList = statusList
+                .OrderBy(s => s.SourceIsSelf)
+                .ThenByDescending(s => s.PartyListPriority);
+
+            int currIndex = 0;
+            var hasConfig = this.dalamudServices.GameConfig.UiConfig.TryGet("PartyListStatus", out uint optionInt);
+
+            var maxLength = hasConfig ? Math.Min(iconArray.Length, optionInt - 1) : iconArray.Length;
+            foreach (var status in sortedList)
+            {
+                if (currIndex >= maxLength) { return; }
+                SetIcon(addon, iconArray[currIndex], status, true);
+                currIndex++;
+            }
+        }
     }
 }
