@@ -163,6 +163,13 @@ public unsafe class StatusCommonProcessor(
 
     public static unsafe bool LocalPlayerAvailable() => Control.Instance()->LocalPlayer is not null;
     public static unsafe nint LocalPlayer() => (nint)Control.Instance()->LocalPlayer;
-    public static Query<Condition.Component, Condition.Status> GetAllStatusesOfEntity(Entity e) => e.CsWorld().QueryBuilder<Condition.Component, Condition.Status>().With(flecs.EcsChildOf, e).Build();
+    public static Query<Condition.Component, Condition.Status, FileReplacement> GetAllStatusesOfEntityWithFileReplacement(Entity e)
+    {
+        return e.CsWorld()
+            .QueryBuilder<Condition.Component, Condition.Status, FileReplacement>()
+            .With(flecs.EcsChildOf, e)
+            .TermAt(2).Optional()
+            .Build();
+    }
     public AtkUnitBase* GetAddon(string addonName) => (AtkUnitBase*)dalamudServices.GameGui.GetAddonByName(addonName).Address;
 }
