@@ -126,7 +126,7 @@ public unsafe class StatusProcessor
                             SetIcon(addon, baseCnt, ref status, ref condition, replacement);
                         } else
                         {
-                            SetIcon(addon, baseCnt, ref status, ref condition, replacement);
+                            SetIcon(addon, baseCnt, ref status, ref condition);
                         }
                         baseCnt--;
                     }
