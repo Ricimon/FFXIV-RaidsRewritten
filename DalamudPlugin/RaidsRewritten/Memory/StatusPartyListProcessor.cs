@@ -214,17 +214,11 @@ public unsafe class StatusPartyListProcessor
                 {
                     element.Dirty = false;
                     pPlayerDict[playerChara.Address] = element;
-                    if (ActiveContainerForTooltip != null)
-                    {
-                        AtkStage.Instance()->TooltipManager.HideTooltip(addon->Id);
-                        ActiveContainerForTooltip = null;
-                        ActiveNodeIdForTooltip = -1;
-                    }
+                    if (ActiveContainerForTooltip != null) { ResetTooltip(addon); }
                 }
             }
 
             // compile a list of statuses and sort them
-
             var pChara = playerChara.Character();
             List<Status> statusList = [];
             foreach (var status in pChara->GetStatusManager()->Status)
@@ -343,6 +337,8 @@ public unsafe class StatusPartyListProcessor
         }
     }
 
+    // adapted from https://github.com/NightmareXIV/ECommons/blob/master/ECommons/GameFunctions/ExtendedPronoun.cs
+    // e72386f
     // Resolves placeholders from strings like <1> like in macros 
     private GameObject* Resolve(string str) => Framework.Instance()->GetUIModule()->GetPronounModule()->ResolvePlaceholder($"{str}", 0, 0);
 
@@ -353,7 +349,7 @@ public unsafe class StatusPartyListProcessor
             container->NodeFlags ^= NodeFlags.Visible;
         }
 
-        if (status.IsCustom)
+        if (!string.IsNullOrEmpty(status.OriginalPath))
         {
             var imageNode = container->GetAsAtkComponentNode()->Component->GetImageNodeById(3);
             imageNode->LoadTexture(status.OriginalPath);

@@ -13,7 +13,6 @@ using RaidsRewritten.Utility;
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
-using TerraFX.Interop.Windows;
 
 namespace RaidsRewritten.Memory;
 
