@@ -11,19 +11,16 @@ using ECommons.GameFunctions;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using Flecs.NET.Bindings;
 using Flecs.NET.Core;
 using RaidsRewritten.Data;
 using RaidsRewritten.Game;
 using RaidsRewritten.Interop;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Components;
-using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace RaidsRewritten.Memory;
@@ -207,7 +204,7 @@ public unsafe class StatusPartyListProcessor
             // avoid processing statuses when custom statuses are absent
             // but ensure that it runs once without custom statuses
             // to clean up
-            var statusQuery = StatusCommonProcessor.GetAllStatusesOfEntityWithFileReplacement(e);
+            var statusQuery = StatusCommonProcessor.GetAllStatusesOfEntity(e);
             if (statusQuery.Count() == 0)
             {
                 if (!element.Dirty)
@@ -232,11 +229,11 @@ public unsafe class StatusPartyListProcessor
                 statusList.Add(temp);
             }
 
-            statusQuery.Each((e, ref condition, ref status, ref replacement) =>
+            statusQuery.Each((e, ref condition, ref status) =>
             {
                 if (condition.TimeRemaining > 0)
                 {
-                    if (!Unsafe.IsNullRef(ref replacement))
+                    if (e.TryGet<FileReplacement>(out var replacement))
                     {
                         statusList.Add(new Status(status, condition, StatusType.SelfEnfeeblement, replacement));
                     } else

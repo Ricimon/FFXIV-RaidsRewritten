@@ -11,7 +11,6 @@ using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Utility;
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace RaidsRewritten.Memory;
@@ -117,12 +116,12 @@ public unsafe class StatusProcessor
 
             commonQueries.LocalPlayerQuery.Each((e, ref player) =>
             {
-                var statusQuery = StatusCommonProcessor.GetAllStatusesOfEntityWithFileReplacement(e);
-                statusQuery.Each((e, ref condition, ref status, ref replacement) =>
+                var statusQuery = StatusCommonProcessor.GetAllStatusesOfEntity(e);
+                statusQuery.Each((e, ref condition, ref status) =>
                 {
                     if (condition.TimeRemaining > 0)
                     {
-                        if (!Unsafe.IsNullRef(ref replacement))
+                        if (e.TryGet<FileReplacement>(out var replacement))
                         {
                             SetIcon(addon, baseCnt, ref status, ref condition, replacement);
                         } else

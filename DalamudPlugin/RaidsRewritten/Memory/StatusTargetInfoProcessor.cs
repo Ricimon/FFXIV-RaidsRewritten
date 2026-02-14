@@ -14,7 +14,6 @@ using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Utility;
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace RaidsRewritten.Memory;
@@ -122,13 +121,13 @@ public unsafe class StatusTargetInfoProcessor
             {
                 if (player.PlayerCharacter != null && player.PlayerCharacter.Address == target.Address)
                 {
-                    var statusQuery = StatusCommonProcessor.GetAllStatusesOfEntityWithFileReplacement(e);
-                    statusQuery.Each((e, ref condition, ref status, ref replacement) =>
+                    var statusQuery = StatusCommonProcessor.GetAllStatusesOfEntity(e);
+                    statusQuery.Each((e, ref condition, ref status) =>
                     {
                         if (baseCnt < 3) { return; }
                         if (condition.TimeRemaining > 0)
                         {
-                            if (!Unsafe.IsNullRef(ref replacement))
+                            if (e.TryGet<FileReplacement>(out var replacement))
                             {
                                 SetIcon(addon, baseCnt, ref status, ref condition, replacement);
                             } else
