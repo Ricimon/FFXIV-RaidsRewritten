@@ -4,7 +4,9 @@ using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 using RaidsRewritten.Memory;
+using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
+using RaidsRewritten.Utility;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -35,7 +37,14 @@ public unsafe class StatusSystem(
                     //logger.Debug($"ADD: {status.Icon} {status.Title} {status.Description}");
                     var chara = (Character*)StatusCommonProcessor.LocalPlayer();
                     if (chara == null || !chara->IsCharacter()) { return; }
-                    statusFlyPopupTextProcessor.Value.Enqueue(new(e, status, true, chara->EntityId));
+
+                    if (e.TryGet<FileReplacement>(out var replacement))
+                    {
+                        statusFlyPopupTextProcessor.Value.Enqueue(new(e, status, true, chara->EntityId, replacement));
+                    } else
+                    {
+                        statusFlyPopupTextProcessor.Value.Enqueue(new(e, status, true, chara->EntityId));
+                    }
                 }
             });
         world.Observer<Condition.Status>()
@@ -51,7 +60,13 @@ public unsafe class StatusSystem(
                     //logger.Debug($"REMOVE: {status.Icon} {status.Title} {status.Description}");
                     var chara = (Character*)StatusCommonProcessor.LocalPlayer();
                     if (chara == null || !chara->IsCharacter()) { return; }
-                    statusFlyPopupTextProcessor.Value.Enqueue(new(e, status, false, chara->EntityId));
+                    if (e.TryGet<FileReplacement>(out var replacement))
+                    {
+                        statusFlyPopupTextProcessor.Value.Enqueue(new(e, status, false, chara->EntityId, replacement));
+                    } else
+                    {
+                        statusFlyPopupTextProcessor.Value.Enqueue(new(e, status, false, chara->EntityId));
+                    }
 
                 }
             });

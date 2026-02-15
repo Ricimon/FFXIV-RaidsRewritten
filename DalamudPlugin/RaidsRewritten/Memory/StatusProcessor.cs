@@ -4,8 +4,11 @@ using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using RaidsRewritten.Game;
+using RaidsRewritten.Interop;
 using RaidsRewritten.Log;
+using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
+using RaidsRewritten.Utility;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -18,17 +21,26 @@ public unsafe class StatusProcessor
     private readonly DalamudServices dalamudServices;
     private readonly StatusCommonProcessor statusCommonProcessor;
     private readonly EcsContainer ecsContainer;
+    private readonly ResourceLoader resourceLoader;
     private readonly CommonQueries commonQueries;
     private readonly ILogger logger;
 
     public int NumStatuses = 0;
 
-    public StatusProcessor(Configuration configuration, DalamudServices dalamudServices, StatusCommonProcessor statusCommonProcessor, EcsContainer ecsContainer, CommonQueries commonQueries, ILogger logger)
+    public StatusProcessor(
+        Configuration configuration,
+        DalamudServices dalamudServices,
+        StatusCommonProcessor statusCommonProcessor,
+        EcsContainer ecsContainer,
+        ResourceLoader resourceLoader,
+        CommonQueries commonQueries,
+        ILogger logger)
     {
         this.configuration = configuration;
         this.dalamudServices = dalamudServices;
         this.statusCommonProcessor = statusCommonProcessor;
         this.ecsContainer = ecsContainer;
+        this.resourceLoader = resourceLoader;
         this.commonQueries = commonQueries;
         this.logger = logger;
 
@@ -78,6 +90,12 @@ public unsafe class StatusProcessor
             if (c->IsVisible())
             {
                 NumStatuses++;
+
+                // mark node as dirty
+                var temp = (Interop.Structs.AtkComponentIconText*)c->GetAsAtkComponentNode()->Component;
+                var iconId = temp->IconId;
+                temp->IconId = 0;
+                resourceLoader.LoadIconByID(c->GetAsAtkComponentNode()->Component, (int)iconId);
             }
         }
     }
@@ -99,11 +117,17 @@ public unsafe class StatusProcessor
             commonQueries.LocalPlayerQuery.Each((e, ref player) =>
             {
                 var statusQuery = StatusCommonProcessor.GetAllStatusesOfEntity(e);
-                statusQuery.Each((ref condition, ref status) =>
+                statusQuery.Each((e, ref condition, ref status) =>
                 {
                     if (condition.TimeRemaining > 0)
                     {
-                        SetIcon(addon, baseCnt, ref status, ref condition);
+                        if (e.TryGet<FileReplacement>(out var replacement))
+                        {
+                            SetIcon(addon, baseCnt, ref status, ref condition, replacement);
+                        } else
+                        {
+                            SetIcon(addon, baseCnt, ref status, ref condition);
+                        }
                         baseCnt--;
                     }
                 });
@@ -111,10 +135,10 @@ public unsafe class StatusProcessor
         }
     }
 
-    private void SetIcon(AtkUnitBase* addon, int index, ref Condition.Status status, ref Condition.Component condition)
+    private void SetIcon(AtkUnitBase* addon, int index, ref Condition.Status status, ref Condition.Component condition, FileReplacement? replacement = null)
     {
         var container = addon->UldManager.NodeList[index];
-        statusCommonProcessor.SetIcon(addon, ref status, ref condition, container);
+        statusCommonProcessor.SetIcon(addon, ref status, ref condition, container, replacement);
     }
 
 }
