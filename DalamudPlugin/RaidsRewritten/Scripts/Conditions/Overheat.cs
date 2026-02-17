@@ -7,22 +7,23 @@ public class Overheat
 {
     public record struct Component(object _);
 
-    public static Entity ApplyToTarget(Entity target, float duration, int id = 0)
+    public static void ApplyToTarget(Entity target, float duration, int id = 0)
     {
-        var world = target.CsWorld();
-        var entity = Condition.ApplyToTarget(target, "Overheated", duration, id, false, false);
-
-        entity.Set(new Condition.Status(214278, "Overheated", "Body is overheated, forcing forward movement.")).Add<Condition.StatusEnfeeblement>();
-
-        if (!entity.Has<Component>())
+        DelayedAction.Create(target.CsWorld(), (ref Iter it) =>
         {
-            entity.Set(new Component());
+            var world = target.CsWorld();
+            var entity = Condition.ApplyToTarget(target, "Overheated", duration, id, false, false);
 
-            world.Entity()
-                .Set(new ActorVfx("vfx/common/eff/dk10ht_hea0s.avfx"))
-                .ChildOf(entity);
-        }
+            entity.Set(new Condition.Status(214278, "Overheated", "Body is overheated, forcing forward movement.")).Add<Condition.StatusEnfeeblement>();
 
-        return entity;
+            if (!entity.Has<Component>())
+            {
+                entity.Set(new Component());
+
+                world.Entity()
+                    .Set(new ActorVfx("vfx/common/eff/dk10ht_hea0s.avfx"))
+                    .ChildOf(entity);
+            }
+        }, 0, true).ChildOf(target);
     }
 }
