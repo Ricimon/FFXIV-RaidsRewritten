@@ -10,7 +10,7 @@ namespace RaidsRewritten.Interop;
 
 public unsafe partial class ResourceLoader
 {
-    public delegate nint LoadIconByIDDelegate(void* iconText, int iconId);
+    public delegate char LoadIconByIDDelegate(void* iconText, int iconId);
     public LoadIconByIDDelegate LoadIconByID;
 
     public delegate void AtkComponentIconText_ReceiveEvent(nint a1, short a2, nint a3, nint a4, nint a5);

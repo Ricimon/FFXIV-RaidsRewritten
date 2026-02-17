@@ -7,11 +7,15 @@ using FFXIVClientStructs.FFXIV.Client.Graphics;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using Flecs.NET.Bindings;
 using Flecs.NET.Core;
+using RaidsRewritten.Data;
 using RaidsRewritten.Game;
 using RaidsRewritten.Interop;
+using RaidsRewritten.Log;
+using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
 using System;
 using System.Buffers.Binary;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -21,12 +25,15 @@ public unsafe class StatusCommonProcessor(
     Configuration configuration,
     DalamudServices dalamudServices,
     ResourceLoader resourceLoader,
-    CommonQueries commonQueries) : IDisposable
+    CommonQueries commonQueries,
+    ILogger logger) : IDisposable
 {
     public nint HoveringOver = 0;
 
-    private readonly nint TooltipMemory = Marshal.AllocHGlobal(2 * 1024);
+    public readonly nint TooltipMemory = Marshal.AllocHGlobal(2 * 1024);
     private int ActiveTooltip = -1;
+
+    public readonly List<List<Status>> SortedStatusList = [[], [], [], [], [], [], [], []];
 
     public void Dispose()
     {
@@ -42,19 +49,30 @@ public unsafe class StatusCommonProcessor(
         }
     }
 
-    public void SetIcon(AtkUnitBase* addon, ref Condition.Status status, ref Condition.Component condition, AtkResNode* container)
+    public void SetIcon(AtkUnitBase* addon, ref Condition.Status status, ref Condition.Component condition, AtkResNode* container, FileReplacement? replacement = null)
     {
         if (configuration.UseLegacyStatusRendering || configuration.EverythingDisabled) { return; }
         if (!container->IsVisible())
         {
             container->NodeFlags ^= NodeFlags.Visible;
         }
-        resourceLoader.LoadIconByID(container->GetAsAtkComponentNode()->Component, status.Icon);
 
-        //var dispelNode = container->GetAsAtkComponentNode()->Component->UldManager.NodeList[0];
+        if (replacement == null)
+        {
+            resourceLoader.LoadIconByID(container->GetAsAtkComponentNode()->Component, status.Icon);
+        } else
+        {
+            container->GetAsAtkComponentNode()->Component->GetImageNodeById(3)->LoadTexture(replacement.Value.OriginalPath);
+            // these are sometimes hidden for whatever reason
+            // visibility of component node will take care of hiding, so force these to be visible
+            container->GetAsAtkComponentNode()->Component->GetImageNodeById(3)->ToggleVisibility(true);
+        }
+
+        //var dispelNode = container->GetAsAtkComponentNode()->Component->UldManager.NodeList[0];09:56:24.378 | DBG | [RaidsRewritten] 2A726060DF0
+
 
         // timer
-        var textNode = container->GetAsAtkComponentNode()->Component->UldManager.NodeList[2];
+        var textNode = container->GetAsAtkComponentNode()->Component->GetTextNodeById(2);
         var timerText = "";
         if (!float.IsInfinity(condition.TimeRemaining))
         {
@@ -91,7 +109,7 @@ public unsafe class StatusCommonProcessor(
             }
             str += "\0";
             MemoryHelper.WriteSeString(TooltipMemory, str);
-            AtkStage.Instance()->TooltipManager.ShowTooltip((ushort)addon->Id, container, (byte*)TooltipMemory);
+            AtkStage.Instance()->TooltipManager.ShowTooltip(addon->Id, container, (byte*)TooltipMemory);
         }
         if (status.TooltipShown == addon->Id && HoveringOver != addr)
         {
@@ -103,24 +121,25 @@ public unsafe class StatusCommonProcessor(
         }
     }
 
-    private unsafe ByteColor CreateColor(uint color)
+    public unsafe static ByteColor CreateColor(uint color)
     {
         color = BinaryPrimitives.ReverseEndianness(color);
         var ptr = &color;
         return *(ByteColor*)ptr;
     }
 
-    private string GetTimerText(float rem)
+    public static string GetTimerText(float rem)
     {
-        var seconds = MathF.Ceiling(rem);
-        if (seconds <= 59) return seconds.ToString();
-        var minutes = MathF.Floor(seconds / 60f);
-        if (minutes <= 59) return $"{minutes}m";
-        var hours = MathF.Floor(minutes / 60f);
-        if (hours <= 59) return $"{hours}h";
-        var days = MathF.Floor(hours / 24f);
-        if (days <= 9) return $"{days}d";
-        return $">9d";
+        var seconds = MathF.Round(rem);
+        if (seconds <= 0) { return ""; }
+        if (seconds < 60) { return seconds.ToString(); }
+        var minutes = MathF.Floor(seconds / 60);
+        if (minutes < 60) { return $"{minutes}m"; }
+        var hours = MathF.Floor(seconds / 3600);
+        if (hours < 24) { return $"{hours}h"; }
+        var days = MathF.Floor(seconds / 86400);
+        if (days < 10) { return $"{days}d"; }
+        return ">9d";
     }
 
     public static Query<Condition.Component, Condition.Status> QueryForStatus(World world) => world.QueryBuilder<Condition.Component, Condition.Status>().Up().Cached().Build();

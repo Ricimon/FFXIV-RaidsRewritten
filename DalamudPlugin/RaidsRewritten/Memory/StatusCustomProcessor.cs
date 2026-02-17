@@ -3,9 +3,13 @@
 using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+using Flecs.NET.Core;
 using RaidsRewritten.Game;
+using RaidsRewritten.Interop;
 using RaidsRewritten.Log;
+using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
+using RaidsRewritten.Utility;
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -17,6 +21,7 @@ public unsafe class StatusCustomProcessor : IDisposable
     private readonly Configuration configuration;
     private readonly DalamudServices dalamudServices;
     private readonly EcsContainer ecsContainer;
+    private readonly ResourceLoader resourceLoader;
     private readonly CommonQueries commonQueries;
     private readonly StatusCommonProcessor statusCommonProcessor;
     private readonly ILogger logger;
@@ -28,11 +33,19 @@ public unsafe class StatusCustomProcessor : IDisposable
     public nint HoveringOver = 0;
     private readonly nint TooltipMemory;
 
-    public StatusCustomProcessor(Configuration configuration, DalamudServices dalamudServices, EcsContainer ecsContainer, CommonQueries commonQueries, StatusCommonProcessor statusCommonProcessor, ILogger logger)
+    public StatusCustomProcessor(
+        Configuration configuration,
+        DalamudServices dalamudServices,
+        EcsContainer ecsContainer,
+        ResourceLoader resourceLoader,
+        CommonQueries commonQueries,
+        StatusCommonProcessor statusCommonProcessor,
+        ILogger logger)
     {
         this.configuration = configuration;
         this.dalamudServices = dalamudServices;
         this.ecsContainer = ecsContainer;
+        this.resourceLoader = resourceLoader;
         this.commonQueries = commonQueries;
         this.statusCommonProcessor = statusCommonProcessor;
         this.logger = logger;
@@ -133,10 +146,17 @@ public unsafe class StatusCustomProcessor : IDisposable
         //PluginLog.Verbose($"Post1 update {args.Addon:X16}");
         var addon = (AtkUnitBase*)args.Addon.Address;
         int baseCnt = AddonStatusCustomPrerequisite(addon, NumStatuses2);
-        commonQueries.StatusOtherQuery.Each((ref Condition.Component condition, ref Condition.Status status) =>
+        commonQueries.StatusOtherQuery.Each((Entity e, ref Condition.Component condition, ref Condition.Status status) =>
         {
             if (baseCnt < 5) return;
-            UpdateStatusCustom((AtkUnitBase*)args.Addon.Address, ref condition, ref status, baseCnt);
+            if (e.TryGet<FileReplacement>(out var replacement))
+            {
+                UpdateStatusCustom((AtkUnitBase*)args.Addon.Address, ref condition, ref status, baseCnt, replacement);
+            } else
+            {
+                UpdateStatusCustom((AtkUnitBase*)args.Addon.Address, ref condition, ref status, baseCnt);
+
+            }
             baseCnt--;
         });
     }
@@ -149,10 +169,17 @@ public unsafe class StatusCustomProcessor : IDisposable
         //PluginLog.Verbose($"Post1 update {args.Addon:X16}");
         var addon = (AtkUnitBase*)args.Addon.Address;
         int baseCnt = AddonStatusCustomPrerequisite(addon, NumStatuses1);
-        commonQueries.StatusEnfeeblementQuery.Each((ref Condition.Component condition, ref Condition.Status status) =>
+        commonQueries.StatusEnfeeblementQuery.Each((Entity e, ref Condition.Component condition, ref Condition.Status status) =>
         {
             if (baseCnt < 5) return;
-            UpdateStatusCustom((AtkUnitBase*)args.Addon.Address, ref condition, ref status, baseCnt);
+            if (e.TryGet<FileReplacement>(out var replacement))
+            {
+                UpdateStatusCustom((AtkUnitBase*)args.Addon.Address, ref condition, ref status, baseCnt, replacement);
+            } else
+            {
+                UpdateStatusCustom((AtkUnitBase*)args.Addon.Address, ref condition, ref status, baseCnt);
+
+            }
             baseCnt--;
         });
     }
@@ -165,10 +192,17 @@ public unsafe class StatusCustomProcessor : IDisposable
         //PluginLog.Verbose($"Post1 update {args.Addon:X16}");
         var addon = (AtkUnitBase*)args.Addon.Address;
         int baseCnt = AddonStatusCustomPrerequisite(addon, NumStatuses0);
-        commonQueries.StatusEnhancementQuery.Each((ref Condition.Component condition, ref Condition.Status status) =>
+        commonQueries.StatusEnhancementQuery.Each((Entity e, ref Condition.Component condition, ref Condition.Status status) =>
         {
             if (baseCnt < 5) return;
-            UpdateStatusCustom((AtkUnitBase*)args.Addon.Address, ref condition, ref status, baseCnt);
+            if (e.TryGet<FileReplacement>(out var replacement))
+            {
+                UpdateStatusCustom((AtkUnitBase*)args.Addon.Address, ref condition, ref status, baseCnt, replacement);
+            } else
+            {
+                UpdateStatusCustom((AtkUnitBase*)args.Addon.Address, ref condition, ref status, baseCnt);
+
+            }
             baseCnt--;
         });
     }
@@ -188,9 +222,9 @@ public unsafe class StatusCustomProcessor : IDisposable
     }
 
     // The common logic method with all statuses of a defined type in the player's status manager.
-    public void UpdateStatusCustom(AtkUnitBase* addon, ref Condition.Component condition, ref Condition.Status status, int baseCnt)
+    public void UpdateStatusCustom(AtkUnitBase* addon, ref Condition.Component condition, ref Condition.Status status, int baseCnt, FileReplacement? replacement = null)
     {
-        SetIcon(addon, baseCnt, ref status, ref condition);
+        SetIcon(addon, baseCnt, ref status, ref condition, replacement);
     }
 
     private void AddonRequestedUpdate(AtkUnitBase* addon, ref int StatusCnt)
@@ -204,14 +238,20 @@ public unsafe class StatusCustomProcessor : IDisposable
             if (c->IsVisible())
             {
                 StatusCnt++;
+
+                // mark node as dirty
+                var temp = (Interop.Structs.AtkComponentIconText*)c->GetAsAtkComponentNode()->Component;
+                var iconId = temp->IconId;
+                temp->IconId = 0;
+                resourceLoader.LoadIconByID(c->GetAsAtkComponentNode()->Component, (int)iconId);
             }
         }
     }
 
-    private unsafe void SetIcon(AtkUnitBase* addon, int index, ref Condition.Status status, ref Condition.Component condition)
+    private unsafe void SetIcon(AtkUnitBase* addon, int index, ref Condition.Status status, ref Condition.Component condition, FileReplacement? replacement = null)
     {
         var container = addon->UldManager.NodeList[index];
-        statusCommonProcessor.SetIcon(addon, ref status, ref condition, container);
+        statusCommonProcessor.SetIcon(addon, ref status, ref condition, container, replacement);
     }
 
 }
