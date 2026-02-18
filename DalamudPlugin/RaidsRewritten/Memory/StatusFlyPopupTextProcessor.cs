@@ -5,6 +5,7 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory;
 using Dalamud.Plugin.Services;
 using ECommons;
+using ECommons.GameFunctions;
 using ECommons.Logging;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
@@ -45,7 +46,6 @@ public unsafe class StatusFlyPopupTextProcessor
     private readonly ILogger logger;
 
     private List<FlyPopupTextData> Queue = [];
-    private nint LastNode = nint.Zero;
     public FlyPopupTextData CurrentElement = null!;
     public Dictionary<uint, IconStatusData> StatusData = [];
 
@@ -116,9 +116,9 @@ public unsafe class StatusFlyPopupTextProcessor
         while (Queue.TryDequeue(out var e))
         {
             Character* target = null;
-            for (var i = 0; i < 200; i++)
+            foreach (var pc in this.dalamudServices.ObjectTable.PlayerObjects)
             {
-                GameObject* obj = objManager->Objects.IndexSorted[i];
+                GameObject* obj = pc.GameObject();
                 if (obj == null) continue;
                 if (obj->EntityId != e.OwnerEntityId) continue;
                 if (!obj->IsCharacter()) continue;
@@ -165,7 +165,7 @@ public unsafe class StatusFlyPopupTextProcessor
         for (var i = 1; i < addon->UldManager.NodeListCount; i++)
         {
             var candidate = addon->UldManager.NodeList[i];
-            if (IsCandidateValid(candidate))
+            if (IsCandidateValid(candidate, CurrentElement))
             {
                 var c = candidate->GetAsAtkComponentNode()->Component;
                 var sestr = new SeStringBuilder().AddText(CurrentElement.IsAddition ? "+ " : "- ").Append(CurrentElement.Status.Title);
@@ -187,7 +187,7 @@ public unsafe class StatusFlyPopupTextProcessor
         for (var i = 1; i < addon->UldManager.NodeListCount; i++)
         {
             var candidate = addon->UldManager.NodeList[i];
-            if (IsCandidateValid(candidate))
+            if (IsCandidateValid(candidate, CurrentElement))
             {
                 var c = candidate->GetAsAtkComponentNode()->Component;
                 var sestr = new SeStringBuilder().AddText(CurrentElement.IsAddition ? "+ " : "- ").Append(CurrentElement.Status.Title);
@@ -204,15 +204,9 @@ public unsafe class StatusFlyPopupTextProcessor
         }
     }
 
-    private bool IsCandidateValid(AtkResNode* node)
+    private bool IsCandidateValid(AtkResNode* node, FlyPopupTextData e)
     {
-        if (!node->IsVisible()) {
-            if ((nint)node == LastNode)
-            {
-                LastNode = nint.Zero;
-            }
-            return false;
-        }
+        if (!node->IsVisible()) { return false; }
         var c = node->GetAsAtkComponentNode()->Component;
         if (c->UldManager.NodeListCount < 3 || c->UldManager.NodeListCount > 4) return false;
         if (c->UldManager.NodeList[1]->Type != NodeType.Text) return false;
@@ -221,7 +215,7 @@ public unsafe class StatusFlyPopupTextProcessor
         if (!c->UldManager.NodeList[2]->IsVisible()) return false;
 
         var text = MemoryHelper.ReadSeString(&c->UldManager.NodeList[1]->GetAsAtkTextNode()->NodeText)?.GetText();
-        if (text is null || !text.StartsWith('-') && !text.StartsWith('+')) return false;
+        if (text is null || e.IsAddition ? text!.StartsWith('-') : text.StartsWith('+')) return false;
 
         if (StatusData.TryGetValue((uint)CurrentElement.Status.Icon, out var data))
         {
@@ -230,7 +224,6 @@ public unsafe class StatusFlyPopupTextProcessor
         {
             return false;
         }
-        LastNode = (nint)node;
         return true;
     }
 

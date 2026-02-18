@@ -27,48 +27,72 @@ public unsafe class StatusSystem(
     public void Register(World world)
     {
         world.Observer<Condition.Status>()
-            .With<Player.LocalPlayer>()
-            .Up()
+            .With<Condition.StatusEnhancement>()
+            .With<Player.LocalPlayer>().Up()
             .Event(Ecs.OnSet)
-            .Each((Entity e, ref Condition.Status status) =>
-            {
-                if (!configuration.EverythingDisabled && !configuration.UseLegacyStatusRendering)
-                {
-                    //logger.Debug($"ADD: {status.Icon} {status.Title} {status.Description}");
-                    var chara = (Character*)StatusCommonProcessor.LocalPlayer();
-                    if (chara == null || !chara->IsCharacter()) { return; }
-
-                    if (e.TryGet<FileReplacement>(out var replacement))
-                    {
-                        statusFlyPopupTextProcessor.Value.Enqueue(new(e, status, true, chara->EntityId, replacement));
-                    } else
-                    {
-                        statusFlyPopupTextProcessor.Value.Enqueue(new(e, status, true, chara->EntityId));
-                    }
-                }
-            });
+            .Each((e, ref status) => HandleApplyStatus(e, status));
         world.Observer<Condition.Status>()
-            .With<Player.LocalPlayer>()
-            .Up()
-            .Event(Ecs.OnRemove)
-            .Each((Entity e, ref Condition.Status status) =>
-            {
-                if (!configuration.EverythingDisabled && !configuration.UseLegacyStatusRendering)
-                {
-                    // ensure tooltip doesn't get stuck when debuff expires while showing tooltip
-                    statusCommonProcessor.DisableActiveTooltip();
-                    //logger.Debug($"REMOVE: {status.Icon} {status.Title} {status.Description}");
-                    var chara = (Character*)StatusCommonProcessor.LocalPlayer();
-                    if (chara == null || !chara->IsCharacter()) { return; }
-                    if (e.TryGet<FileReplacement>(out var replacement))
-                    {
-                        statusFlyPopupTextProcessor.Value.Enqueue(new(e, status, false, chara->EntityId, replacement));
-                    } else
-                    {
-                        statusFlyPopupTextProcessor.Value.Enqueue(new(e, status, false, chara->EntityId));
-                    }
+            .With<Condition.StatusEnfeeblement>()
+            .With<Player.LocalPlayer>().Up()
+            .Event(Ecs.OnSet)
+            .Each((e, ref status) => HandleApplyStatus(e, status));
+        world.Observer<Condition.Status>()
+            .With<Condition.StatusOther>()
+            .With<Player.LocalPlayer>().Up()
+            .Event(Ecs.OnSet)
+            .Each((e, ref status) => HandleApplyStatus(e, status));
 
-                }
-            });
+        world.Observer<Condition.Status>()
+            .With<Condition.StatusEnhancement>()
+            .With<Player.LocalPlayer>().Up()
+            .Event(Ecs.OnRemove)
+            .Each((e, ref status) => HandleRemoveStatus(e, status));
+        world.Observer<Condition.Status>()
+            .With<Condition.StatusEnfeeblement>()
+            .With<Player.LocalPlayer>().Up()
+            .Event(Ecs.OnRemove)
+            .Each((e, ref status) => HandleRemoveStatus(e, status));
+        world.Observer<Condition.Status>()
+            .With<Condition.StatusOther>()
+            .With<Player.LocalPlayer>().Up()
+            .Event(Ecs.OnRemove)
+            .Each((e, ref status) => HandleRemoveStatus(e, status));
+    }
+
+    private void HandleApplyStatus(Entity e, Condition.Status status)
+    {
+        if (!configuration.EverythingDisabled && !configuration.UseLegacyStatusRendering)
+        {
+            var chara = (Character*)StatusCommonProcessor.LocalPlayer();
+            if (chara == null || !chara->IsCharacter()) { return; }
+
+            if (e.TryGet<FileReplacement>(out var replacement))
+            {
+                statusFlyPopupTextProcessor.Value.Enqueue(new(e, status, true, chara->EntityId, replacement));
+            } else
+            {
+                statusFlyPopupTextProcessor.Value.Enqueue(new(e, status, true, chara->EntityId));
+            }
+        }
+    }
+
+    private void HandleRemoveStatus(Entity e, Condition.Status status)
+    {
+        if (!configuration.EverythingDisabled && !configuration.UseLegacyStatusRendering)
+        {
+            // ensure tooltip doesn't get stuck when debuff expires while showing tooltip
+            statusCommonProcessor.DisableActiveTooltip();
+            //logger.Debug($"REMOVE: {status.Icon} {status.Title} {status.Description}");
+            var chara = (Character*)StatusCommonProcessor.LocalPlayer();
+            if (chara == null || !chara->IsCharacter()) { return; }
+            if (e.TryGet<FileReplacement>(out var replacement))
+            {
+                statusFlyPopupTextProcessor.Value.Enqueue(new(e, status, false, chara->EntityId, replacement));
+            } else
+            {
+                statusFlyPopupTextProcessor.Value.Enqueue(new(e, status, false, chara->EntityId));
+            }
+
+        }
     }
 }
