@@ -86,6 +86,15 @@ public unsafe class StatusPartyListProcessor
         }
     }
 
+    public void Reset()
+    {
+        pPlayerDict.Clear();
+        iconArrayRequestUpdate = true;
+        prevPartyListSize = -1;
+        ActiveNodeIdForTooltip = -1;
+        ActiveContainerForTooltip = null;
+    }
+
     public void Dispose()
     {
         this.dalamudServices.AddonLifecycle.UnregisterListener(AddonEvent.PostUpdate, "_PartyList", OnPartyListUpdate);
