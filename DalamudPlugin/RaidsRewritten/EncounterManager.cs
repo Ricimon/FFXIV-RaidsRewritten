@@ -26,6 +26,7 @@ public sealed class EncounterManager(
     MapEffectProcessor mapEffectProcessor,
     ObjectEffectProcessor objectEffectProcessor,
     ActorControlProcessor actorControlProcessor,
+    StatusPartyListProcessor statusPartyListProcessor,
     MoodlesIPC moodlesIPC,
     Lazy<MainWindow> mainWindow,
     Configuration configuration,
@@ -81,6 +82,7 @@ public sealed class EncounterManager(
     private void OnTerritoryChanged(ushort obj)
     {
         ActiveEncounter?.Unload();
+        statusPartyListProcessor.Reset();
 
         if (this.encounterMap.TryGetValue(obj, out var encounter))
         {
@@ -360,6 +362,8 @@ public sealed class EncounterManager(
                 this.inCombat = true;
                 logger.Trace("COMBAT STARTED");
                 if (configuration.EverythingDisabled) { return; }
+
+                statusPartyListProcessor.Reset();
 
                 if (ActiveEncounter != null)
                 {
