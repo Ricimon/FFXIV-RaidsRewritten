@@ -125,7 +125,7 @@ public class PluginModule : NinjectModule
         Bind<ISystem>().To<ModelSystem>();
         Bind<ISystem>().To<FileReplacementSystem>();
         Bind<ISystem>().To<InputSystem>();
-        Bind<ISystem>().To<NetworkClientPositionSystem>();
+        Bind<ISystem>().To<NetworkClientSystem>();
         Bind<ISystem>().To<StatusSystem>();
 
         // Conditions

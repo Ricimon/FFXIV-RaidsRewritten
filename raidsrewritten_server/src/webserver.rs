@@ -143,8 +143,6 @@ pub async fn run_webserver(
 
     let metrics_app = Router::new().route("/metrics", get(metrics::get_metrics));
 
-    info!("Starting server.");
-
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     let t_app = tokio::task::spawn(async move { axum::serve(listener, app).await.unwrap() });
 

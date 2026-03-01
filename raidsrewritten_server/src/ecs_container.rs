@@ -208,49 +208,16 @@ fn create_observers(world: &World) {
 
     // Send UpdatePartyStatus to all party members when a player joins or leaves
     world
-        .observer::<flecs::OnSet, (&Player, &Party)>()
-        .add_event(flecs::OnRemove)
+        .observer::<flecs::OnSet, &Party>()
+        .with(Player::id())
+        .filter()
+        .each_iter(|it, _, pa1| {
+            on_player_update(&it.world(), it.event(), &pa1.id, None);
+        });
+    world
+        .observer::<flecs::OnRemove, (&Player, &Party)>()
         .each_iter(|it, _, (pl1, pa1)| {
-            let mut socket_ids: Vec<Sid> = Vec::new();
-            it.world()
-                .query::<(&Socket, &Player, &Party)>()
-                .build()
-                .each(|(s, pl2, pa2)| {
-                    // During OnRemove, the entity isn't actually gone yet
-                    if it.event() == flecs::OnRemove::ID && pl2.content_id == pl1.content_id {
-                        return;
-                    }
-                    if pa2.id == pa1.id {
-                        socket_ids.push(s.id);
-                    }
-                });
-
-            if socket_ids.is_empty() {
-                return;
-            }
-            // This conversion is technically able to overflow, but shouldn't under normal circumstances
-            // https://stackoverflow.com/a/28280042
-            let players_in_party = socket_ids.len() as u8;
-
-            let io = get_socket_io(&it.world());
-            for sid in socket_ids {
-                let io = io.clone();
-                tokio::spawn(async move {
-                    io.to(sid)
-                        .emit(
-                            "message",
-                            &Message {
-                                action: Action::UpdatePartyStatus,
-                                update_party_status: Some(UpdatePartyStatusPayload {
-                                    connected_players_in_party: players_in_party,
-                                }),
-                                ..Default::default()
-                            },
-                        )
-                        .await
-                        .unwrap();
-                });
-            }
+            on_player_update(&it.world(), it.event(), &pa1.id, Some(pl1.content_id));
         });
 
     // Cleanup party entities when the last player in the party leaves
@@ -277,4 +244,55 @@ fn create_observers(world: &World) {
 
 fn find_socket<'a>(query: &Query<&'a Socket>, socket_id: socket::Sid) -> Option<EntityView<'a>> {
     query.find(|socket| socket.id == socket_id)
+}
+
+fn on_player_update(
+    world: &WorldRef<'_>,
+    event: EntityView<'_>,
+    party_id: &String,
+    removed_player_id: Option<u64>,
+) {
+    let mut socket_ids: Vec<Sid> = Vec::new();
+    world
+        .query::<(&Socket, &Player, &Party)>()
+        .build()
+        .each(|(s, pl2, pa2)| {
+            // During OnRemove, the entity isn't actually gone yet
+            if event == flecs::OnRemove::ID
+                && let Some(player_id) = removed_player_id
+                && pl2.content_id == player_id
+            {
+                return;
+            }
+            if pa2.id == *party_id {
+                socket_ids.push(s.id);
+            }
+        });
+
+    if socket_ids.is_empty() {
+        return;
+    }
+    // This conversion is technically able to overflow, but shouldn't under normal circumstances
+    // https://stackoverflow.com/a/28280042
+    let players_in_party = socket_ids.len() as u8;
+
+    let io = get_socket_io(world);
+    for sid in socket_ids {
+        let io = io.clone();
+        tokio::spawn(async move {
+            io.to(sid)
+                .emit(
+                    "message",
+                    &Message {
+                        action: Action::UpdatePartyStatus,
+                        update_party_status: Some(UpdatePartyStatusPayload {
+                            connected_players_in_party: players_in_party,
+                        }),
+                        ..Default::default()
+                    },
+                )
+                .await
+                .unwrap();
+        });
+    }
 }

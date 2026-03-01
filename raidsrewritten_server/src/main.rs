@@ -5,6 +5,7 @@ mod webserver;
 
 use crate::system_messages::MessageToEcs;
 use std::sync::mpsc;
+use tracing::info;
 use tracing_subscriber::FmtSubscriber;
 
 // The server operates on two primary systems:
@@ -28,6 +29,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let world = ecs_container::create_world();
 
     ecs_container::run_world(world.clone(), rx_from_ws, &io);
+
+    let name = env!("CARGO_PKG_NAME");
+    let version = env!("CARGO_PKG_VERSION");
+    info!("Starting {} v{}", name, version);
 
     // The webserver occupies the main thread
     webserver::run_webserver(layer, io, tx_to_ecs, world)
