@@ -60,6 +60,7 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
     private readonly IFontHandle font;
     private readonly Query<Condition.Component> componentsQuery;
     private readonly Query<Temperature.Component> temperatureQuery;
+    private readonly Query<Blind.Component> blindQuery;
 
     private readonly List<EffectTextEntry> toDraw = [];
     private readonly List<EffectGaugeEntry> toGaugeDraw = [];
@@ -91,18 +92,51 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
 
         this.componentsQuery = ecsContainer.World.QueryBuilder<Condition.Component>().Without<Condition.Hidden>().With<Player.LocalPlayer>().Up().Cached().Build();
         this.temperatureQuery = ecsContainer.World.QueryBuilder<Temperature.Component>().Cached().Build();
+        this.blindQuery = ecsContainer.World.QueryBuilder<Blind.Component>().With<Player.LocalPlayer>().Up().Cached().Build();
     }
 
     public void Dispose()
     {
         this.font.Dispose();
         this.componentsQuery.Dispose();
+        this.blindQuery.Dispose();
     }
 
     public void Draw()
     {
         if (!this.font.Available) return;
         if (configuration.EverythingDisabled) return;
+
+        if (this.blindQuery.Count() > 0)
+        {
+            var viewport = ImGui.GetMainViewport();
+            var fgDraw = ImGui.GetForegroundDrawList();
+            fgDraw.AddRectFilled(viewport.Pos, viewport.Pos + viewport.Size, ImGui.ColorConvertFloat4ToU32(new Vector4(0, 0, 0, 1f)));
+
+            // Show remaining time so the player isn't completely disoriented
+            float minRemaining = float.MaxValue;
+            this.blindQuery.Each((Entity e, ref Blind.Component _) =>
+            {
+                if (e.Has<Condition.Component>())
+                {
+                    var cond = e.Get<Condition.Component>();
+                    if (cond.TimeRemaining < minRemaining)
+                        minRemaining = cond.TimeRemaining;
+                }
+            });
+
+            if (minRemaining < float.MaxValue)
+            {
+                using (font.Push())
+                {
+                    var text = $"Blind: {minRemaining:F1}s";
+                    var textSize = ImGui.CalcTextSize(text);
+                    var center = viewport.Pos + viewport.Size * 0.5f;
+                    var pos = center - textSize * 0.5f;
+                    fgDraw.AddText(ImGui.GetFont(), 50, pos, ImGui.ColorConvertFloat4ToU32(new Vector4(1, 1, 1, 1f)), text);
+                }
+            }
+        }
 
         toDraw.Clear();
         toGaugeDraw.Clear();

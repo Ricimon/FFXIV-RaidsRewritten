@@ -56,6 +56,13 @@ public abstract class Mechanic()
 
     public virtual void OnWeatherChange(byte weather) { }
 
+#if DEBUG
+    /// <summary>
+    /// Simulates the mechanic's core behavior with fake data for testing outside the instance.
+    /// </summary>
+    public virtual void DebugSimulate() { }
+#endif
+
     public class Factory(
         DalamudServices dalamud,
         EcsContainer ecsContainer,

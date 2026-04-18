@@ -16,6 +16,9 @@ using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Scripts.Models;
 using RaidsRewritten.Utility;
+#if DEBUG
+using ECommons.Hooks;
+#endif
 
 namespace RaidsRewritten.UI.View;
 
@@ -33,6 +36,94 @@ public partial class MainWindow
 
         if (debug)
         {
+#if DEBUG
+            if (ImGui.CollapsingHeader("Encounter Override"))
+            {
+                if (ImGui.Button("Clear Override"))
+                {
+                    encounterManager.ForceActivateEncounter(null);
+                }
+
+                foreach (var enc in encounterManager.Encounters)
+                {
+                    ImGui.SameLine();
+                    if (ImGui.Button(enc.Name))
+                    {
+                        encounterManager.ForceActivateEncounter(enc);
+                    }
+                }
+
+                ImGui.TextColored(new Vector4(1, 1, 0, 1), "Active: " + (encounterManager.ActiveEncounter?.Name ?? "None"));
+            }
+
+            if (encounterManager.ActiveEncounter != null && ImGui.CollapsingHeader("Mechanic Triggers"))
+            {
+                ImGui.Text("Global Events:");
+                if (ImGui.Button("Combat Start"))
+                {
+                    foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
+                    {
+                        mechanic.OnCombatStart();
+                    }
+                }
+                ImGui.SameLine();
+                if (ImGui.Button("Combat End"))
+                {
+                    foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
+                    {
+                        mechanic.OnCombatEnd();
+                    }
+                }
+                ImGui.SameLine();
+                if (ImGui.Button("Director: Commence"))
+                {
+                    encounterManager.ActiveEncounter.IncrementRngSeed();
+                    foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
+                    {
+                        mechanic.OnDirectorUpdate(DirectorUpdateCategory.Commence);
+                    }
+                }
+                ImGui.SameLine();
+                if (ImGui.Button("Director: Wipe"))
+                {
+                    foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
+                    {
+                        mechanic.OnDirectorUpdate(DirectorUpdateCategory.Wipe);
+                    }
+                }
+
+                ImGui.Separator();
+                ImGui.Text("Individual Mechanics:");
+                foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
+                {
+                    var name = mechanic.GetType().Name;
+                    if (ImGui.TreeNode(name))
+                    {
+                        if (ImGui.Button($"Simulate##{name}"))
+                        {
+                            mechanic.DebugSimulate();
+                        }
+                        ImGui.SameLine();
+                        if (ImGui.Button($"OnCombatStart##{name}"))
+                        {
+                            mechanic.OnCombatStart();
+                        }
+                        ImGui.SameLine();
+                        if (ImGui.Button($"OnCombatEnd##{name}"))
+                        {
+                            mechanic.OnCombatEnd();
+                        }
+                        ImGui.SameLine();
+                        if (ImGui.Button($"Reset##{name}"))
+                        {
+                            mechanic.Reset();
+                        }
+                        ImGui.TreePop();
+                    }
+                }
+            }
+#endif
+
             bool punishmentImmunity = configuration.PunishmentImmunity;
             if (ImGui.Checkbox("Punishment Immunity", ref punishmentImmunity))
             {
@@ -144,6 +235,14 @@ public partial class MainWindow
                     Pacify.ApplyToTarget(e, 5.0f);
                 });
             }
+            ImGui.SameLine();
+            if (ImGui.Button("Blind"))
+            {
+                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+                {
+                    Blind.ApplyToTarget(e, 5.0f);
+                });
+            }
 
             if (ImGui.Button("Sleep"))
             {
@@ -169,6 +268,76 @@ public partial class MainWindow
                 {
                     Heavy.ApplyToTarget(e, 5.0f, true);
                 });
+            }
+
+            if (ImGui.Button("March (Facing)"))
+            {
+                var player = this.dalamud.ObjectTable.LocalPlayer;
+                if (player != null)
+                {
+                    var rot = player.Rotation;
+                    var direction = new Vector3(MathF.Sin(rot), 0, MathF.Cos(rot));
+                    commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+                    {
+                        ForcedMarch.ApplyToTarget(e, direction, 5.0f, 3.0f, ForcedMarch.Direction.Facing);
+                    });
+                }
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("March Forward"))
+            {
+                var player = this.dalamud.ObjectTable.LocalPlayer;
+                if (player != null)
+                {
+                    var rot = player.Rotation;
+                    var direction = new Vector3(MathF.Sin(rot), 0, MathF.Cos(rot));
+                    commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+                    {
+                        ForcedMarch.ApplyToTarget(e, direction, 5.0f, 3.0f, ForcedMarch.Direction.Forward);
+                    });
+                }
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("March Back"))
+            {
+                var player = this.dalamud.ObjectTable.LocalPlayer;
+                if (player != null)
+                {
+                    var rot = player.Rotation;
+                    var direction = new Vector3(-MathF.Sin(rot), 0, -MathF.Cos(rot));
+                    commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+                    {
+                        ForcedMarch.ApplyToTarget(e, direction, 5.0f, 3.0f, ForcedMarch.Direction.Backward);
+                    });
+                }
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("March Left"))
+            {
+                var player = this.dalamud.ObjectTable.LocalPlayer;
+                if (player != null)
+                {
+                    var rot = player.Rotation;
+                    var direction = new Vector3(MathF.Cos(rot), 0, -MathF.Sin(rot));
+                    commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+                    {
+                        ForcedMarch.ApplyToTarget(e, direction, 5.0f, 3.0f, ForcedMarch.Direction.Left);
+                    });
+                }
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("March Right"))
+            {
+                var player = this.dalamud.ObjectTable.LocalPlayer;
+                if (player != null)
+                {
+                    var rot = player.Rotation;
+                    var direction = new Vector3(-MathF.Cos(rot), 0, MathF.Sin(rot));
+                    commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+                    {
+                        ForcedMarch.ApplyToTarget(e, direction, 5.0f, 3.0f, ForcedMarch.Direction.Right);
+                    });
+                }
             }
         }
 

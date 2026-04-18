@@ -36,6 +36,32 @@ public sealed class EncounterManager(
     public IEncounter? ActiveEncounter { get; private set; }
     public bool InCombat => inCombat ?? false;
 
+#if DEBUG
+    public IEncounter[] Encounters => encounters;
+
+    public void ForceActivateEncounter(IEncounter? encounter)
+    {
+        ActiveEncounter?.Unload();
+        statusPartyListProcessor.Reset();
+
+        if (encounter != null)
+        {
+            ActiveEncounter = encounter;
+            encounter.RefreshMechanics();
+            logger.Info("Force-activated encounter: {0}", encounter.Name);
+            if (!configuration.EverythingDisabled)
+            {
+                moodlesIPC.CheckMoodles();
+                mainWindow.Value.Visible = true;
+            }
+        }
+        else
+        {
+            ActiveEncounter = null;
+        }
+    }
+#endif
+
     private readonly List<string> BlacklistedPcVfx = [
         "vfx/common/eff/dk02ht_zan0m.avfx",
         "vfx/common/eff/dk03ht_bct0m.avfx",
