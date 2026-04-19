@@ -88,7 +88,8 @@ public class GreatWhirlwindStacks : Mechanic
 
     private void SpawnTowersInZone(Vector3 zoneCenter, float previewDelay)
     {
-        // Spawn one whirlwind zone visual centered on the player (persists until Reset)
+#if DEBUG
+        // Spawn one whirlwind zone visual centered on the player (persists until snapshot)
         var whirlwindCircle = World.Entity()
             .Set(new StaticVfx("vfx/omen/eff/tatumaki0m.avfx"))
             .Set(new Position(zoneCenter))
@@ -96,6 +97,7 @@ public class GreatWhirlwindStacks : Mechanic
             .Set(new Scale(new Vector3(WhirlwindRadius, WhirlwindRadius, WhirlwindRadius)))
             .Add<Omen>();
         activeWhirlwindCircles.Add(whirlwindCircle);
+#endif
 
         // Determine soaker split FIRST
         int r1 = random.Next(1, 4); // 1, 2, or 3  →  splits: 1+3, 2+2, 3+1
@@ -124,6 +126,7 @@ public class GreatWhirlwindStacks : Mechanic
             towerPositions.Add(pos);
         }
 
+#if DEBUG
         for (int i = 0; i < towerPositions.Count; i++)
         {
             var count = Math.Clamp(requiredCounts[i], 1, TowerOmenVfxByCount.Length - 1);
@@ -136,6 +139,7 @@ public class GreatWhirlwindStacks : Mechanic
                 .Add<Omen>();
             activeTowerOmens.Add(towerOmen);
         }
+#endif
 
         var da = DelayedAction.Create(World, () =>
         {
@@ -175,6 +179,7 @@ public class GreatWhirlwindStacks : Mechanic
     private void SnapshotStacks(List<Vector3> towerPositions, List<int> requiredCounts)
     {
         RemoveTowerOmens();
+        RemoveWhirlwindCircles();
 
         var player = Dalamud.ObjectTable.LocalPlayer;
         if (player == null || player.IsDead) { return; }

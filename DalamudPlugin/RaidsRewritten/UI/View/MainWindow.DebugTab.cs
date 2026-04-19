@@ -24,6 +24,26 @@ namespace RaidsRewritten.UI.View;
 
 public partial class MainWindow
 {
+#if DEBUG
+    private int debugModelCharaId = 292;
+    private Entity debugSpawnedModel = default;
+
+    private void DebugSpawnModel()
+    {
+        var player = this.dalamud.ObjectTable.LocalPlayer;
+        if (player == null) { return; }
+        if (debugSpawnedModel.IsValid()) debugSpawnedModel.Destruct();
+        debugSpawnedModel = World.Entity()
+            .Set(new Model(debugModelCharaId))
+            .Set(new Position(player.Position))
+            .Set(new Rotation(player.Rotation))
+            .Set(new Scale())
+            .Set(new UniformScale(1f))
+            .Set(new TimelineBase(0))
+            .Add<Attack>();
+    }
+#endif
+
     private void DrawDebugTab()
     {
         using var debugTab = ImRaii.TabItem("Debug");
@@ -839,6 +859,26 @@ public partial class MainWindow
                     }
                 }
             }
+        }
+
+        if (debug && ImGui.CollapsingHeader("Entity Spawner"))
+        {
+#if DEBUG
+            ImGui.SetNextItemWidth(120);
+            ImGui.InputInt("ModelCharaId", ref debugModelCharaId);
+            ImGui.SameLine();
+            if (ImGui.ArrowButton("##mcharaDec", ImGuiDir.Left)) { debugModelCharaId--; DebugSpawnModel(); }
+            ImGui.SameLine();
+            if (ImGui.ArrowButton("##mcharaInc", ImGuiDir.Right)) { debugModelCharaId++; DebugSpawnModel(); }
+            ImGui.SameLine();
+            if (ImGui.Button("Spawn Model")) DebugSpawnModel();
+            ImGui.SameLine();
+            if (ImGui.Button("Despawn") && debugSpawnedModel.IsValid())
+            {
+                debugSpawnedModel.Destruct();
+                debugSpawnedModel = default;
+            }
+#endif
         }
 
         if (ImGui.CollapsingHeader("Test Attacks (Networked)"))

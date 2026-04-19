@@ -60,6 +60,24 @@ public sealed class EntityManager : IDalamudHook
         return false;
     }
 
+    public IEnumerable<string> GetRegisteredEntityTypeNames()
+    {
+        foreach (var type in entityCreationFunctions.Keys)
+            yield return type.Name;
+    }
+
+    public bool TrySpawnEntityByName(string typeName, out Entity entity)
+    {
+        foreach (var (type, createFunc) in entityCreationFunctions)
+        {
+            if (type.Name != typeName) { continue; }
+            entity = createFunc.Invoke(this.world);
+            return true;
+        }
+        entity = default;
+        return false;
+    }
+
     public void ClearAllManagedEntities()
     {
         this.world.DeleteWith<Model>();
