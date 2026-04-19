@@ -252,6 +252,14 @@ public partial class MainWindow
                 });
             }
             ImGui.SameLine();
+            if (ImGui.Button("Accel Bomb"))
+            {
+                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+                {
+                    AccelerationBomb.ApplyToTarget(e, 5.0f);
+                });
+            }
+            ImGui.SameLine();
             if (ImGui.Button("Hysteria"))
             {
                 commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>

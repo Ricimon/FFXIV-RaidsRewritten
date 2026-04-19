@@ -53,6 +53,14 @@ Half room cleave: vfx/monster/m0888/eff/m0888sp_015c0t1.avfx (actor)
 Electrical Condenser (2x2): vfx/monster/gimmick5/eff/x6r4_b_g015_c0t1.avfx (actor)
 Electrical Condenser (3x3): vfx/monster/gimmick5/eff/x6r4_b_g016_c0t1.avfx (actor)
 
+DSR
+Tower family (DarkdragonDive variants, 5y radius, scale 2x for ~10y, static Omen component):
+  1-person: vfx/omen/eff/m0119_trap_01t.avfx (Omen 120, action 26391)
+  2-person: vfx/omen/eff/general_trap_o2x.avfx (Omen 335, action 26392)
+  3-person: vfx/omen/eff/general_trap_o3x.avfx (Omen 336, action 26393)
+  4-person: vfx/omen/eff/general_trap_o4x.avfx (Omen 337, action 26394)
+UCOB Megaflare tower (1-person): vfx/omen/eff/m0117_trap_01s.avfx (Omen 65, action 9951)
+
 FRU
 Diamond Dust Star Omen: vfx/omen/eff/m063mist_omen_o0v.avfx (static)
 Diamond Dust Star: vfx/monster/gimmick2/eff/e3d7_b3_g3_c0v.avfx

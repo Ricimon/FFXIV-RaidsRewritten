@@ -137,6 +137,7 @@ public class PluginModule : NinjectModule
         Bind<ISystem>().To<Paralysis>();
         Bind<ISystem>().To<Hysteria>();
         Bind<ISystem>().To<ForcedMarch>();
+        Bind<ISystem>().To<AccelerationBomb>();
 
         Bind<ILogger>().To<DalamudLogger>();
         Bind<DalamudLoggerFactory>().ToSelf();

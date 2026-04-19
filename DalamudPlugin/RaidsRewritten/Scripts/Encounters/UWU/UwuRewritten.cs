@@ -15,6 +15,9 @@ public class UwuRewritten : IEncounter
     // Config
     private string RngSeedKey => $"{Name}.RngSeed";
     private string GreatWhirlwindStacksKey => $"{Name}.GreatWhirlwindStacks";
+    private string GreatWhirlwindRandomOffsetKey => $"{Name}.GreatWhirlwindRandomOffset";
+    private string DownburstKey => $"{Name}.Downburst";
+    private string GigastormCleansesKey => $"{Name}.GigastormCleanses";
 
     private readonly Mechanic.Factory mechanicFactory;
     private readonly DalamudServices dalamud;
@@ -34,6 +37,9 @@ public class UwuRewritten : IEncounter
         this.defaultBoolSettings = new()
         {
             { GreatWhirlwindStacksKey, true },
+            { GreatWhirlwindRandomOffsetKey, true },
+            { DownburstKey, true },
+            { GigastormCleansesKey, true },
         };
     }
 
@@ -50,9 +56,25 @@ public class UwuRewritten : IEncounter
         }
         this.mechanics.Clear();
 
+        var rngSeedString = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
+        int rngSeed = RandomUtilities.HashToRngSeed(rngSeedString);
+
         if (configuration.GetEncounterSetting(GreatWhirlwindStacksKey, this.defaultBoolSettings[GreatWhirlwindStacksKey]))
         {
-            this.mechanics.Add(mechanicFactory.Create<GreatWhirlwindStacks>());
+            var greatWhirlwindStacks = mechanicFactory.Create<GreatWhirlwindStacks>();
+            greatWhirlwindStacks.RngSeed = rngSeed;
+            greatWhirlwindStacks.RandomTowerOffset = configuration.GetEncounterSetting(GreatWhirlwindRandomOffsetKey, this.defaultBoolSettings[GreatWhirlwindRandomOffsetKey]);
+            this.mechanics.Add(greatWhirlwindStacks);
+        }
+
+        if (configuration.GetEncounterSetting(DownburstKey, this.defaultBoolSettings[DownburstKey]))
+        {
+            this.mechanics.Add(mechanicFactory.Create<Downburst>());
+        }
+
+        if (configuration.GetEncounterSetting(GigastormCleansesKey, this.defaultBoolSettings[GigastormCleansesKey]))
+        {
+            this.mechanics.Add(mechanicFactory.Create<GigastormCleanses>());
         }
     }
 
@@ -77,11 +99,47 @@ public class UwuRewritten : IEncounter
 
     public void DrawConfig()
     {
+        ImGui.SetNextItemWidth(140);
+        string rngSeedInput = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
+        if (ImGui.InputText("RNG Seed", ref rngSeedInput, 100))
+        {
+            configuration.EncounterSettings[RngSeedKey] = rngSeedInput;
+            configuration.Save();
+            RefreshMechanics();
+        }
+
         bool greatWhirlwindStacks = configuration.GetEncounterSetting(GreatWhirlwindStacksKey, this.defaultBoolSettings[GreatWhirlwindStacksKey]);
         if (ImGui.Checkbox("Great Whirlwind Stacks", ref greatWhirlwindStacks))
         {
             configuration.EncounterSettings[GreatWhirlwindStacksKey] =
                 greatWhirlwindStacks ? bool.TrueString : bool.FalseString;
+            configuration.Save();
+            RefreshMechanics();
+        }
+
+        bool randomTowerOffset = configuration.GetEncounterSetting(GreatWhirlwindRandomOffsetKey, this.defaultBoolSettings[GreatWhirlwindRandomOffsetKey]);
+        if (ImGui.Checkbox("  Random Tower Positions", ref randomTowerOffset))
+        {
+            configuration.EncounterSettings[GreatWhirlwindRandomOffsetKey] =
+                randomTowerOffset ? bool.TrueString : bool.FalseString;
+            configuration.Save();
+            RefreshMechanics();
+        }
+
+        bool downburst = configuration.GetEncounterSetting(DownburstKey, this.defaultBoolSettings[DownburstKey]);
+        if (ImGui.Checkbox("Downburst Soaking", ref downburst))
+        {
+            configuration.EncounterSettings[DownburstKey] =
+                downburst ? bool.TrueString : bool.FalseString;
+            configuration.Save();
+            RefreshMechanics();
+        }
+
+        bool gigastormCleanses = configuration.GetEncounterSetting(GigastormCleansesKey, this.defaultBoolSettings[GigastormCleansesKey]);
+        if (ImGui.Checkbox("Gigastorm / Cleanses", ref gigastormCleanses))
+        {
+            configuration.EncounterSettings[GigastormCleansesKey] =
+                gigastormCleanses ? bool.TrueString : bool.FalseString;
             configuration.Save();
             RefreshMechanics();
         }
