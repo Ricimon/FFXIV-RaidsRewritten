@@ -699,25 +699,7 @@ public partial class MainWindow
             }
         }
 
-        if (debug && ImGui.CollapsingHeader("Entity Spawner"))
-        {
-            ImGui.SetNextItemWidth(120);
-            ImGui.InputInt("ModelCharaId", ref debugModelCharaId);
-            ImGui.SameLine();
-            if (ImGui.ArrowButton("##mcharaDec", ImGuiDir.Left)) { debugModelCharaId--; DebugSpawnModel(); }
-            ImGui.SameLine();
-            if (ImGui.ArrowButton("##mcharaInc", ImGuiDir.Right)) { debugModelCharaId++; DebugSpawnModel(); }
-            ImGui.SameLine();
-            if (ImGui.Button("Spawn Model")) DebugSpawnModel();
-            ImGui.SameLine();
-            if (ImGui.Button("Despawn") && debugSpawnedModel.IsValid())
-            {
-                debugSpawnedModel.Destruct();
-                debugSpawnedModel = default;
-            }
-        }
-
-        if (ImGui.CollapsingHeader("Test Attacks (Networked)"))
+if (ImGui.CollapsingHeader("Test Attacks (Networked)"))
         {
             this.networkClientUi.DrawConfig();
             using (ImRaii.Disabled(!this.networkClient.IsConnected))
@@ -872,6 +854,21 @@ public partial class MainWindow
                                 .Set(new Rotation(player.Rotation));
                         }
                     }
+                }
+
+                ImGui.SetNextItemWidth(120);
+                ImGui.InputInt("ModelCharaId", ref debugModelCharaId);
+                ImGui.SameLine();
+                if (ImGui.ArrowButton("##mcharaDec", ImGuiDir.Left)) { debugModelCharaId--; DebugSpawnModel(); }
+                ImGui.SameLine();
+                if (ImGui.ArrowButton("##mcharaInc", ImGuiDir.Right)) { debugModelCharaId++; DebugSpawnModel(); }
+                ImGui.SameLine();
+                if (ImGui.Button("Spawn Model")) DebugSpawnModel();
+                ImGui.SameLine();
+                if (ImGui.Button("Despawn") && debugSpawnedModel.IsValid())
+                {
+                    debugSpawnedModel.Destruct();
+                    debugSpawnedModel = default;
                 }
             }
         }
