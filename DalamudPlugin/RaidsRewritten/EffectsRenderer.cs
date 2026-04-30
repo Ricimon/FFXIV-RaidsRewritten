@@ -119,12 +119,10 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
 
         if (this.blindQuery.Count() > 0)
         {
-            var viewport = ImGui.GetMainViewport();
-            var fgDraw = ImGui.GetWindowDrawList();
-            fgDraw.AddRectFilled(viewport.Pos, viewport.Pos + viewport.Size, ImGui.ColorConvertFloat4ToU32(new Vector4(0, 0, 0, 1f)));
-
-            // Show remaining time so the player isn't completely disoriented
+            const float fadeDuration = 0.5f;
             float minRemaining = float.MaxValue;
+            float alpha = 1f;
+
             this.blindQuery.Each((Entity e, ref Blind.Component _) =>
             {
                 if (e.Has<Condition.Component>())
@@ -132,8 +130,17 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
                     var cond = e.Get<Condition.Component>();
                     if (cond.TimeRemaining < minRemaining)
                         minRemaining = cond.TimeRemaining;
+                    // Show remaining time so the player isn't completely disoriented
+                    var elapsed = (float)(DateTime.UtcNow - cond.CreationTime).TotalSeconds;
+                    var fadeIn = Math.Clamp(elapsed / fadeDuration, 0f, 1f);
+                    var fadeOut = Math.Clamp(cond.TimeRemaining / fadeDuration, 0f, 1f);
+                    alpha = Math.Min(alpha, Math.Min(fadeIn, fadeOut));
                 }
             });
+
+            var viewport = ImGui.GetMainViewport();
+            var fgDraw = ImGui.GetWindowDrawList();
+            fgDraw.AddRectFilled(viewport.Pos, viewport.Pos + viewport.Size, ImGui.ColorConvertFloat4ToU32(new Vector4(0, 0, 0, alpha)));
 
             if (minRemaining < float.MaxValue)
             {
@@ -143,7 +150,7 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
                     var textSize = ImGui.CalcTextSize(text);
                     var center = viewport.Pos + viewport.Size * 0.5f;
                     var pos = center - textSize * 0.5f;
-                    fgDraw.AddText(ImGui.GetFont(), 50, pos, ImGui.ColorConvertFloat4ToU32(new Vector4(1, 1, 1, 1f)), text);
+                    fgDraw.AddText(ImGui.GetFont(), 50, pos, ImGui.ColorConvertFloat4ToU32(new Vector4(1, 1, 1, alpha)), text);
                 }
             }
         }
