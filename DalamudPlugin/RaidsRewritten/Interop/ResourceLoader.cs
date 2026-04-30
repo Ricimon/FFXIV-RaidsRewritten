@@ -29,7 +29,7 @@ public unsafe sealed partial class ResourceLoader : IDisposable
     public const string ReadFileSig = "48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 41 54 41 55 41 56 41 57 48 81 EC ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 84 24 ?? ?? ?? ?? 48 63 42";
     public const string GetResourceSyncSig = "E8 ?? ?? ?? ?? 48 8B C8 8B C3 F0 0F C0 81";
     public const string GetResourceAsyncSig = "E8 ?? ?? ?? 00 48 8B D8 EB ?? F0 FF 83 ?? ?? 00 00";
-    public const string ReadSqPackSig = "40 56 41 56 48 83 EC ?? 0F BE 02";
+    public const string ReadSqpackSig = "40 56 41 56 48 83 EC ?? 0F BE 02";
 
     public const string CheckFileStateSig = "E8 ?? ?? ?? ?? 48 85 C0 74 ?? 4C 8B C8 ";
 
@@ -74,12 +74,12 @@ public unsafe sealed partial class ResourceLoader : IDisposable
 
         // Replace
 
-        ReadSqPackHook = hooks.HookFromSignature<ReadSqPackPrototype>(ReadSqPackSig, ReadSqPackDetour);
+        ReadSqpackHook = hooks.HookFromSignature<ReadSqpackPrototype>(ReadSqpackSig, ReadSqpackDetour);
         GetResourceSyncHook = hooks.HookFromSignature<GetResourceSyncPrototype>(GetResourceSyncSig, GetResourceSyncDetour);
         GetResourceAsyncHook = hooks.HookFromSignature<GetResourceAsyncPrototype>(GetResourceAsyncSig, GetResourceAsyncDetour);
         ReadFile = Marshal.GetDelegateForFunctionPointer<ReadFilePrototype>(sigScanner.ScanText(ReadFileSig));
 
-        ReadSqPackHook.Enable();
+        ReadSqpackHook.Enable();
         GetResourceSyncHook.Enable();
         GetResourceAsyncHook.Enable();
 
@@ -167,7 +167,7 @@ public unsafe sealed partial class ResourceLoader : IDisposable
         ActorVfxCreateHook.Dispose();
         ActorVfxRemoveHook.Dispose();
 
-        ReadSqPackHook.Dispose();
+        ReadSqpackHook.Dispose();
         GetResourceSyncHook.Dispose();
         GetResourceAsyncHook.Dispose();
 

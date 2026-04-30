@@ -23,7 +23,7 @@ public unsafe partial class ResourceLoader
 
     public delegate byte ReadFilePrototype(IntPtr fileHandler, SeFileDescriptor* fileDesc, int priority, bool isSync);
 
-    public delegate byte ReadSqPackPrototype(IntPtr fileHandler, SeFileDescriptor* fileDesc, int priority, bool isSync);
+    public delegate byte ReadSqpackPrototype(IntPtr fileHandler, SeFileDescriptor* fileDesc, int priority, bool isSync);
 
     public delegate void* GetResourceSyncPrototype(IntPtr resourceManager, uint* categoryId, ResourceType* resourceType,
         int* resourceHash, byte* path, GetResourceParameters* resParams, void* unkDebugPtr, uint unkDebugInt);
@@ -35,7 +35,7 @@ public unsafe partial class ResourceLoader
 
     public Hook<GetResourceSyncPrototype> GetResourceSyncHook { get; private set; }
     public Hook<GetResourceAsyncPrototype> GetResourceAsyncHook { get; private set; }
-    public Hook<ReadSqPackPrototype> ReadSqPackHook { get; private set; }
+    public Hook<ReadSqpackPrototype> ReadSqpackHook { get; private set; }
     public ReadFilePrototype ReadFile { get; private set; }
 
     public IReadOnlyDictionary<string, string> FileReplacements => fileReplacements;
@@ -131,16 +131,14 @@ public unsafe partial class ResourceLoader
         return CallOriginalHandler(isSync, resourceManager, categoryId, resourceType, resourceHash, path, resParams, isUnknown, unkDebugPtr, unkDebugInt);
     }
 
-    private byte ReadSqPackDetour(IntPtr fileHandler, SeFileDescriptor* fileDescriptor, int priority, bool isSync)
+    private byte ReadSqpackDetour(IntPtr fileHandler, SeFileDescriptor* fileDescriptor, int priority, bool isSync)
     {
-        if (fileDescriptor == null || fileDescriptor->ResourceHandle == null)
-        {
-            return this.ReadSqPackHook.Original(fileHandler, fileDescriptor, priority, isSync);
-        }
+        if (fileDescriptor->ResourceHandle == null)
+            return this.ReadSqpackHook.Original(fileHandler, fileDescriptor, priority, isSync);
 
         if (!fileDescriptor->ResourceHandle->GamePath(out var originalGamePath))
         {
-            return this.ReadSqPackHook.Original(fileHandler, fileDescriptor, priority, isSync);
+            return this.ReadSqpackHook.Original(fileHandler, fileDescriptor, priority, isSync);
         }
 
         var originalPath = originalGamePath.ToString();
@@ -162,7 +160,7 @@ public unsafe partial class ResourceLoader
 
         if (gameFsPath == null || gameFsPath.Length >= 260 || !isRooted || isPenumbra)
         {
-            return this.ReadSqPackHook.Original(fileHandler, fileDescriptor, priority, isSync);
+            return this.ReadSqpackHook.Original(fileHandler, fileDescriptor, priority, isSync);
         }
 
         //this.logger.Debug($"swap: {originalPath} -> {gameFsPath}");
