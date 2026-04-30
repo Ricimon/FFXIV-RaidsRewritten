@@ -373,7 +373,7 @@ public unsafe class StatusPartyListProcessor
             temp->IconId = 0;
         } else
         {
-            resourceLoader.LoadIconByID(container->GetAsAtkComponentNode()->Component, (int)status.IconId);
+            resourceLoader.LoadIconByID?.Invoke(container->GetAsAtkComponentNode()->Component, (int)status.IconId);
         }
 
         //var dispelNode = container->GetAsAtkComponentNode()->Component->UldManager.NodeList[0];
