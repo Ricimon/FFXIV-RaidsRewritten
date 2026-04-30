@@ -6,7 +6,7 @@ namespace RaidsRewritten.Scripts.Encounters.E1S;
 
 public class EdenPrimeTest(Mechanic.Factory mechanicFactory, DalamudServices dalamud, Configuration configuration) : IEncounter
 {
-    public ushort TerritoryId => 853;
+    public uint TerritoryId => 853;
 
     public string Name => "Eden Prime Test";
 

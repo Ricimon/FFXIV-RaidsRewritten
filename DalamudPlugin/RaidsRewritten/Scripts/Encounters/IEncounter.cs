@@ -4,7 +4,7 @@ namespace RaidsRewritten.Scripts.Encounters;
 
 public interface IEncounter
 {
-    ushort TerritoryId { get; }
+    uint TerritoryId { get; }
 
     string Name { get; }
 

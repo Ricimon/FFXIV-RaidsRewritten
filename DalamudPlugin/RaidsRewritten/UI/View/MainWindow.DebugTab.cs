@@ -14,20 +14,47 @@ using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Scripts.Models;
 using RaidsRewritten.Utility;
+#if DEBUG
+using ECommons.Hooks;
+#endif
 
 namespace RaidsRewritten.UI.View;
 
 public partial class MainWindow
 {
+    private int debugModelCharaId = 292;
+    private Entity debugSpawnedModel = default;
+
+    private void DebugSpawnModel()
+    {
+        var player = this.dalamud.ObjectTable.LocalPlayer;
+        if (player == null) { return; }
+        if (debugSpawnedModel.IsValid()) debugSpawnedModel.Destruct();
+        debugSpawnedModel = World.Entity()
+            .Set(new Model(debugModelCharaId))
+            .Set(new Position(player.Position))
+            .Set(new Rotation(player.Rotation))
+            .Set(new Scale())
+            .Set(new UniformScale(1f))
+            .Set(new TimelineBase(0))
+            .Add<Attack>();
+    }
+
+    private static void SameLineIfFits(string nextLabel)
+    {
+        var style = ImGui.GetStyle();
+        var displayLabel = nextLabel.Contains("##") ? nextLabel[..nextLabel.IndexOf("##")] : nextLabel;
+        var nextWidth = ImGui.CalcTextSize(displayLabel).X + style.FramePadding.X * 2;
+        if (ImGui.GetItemRectMax().X + style.ItemSpacing.X + nextWidth < ImGui.GetContentRegionMax().X)
+            ImGui.SameLine();
+    }
+
     private void DrawDebugTab()
     {
         using var debugTab = ImRaii.TabItem("Debug");
         if (!debugTab) return;
 
-        var debug = false;
-#if DEBUG
-        debug = true;
-#endif
+        var debug = true;
 
         if (debug)
         {
@@ -45,12 +72,12 @@ public partial class MainWindow
         }
         if (debug)
         {
-            ImGui.SameLine();
+            SameLineIfFits("Clear All Statuses");
             if (ImGui.Button("Clear All Statuses"))
             {
                 this.World.DeleteWith<Condition.Component>();
             }
-            ImGui.SameLine();
+            SameLineIfFits("Clear All Models");
             if (ImGui.Button("Clear All Models"))
             {
                 this.World.DeleteWith<Model>();
@@ -65,7 +92,7 @@ public partial class MainWindow
                 this.logger.Info($"Player position:{player.Position}, address:0x{player.Address:X}, entityId:0x{player.EntityId:X}, gameObjectId:0x{player.GameObjectId:X}");
             }
         }
-        ImGui.SameLine();
+        SameLineIfFits("Print Target Data");
         if (ImGui.Button("Print Target Data"))
         {
             var player = this.dalamud.ObjectTable.LocalPlayer;
@@ -91,139 +118,150 @@ public partial class MainWindow
             }
         }
 
-        ImGui.Text("Fake statuses");
-        if (ImGui.Button("Bind"))
+        if (ImGui.CollapsingHeader("Fake Statuses"))
         {
-            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+            if (ImGui.Button("Bind"))
             {
-                Bind.ApplyToTarget(e, 3.0f);
-            });
-        }
-        ImGui.SameLine();
-        if (ImGui.Button("Knockback"))
-        {
-            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
-            {
-                var angle = random.NextSingle() * 2 * MathF.PI;
-                var direction = new Vector3(MathF.Cos(angle), 0, MathF.Sin(angle));
-                Knockback.ApplyToTarget(e, direction, 2.0f, true);
-            });
-        }
-        ImGui.SameLine();
-        if (ImGui.Button("Stun"))
-        {
-            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
-            {
-                Stun.ApplyToTarget(e, 3.0f);
-            });
-        }
-        ImGui.SameLine();
-        if (ImGui.Button("Paralysis"))
-        {
-            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
-            {
-                Paralysis.ApplyToTarget(e, 5.0f, 3.0f, 1.0f);
-            });
-        }
-        ImGui.SameLine();
-        if (ImGui.Button("Heavy"))
-        {
-            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
-            {
-                Heavy.ApplyToTarget(e, 5.0f);
-            });
-        }
-        ImGui.SameLine();
-        if (ImGui.Button("Pacify"))
-        {
-            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
-            {
-                Pacify.ApplyToTarget(e, 5.0f);
-            });
-        }
-
-        if (ImGui.Button("Sleep"))
-        {
-            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
-            {
-                Sleep.ApplyToTarget(e, 3.0f);
-            });
-        }
-        ImGui.SameLine();
-        if (ImGui.Button("Hysteria"))
-        {
-            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
-            {
-                Hysteria.ApplyToTarget(e, 8.0f, 3.0f);
-            });
-        }
-
-        ImGui.SameLine();
-
-        if (ImGui.Button("Heavy (e)"))
-        {
-            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
-            {
-                Heavy.ApplyToTarget(e, 5.0f, true);
-            });
-        }
-
-        ImGui.Text("Test Omens");
-        if (ImGui.Button("Circle Omen"))
-        {
-            var player = this.dalamud.ObjectTable.LocalPlayer;
-            if (player != null)
-            {
-                if (this.entityManager.TryCreateEntity<CircleOmen>(out var circle))
+                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
                 {
-                    circle.Set(new Position(player.Position));
-                    circle.Set(new Rotation(player.Rotation));
-                    circle.Set(new Scale(Vector3.One));
-                }
+                    Bind.ApplyToTarget(e, 3.0f);
+                });
+            }
+            SameLineIfFits("Knockback");
+            if (ImGui.Button("Knockback"))
+            {
+                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+                {
+                    var angle = random.NextSingle() * 2 * MathF.PI;
+                    var direction = new Vector3(MathF.Cos(angle), 0, MathF.Sin(angle));
+                    Knockback.ApplyToTarget(e, direction, 2.0f, true);
+                });
+            }
+            SameLineIfFits("Stun");
+            if (ImGui.Button("Stun"))
+            {
+                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+                {
+                    Stun.ApplyToTarget(e, 3.0f);
+                });
+            }
+            SameLineIfFits("Paralysis");
+            if (ImGui.Button("Paralysis"))
+            {
+                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+                {
+                    Paralysis.ApplyToTarget(e, 5.0f, 3.0f, 1.0f);
+                });
+            }
+            SameLineIfFits("Heavy");
+            if (ImGui.Button("Heavy"))
+            {
+                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+                {
+                    Heavy.ApplyToTarget(e, 5.0f);
+                });
+            }
+            SameLineIfFits("Pacify");
+            if (ImGui.Button("Pacify"))
+            {
+                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+                {
+                    Pacify.ApplyToTarget(e, 5.0f);
+                });
+            }
+            SameLineIfFits("Blind");
+            if (ImGui.Button("Blind"))
+            {
+                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+                {
+                    Blind.ApplyToTarget(e, 5.0f);
+                });
+            }
+
+            if (ImGui.Button("Sleep"))
+            {
+                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+                {
+                    Sleep.ApplyToTarget(e, 3.0f);
+                });
+            }
+            SameLineIfFits("Hysteria");
+            if (ImGui.Button("Hysteria"))
+            {
+                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+                {
+                    Hysteria.ApplyToTarget(e, 8.0f, 3.0f);
+                });
+            }
+
+            SameLineIfFits("Heavy (e)");
+
+            if (ImGui.Button("Heavy (e)"))
+            {
+                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+                {
+                    Heavy.ApplyToTarget(e, 5.0f, true);
+                });
             }
         }
-        ImGui.SameLine();
-        if (ImGui.Button("Fan Omen"))
+
+        if (ImGui.CollapsingHeader("Test Omens"))
         {
-            var player = this.dalamud.ObjectTable.LocalPlayer;
-            if (player != null)
+            if (ImGui.Button("Circle Omen"))
             {
-                if (this.entityManager.TryCreateEntity<Fan90Omen>(out var fan))
+                var player = this.dalamud.ObjectTable.LocalPlayer;
+                if (player != null)
                 {
-                    fan.Set(new Position(player.Position));
-                    fan.Set(new Rotation(player.Rotation));
-                    fan.Set(new Scale(Vector3.One));
+                    if (this.entityManager.TryCreateEntity<CircleOmen>(out var circle))
+                    {
+                        circle.Set(new Position(player.Position));
+                        circle.Set(new Rotation(player.Rotation));
+                        circle.Set(new Scale(Vector3.One));
+                    }
                 }
             }
-        }
-        ImGui.SameLine();
-        if (ImGui.Button("Rect Omen"))
-        {
-            var player = this.dalamud.ObjectTable.LocalPlayer;
-            if (player != null)
+            SameLineIfFits("Fan Omen");
+            if (ImGui.Button("Fan Omen"))
             {
-                if (this.entityManager.TryCreateEntity<RectangleOmen>(out var rect))
+                var player = this.dalamud.ObjectTable.LocalPlayer;
+                if (player != null)
                 {
-                    rect.Set(new Position(player.Position));
-                    rect.Set(new Rotation(player.Rotation));
-                    rect.Set(new Scale(Vector3.One));
+                    if (this.entityManager.TryCreateEntity<Fan90Omen>(out var fan))
+                    {
+                        fan.Set(new Position(player.Position));
+                        fan.Set(new Rotation(player.Rotation));
+                        fan.Set(new Scale(Vector3.One));
+                    }
                 }
             }
-        }
-        ImGui.SameLine();
-        if (ImGui.Button("Star Omen"))
-        {
-            var player = this.dalamud.ObjectTable.LocalPlayer;
-            if (player != null)
+            SameLineIfFits("Rect Omen");
+            if (ImGui.Button("Rect Omen"))
             {
-                if (this.entityManager.TryCreateEntity<ShortStarOmen>(out var star))
+                var player = this.dalamud.ObjectTable.LocalPlayer;
+                if (player != null)
                 {
-                    star.Set(new Position(player.Position));
-                    star.Set(new Rotation(player.Rotation));
-                    star.Set(new Scale(ShortStarOmen.ScaleMultiplier * Vector3.One));
+                    if (this.entityManager.TryCreateEntity<RectangleOmen>(out var rect))
+                    {
+                        rect.Set(new Position(player.Position));
+                        rect.Set(new Rotation(player.Rotation));
+                        rect.Set(new Scale(Vector3.One));
+                    }
                 }
             }
-        }
+            SameLineIfFits("Star Omen");
+            if (ImGui.Button("Star Omen"))
+            {
+                var player = this.dalamud.ObjectTable.LocalPlayer;
+                if (player != null)
+                {
+                    if (this.entityManager.TryCreateEntity<ShortStarOmen>(out var star))
+                    {
+                        star.Set(new Position(player.Position));
+                        star.Set(new Rotation(player.Rotation));
+                        star.Set(new Scale(ShortStarOmen.ScaleMultiplier * Vector3.One));
+                    }
+                }
+            }
 
         if (ImGui.Button("One Third Donut Omen"))
         {
@@ -254,61 +292,63 @@ public partial class MainWindow
             }
         }
 
-        if (debug)
-        {
-            if (ImGui.Button("Spawn Ball"))
+            if (debug)
             {
-                var player = this.dalamud.ObjectTable.LocalPlayer;
-                if (player != null)
+                SameLineIfFits("Spawn Ball");
+                if (ImGui.Button("Spawn Ball"))
                 {
-                    if (this.entityManager.TryCreateEntity<RollingBall>(out var ball))
+                    var player = this.dalamud.ObjectTable.LocalPlayer;
+                    if (player != null)
                     {
-                        ball.Set(new Position(player.Position))
-                            .Set(new Rotation(player.Rotation))
-                            .Set(new RollingBall.Movement(MathUtilities.RotationToUnitVector(player.Rotation)))
-                            .Set(new RollingBall.CircleArena(player.Position.ToVector2(), 10.0f));
-                        //.Set(new RollingBall.ShowOmen());
+                        if (this.entityManager.TryCreateEntity<RollingBall>(out var ball))
+                        {
+                            ball.Set(new Position(player.Position))
+                                .Set(new Rotation(player.Rotation))
+                                .Set(new RollingBall.Movement(MathUtilities.RotationToUnitVector(player.Rotation)))
+                                .Set(new RollingBall.CircleArena(player.Position.ToVector2(), 10.0f));
+                            //.Set(new RollingBall.ShowOmen());
+                        }
                     }
                 }
-            }
-            if (ImGui.Button("LightningCorridor"))
-            {
-                var player = this.dalamud.ObjectTable.LocalPlayer;
-                if (player != null)
+                SameLineIfFits("LightningCorridor");
+                if (ImGui.Button("LightningCorridor"))
                 {
-                    if (this.entityManager.TryCreateEntity<LightningCorridor>(out var attack))
+                    var player = this.dalamud.ObjectTable.LocalPlayer;
+                    if (player != null)
                     {
-                        attack.Set(new Position(player.Position))
-                            .Set(new Rotation(player.Rotation));
+                        if (this.entityManager.TryCreateEntity<LightningCorridor>(out var attack))
+                        {
+                            attack.Set(new Position(player.Position))
+                                .Set(new Rotation(player.Rotation));
+                        }
                     }
                 }
-            }
 
-            if (ImGui.Button("Exaflare"))
-            {
-                var player = this.dalamud.ObjectTable.LocalPlayer;
-                if (player != null)
+                if (ImGui.Button("Exaflare"))
                 {
-                    if (this.entityManager.TryCreateEntity<Exaflare>(out var exaflare))
+                    var player = this.dalamud.ObjectTable.LocalPlayer;
+                    if (player != null)
                     {
-                        exaflare.Set(new Position(player.Position))
-                            .Set(new Rotation(player.Rotation));
+                        if (this.entityManager.TryCreateEntity<Exaflare>(out var exaflare))
+                        {
+                            exaflare.Set(new Position(player.Position))
+                                .Set(new Rotation(player.Rotation));
+                        }
                     }
                 }
-            }
-            ImGui.SameLine();
-            if (ImGui.Button("Row of Exaflares"))
-            {
-                var player = this.dalamud.ObjectTable.LocalPlayer;
-                if (player != null)
+                SameLineIfFits("Row of Exaflares");
+                if (ImGui.Button("Row of Exaflares"))
                 {
-                    if (this.entityManager.TryCreateEntity<ExaflareRow>(out var exaflare))
+                    var player = this.dalamud.ObjectTable.LocalPlayer;
+                    if (player != null)
                     {
-                        exaflare.Set(new Position(player.Position))
-                            .Set(new Rotation(player.Rotation));
+                        if (this.entityManager.TryCreateEntity<ExaflareRow>(out var exaflare))
+                        {
+                            exaflare.Set(new Position(player.Position))
+                                .Set(new Rotation(player.Rotation));
+                        }
                     }
                 }
-            }
 
             if (ImGui.Button("Jumpwave"))
             {
@@ -335,7 +375,7 @@ public partial class MainWindow
                 }
             }
 
-            ImGui.SameLine();
+                SameLineIfFits("Dreadknight With Tether");
 
             if (ImGui.Button("Dreadknight With Tether"))
             {
@@ -406,7 +446,7 @@ public partial class MainWindow
                 }
             }
 
-            ImGui.SameLine();
+                SameLineIfFits("ADS Stepped Leader");
 
             if (ImGui.Button("ADS Stepped Leader"))
             {
@@ -463,7 +503,7 @@ public partial class MainWindow
                 }
             }
 
-            ImGui.SameLine();
+                SameLineIfFits("Far Tether to Target");
 
             if (ImGui.Button("Far Tether to Target"))
             {
@@ -489,43 +529,43 @@ public partial class MainWindow
                 }
             }
 
-            if (ImGui.Button("Expanding Puddle"))
-            {
-                var player = this.dalamud.ObjectTable.LocalPlayer;
-                if (player != null)
+                if (ImGui.Button("Expanding Puddle"))
                 {
-                    if (this.entityManager.TryCreateEntity<ExpandingPuddle>(out var puddle))
+                    var player = this.dalamud.ObjectTable.LocalPlayer;
+                    if (player != null)
                     {
-                        puddle.Set(new ExpandingPuddle.Component(
-                            "bgcommon/world/common/vfx_for_btl/b0801/eff/b0801_yuka_o.avfx",
-                            0.5f,
-                            10.0f,
-                            1.0f,
-                            10.0f));
-                        puddle.Set(new Position(player.Position));
-                        puddle.Set(new Rotation(player.Rotation));
-                        puddle.Set(new Scale(Vector3.One));
+                        if (this.entityManager.TryCreateEntity<ExpandingPuddle>(out var puddle))
+                        {
+                            puddle.Set(new ExpandingPuddle.Component(
+                                "bgcommon/world/common/vfx_for_btl/b0801/eff/b0801_yuka_o.avfx",
+                                0.5f,
+                                10.0f,
+                                1.0f,
+                                10.0f));
+                            puddle.Set(new Position(player.Position));
+                            puddle.Set(new Rotation(player.Rotation));
+                            puddle.Set(new Scale(Vector3.One));
+                        }
                     }
                 }
-            }
-
-            if (ImGui.Button("Star"))
-            {
-                var player = this.dalamud.ObjectTable.LocalPlayer;
-                if (player != null)
+                SameLineIfFits("Star");
+                if (ImGui.Button("Star"))
                 {
-                    if (this.entityManager.TryCreateEntity<Star>(out var star))
+                    var player = this.dalamud.ObjectTable.LocalPlayer;
+                    if (player != null)
                     {
-                        star.Set(new Star.Component(
-                            Type: Star.Type.Long,
-                            OmenTime: 3.0f,
-                            VfxPath: "vfx/monster/gimmick5/eff/x6r7_b3_g08_c0p.avfx",
-                            OnHit: e => { Stun.ApplyToTarget(e, 2.0f); }));
-                        star.Set(new Position(player.Position));
-                        star.Set(new Rotation(player.Rotation));
+                        if (this.entityManager.TryCreateEntity<Star>(out var star))
+                        {
+                            star.Set(new Star.Component(
+                                Type: Star.Type.Long,
+                                OmenTime: 3.0f,
+                                VfxPath: "vfx/monster/gimmick5/eff/x6r7_b3_g08_c0p.avfx",
+                                OnHit: e => { Stun.ApplyToTarget(e, 2.0f); }));
+                            star.Set(new Position(player.Position));
+                            star.Set(new Rotation(player.Rotation));
+                        }
                     }
                 }
-            }
 
             if (ImGui.Button("Tornado"))
             {
@@ -544,7 +584,7 @@ public partial class MainWindow
                 }
             }
 
-            ImGui.SameLine();
+                SameLineIfFits("Donut Tornado");
 
             if (ImGui.Button("Donut Tornado"))
             {
@@ -576,7 +616,7 @@ public partial class MainWindow
                 }
             }
 
-            ImGui.SameLine();
+                SameLineIfFits("Transition Melusine");
 
             if (ImGui.Button("Transition Melusine"))
             {
@@ -592,7 +632,7 @@ public partial class MainWindow
                 }
             }
 
-            ImGui.SameLine();
+                SameLineIfFits("Transition Kaliya");
 
             if (ImGui.Button("Transition Kaliya"))
             {
@@ -608,54 +648,215 @@ public partial class MainWindow
                 }
             }
 
-            ImGui.Text("Heat Stuff");
-            if (ImGui.Button("Add Temperature"))
-            {
-                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+                ImGui.Text("Heat Stuff");
+                if (ImGui.Button("Add Temperature"))
                 {
-                    Temperature.SetTemperature(e);
-                });
-            }
-            ImGui.SameLine();
-            if (ImGui.Button("Incr Heat"))
-            {
-                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
-                {
-                    Temperature.HeatChangedEvent(e, 50);
-                });
-            }
-            ImGui.SameLine();
-            if (ImGui.Button("Decr Heat"))
-            {
-                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
-                {
-                    Temperature.HeatChangedEvent(e, -50);
-                });
-            }
-            if (ImGui.Button("Spawn Liquid Heaven"))
-            {
-                var player = this.dalamud.ObjectTable.LocalPlayer;
-                if (player != null)
-                {
-                    if (this.entityManager.TryCreateEntity<LiquidHeaven>(out var LiquidHeaven))
+                    commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
                     {
-                        LiquidHeaven.Set(new Position(player.Position))
-                                    .Set(new Rotation(player.Rotation));
+                        Temperature.SetTemperature(e);
+                    });
+                }
+                SameLineIfFits("Incr Heat");
+                if (ImGui.Button("Incr Heat"))
+                {
+                    commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+                    {
+                        Temperature.HeatChangedEvent(e, 50);
+                    });
+                }
+                SameLineIfFits("Decr Heat");
+                if (ImGui.Button("Decr Heat"))
+                {
+                    commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+                    {
+                        Temperature.HeatChangedEvent(e, -50);
+                    });
+                }
+                if (ImGui.Button("Spawn Liquid Heaven"))
+                {
+                    var player = this.dalamud.ObjectTable.LocalPlayer;
+                    if (player != null)
+                    {
+                        if (this.entityManager.TryCreateEntity<LiquidHeaven>(out var LiquidHeaven))
+                        {
+                            LiquidHeaven.Set(new Position(player.Position))
+                                        .Set(new Rotation(player.Rotation));
+                        }
                     }
                 }
             }
+        }
 
-            ImGui.Text("Models");
-            if (ImGui.Button("Chefbingus"))
+if (ImGui.CollapsingHeader("Test Attacks (Networked)"))
+        {
+            this.networkClientUi.DrawConfig();
+            using (ImRaii.Disabled(!this.networkClient.IsConnected))
             {
-                var player = this.dalamud.ObjectTable.LocalPlayer;
-                if (player != null)
+                if (ImGui.Button("Clear Networked Mechanics"))
                 {
-                    if (this.entityManager.TryCreateEntity<Chefbingus>(out var carby))
+                    this.networkClient.SendAsync(new Message
                     {
-                        carby.Set(new Position(player.Position))
-                            .Set(new Rotation(player.Rotation));
+                        action = Message.Action.ClearMechanics,
+                    }).SafeFireAndForget();
+                }
+
+                if (ImGui.Button("Spread"))
+                {
+                    this.networkClient.SendAsync(new Message
+                    {
+                        action = Message.Action.StartMechanic,
+                        startMechanic = new Message.StartMechanicPayload
+                        {
+                            requestId = Guid.NewGuid().ToString(),
+                            mechanicId = 1,
+                        }
+                    }).SafeFireAndForget();
+                }
+                SameLineIfFits("Enum");
+                if (ImGui.Button("Enum"))
+                {
+                    this.networkClient.SendAsync(new Message
+                    {
+                        action = Message.Action.StartMechanic,
+                        startMechanic = new Message.StartMechanicPayload
+                        {
+                            requestId = Guid.NewGuid().ToString(),
+                            mechanicId = 10,
+                        }
+                    }).SafeFireAndForget();
+                }
+
+                if (ImGui.Button("Place Trap"))
+                {
+                    var placeEntity = World.Entity()
+                        .Set(new PlaceMechanicWithMouse(3));
+                    World.Entity()
+                        .Set(new Message.StartMechanicPayload
+                        {
+                            requestId = Guid.NewGuid().ToString(),
+                            mechanicId = 20,
+                        })
+                        .ChildOf(placeEntity);
+                }
+            }
+        }
+
+        if (debug)
+        {
+            if (ImGui.CollapsingHeader("Models"))
+            {
+                if (ImGui.CollapsingHeader("Encounter Override"))
+                {
+                    if (ImGui.Button("Clear Override"))
+                    {
+                        encounterManager.ForceActivateEncounter(null);
                     }
+
+                    foreach (var enc in encounterManager.Encounters)
+                    {
+                        SameLineIfFits(enc.Name);
+                        if (ImGui.Button(enc.Name))
+                        {
+                            encounterManager.ForceActivateEncounter(enc);
+                        }
+                    }
+
+                    ImGui.TextColored(new Vector4(1, 1, 0, 1), "Active: " + (encounterManager.ActiveEncounter?.Name ?? "None"));
+                }
+
+                if (encounterManager.ActiveEncounter != null && ImGui.CollapsingHeader("Mechanic Triggers"))
+                {
+                    ImGui.Text("Global Events:");
+                    if (ImGui.Button("Combat Start"))
+                    {
+                        foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
+                        {
+                            mechanic.OnCombatStart();
+                        }
+                    }
+                    SameLineIfFits("Combat End");
+                    if (ImGui.Button("Combat End"))
+                    {
+                        foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
+                        {
+                            mechanic.OnCombatEnd();
+                        }
+                    }
+                    SameLineIfFits("Director: Commence");
+                    if (ImGui.Button("Director: Commence"))
+                    {
+                        encounterManager.ActiveEncounter.IncrementRngSeed();
+                        foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
+                        {
+                            mechanic.OnDirectorUpdate(DirectorUpdateCategory.Commence);
+                        }
+                    }
+                    SameLineIfFits("Director: Wipe");
+                    if (ImGui.Button("Director: Wipe"))
+                    {
+                        foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
+                        {
+                            mechanic.OnDirectorUpdate(DirectorUpdateCategory.Wipe);
+                        }
+                    }
+
+                    ImGui.Separator();
+                    ImGui.Text("Individual Mechanics:");
+                    foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
+                    {
+                        var name = mechanic.GetType().Name;
+                        if (ImGui.TreeNode(name))
+                        {
+                            if (ImGui.Button($"Simulate##{name}"))
+                            {
+                                mechanic.DebugSimulate();
+                            }
+                            SameLineIfFits($"OnCombatStart##{name}");
+                            if (ImGui.Button($"OnCombatStart##{name}"))
+                            {
+                                mechanic.OnCombatStart();
+                            }
+                            SameLineIfFits($"OnCombatEnd##{name}");
+                            if (ImGui.Button($"OnCombatEnd##{name}"))
+                            {
+                                mechanic.OnCombatEnd();
+                            }
+                            SameLineIfFits($"Reset##{name}");
+                            if (ImGui.Button($"Reset##{name}"))
+                            {
+                                mechanic.Reset();
+                            }
+                            ImGui.TreePop();
+                        }
+                    }
+                }
+
+                if (ImGui.Button("Chefbingus"))
+                {
+                    var player = this.dalamud.ObjectTable.LocalPlayer;
+                    if (player != null)
+                    {
+                        if (this.entityManager.TryCreateEntity<Chefbingus>(out var carby))
+                        {
+                            carby.Set(new Position(player.Position))
+                                .Set(new Rotation(player.Rotation));
+                        }
+                    }
+                }
+
+                ImGui.SetNextItemWidth(120);
+                ImGui.InputInt("ModelCharaId", ref debugModelCharaId);
+                ImGui.SameLine();
+                if (ImGui.ArrowButton("##mcharaDec", ImGuiDir.Left)) { debugModelCharaId--; DebugSpawnModel(); }
+                ImGui.SameLine();
+                if (ImGui.ArrowButton("##mcharaInc", ImGuiDir.Right)) { debugModelCharaId++; DebugSpawnModel(); }
+                ImGui.SameLine();
+                if (ImGui.Button("Spawn Model")) DebugSpawnModel();
+                ImGui.SameLine();
+                if (ImGui.Button("Despawn") && debugSpawnedModel.IsValid())
+                {
+                    debugSpawnedModel.Destruct();
+                    debugSpawnedModel = default;
                 }
             }
         }

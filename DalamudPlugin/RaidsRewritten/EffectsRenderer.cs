@@ -60,6 +60,7 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
     private readonly IFontHandle font;
     private readonly Query<Condition.Component> componentsQuery;
     private readonly Query<Temperature.Component> temperatureQuery;
+    private readonly Query<Blind.Component> blindQuery;
 
     private readonly List<EffectTextEntry> toDraw = [];
     private readonly List<EffectGaugeEntry> toGaugeDraw = [];
@@ -82,7 +83,7 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
         {
             e.OnPreBuild(tk =>
             {
-                tk.AddDalamudAssetFont(Dalamud.DalamudAsset.NotoSansJpMedium, new()
+                tk.AddDalamudAssetFont(Dalamud.DalamudAsset.NotoSansCjkMedium, new()
                 {
                     SizePx = 50
                 });
@@ -91,12 +92,14 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
 
         this.componentsQuery = ecsContainer.World.QueryBuilder<Condition.Component>().Without<Condition.Hidden>().With<Player.LocalPlayer>().Up().Cached().Build();
         this.temperatureQuery = ecsContainer.World.QueryBuilder<Temperature.Component>().Cached().Build();
+        this.blindQuery = ecsContainer.World.QueryBuilder<Blind.Component>().With<Player.LocalPlayer>().Up().Cached().Build();
     }
 
     public void Dispose()
     {
         this.font.Dispose();
         this.componentsQuery.Dispose();
+        this.blindQuery.Dispose();
     }
 
     public void Draw()
@@ -104,10 +107,58 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
         if (!this.font.Available) return;
         if (configuration.EverythingDisabled) return;
 
+        // Some clients don't render anything drawn to GetForegroundDrawList.
+        // Workaround: use a fullscreen transparent window and GetWindowDrawList instead.
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
+        ImGui.SetNextWindowPos(Vector2.Zero);
+        ImGui.SetNextWindowSize(ImGui.GetIO().DisplaySize);
+        ImGui.Begin("##EffectsRendererOverlay",
+            ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoBackground |
+            ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoSavedSettings |
+            ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoInputs);
+
+        if (this.blindQuery.Count() > 0)
+        {
+            const float fadeDuration = 0.5f;
+            float minRemaining = float.MaxValue;
+            float alpha = 1f;
+
+            this.blindQuery.Each((Entity e, ref Blind.Component _) =>
+            {
+                if (e.Has<Condition.Component>())
+                {
+                    var cond = e.Get<Condition.Component>();
+                    if (cond.TimeRemaining < minRemaining)
+                        minRemaining = cond.TimeRemaining;
+                    // Show remaining time so the player isn't completely disoriented
+                    var elapsed = (float)(DateTime.UtcNow - cond.CreationTime).TotalSeconds;
+                    var fadeIn = Math.Clamp(elapsed / fadeDuration, 0f, 1f);
+                    var fadeOut = Math.Clamp(cond.TimeRemaining / fadeDuration, 0f, 1f);
+                    alpha = Math.Min(alpha, Math.Min(fadeIn, fadeOut));
+                }
+            });
+
+            var viewport = ImGui.GetMainViewport();
+            var fgDraw = ImGui.GetWindowDrawList();
+            fgDraw.AddRectFilled(viewport.Pos, viewport.Pos + viewport.Size, ImGui.ColorConvertFloat4ToU32(new Vector4(0, 0, 0, alpha)));
+
+            if (minRemaining < float.MaxValue)
+            {
+                using (font.Push())
+                {
+                    var text = $"Blind: {minRemaining:F1}s";
+                    var textSize = ImGui.CalcTextSize(text);
+                    var center = viewport.Pos + viewport.Size * 0.5f;
+                    var pos = center - textSize * 0.5f;
+                    fgDraw.AddText(ImGui.GetFont(), 50, pos, ImGui.ColorConvertFloat4ToU32(new Vector4(1, 1, 1, alpha)), text);
+                }
+            }
+        }
+
         toDraw.Clear();
         toGaugeDraw.Clear();
 
-        var drawList = ImGui.GetForegroundDrawList();
+        var drawList = ImGui.GetWindowDrawList();
         var maxWidth = 0f;
         var offsetY = 0f;
 
@@ -198,6 +249,8 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
 
         }
 
+        ImGui.End();
+        ImGui.PopStyleVar();
     }
 
     private void TextOutline(ImFontPtr font, float fontSize, Vector2 position, UInt32 color, string text, int outline, ImDrawListPtr drawListPtr)

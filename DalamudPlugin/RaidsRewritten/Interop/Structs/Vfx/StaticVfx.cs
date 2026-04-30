@@ -45,7 +45,7 @@ public unsafe class StaticVfx : BaseVfx
     public void Create(Vector3 position, float rotation)
     {
         if (Vfx != null) { return; }
-        Vfx = (StaticVfxStruct*)this.resourceLoader.StaticVfxCreate(this.Path, "Client.System.Scheduler.Instance.VfxObject");
+        Vfx = (StaticVfxStruct*)this.resourceLoader.StaticVfxCreateString(this.Path, "Client.System.Scheduler.Instance.VfxObject");
 
         UpdatePosition(position);
         UpdateRotation(new Vector3(0, 0, rotation));

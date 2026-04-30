@@ -66,7 +66,7 @@ public sealed class EntityManager : IDalamudHook
         this.world.DeleteWith<Attack>();
     }
 
-    private void OnTerritoryChanged(ushort obj)
+    private void OnTerritoryChanged(uint obj)
     {
         ClearAllManagedEntities();
     }

@@ -103,7 +103,7 @@ public static unsafe class Player
     public static float DistanceTo(IGameObject other) => Vector3.Distance(Position, other.Position);
 
     [Obsolete("Use IsJumping")]
-    public static unsafe bool Dismounting => **(byte**)(Svc.ClientState.LocalPlayer.Address + 1400) == 1;
+    public static unsafe bool Dismounting => **(byte**)(Svc.Objects.LocalPlayer!.Address + 1400) == 1;
     [Obsolete("Use IsJumping")]
     public static bool Jumping => Svc.Condition[ConditionFlag.Jumping] || Svc.Condition[ConditionFlag.Jumping61];
 }
