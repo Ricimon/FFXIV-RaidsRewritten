@@ -8,11 +8,11 @@ namespace RaidsRewritten.Interop;
 public unsafe partial class ResourceLoader
 {
     // ======= STATIC =========
-    public delegate nint StaticVfxCreateDelegate(byte* path, byte* pool);
+    public delegate IntPtr StaticVfxCreateDelegate(byte* path, byte* pool);
 
     public StaticVfxCreateDelegate StaticVfxCreate;
 
-    public nint StaticVfxCreateString(string path, string pool)
+    public IntPtr StaticVfxCreateString(string path, string pool)
     {
         var pathBytes = System.Text.Encoding.UTF8.GetBytes(path + "\0");
         var poolBytes = System.Text.Encoding.UTF8.GetBytes(pool + "\0");
@@ -52,7 +52,7 @@ public unsafe partial class ResourceLoader
 
     // ============================
 
-    private nint StaticVfxNewDetour(byte* path, byte* pool)
+    private IntPtr StaticVfxNewDetour(byte* path, byte* pool)
     {
         var vfx = StaticVfxCreateHook.Original(path, pool);
         return vfx;

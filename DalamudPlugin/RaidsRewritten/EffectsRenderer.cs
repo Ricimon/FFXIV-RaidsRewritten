@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.ManagedFontAtlas;
+using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Raii;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
@@ -109,148 +111,159 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
 
         // Some clients don't render anything drawn to GetForegroundDrawList.
         // Workaround: use a fullscreen transparent window and GetWindowDrawList instead.
-        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
-        ImGui.SetNextWindowPos(Vector2.Zero);
-        ImGui.SetNextWindowSize(ImGui.GetIO().DisplaySize);
-        ImGui.Begin("##EffectsRendererOverlay",
-            ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoBackground |
-            ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoSavedSettings |
-            ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoInputs);
-
-        if (this.blindQuery.Count() > 0)
+        using var style = ImRaii.PushStyle(ImGuiStyleVar.WindowPadding, Vector2.Zero);
+        ImGuiHelpers.ForceNextWindowMainViewport();
+        ImGuiHelpers.SetNextWindowPosRelativeMainViewport(Vector2.Zero);
+        if (!ImGui.Begin("##RaidsRewrittenEffectsRendererOverlay",
+            ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoTitleBar |
+            ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoFocusOnAppearing |
+            ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.NoMove))
         {
-            const float fadeDuration = 0.5f;
-            float minRemaining = float.MaxValue;
-            float alpha = 1f;
-
-            this.blindQuery.Each((Entity e, ref Blind.Component _) =>
-            {
-                if (e.Has<Condition.Component>())
-                {
-                    var cond = e.Get<Condition.Component>();
-                    if (cond.TimeRemaining < minRemaining)
-                        minRemaining = cond.TimeRemaining;
-                    // Show remaining time so the player isn't completely disoriented
-                    var elapsed = (float)(DateTime.UtcNow - cond.CreationTime).TotalSeconds;
-                    var fadeIn = Math.Clamp(elapsed / fadeDuration, 0f, 1f);
-                    var fadeOut = Math.Clamp(cond.TimeRemaining / fadeDuration, 0f, 1f);
-                    alpha = Math.Min(alpha, Math.Min(fadeIn, fadeOut));
-                }
-            });
-
-            var viewport = ImGui.GetMainViewport();
-            var fgDraw = ImGui.GetWindowDrawList();
-            fgDraw.AddRectFilled(viewport.Pos, viewport.Pos + viewport.Size, ImGui.ColorConvertFloat4ToU32(new Vector4(0, 0, 0, alpha)));
-
-            if (minRemaining < float.MaxValue)
-            {
-                using (font.Push())
-                {
-                    var text = $"Blind: {minRemaining:F1}s";
-                    var textSize = ImGui.CalcTextSize(text);
-                    var center = viewport.Pos + viewport.Size * 0.5f;
-                    var pos = center - textSize * 0.5f;
-                    fgDraw.AddText(ImGui.GetFont(), 50, pos, ImGui.ColorConvertFloat4ToU32(new Vector4(1, 1, 1, alpha)), text);
-                }
-            }
+            this.logger.Error("Could not create RaidsRewritten overlay window");
+            return;
         }
+        ImGui.SetWindowSize(ImGui.GetIO().DisplaySize);
 
-        toDraw.Clear();
-        toGaugeDraw.Clear();
-
-        var drawList = ImGui.GetWindowDrawList();
-        var maxWidth = 0f;
-        var offsetY = 0f;
-
-        var world = ecsContainer.World;
-
-        using (font.Push())
+        try
         {
-            this.componentsQuery.Each((ref Condition.Component status) =>
+            if (this.blindQuery.Count() > 0)
             {
-                AddStatus(toDraw, status, ref offsetY, ref maxWidth);
-            });
+                const float fadeDuration = 0.5f;
+                float minRemaining = float.MaxValue;
+                float alpha = 1f;
 
-            this.temperatureQuery.Each((ref Temperature.Component temperature) => { 
-                AddTemperature(toGaugeDraw, temperature);
-            });
-
-            if (offsetY > 0f)
-            {
-                var min = new Vector2(configuration.EffectsRendererPositionX - maxWidth / 2 - PADDING_X, configuration.EffectsRendererPositionY);
-                var max = new Vector2(configuration.EffectsRendererPositionX + maxWidth / 2 + PADDING_X, configuration.EffectsRendererPositionY + offsetY);
-                drawList.AddRectFilled(min, max, ImGui.ColorConvertFloat4ToU32(new Vector4(0, 0, 0, 0.3f)), 5);
-                offsetY = 0f;
-                foreach (var effectEntry in toDraw.AsValueEnumerable().OrderBy(e => e.CreationTime))
+                this.blindQuery.Each((Entity e, ref Blind.Component _) =>
                 {
-                    var textSize = effectEntry.TextSize;
-                    var position = new Vector2(configuration.EffectsRendererPositionX - textSize.X / 2, configuration.EffectsRendererPositionY + offsetY);
-                    drawList.AddText(ImGui.GetFont(), 50, position, configuration.StatusTextColor.ToColorU32(), effectEntry.Text);
-                    offsetY += textSize.Y;
+                    if (e.Has<Condition.Component>())
+                    {
+                        var cond = e.Get<Condition.Component>();
+                        if (cond.TimeRemaining < minRemaining)
+                            minRemaining = cond.TimeRemaining;
+                        // Show remaining time so the player isn't completely disoriented
+                        var elapsed = (float)(DateTime.UtcNow - cond.CreationTime).TotalSeconds;
+                        var fadeIn = Math.Clamp(elapsed / fadeDuration, 0f, 1f);
+                        var fadeOut = Math.Clamp(cond.TimeRemaining / fadeDuration, 0f, 1f);
+                        alpha = Math.Min(alpha, Math.Min(fadeIn, fadeOut));
+                    }
+                });
+
+                var viewport = ImGui.GetMainViewport();
+                var fgDraw = ImGui.GetWindowDrawList();
+                fgDraw.AddRectFilled(viewport.Pos, viewport.Pos + viewport.Size, ImGui.ColorConvertFloat4ToU32(new Vector4(0, 0, 0, alpha)));
+
+                if (minRemaining < float.MaxValue)
+                {
+                    using (font.Push())
+                    {
+                        var text = $"Blind: {minRemaining:F1}s";
+                        var textSize = ImGui.CalcTextSize(text);
+                        var center = viewport.Pos + viewport.Size * 0.5f;
+                        var pos = center - textSize * 0.5f;
+                        fgDraw.AddText(ImGui.GetFont(), 50, pos, ImGui.ColorConvertFloat4ToU32(new Vector4(1, 1, 1, alpha)), text);
+                    }
                 }
             }
 
-            foreach (var gaugeEntry in toGaugeDraw)
+            toDraw.Clear();
+            toGaugeDraw.Clear();
+
+            var drawList = ImGui.GetWindowDrawList();
+            var maxWidth = 0f;
+            var offsetY = 0f;
+
+            var world = ecsContainer.World;
+
+            using (font.Push())
             {
-                var imgGauge = this.dalamud.TextureProvider.GetFromFile(this.dalamud.PluginInterface.GetResourcePath(gaugeEntry.Path)).GetWrapOrDefault()?.Handle ?? default;
-                drawList.AddImage(imgGauge, gaugeEntry.Position, gaugeEntry.Position + gaugeEntry.ImageSize);
-
-                float clampedValue = Math.Clamp(gaugeEntry.Value, -100f, 100f);
-                float normalized = (clampedValue + 100f) / 200f;
-                Vector4 barColor;
-                string barText;
-                if (clampedValue == -100f)
+                if (configuration.UseLegacyStatusRendering)
                 {
-                    barColor = new Vector4(0.6f, 1, 1, 0.5f);
+                    this.componentsQuery.Each((ref Condition.Component status) =>
+                    {
+                        AddStatus(toDraw, status, ref offsetY, ref maxWidth);
+                    });
                 }
-                else if (clampedValue < 0)
-                {
-                    barColor = new Vector4(0, 0, 1, 0.5f);
-                }
-                else
-                {
-                    barColor = new Vector4(1, 1, 0, 0.5f);
-                }
-                
-                Vector2 barPosition = gaugeEntry.Position + gaugeEntry.Offset;
-                float fillWidth = normalized * gaugeEntry.BarSize.X;
-                drawList.AddRectFilled(barPosition + new Vector2(gaugeEntry.BarSize.X / 2, 0), barPosition + new Vector2(fillWidth, gaugeEntry.BarSize.Y), ImGui.ColorConvertFloat4ToU32(barColor), 0f);
 
-                if (gaugeEntry.Value > 100f)
-                {
-                    barColor = new Vector4(1, 0, 0, 0.5f);
-                    float overflowNormalized = gaugeEntry.Value / 200f;
-                    fillWidth = overflowNormalized * gaugeEntry.BarSize.X;
+                this.temperatureQuery.Each((ref Temperature.Component temperature) => { 
+                    AddTemperature(toGaugeDraw, temperature);
+                });
 
+                if (offsetY > 0f)
+                {
+                    var min = new Vector2(configuration.EffectsRendererPositionX - maxWidth / 2 - PADDING_X, configuration.EffectsRendererPositionY);
+                    var max = new Vector2(configuration.EffectsRendererPositionX + maxWidth / 2 + PADDING_X, configuration.EffectsRendererPositionY + offsetY);
+                    drawList.AddRectFilled(min, max, ImGui.ColorConvertFloat4ToU32(new Vector4(0, 0, 0, 0.3f)), 5);
+                    offsetY = 0f;
+                    foreach (var effectEntry in toDraw.AsValueEnumerable().OrderBy(e => e.CreationTime))
+                    {
+                        var textSize = effectEntry.TextSize;
+                        var position = new Vector2(configuration.EffectsRendererPositionX - textSize.X / 2, configuration.EffectsRendererPositionY + offsetY);
+                        drawList.AddText(ImGui.GetFont(), 50, position, configuration.StatusTextColor.ToColorU32(), effectEntry.Text);
+                        offsetY += textSize.Y;
+                    }
+                }
+
+                foreach (var gaugeEntry in toGaugeDraw)
+                {
+                    var imgGauge = this.dalamud.TextureProvider.GetFromFile(this.dalamud.PluginInterface.GetResourcePath(gaugeEntry.Path)).GetWrapOrDefault()?.Handle ?? default;
+                    drawList.AddImage(imgGauge, gaugeEntry.Position, gaugeEntry.Position + gaugeEntry.ImageSize);
+
+                    float clampedValue = Math.Clamp(gaugeEntry.Value, -100f, 100f);
+                    float normalized = (clampedValue + 100f) / 200f;
+                    Vector4 barColor;
+                    string barText;
+                    if (clampedValue == -100f)
+                    {
+                        barColor = new Vector4(0.6f, 1, 1, 0.5f);
+                    }
+                    else if (clampedValue < 0)
+                    {
+                        barColor = new Vector4(0, 0, 1, 0.5f);
+                    }
+                    else
+                    {
+                        barColor = new Vector4(1, 1, 0, 0.5f);
+                    }
+                    
+                    Vector2 barPosition = gaugeEntry.Position + gaugeEntry.Offset;
+                    float fillWidth = normalized * gaugeEntry.BarSize.X;
                     drawList.AddRectFilled(barPosition + new Vector2(gaugeEntry.BarSize.X / 2, 0), barPosition + new Vector2(fillWidth, gaugeEntry.BarSize.Y), ImGui.ColorConvertFloat4ToU32(barColor), 0f);
-                }
+
+                    if (gaugeEntry.Value > 100f)
+                    {
+                        barColor = new Vector4(1, 0, 0, 0.5f);
+                        float overflowNormalized = gaugeEntry.Value / 200f;
+                        fillWidth = overflowNormalized * gaugeEntry.BarSize.X;
+
+                        drawList.AddRectFilled(barPosition + new Vector2(gaugeEntry.BarSize.X / 2, 0), barPosition + new Vector2(fillWidth, gaugeEntry.BarSize.Y), ImGui.ColorConvertFloat4ToU32(barColor), 0f);
+                    }
 
 
-                if (gaugeEntry.Value > 100)
-                {
-                    barText = $"+{gaugeEntry.Value}!";
-                }
-                else if (gaugeEntry.Value > 0)
-                {
-                    barText = $"+{gaugeEntry.Value}";
-                }
-                else
-                {
-                    barText = $"{gaugeEntry.Value}";
-                }
+                    if (gaugeEntry.Value > 100)
+                    {
+                        barText = $"+{gaugeEntry.Value}!";
+                    }
+                    else if (gaugeEntry.Value > 0)
+                    {
+                        barText = $"+{gaugeEntry.Value}";
+                    }
+                    else
+                    {
+                        barText = $"{gaugeEntry.Value}";
+                    }
 
-                
-                var textSize = ImGui.CalcTextSize(barText);
-                var position = new Vector2(barPosition.X + fillWidth - (textSize.X * gaugeEntry.Scale / 2), barPosition.Y + textSize.Y * gaugeEntry.Scale / 2 + (PADDING_Y * gaugeEntry.Scale));
+                    
+                    var textSize = ImGui.CalcTextSize(barText);
+                    var position = new Vector2(barPosition.X + fillWidth - (textSize.X * gaugeEntry.Scale / 2), barPosition.Y + textSize.Y * gaugeEntry.Scale / 2 + (PADDING_Y * gaugeEntry.Scale));
 
-                TextOutline(ImGui.GetFont(), 40 * gaugeEntry.Scale, position, Vector4Colors.Black.ToColorU32(), barText, 2, drawList);
-                drawList.AddText(ImGui.GetFont(), 40 * gaugeEntry.Scale, position, Vector4Colors.White.ToColorU32(), barText);
+                    TextOutline(ImGui.GetFont(), 40 * gaugeEntry.Scale, position, Vector4Colors.Black.ToColorU32(), barText, 2, drawList);
+                    drawList.AddText(ImGui.GetFont(), 40 * gaugeEntry.Scale, position, Vector4Colors.White.ToColorU32(), barText);
+                }
             }
-
         }
-
-        ImGui.End();
-        ImGui.PopStyleVar();
+        finally
+        {
+            ImGui.End();
+        }
     }
 
     private void TextOutline(ImFontPtr font, float fontSize, Vector2 position, UInt32 color, string text, int outline, ImDrawListPtr drawListPtr)

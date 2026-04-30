@@ -2,6 +2,7 @@
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
+using ECommons.Hooks;
 using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
@@ -14,9 +15,6 @@ using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Scripts.Models;
 using RaidsRewritten.Utility;
-#if DEBUG
-using ECommons.Hooks;
-#endif
 
 namespace RaidsRewritten.UI.View;
 
@@ -687,7 +685,7 @@ public partial class MainWindow
             }
         }
 
-if (ImGui.CollapsingHeader("Test Attacks (Networked)"))
+        if (ImGui.CollapsingHeader("Test Attacks (Networked)"))
         {
             this.networkClientUi.DrawConfig();
             using (ImRaii.Disabled(!this.networkClient.IsConnected))
@@ -745,92 +743,6 @@ if (ImGui.CollapsingHeader("Test Attacks (Networked)"))
         {
             if (ImGui.CollapsingHeader("Models"))
             {
-                if (ImGui.CollapsingHeader("Encounter Override"))
-                {
-                    if (ImGui.Button("Clear Override"))
-                    {
-                        encounterManager.ForceActivateEncounter(null);
-                    }
-
-                    foreach (var enc in encounterManager.Encounters)
-                    {
-                        SameLineIfFits(enc.Name);
-                        if (ImGui.Button(enc.Name))
-                        {
-                            encounterManager.ForceActivateEncounter(enc);
-                        }
-                    }
-
-                    ImGui.TextColored(new Vector4(1, 1, 0, 1), "Active: " + (encounterManager.ActiveEncounter?.Name ?? "None"));
-                }
-
-                if (encounterManager.ActiveEncounter != null && ImGui.CollapsingHeader("Mechanic Triggers"))
-                {
-                    ImGui.Text("Global Events:");
-                    if (ImGui.Button("Combat Start"))
-                    {
-                        foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
-                        {
-                            mechanic.OnCombatStart();
-                        }
-                    }
-                    SameLineIfFits("Combat End");
-                    if (ImGui.Button("Combat End"))
-                    {
-                        foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
-                        {
-                            mechanic.OnCombatEnd();
-                        }
-                    }
-                    SameLineIfFits("Director: Commence");
-                    if (ImGui.Button("Director: Commence"))
-                    {
-                        encounterManager.ActiveEncounter.IncrementRngSeed();
-                        foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
-                        {
-                            mechanic.OnDirectorUpdate(DirectorUpdateCategory.Commence);
-                        }
-                    }
-                    SameLineIfFits("Director: Wipe");
-                    if (ImGui.Button("Director: Wipe"))
-                    {
-                        foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
-                        {
-                            mechanic.OnDirectorUpdate(DirectorUpdateCategory.Wipe);
-                        }
-                    }
-
-                    ImGui.Separator();
-                    ImGui.Text("Individual Mechanics:");
-                    foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
-                    {
-                        var name = mechanic.GetType().Name;
-                        if (ImGui.TreeNode(name))
-                        {
-                            if (ImGui.Button($"Simulate##{name}"))
-                            {
-                                mechanic.DebugSimulate();
-                            }
-                            SameLineIfFits($"OnCombatStart##{name}");
-                            if (ImGui.Button($"OnCombatStart##{name}"))
-                            {
-                                mechanic.OnCombatStart();
-                            }
-                            SameLineIfFits($"OnCombatEnd##{name}");
-                            if (ImGui.Button($"OnCombatEnd##{name}"))
-                            {
-                                mechanic.OnCombatEnd();
-                            }
-                            SameLineIfFits($"Reset##{name}");
-                            if (ImGui.Button($"Reset##{name}"))
-                            {
-                                mechanic.Reset();
-                            }
-                            ImGui.TreePop();
-                        }
-                    }
-                }
-
                 if (ImGui.Button("Chefbingus"))
                 {
                     var player = this.dalamud.ObjectTable.LocalPlayer;
@@ -857,6 +769,92 @@ if (ImGui.CollapsingHeader("Test Attacks (Networked)"))
                 {
                     debugSpawnedModel.Destruct();
                     debugSpawnedModel = default;
+                }
+            }
+
+            if (ImGui.CollapsingHeader("Encounter Override"))
+            {
+                if (ImGui.Button("Clear Override"))
+                {
+                    encounterManager.ForceActivateEncounter(null);
+                }
+
+                foreach (var enc in encounterManager.Encounters)
+                {
+                    SameLineIfFits(enc.Name);
+                    if (ImGui.Button(enc.Name))
+                    {
+                        encounterManager.ForceActivateEncounter(enc);
+                    }
+                }
+
+                ImGui.TextColored(new Vector4(1, 1, 0, 1), "Active: " + (encounterManager.ActiveEncounter?.Name ?? "None"));
+            }
+
+            if (encounterManager.ActiveEncounter != null && ImGui.CollapsingHeader("Mechanic Triggers"))
+            {
+                ImGui.Text("Global Events:");
+                if (ImGui.Button("Combat Start"))
+                {
+                    foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
+                    {
+                        mechanic.OnCombatStart();
+                    }
+                }
+                SameLineIfFits("Combat End");
+                if (ImGui.Button("Combat End"))
+                {
+                    foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
+                    {
+                        mechanic.OnCombatEnd();
+                    }
+                }
+                SameLineIfFits("Director: Commence");
+                if (ImGui.Button("Director: Commence"))
+                {
+                    encounterManager.ActiveEncounter.IncrementRngSeed();
+                    foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
+                    {
+                        mechanic.OnDirectorUpdate(DirectorUpdateCategory.Commence);
+                    }
+                }
+                SameLineIfFits("Director: Wipe");
+                if (ImGui.Button("Director: Wipe"))
+                {
+                    foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
+                    {
+                        mechanic.OnDirectorUpdate(DirectorUpdateCategory.Wipe);
+                    }
+                }
+
+                ImGui.Separator();
+                ImGui.Text("Individual Mechanics:");
+                foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
+                {
+                    var name = mechanic.GetType().Name;
+                    if (ImGui.TreeNode(name))
+                    {
+                        if (ImGui.Button($"Simulate##{name}"))
+                        {
+                            mechanic.DebugSimulate();
+                        }
+                        SameLineIfFits($"OnCombatStart##{name}");
+                        if (ImGui.Button($"OnCombatStart##{name}"))
+                        {
+                            mechanic.OnCombatStart();
+                        }
+                        SameLineIfFits($"OnCombatEnd##{name}");
+                        if (ImGui.Button($"OnCombatEnd##{name}"))
+                        {
+                            mechanic.OnCombatEnd();
+                        }
+                        SameLineIfFits($"Reset##{name}");
+                        if (ImGui.Button($"Reset##{name}"))
+                        {
+                            mechanic.Reset();
+                        }
+                        ImGui.TreePop();
+                    }
                 }
             }
         }
