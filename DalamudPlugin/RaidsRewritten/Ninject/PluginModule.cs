@@ -85,7 +85,6 @@ public class PluginModule : NinjectModule
         // Entities
         // Models
         Bind<IEntity>().To<Chefbingus>();
-        Bind<IEntity>().To<Garuda>();
         // Omens
         Bind<IEntity>().To<CircleOmen>();
         Bind<IEntity>().To<Fan90Omen>();
@@ -135,8 +134,6 @@ public class PluginModule : NinjectModule
         Bind<ISystem>().To<Temperature>();
         Bind<ISystem>().To<Paralysis>();
         Bind<ISystem>().To<Hysteria>();
-        Bind<ISystem>().To<ForcedMarch>();
-        Bind<ISystem>().To<AccelerationBomb>();
 
         Bind<ILogger>().To<DalamudLogger>();
         Bind<DalamudLoggerFactory>().ToSelf();

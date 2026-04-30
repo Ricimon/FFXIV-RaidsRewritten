@@ -272,14 +272,6 @@ public partial class MainWindow
                 });
             }
             ImGui.SameLine();
-            if (ImGui.Button("Accel Bomb"))
-            {
-                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
-                {
-                    AccelerationBomb.ApplyToTarget(e, 5.0f);
-                });
-            }
-            ImGui.SameLine();
             if (ImGui.Button("Hysteria"))
             {
                 commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
@@ -296,76 +288,6 @@ public partial class MainWindow
                 {
                     Heavy.ApplyToTarget(e, 5.0f, true);
                 });
-            }
-
-            if (ImGui.Button("March (Facing)"))
-            {
-                var player = this.dalamud.ObjectTable.LocalPlayer;
-                if (player != null)
-                {
-                    var rot = player.Rotation;
-                    var direction = new Vector3(MathF.Sin(rot), 0, MathF.Cos(rot));
-                    commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
-                    {
-                        ForcedMarch.ApplyToTarget(e, direction, 5.0f, 3.0f, ForcedMarch.Direction.Facing);
-                    });
-                }
-            }
-            ImGui.SameLine();
-            if (ImGui.Button("March Forward"))
-            {
-                var player = this.dalamud.ObjectTable.LocalPlayer;
-                if (player != null)
-                {
-                    var rot = player.Rotation;
-                    var direction = new Vector3(MathF.Sin(rot), 0, MathF.Cos(rot));
-                    commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
-                    {
-                        ForcedMarch.ApplyToTarget(e, direction, 5.0f, 3.0f, ForcedMarch.Direction.Forward);
-                    });
-                }
-            }
-            ImGui.SameLine();
-            if (ImGui.Button("March Back"))
-            {
-                var player = this.dalamud.ObjectTable.LocalPlayer;
-                if (player != null)
-                {
-                    var rot = player.Rotation;
-                    var direction = new Vector3(-MathF.Sin(rot), 0, -MathF.Cos(rot));
-                    commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
-                    {
-                        ForcedMarch.ApplyToTarget(e, direction, 5.0f, 3.0f, ForcedMarch.Direction.Backward);
-                    });
-                }
-            }
-            ImGui.SameLine();
-            if (ImGui.Button("March Left"))
-            {
-                var player = this.dalamud.ObjectTable.LocalPlayer;
-                if (player != null)
-                {
-                    var rot = player.Rotation;
-                    var direction = new Vector3(MathF.Cos(rot), 0, -MathF.Sin(rot));
-                    commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
-                    {
-                        ForcedMarch.ApplyToTarget(e, direction, 5.0f, 3.0f, ForcedMarch.Direction.Left);
-                    });
-                }
-            }
-            ImGui.SameLine();
-            if (ImGui.Button("March Right"))
-            {
-                var player = this.dalamud.ObjectTable.LocalPlayer;
-                if (player != null)
-                {
-                    var rot = player.Rotation;
-                    var direction = new Vector3(-MathF.Cos(rot), 0, MathF.Sin(rot));
-                    commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
-                    {
-                        ForcedMarch.ApplyToTarget(e, direction, 5.0f, 3.0f, ForcedMarch.Direction.Right);
-                    });
-                }
             }
         }
 
