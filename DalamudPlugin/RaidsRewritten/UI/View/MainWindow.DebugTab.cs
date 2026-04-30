@@ -44,8 +44,9 @@ public partial class MainWindow
     {
         var style = ImGui.GetStyle();
         var displayLabel = nextLabel.Contains("##") ? nextLabel[..nextLabel.IndexOf("##")] : nextLabel;
-        var nextWidth = ImGui.CalcTextSize(displayLabel).X + style.FramePadding.X * 2;
-        if (ImGui.GetItemRectMax().X + style.ItemSpacing.X + nextWidth < ImGui.GetContentRegionMax().X)
+        var nextWidth =  ImGui.CalcTextSize(displayLabel).X + style.FramePadding.X * 2;
+        var maxWidth = ImGui.GetWindowPos().X + ImGui.GetWindowContentRegionMax().X;
+        if (ImGui.GetItemRectMax().X + style.ItemSpacing.X + nextWidth < maxWidth)
             ImGui.SameLine();
     }
 
@@ -54,7 +55,10 @@ public partial class MainWindow
         using var debugTab = ImRaii.TabItem("Debug");
         if (!debugTab) return;
 
-        var debug = true;
+        var debug = false;
+#if DEBUG
+        debug = true;
+#endif
 
         if (debug)
         {
@@ -177,7 +181,7 @@ public partial class MainWindow
                     Blind.ApplyToTarget(e, 5.0f);
                 });
             }
-
+            SameLineIfFits("Blind");
             if (ImGui.Button("Sleep"))
             {
                 commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
@@ -193,9 +197,7 @@ public partial class MainWindow
                     Hysteria.ApplyToTarget(e, 8.0f, 3.0f);
                 });
             }
-
             SameLineIfFits("Heavy (e)");
-
             if (ImGui.Button("Heavy (e)"))
             {
                 commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
@@ -262,7 +264,7 @@ public partial class MainWindow
                     }
                 }
             }
-
+            SameLineIfFits("One Third Donut Omen");
             if (ImGui.Button("One Third Donut Omen"))
             {
                 var player = this.dalamud.ObjectTable.LocalPlayer;
@@ -384,9 +386,7 @@ public partial class MainWindow
                         }
                     }
                 }
-
                 SameLineIfFits("Dreadknight With Tether");
-
                 if (ImGui.Button("Dreadknight With Tether"))
                 {
                     var player = this.dalamud.ObjectTable.LocalPlayer;
@@ -455,9 +455,7 @@ public partial class MainWindow
                         }
                     }
                 }
-
                 SameLineIfFits("ADS Stepped Leader");
-
                 if (ImGui.Button("ADS Stepped Leader"))
                 {
                     var player = this.dalamud.ObjectTable.LocalPlayer;
@@ -803,69 +801,76 @@ public partial class MainWindow
                 ImGui.TextColored(new Vector4(1, 1, 0, 1), "Active: " + (encounterManager.ActiveEncounter?.Name ?? "None"));
             }
 
-            if (encounterManager.ActiveEncounter != null && ImGui.CollapsingHeader("Mechanic Triggers"))
+            if (ImGui.CollapsingHeader("Mechanic Triggers"))
             {
-                ImGui.Text("Global Events:");
-                if (ImGui.Button("Combat Start"))
+                if (encounterManager.ActiveEncounter == null)
                 {
-                    foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
-                    {
-                        mechanic.OnCombatStart();
-                    }
+                    ImGui.Text("No active encounter");
                 }
-                SameLineIfFits("Combat End");
-                if (ImGui.Button("Combat End"))
+                else
                 {
-                    foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
+                    ImGui.Text("Global Events:");
+                    if (ImGui.Button("Combat Start"))
                     {
-                        mechanic.OnCombatEnd();
-                    }
-                }
-                SameLineIfFits("Director: Commence");
-                if (ImGui.Button("Director: Commence"))
-                {
-                    encounterManager.ActiveEncounter.IncrementRngSeed();
-                    foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
-                    {
-                        mechanic.OnDirectorUpdate(DirectorUpdateCategory.Commence);
-                    }
-                }
-                SameLineIfFits("Director: Wipe");
-                if (ImGui.Button("Director: Wipe"))
-                {
-                    foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
-                    {
-                        mechanic.OnDirectorUpdate(DirectorUpdateCategory.Wipe);
-                    }
-                }
-
-                ImGui.Separator();
-                ImGui.Text("Individual Mechanics:");
-                foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
-                {
-                    var name = mechanic.GetType().Name;
-                    if (ImGui.TreeNode(name))
-                    {
-                        if (ImGui.Button($"Simulate##{name}"))
-                        {
-                            mechanic.DebugSimulate();
-                        }
-                        SameLineIfFits($"OnCombatStart##{name}");
-                        if (ImGui.Button($"OnCombatStart##{name}"))
+                        foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
                         {
                             mechanic.OnCombatStart();
                         }
-                        SameLineIfFits($"OnCombatEnd##{name}");
-                        if (ImGui.Button($"OnCombatEnd##{name}"))
+                    }
+                    SameLineIfFits("Combat End");
+                    if (ImGui.Button("Combat End"))
+                    {
+                        foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
                         {
                             mechanic.OnCombatEnd();
                         }
-                        SameLineIfFits($"Reset##{name}");
-                        if (ImGui.Button($"Reset##{name}"))
+                    }
+                    SameLineIfFits("Director: Commence");
+                    if (ImGui.Button("Director: Commence"))
+                    {
+                        encounterManager.ActiveEncounter.IncrementRngSeed();
+                        foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
                         {
-                            mechanic.Reset();
+                            mechanic.OnDirectorUpdate(DirectorUpdateCategory.Commence);
                         }
-                        ImGui.TreePop();
+                    }
+                    SameLineIfFits("Director: Wipe");
+                    if (ImGui.Button("Director: Wipe"))
+                    {
+                        foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
+                        {
+                            mechanic.OnDirectorUpdate(DirectorUpdateCategory.Wipe);
+                        }
+                    }
+
+                    ImGui.Separator();
+                    ImGui.Text("Individual Mechanics:");
+                    foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
+                    {
+                        var name = mechanic.GetType().Name;
+                        if (ImGui.TreeNode(name))
+                        {
+                            if (ImGui.Button($"Simulate##{name}"))
+                            {
+                                mechanic.DebugSimulate();
+                            }
+                            SameLineIfFits($"OnCombatStart##{name}");
+                            if (ImGui.Button($"OnCombatStart##{name}"))
+                            {
+                                mechanic.OnCombatStart();
+                            }
+                            SameLineIfFits($"OnCombatEnd##{name}");
+                            if (ImGui.Button($"OnCombatEnd##{name}"))
+                            {
+                                mechanic.OnCombatEnd();
+                            }
+                            SameLineIfFits($"Reset##{name}");
+                            if (ImGui.Button($"Reset##{name}"))
+                            {
+                                mechanic.Reset();
+                            }
+                            ImGui.TreePop();
+                        }
                     }
                 }
             }

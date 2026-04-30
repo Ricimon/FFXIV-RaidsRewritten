@@ -132,7 +132,7 @@ public sealed class EncounterManager(
         if (configuration.EverythingDisabled) { return; }
     }
 
-    private void OnObjectEffect(uint Target, ushort Param1, ushort Param2)
+    private void OnObjectEffect(uint Target, uint Param1, uint Param2)
     {
         var gameObject = dalamud.ObjectTable.SearchByEntityId(Target);
         if (gameObject == null) { return; }
