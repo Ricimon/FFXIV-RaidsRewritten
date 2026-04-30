@@ -1,4 +1,4 @@
-// Adapted from https://github.com/xivdev/Penumbra/blob/master/Penumbra/Interop/Structs/FileMode.cs
+// Adapted from https://github.com/xivdev/Penumbra/blob/testing/Penumbra/Interop/Structs/FileMode.cs
 // 2b4a01d
 namespace RaidsRewritten.Interop.Structs;
 

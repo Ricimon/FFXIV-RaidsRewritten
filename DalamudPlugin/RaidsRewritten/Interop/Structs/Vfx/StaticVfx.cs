@@ -8,7 +8,7 @@ using Dalamud.Game.ClientState.Objects.Types;
 namespace RaidsRewritten.Interop.Structs.Vfx;
 
 // Offsets from https://git.anna.lgbt/anna/OrangeGuidanceTomestone/src/branch/main/client/Vfx.cs
-// f9708d2810
+// 0d69e4b9b0
 [StructLayout(LayoutKind.Explicit)]
 public unsafe struct StaticVfxStruct
 {

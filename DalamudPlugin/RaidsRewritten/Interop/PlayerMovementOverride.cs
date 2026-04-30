@@ -1,5 +1,5 @@
 ﻿// Adapted from https://github.com/awgil/ffxiv_navmesh/blob/master/vnavmesh/Movement/OverrideMovement.cs
-// 43c1c4c
+// 5600020
 // and https://github.com/Caraxi/SimpleTweaksPlugin/blob/main/Tweaks/SmartStrafe.cs
 // ac71a90
 using System;
