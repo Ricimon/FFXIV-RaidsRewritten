@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
@@ -26,8 +27,7 @@ public static class DalamudExtensions
 
     public static IEnumerable<IPlayerCharacter> GetPlayers(this IObjectTable objectTable)
     {
-        using var array = objectTable.AsValueEnumerable().Where(go => go.ObjectKind == ObjectKind.Player).OfType<IPlayerCharacter>().ToArrayPool();
-        return array.AsEnumerable();
+        return objectTable.OfType<IPlayerCharacter>();
     }
 
     public static string GetResourcePath(this IDalamudPluginInterface pluginInterface, string fileName)

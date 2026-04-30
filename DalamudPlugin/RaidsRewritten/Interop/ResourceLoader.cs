@@ -29,7 +29,7 @@ public unsafe sealed partial class ResourceLoader : IDisposable
     public const string ReadFileSig = "48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 41 54 41 55 41 56 41 57 48 81 EC ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 84 24 ?? ?? ?? ?? 48 63 42";
     public const string GetResourceSyncSig = "E8 ?? ?? ?? ?? 48 8B C8 8B C3 F0 0F C0 81";
     public const string GetResourceAsyncSig = "E8 ?? ?? ?? 00 48 8B D8 EB ?? F0 FF 83 ?? ?? 00 00";
-    public const string ReadSqPackSig = "40 56 41 56 48 83 EC ?? 0F BE 02";
+    public const string ReadSqpackSig = "40 56 41 56 48 83 EC ?? 0F BE 02";
 
     public const string CheckFileStateSig = "E8 ?? ?? ?? ?? 48 85 C0 74 ?? 4C 8B C8 ";
 
@@ -43,7 +43,7 @@ public unsafe sealed partial class ResourceLoader : IDisposable
     public const string LoadScdLocalSig = "48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 30 8B 79 ?? 48 8B DA 8B D7";
     public const string SoundOnLoadSig = "40 56 57 41 54 48 81 EC 90 00 00 00 80 3A 0B 45 0F B6 E0 48 8B F2";
 
-    public const string LoadIconByIdSig = "E8 ?? ?? ?? ?? 41 8D 45 3D";
+    public const string LoadIconByIdSig = "E8 ?? ?? ?? ?? 41 8D 45 3E";
     public const string AtkComponentIconTextReceiveEventSig = "44 0F B7 C2 4D 8B D1";
 
     public const string BattleLog_AddToScreenLogWithScreenLogKindSig = "48 85 C9 0F 84 ?? ?? ?? ?? 56 41 56";
@@ -74,12 +74,12 @@ public unsafe sealed partial class ResourceLoader : IDisposable
 
         // Replace
 
-        ReadSqPackHook = hooks.HookFromSignature<ReadSqPackPrototype>(ReadSqPackSig, ReadSqPackDetour);
+        ReadSqpackHook = hooks.HookFromSignature<ReadSqpackPrototype>(ReadSqpackSig, ReadSqpackDetour);
         GetResourceSyncHook = hooks.HookFromSignature<GetResourceSyncPrototype>(GetResourceSyncSig, GetResourceSyncDetour);
         GetResourceAsyncHook = hooks.HookFromSignature<GetResourceAsyncPrototype>(GetResourceAsyncSig, GetResourceAsyncDetour);
         ReadFile = Marshal.GetDelegateForFunctionPointer<ReadFilePrototype>(sigScanner.ScanText(ReadFileSig));
 
-        ReadSqPackHook.Enable();
+        ReadSqpackHook.Enable();
         GetResourceSyncHook.Enable();
         GetResourceAsyncHook.Enable();
 
@@ -145,8 +145,10 @@ public unsafe sealed partial class ResourceLoader : IDisposable
 
         // Textures
 
-        var loadIconByIdAddress = sigScanner.ScanText(LoadIconByIdSig);
-        LoadIconByID = Marshal.GetDelegateForFunctionPointer<LoadIconByIDDelegate>(loadIconByIdAddress);
+        if (sigScanner.TryScanText(LoadIconByIdSig, out var loadIconByIdAddress))
+            LoadIconByID = Marshal.GetDelegateForFunctionPointer<LoadIconByIDDelegate>(loadIconByIdAddress);
+        else
+            logger.Error("Signature not found for {sig}; LoadIconByID functionality will be unavailable", nameof(LoadIconByIdSig));
         AtkComponentIconTextReceiveEventHook = hooks.HookFromSignature<AtkComponentIconText_ReceiveEvent>(AtkComponentIconTextReceiveEventSig, AtkComponentIconText_ReceiveEventDetour);
 
         AtkComponentIconTextReceiveEventHook.Enable();
@@ -165,7 +167,7 @@ public unsafe sealed partial class ResourceLoader : IDisposable
         ActorVfxCreateHook.Dispose();
         ActorVfxRemoveHook.Dispose();
 
-        ReadSqPackHook.Dispose();
+        ReadSqpackHook.Dispose();
         GetResourceSyncHook.Dispose();
         GetResourceAsyncHook.Dispose();
 

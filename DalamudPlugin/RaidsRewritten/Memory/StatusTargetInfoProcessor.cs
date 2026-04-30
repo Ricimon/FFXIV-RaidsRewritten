@@ -88,7 +88,7 @@ public unsafe class StatusTargetInfoProcessor
                     var temp = (Interop.Structs.AtkComponentIconText*)c->GetAsAtkComponentNode()->Component;
                     var iconId = temp->IconId;
                     temp->IconId = 0;
-                    resourceLoader.LoadIconByID(c->GetAsAtkComponentNode()->Component, (int)iconId);
+                    resourceLoader.LoadIconByID?.Invoke(c->GetAsAtkComponentNode()->Component, (int)iconId);
                 }
             }
         }

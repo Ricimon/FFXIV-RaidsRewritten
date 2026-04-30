@@ -59,7 +59,7 @@ public unsafe class StatusCommonProcessor(
 
         if (replacement == null)
         {
-            resourceLoader.LoadIconByID(container->GetAsAtkComponentNode()->Component, status.Icon);
+            resourceLoader.LoadIconByID?.Invoke(container->GetAsAtkComponentNode()->Component, status.Icon);
         } else
         {
             container->GetAsAtkComponentNode()->Component->GetImageNodeById(3)->LoadTexture(replacement.Value.OriginalPath);

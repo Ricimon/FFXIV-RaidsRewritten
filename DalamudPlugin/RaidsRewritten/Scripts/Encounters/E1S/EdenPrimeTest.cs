@@ -11,7 +11,7 @@ public class EdenPrimeTest(
     Configuration configuration,
     NetworkClientUi networkClientUi) : IEncounter
 {
-    public ushort TerritoryId => 853;
+    public uint TerritoryId => 853;
 
     public string Name => "Eden Prime Test";
 

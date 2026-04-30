@@ -36,6 +36,32 @@ public sealed class EncounterManager(
     public IEncounter? ActiveEncounter { get; private set; }
     public bool InCombat => inCombat ?? false;
 
+#if DEBUG
+    public IEncounter[] Encounters => encounters;
+
+    public void ForceActivateEncounter(IEncounter? encounter)
+    {
+        ActiveEncounter?.Unload();
+        statusPartyListProcessor.Reset();
+
+        if (encounter != null)
+        {
+            ActiveEncounter = encounter;
+            encounter.RefreshMechanics();
+            logger.Info("Force-activated encounter: {0}", encounter.Name);
+            if (!configuration.EverythingDisabled)
+            {
+                moodlesIPC.CheckMoodles();
+                mainWindow.Value.Visible = true;
+            }
+        }
+        else
+        {
+            ActiveEncounter = null;
+        }
+    }
+#endif
+
     private readonly List<string> BlacklistedPcVfx = [
         "vfx/common/eff/dk02ht_zan0m.avfx",
         "vfx/common/eff/dk03ht_bct0m.avfx",
@@ -47,7 +73,7 @@ public sealed class EncounterManager(
         "vfx/common/eff/dk04ht_win0h.avfx",
         "vfx/common/eff/cmat_aoz0f.avfx",
     ];
-    private readonly Dictionary<ushort, IEncounter> encounterMap = encounters.AsValueEnumerable().ToDictionary(e => e.TerritoryId, e => e);
+    private readonly Dictionary<uint, IEncounter> encounterMap = encounters.AsValueEnumerable().ToDictionary(e => e.TerritoryId, e => e);
 
     private bool? inCombat = null;
     private byte weather = 0;
@@ -79,7 +105,7 @@ public sealed class EncounterManager(
         dalamud.Framework.Update -= OnFrameworkUpdate;
     }
 
-    private void OnTerritoryChanged(ushort obj)
+    private void OnTerritoryChanged(uint obj)
     {
         ActiveEncounter?.Unload();
         statusPartyListProcessor.Reset();
@@ -109,7 +135,7 @@ public sealed class EncounterManager(
         if (configuration.EverythingDisabled) { return; }
     }
 
-    private void OnObjectEffect(uint Target, ushort Param1, ushort Param2)
+    private void OnObjectEffect(uint Target, uint Param1, uint Param2)
     {
         var gameObject = dalamud.ObjectTable.SearchByEntityId(Target);
         if (gameObject == null) { return; }
