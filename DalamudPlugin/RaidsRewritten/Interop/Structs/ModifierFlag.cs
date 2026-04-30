@@ -1,11 +1,11 @@
 ﻿// Adapted from https://github.com/Infiziert90/ChatTwo/blob/main/ChatTwo/GameFunctions/Types/ModifierFlag.cs
-// 352088d
+// b4cb8b2
 using System;
 
 namespace RaidsRewritten.Interop.Structs;
 
 [Flags]
-internal enum ModifierFlag
+public enum ModifierFlag
 {
     None = 0,
     Shift = 1 << 0,

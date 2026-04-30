@@ -1,5 +1,5 @@
 ﻿// Adapted from https://github.com/NightmareXIV/ECommons/blob/master/ECommons/Hooks/ActionEffect.cs
-// 0ef34f8
+// 0af507e
 using Dalamud.Hooking;
 using ECommons.DalamudServices;
 using ECommons.Hooks.ActionEffectTypes;

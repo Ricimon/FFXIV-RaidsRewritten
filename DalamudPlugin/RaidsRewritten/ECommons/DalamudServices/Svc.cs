@@ -1,5 +1,5 @@
 ﻿// Adapted from https://github.com/NightmareXIV/ECommons/blob/master/ECommons/DalamudServices/Svc.cs
-// 947d62b
+// ccbb4d6
 using Dalamud.Game;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.IoC;
@@ -18,6 +18,7 @@ public class Svc
     [PluginService] public static IAddonEventManager AddonEventManager { get; private set; }
     [PluginService] public static IAddonLifecycle AddonLifecycle { get; private set; }
     [PluginService] public static IAetheryteList AetheryteList { get; private set; }
+    [PluginService] public static IAgentLifecycle AgentLifecycle { get; private set; }
     [PluginService] public static IDalamudPluginInterface PluginInterface { get; private set; }
     [PluginService] public static IBuddyList Buddies { get; private set; }
     [PluginService] public static IChatGui Chat { get; private set; }
@@ -56,6 +57,8 @@ public class Svc
     [PluginService] public static ITextureReadbackProvider TextureReadback { get; private set; }
     [PluginService] public static ITitleScreenMenu TitleScreenMenu { get; private set; }
     [PluginService] public static IToastGui Toasts { get; private set; }
+    [PluginService] public static IUnlockState UnlockState { get; private set; }
+    [PluginService] public static IReliableFileStorage ReliableFileStorage { get; private set; }
 
     //public static Legacy.IGameNetwork GameNetwork
     //{

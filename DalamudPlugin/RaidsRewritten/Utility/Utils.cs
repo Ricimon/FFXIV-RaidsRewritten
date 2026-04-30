@@ -1,4 +1,5 @@
 ﻿// Adapted from https://github.com/PunishXIV/Splatoon/blob/main/Splatoon/Utility/Utils.cs
+// 62f2b72
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -19,6 +20,64 @@ namespace RaidsRewritten.Utility;
 
 public static unsafe class Utils
 {
+    //public static Vector4 GetAttentionColor()
+    //{
+    //    var cycleSeconds = Math.Max(P.Config.AttentionColorCycle, 0.1f);
+    //    if(P.Config.AttentionColorType == AttentionColorType.Rainbow)
+    //    {
+
+    //        var ms = Environment.TickCount64;
+    //        var t = ms / 1000d / cycleSeconds;
+    //        var hue = t % 1f;
+    //        return HsvToVector4(hue, 1f, 1f);
+    //    }
+    //    else if(P.Config.AttentionColorType == AttentionColorType.Gradient)
+    //    {
+    //        return GradientColor.Get(P.Config.AttentionColor1, P.Config.AttentionColor2, (int)(cycleSeconds * 500));
+    //    }
+    //    else
+    //    {
+    //        return P.Config.AttentionColor1;
+    //    }
+    //}
+    public static Vector4 HsvToVector4(double h, double s, double v)
+    {
+        double r = 0f, g = 0f, b = 0f;
+        var i = (int)(h * 6f);
+        var f = (h * 6f) - i;
+        var p = v * (1f - s);
+        var q = v * (1f - (f * s));
+        var t = v * (1f - ((1f - f) * s));
+
+        switch(i % 6)
+        {
+            case 0: r = v; g = t; b = p; break;
+            case 1: r = q; g = v; b = p; break;
+            case 2: r = p; g = v; b = t; break;
+            case 3: r = p; g = q; b = v; break;
+            case 4: r = t; g = p; b = v; break;
+            case 5: r = v; g = p; b = q; break;
+        }
+
+        return new Vector4((float)r, (float)g, (float)b, 1f);
+    }
+    //public static GameObject* ResolvePronounBPO(string p)
+    //{
+    //    var ret = ExtendedPronoun.Resolve(p);
+    //    if(Svc.Condition[ConditionFlag.DutyRecorderPlayback] && BasePlayerOverride != "")
+    //    {
+    //        if(p == "<me>")
+    //        {
+    //            return (GameObject*)BasePlayer.Struct();
+    //        }
+    //        else if(p == "<target>")
+    //        {
+    //            return (GameObject*)(BasePlayer.TargetObject?.Address);
+    //        }
+    //    }
+    //    return ret;
+    //}
+
     public static Vector3 ToXZY(this Vector3 xyzVector)
     {
         return new(xyzVector.X, xyzVector.Z, xyzVector.Y);
@@ -27,20 +86,20 @@ public static unsafe class Utils
     //public static List<IGameObject> AlterTargetIfNeeded(Element element, IGameObject go)
     //{
     //    List<IGameObject> ret = [go];
-    //    if (element.TargetAlteration == TargetAlteration.Tethered)
+    //    if(element.TargetAlteration == TargetAlteration.Tethered)
     //    {
     //        ret.Clear();
     //        {
-    //            if (go is ICharacter chr)
+    //            if(go is ICharacter chr)
     //            {
     //                var c = chr.Struct();
-    //                for (int i = 0; i < c->Vfx.Tethers.Length; i++)
+    //                for(var i = 0; i < c->Vfx.Tethers.Length; i++)
     //                {
     //                    var t = c->Vfx.Tethers[i];
-    //                    if (t.Id != 0)
+    //                    if(t.Id != 0)
     //                    {
     //                        var target = Svc.Objects.FirstOrDefault(x => x.GameObjectId == t.TargetId);
-    //                        if (target != null)
+    //                        if(target != null)
     //                        {
     //                            ret.Add(target);
     //                        }
@@ -49,15 +108,15 @@ public static unsafe class Utils
     //            }
     //        }
 
-    //        foreach (var x in Svc.Objects)
+    //        foreach(var x in Svc.Objects)
     //        {
-    //            if (x is ICharacter chr)
+    //            if(x is ICharacter chr)
     //            {
     //                var c = chr.Struct();
-    //                for (int i = 0; i < c->Vfx.Tethers.Length; i++)
+    //                for(var i = 0; i < c->Vfx.Tethers.Length; i++)
     //                {
     //                    var t = c->Vfx.Tethers[i];
-    //                    if (t.Id != 0 && t.TargetId == go.GameObjectId)
+    //                    if(t.Id != 0 && t.TargetId == go.GameObjectId)
     //                    {
     //                        ret.Add(x);
     //                    }
@@ -65,28 +124,28 @@ public static unsafe class Utils
     //            }
     //        }
     //    }
-    //    else if (element.TargetAlteration == TargetAlteration.Targeted)
+    //    else if(element.TargetAlteration == TargetAlteration.Targeted)
     //    {
     //        ret.Clear();
-    //        if (go is ICharacter chr)
+    //        if(go is ICharacter chr)
     //        {
     //            var t = chr.TargetObject;
-    //            if (t != null)
+    //            if(t != null)
     //            {
     //                ret.Add(t);
     //            }
     //        }
     //    }
-    //    else if ((int)element.TargetAlteration >= 1100 && (int)element.TargetAlteration <= 1200)
+    //    else if((int)element.TargetAlteration >= 1100 && (int)element.TargetAlteration <= 1200)
     //    {
     //        ret.Clear();
-    //        if (go != null)
+    //        if(go != null)
     //        {
     //            var index = (int)element.TargetAlteration - 1100;
-    //            int i = 0;
-    //            foreach (var x in Svc.Objects.OfType<IPlayerCharacter>().OrderBy(o => Vector3.DistanceSquared(o.Position, go.Position)))
+    //            var i = 0;
+    //            foreach(var x in Svc.Objects.OfType<IPlayerCharacter>().OrderBy(o => Vector3.DistanceSquared(o.Position, go.Position)))
     //            {
-    //                if (index == i)
+    //                if(index == i)
     //                {
     //                    ret.Add(x);
     //                    break;
@@ -95,16 +154,16 @@ public static unsafe class Utils
     //            }
     //        }
     //    }
-    //    else if ((int)element.TargetAlteration >= 2100 && (int)element.TargetAlteration <= 2200)
+    //    else if((int)element.TargetAlteration >= 2100 && (int)element.TargetAlteration <= 2200)
     //    {
     //        ret.Clear();
-    //        if (go != null)
+    //        if(go != null)
     //        {
     //            var index = (int)element.TargetAlteration - 2100;
-    //            int i = 0;
-    //            foreach (var x in Svc.Objects.OfType<IPlayerCharacter>().OrderByDescending(o => Vector3.DistanceSquared(o.Position, go.Position)))
+    //            var i = 0;
+    //            foreach(var x in Svc.Objects.OfType<IPlayerCharacter>().OrderByDescending(o => Vector3.DistanceSquared(o.Position, go.Position)))
     //            {
-    //                if (index == i)
+    //                if(index == i)
     //                {
     //                    ret.Add(x);
     //                    break;
@@ -118,7 +177,7 @@ public static unsafe class Utils
 
     //public static List<Vector3> GetFacePositions(Layout layout, Element element, IGameObject go, string placeholder)
     //{
-    //    if (placeholder.StartsWith("<element:"))
+    //    if(placeholder.StartsWith("<element:"))
     //    {
     //        var details = placeholder[1..^1].Split(":");
     //        var list = details.Length == 2
@@ -126,20 +185,28 @@ public static unsafe class Utils
     //            : Splatoon.CapturedPositions.SafeSelect(details[1])?.SafeSelect(details[2]);
     //        return list;
     //    }
-    //    if (placeholder == "<tethered>")
+    //    if(placeholder.StartsWith("<objectid:"))
+    //    {
+    //        var details = placeholder[1..^1].Split(":");
+    //        if(uint.TryParse(details[1], details[1].StartsWith("0x") ? NumberStyles.HexNumber : default, null, out var result))
+    //        {
+    //            return Svc.Objects.Where(x => x.ObjectId == result).Select(x => x.Position).ToList();
+    //        }
+    //    }
+    //    if(placeholder == "<tethered>")
     //    {
     //        var ret = new List<Vector3>();
     //        {
-    //            if (go is ICharacter chr)
+    //            if(go is ICharacter chr)
     //            {
     //                var c = chr.Struct();
-    //                for (int i = 0; i < c->Vfx.Tethers.Length; i++)
+    //                for(var i = 0; i < c->Vfx.Tethers.Length; i++)
     //                {
     //                    var t = c->Vfx.Tethers[i];
-    //                    if (t.Id != 0)
+    //                    if(t.Id != 0)
     //                    {
     //                        var target = Svc.Objects.FirstOrDefault(x => x.GameObjectId == t.TargetId);
-    //                        if (target != null)
+    //                        if(target != null)
     //                        {
     //                            ret.Add(target.Position);
     //                        }
@@ -148,15 +215,15 @@ public static unsafe class Utils
     //            }
     //        }
 
-    //        foreach (var x in Svc.Objects)
+    //        foreach(var x in Svc.Objects)
     //        {
-    //            if (x is ICharacter chr)
+    //            if(x is ICharacter chr)
     //            {
     //                var c = chr.Struct();
-    //                for (int i = 0; i < c->Vfx.Tethers.Length; i++)
+    //                for(var i = 0; i < c->Vfx.Tethers.Length; i++)
     //                {
     //                    var t = c->Vfx.Tethers[i];
-    //                    if (t.Id != 0 && t.TargetId == go.GameObjectId)
+    //                    if(t.Id != 0 && t.TargetId == go.GameObjectId)
     //                    {
     //                        ret.Add(x.Position);
     //                    }
@@ -165,8 +232,8 @@ public static unsafe class Utils
     //        }
     //        return ret;
     //    }
-    //    var obj = ExtendedPronoun.Resolve(placeholder);
-    //    if (obj != null)
+    //    var obj = Utils.ResolvePronounBPO(placeholder);
+    //    if(obj != null)
     //    {
     //        return [obj->Position];
     //    }
@@ -189,7 +256,7 @@ public static unsafe class Utils
 
     //public static Expansion DetermineExpansion(this Layout l)
     //{
-    //    if (l.ZoneLockH.Count == 0)
+    //    if(l.ZoneLockH.Count == 0)
     //    {
     //        return Expansion.Mixed;
     //    }
@@ -198,9 +265,9 @@ public static unsafe class Utils
     //        var enumerator = l.ZoneLockH.GetEnumerator();
     //        enumerator.MoveNext();
     //        var initial = DetermineExpansion(enumerator.Current);
-    //        while (enumerator.MoveNext())
+    //        while(enumerator.MoveNext())
     //        {
-    //            if (DetermineExpansion(enumerator.Current) != initial)
+    //            if(DetermineExpansion(enumerator.Current) != initial)
     //            {
     //                return Expansion.Mixed;
     //            }
@@ -209,19 +276,19 @@ public static unsafe class Utils
     //    }
     //}
 
-    //static Dictionary<uint, Expansion> ExpansionCache = [];
+    //private static Dictionary<uint, Expansion> ExpansionCache = [];
     //public static Expansion DetermineExpansion(uint territoryType)
     //{
-    //    if (!ExpansionCache.TryGetValue(territoryType, out var ret))
+    //    if(!ExpansionCache.TryGetValue(territoryType, out var ret))
     //    {
     //        ret = Expansion.A_Realm_Reborn;
     //        var data = ExcelTerritoryHelper.Get(territoryType);
-    //        if (data != null)
+    //        if(data != null)
     //        {
     //            var bg = data.Value.Bg.GetText();
-    //            for (int i = 1; i <= 5; i++)
+    //            for(var i = 1; i <= 5; i++)
     //            {
-    //                if (bg.StartsWith($"ex{i}/"))
+    //                if(bg.StartsWith($"ex{i}/"))
     //                {
     //                    ret = (Expansion)i;
     //                    break;
@@ -235,7 +302,7 @@ public static unsafe class Utils
 
     //public static ContentCategory DetermineContentCategory(this Layout l)
     //{
-    //    if (l.ZoneLockH.Count == 0)
+    //    if(l.ZoneLockH.Count == 0)
     //    {
     //        return ContentCategory.Mixed;
     //    }
@@ -244,9 +311,9 @@ public static unsafe class Utils
     //        var enumerator = l.ZoneLockH.GetEnumerator();
     //        enumerator.MoveNext();
     //        var initial = DetermineContentCategory(enumerator.Current);
-    //        while (enumerator.MoveNext())
+    //        while(enumerator.MoveNext())
     //        {
-    //            if (DetermineContentCategory(enumerator.Current) != initial)
+    //            if(DetermineContentCategory(enumerator.Current) != initial)
     //            {
     //                return ContentCategory.Mixed;
     //            }
@@ -254,17 +321,17 @@ public static unsafe class Utils
     //        return initial;
     //    }
     //}
-    //static Dictionary<uint, ContentCategory> ContentCategoryCache = [];
+    //private static Dictionary<uint, ContentCategory> ContentCategoryCache = [];
     //public static ContentCategory DetermineContentCategory(uint territoryType)
     //{
-    //    if (!ContentCategoryCache.TryGetValue(territoryType, out var ret))
+    //    if(!ContentCategoryCache.TryGetValue(territoryType, out var ret))
     //    {
     //        ret = ContentCategory.Other;
     //        var data = ExcelTerritoryHelper.Get(territoryType);
-    //        if (data != null)
+    //        if(data != null)
     //        {
     //            var use = data.Value.GetTerritoryIntendedUse();
-    //            if (use.EqualsAny([
+    //            if(use.EqualsAny([
     //                TerritoryIntendedUseEnum.City_Area,
     //                TerritoryIntendedUseEnum.Open_World,
     //                TerritoryIntendedUseEnum.Residential_Area,
@@ -277,26 +344,26 @@ public static unsafe class Utils
     //                TerritoryIntendedUseEnum.Diadem_2,
     //                TerritoryIntendedUseEnum.Diadem_3,
     //                ])) ret = ContentCategory.World;
-    //            else if (use.EqualsAny([
+    //            else if(use.EqualsAny([
     //                TerritoryIntendedUseEnum.Dungeon,
     //                TerritoryIntendedUseEnum.Variant_Dungeon,
     //                TerritoryIntendedUseEnum.Deep_Dungeon,
     //                TerritoryIntendedUseEnum.Criterion_Duty,
     //                TerritoryIntendedUseEnum.Criterion_Savage_Duty,
     //                ])) ret = ContentCategory.Dungeon;
-    //            else if (use.EqualsAny([
+    //            else if(use.EqualsAny([
     //                TerritoryIntendedUseEnum.Trial,
     //                ])) ret = ContentCategory.Trial;
-    //            else if (use.EqualsAny([
+    //            else if(use.EqualsAny([
     //                TerritoryIntendedUseEnum.Raid,
     //                TerritoryIntendedUseEnum.Raid_2,
     //                ])) ret = ContentCategory.Raid;
-    //            else if (use.EqualsAny([
+    //            else if(use.EqualsAny([
     //                TerritoryIntendedUseEnum.Alliance_Raid,
     //                TerritoryIntendedUseEnum.Large_Scale_Raid,
     //                TerritoryIntendedUseEnum.Large_Scale_Savage_Raid,
     //                ])) ret = ContentCategory.Alliance;
-    //            else if (use.EqualsAny([
+    //            else if(use.EqualsAny([
     //                TerritoryIntendedUseEnum.Bozja,
     //                TerritoryIntendedUseEnum.Eureka,
     //                TerritoryIntendedUseEnum.Occult_Crescent,
@@ -309,32 +376,32 @@ public static unsafe class Utils
 
     //public static bool IsActorNameUsed(this Element e)
     //{
-    //    if (e.refActorType != 0) return false;
-    //    if (!e.refActorComparisonAnd && e.refActorComparisonType != 0) return false;
-    //    if (e.refActorName.EqualsAny("", "*") && e.refActorNameIntl.IsEmpty()) return false;
+    //    if(e.refActorType != 0) return false;
+    //    if(!e.refActorComparisonAnd && e.refActorComparisonType != 0) return false;
+    //    if(e.refActorName.EqualsAny("", "*") && e.refActorNameIntl.IsEmpty()) return false;
     //    return true;
     //}
 
     //public static bool IsValid(this Layout l)
     //{
-    //    if (l == null) return false;
-    //    if (l.Name == null || !l.InternationalName.IsValid()) return false;
-    //    if (l.Description == null || !l.InternationalDescription.IsValid()) return false;
-    //    if (l.ZoneLockH == null) return false;
-    //    if (l.Group == null) return false;
-    //    if (l.Scenes == null) return false;
-    //    if (l.Subconfigurations == null) return false;
-    //    if (l.JobLockH == null) return false;
-    //    if (l.Triggers == null || !l.Triggers.All(IsValid)) return false;
-    //    if (l.ElementsL == null || !l.ElementsL.All(IsValid)) return false;
+    //    if(l == null) return false;
+    //    if(l.Name == null || !l.InternationalName.IsValid()) return false;
+    //    if(l.Description == null || !l.InternationalDescription.IsValid()) return false;
+    //    if(l.ZoneLockH == null) return false;
+    //    if(l.Group == null) return false;
+    //    if(l.Scenes == null) return false;
+    //    if(l.Subconfigurations == null) return false;
+    //    if(l.JobLockH == null) return false;
+    //    if(l.Triggers == null || !l.Triggers.All(IsValid)) return false;
+    //    if(l.ElementsL == null || !l.ElementsL.All(IsValid)) return false;
     //    return true;
     //}
 
     //public static bool IsValid(this Trigger t)
     //{
-    //    if (t == null) return false;
-    //    if (t.Match == null || !t.MatchIntl.IsValid()) return false;
-    //    if (t.EnableAt == null || t.DisableAt == null) return false;
+    //    if(t == null) return false;
+    //    if(t.Match == null || !t.MatchIntl.IsValid()) return false;
+    //    if(t.EnableAt == null || t.DisableAt == null) return false;
     //    return true;
     //}
 
@@ -345,24 +412,24 @@ public static unsafe class Utils
     ///// <returns></returns>
     //public static bool IsValid(this Element e)
     //{
-    //    if (e == null) return false;
-    //    if (e.Name == null || !e.InternationalName.IsValid()) return false;
-    //    if (e.overlayText == null || !e.overlayTextIntl.IsValid()) return false;
-    //    if (e.refActorName == null || !e.refActorNameIntl.IsValid()) return false;
-    //    if (e.refActorPlaceholder == null || e.refActorPlaceholder.Contains(null)) return false;
-    //    if (e.refActorCastId == null) return false;
-    //    if (e.refActorBuffId == null) return false;
-    //    if (e.refActorTetherConnectedWithPlayer == null || e.refActorTetherConnectedWithPlayer.Contains(null)) return false;
-    //    if (e.faceplayer == null) return false;
-    //    if (e.RotationOverridePoint == null) return false;
-    //    if (e.ObjectKinds == null) return false;
+    //    if(e == null) return false;
+    //    if(e.Name == null || !e.InternationalName.IsValid()) return false;
+    //    if(e.overlayText == null || !e.overlayTextIntl.IsValid()) return false;
+    //    if(e.refActorName == null || !e.refActorNameIntl.IsValid()) return false;
+    //    if(e.refActorPlaceholder == null || e.refActorPlaceholder.Contains(null)) return false;
+    //    if(e.refActorCastId == null) return false;
+    //    if(e.refActorBuffId == null) return false;
+    //    if(e.refActorTetherConnectedWithPlayer == null || e.refActorTetherConnectedWithPlayer.Contains(null)) return false;
+    //    if(e.faceplayer == null) return false;
+    //    if(e.RotationOverridePoint == null) return false;
+    //    if(e.ObjectKinds == null) return false;
     //    return true;
     //}
 
     //public static bool IsValid(this InternationalString s)
     //{
-    //    if (s == null) return false;
-    //    if (s.En == null || s.Fr == null || s.Other == null || s.Jp == null || s.De == null) return false;
+    //    if(s == null) return false;
+    //    if(s.En == null || s.Fr == null || s.Other == null || s.Jp == null || s.De == null) return false;
     //    return true;
     //}
 
@@ -375,7 +442,7 @@ public static unsafe class Utils
     //public static string GetName(this LayoutSubconfiguration conf, Layout layout)
     //{
     //    var name = conf?.Name ?? layout.DefaultConfigurationName.NullWhenEmpty() ?? "Default Configration";
-    //    if (name == "")
+    //    if(name == "")
     //    {
     //        var index = layout.Subconfigurations.IndexOf(conf);
     //        name = $"Unnamed configuration {(index == -1 ? conf.Guid : index + 1)}";
@@ -383,19 +450,61 @@ public static unsafe class Utils
     //    return name;
     //}
 
-    //    private static bool IsNullOrEmpty(this string s) => GenericHelpers.IsNullOrEmpty(s);
+    private static bool IsNullOrEmpty(this string s) => GenericHelpers.IsNullOrEmpty(s);
 
-    //    public static float GetRotationWithOverride(this IGameObject obj, Element e)
+    ///// <summary>
+    ///// 
+    ///// </summary>
+    ///// <param name="obj"></param>
+    ///// <param name="e"></param>
+    ///// <returns>Radians</returns>
+    //public static float GetRotationWithOverride(this IGameObject obj, Element e)
+    //{
+    //    if(!e.RotationOverride)
     //    {
-    //        if(!e.RotationOverride) return obj.Rotation;
-    //        return (180f - MathHelper.GetRelativeAngle(obj.Position.ToVector2(), e.RotationOverridePoint.ToVector2()) + e.RotationOverrideAddAngle).DegToRad();
+    //        if(e.UseCastRotation && obj is IBattleChara b)
+    //        {
+    //            if(b.IsCasting() && b.CastActionId.EqualsAny(e.refActorCastId))
+    //            {
+    //                if(S.Projection.LastCast.TryGetValue(obj.ObjectId, out var casts) && casts.TryGetValue(new(ActionType.Action, b.CastActionId), out var packet))
+    //                {
+    //                    return packet.Rotation;
+    //                }
+    //            }
+    //            else
+    //            {
+    //                foreach(var castId in e.refActorCastId)
+    //                {
+    //                    if(S.Projection.LastCast.TryGetValue(obj.ObjectId, out var casts))
+    //                    {
+    //                        if(casts.TryGetValue(new(ActionType.Action, castId), out var packet))
+    //                        {
+    //                            if(AttachedInfo.TryGetCastTime(b.Address, castId, out var castTime))
+    //                            {
+    //                                if(castTime.InRange(e.refActorCastTimeMin, e.refActorCastTimeMax))
+    //                                {
+    //                                    return packet.Rotation;
+    //                                }
+    //                            }
+    //                        }
+    //                    }
+    //                }
+    //            }
+    //        }
+    //        return obj.Rotation;
     //    }
+    //    if(e.RotationOverrideAngleOnlyMode)
+    //    {
+    //        return (180f + e.RotationOverrideAddAngle).DegToRad();
+    //    }
+    //    return (180f - MathHelper.GetRelativeAngle(obj.Position.ToVector2(), e.RotationOverridePoint.ToVector2()) + e.RotationOverrideAddAngle).DegToRad();
+    //}
 
     //    public static void Migrate(this Layout l)
     //    {
     //        DataMigrator.MigrateJobs(l);
     //#pragma warning disable CS0612 // Type or member is obsolete
-    //        foreach(var x in l.Elements)
+    //        foreach (var x in l.Elements)
     //        {
     //            x.Value.Name = x.Key;
     //            l.ElementsL.Add(x.Value);
@@ -415,50 +524,44 @@ public static unsafe class Utils
         return n.ToString().ReplaceByChar("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", "");
     }
 
-    //    public static bool WorldToScreen(Vector3 worldPos, out Vector2 screenPos)
+    //public static bool WorldToScreen(Vector3 worldPos, out Vector2 screenPos)
+    //{
+    //    //return S.VbmCamera.WorldToScreen(worldPos, out screenPos);
+    //    /*worldPos = default;
+    //    screenPos = default;
+    //    var cam = CameraManager.Instance();
+    //    if(cam != null)
     //    {
-    //        //return S.VbmCamera.WorldToScreen(worldPos, out screenPos);
-    //        /*worldPos = default;
-    //        screenPos = default;
-    //        var cam = CameraManager.Instance();
-    //        if(cam != null)
+    //        var current = cam->CurrentCamera;
+    //        if(current != null)
     //        {
-    //            var current = cam->CurrentCamera;
-    //            if(current != null)
-    //            {
-    //                var result = current->WorldToScreen(worldPos, out var screenPosCs);
-    //                screenPos = screenPosCs;
-    //                return result;
-    //            }
+    //            var result = current->WorldToScreen(worldPos, out var screenPosCs);
+    //            screenPos = screenPosCs;
+    //            return result;
     //        }
-    //        return false;*/
-    //        return Svc.GameGui.WorldToScreen(worldPos, out screenPos);
     //    }
+    //    return false;*/
+    //    return Svc.GameGui.WorldToScreen(worldPos, out screenPos);
+    //}
 
     public static byte[] BrotliCompress(byte[] bytes)
     {
-        using (var memoryStream = new MemoryStream())
+        using var memoryStream = new MemoryStream();
+        using(var brotliStream = new BrotliStream(memoryStream, CompressionLevel.SmallestSize))
         {
-            using (var brotliStream = new BrotliStream(memoryStream, CompressionLevel.SmallestSize))
-            {
-                brotliStream.Write(bytes, 0, bytes.Length);
-            }
-            return memoryStream.ToArray();
+            brotliStream.Write(bytes, 0, bytes.Length);
         }
+        return memoryStream.ToArray();
     }
     public static byte[] BrotliDecompress(byte[] bytes)
     {
-        using (var memoryStream = new MemoryStream(bytes))
+        using var memoryStream = new MemoryStream(bytes);
+        using var outputStream = new MemoryStream();
+        using(var decompressStream = new BrotliStream(memoryStream, CompressionMode.Decompress))
         {
-            using (var outputStream = new MemoryStream())
-            {
-                using (var decompressStream = new BrotliStream(memoryStream, CompressionMode.Decompress))
-                {
-                    decompressStream.CopyTo(outputStream);
-                }
-                return outputStream.ToArray();
-            }
+            decompressStream.CopyTo(outputStream);
         }
+        return outputStream.ToArray();
     }
 
     //    public static string GetScriptConfigurationName(string scriptFullName, string configKey)
@@ -619,7 +722,7 @@ public static unsafe class Utils
     //    if(import.Contains('~'))
     //    {
     //        var name = import.Split('~')[0];
-    //        var json = import.Substring(name.Length + 1);
+    //        var json = import[(name.Length + 1)..];
     //        try
     //        {
     //            json = Encoding.UTF8.GetString(Convert.FromBase64String(json));
@@ -676,7 +779,7 @@ public static unsafe class Utils
     //            }
     //            Layout l = new()
     //            {
-    //                ZoneLockH = [Svc.ClientState.TerritoryType],
+    //                ZoneLockH = [(ushort)Svc.ClientState.TerritoryType],
     //                Name = "Legacy preset: " + lp.Name
     //            };
     //            if(lp.A != null && lp.A.Active) AddLegacyElement(l, "A", lp.A.ToElement("A", 0xff00ff00));
@@ -821,15 +924,13 @@ public static unsafe class Utils
     public static string Compress(this string s)
     {
         var bytes = Encoding.Unicode.GetBytes(s);
-        using (var msi = new MemoryStream(bytes))
-        using (var mso = new MemoryStream())
+        using var msi = new MemoryStream(bytes);
+        using var mso = new MemoryStream();
+        using(var gs = new GZipStream(mso, CompressionLevel.Optimal))
         {
-            using (var gs = new GZipStream(mso, CompressionLevel.Optimal))
-            {
-                msi.CopyTo(gs);
-            }
-            return Convert.ToBase64String(mso.ToArray()).Replace('+', '-').Replace('/', '_');
+            msi.CopyTo(gs);
         }
+        return Convert.ToBase64String(mso.ToArray()).Replace('+', '-').Replace('/', '_');
     }
 
     public static string ToBase64UrlSafe(this string s)
@@ -842,28 +943,26 @@ public static unsafe class Utils
         return Encoding.UTF8.GetString(Convert.FromBase64String(s.Replace('-', '+').Replace('_', '/')));
     }
 
-    //public static string Decompress(this string s)
-    //{
-    //    var bytes = Convert.FromBase64String(s.Replace('-', '+').Replace('_', '/'));
-    //    using(var msi = new MemoryStream(bytes))
-    //    using(var mso = new MemoryStream())
-    //    {
-    //        using(var gs = new GZipStream(msi, CompressionMode.Decompress))
-    //        {
-    //            gs.CopyTo(mso);
-    //        }
-    //        return Encoding.Unicode.GetString(mso.ToArray());
-    //    }
-    //}
+    public static string Decompress(this string s)
+    {
+        var bytes = Convert.FromBase64String(s.Replace('-', '+').Replace('_', '/'));
+        using var msi = new MemoryStream(bytes);
+        using var mso = new MemoryStream();
+        using(var gs = new GZipStream(msi, CompressionMode.Decompress))
+        {
+            gs.CopyTo(mso);
+        }
+        return Encoding.Unicode.GetString(mso.ToArray());
+    }
 
     ////because Dalamud changed Y and Z in actor positions I have to do emulate old behavior to not break old presets
     //public static Vector3 GetPlayerPositionXZY()
     //{
-    //    if(Svc.ClientState.LocalPlayer != null)
+    //    if(BasePlayer != null)
     //    {
     //        if(PlayerPosCache == null)
     //        {
-    //            PlayerPosCache = XZY(Svc.ClientState.LocalPlayer.Position);
+    //            PlayerPosCache = XZY(BasePlayer.Position);
     //        }
     //        return PlayerPosCache.Value;
     //    }
@@ -907,28 +1006,27 @@ public static unsafe class Utils
     }
     public static float AngleBetweenVectors(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4)
     {
-        return MathF.Acos(((x2 - x1) * (x4 - x3) + (y2 - y1) * (y4 - y3)) /
+        return MathF.Acos((((x2 - x1) * (x4 - x3)) + ((y2 - y1) * (y4 - y3))) /
             (MathF.Sqrt(Square(x2 - x1) + Square(y2 - y1)) * MathF.Sqrt(Square(x4 - x3) + Square(y4 - y3))));
     }
 
     public static IEnumerable<(Vector2 v2, float angle)> GetPolygon(List<Vector2> coords)
     {
-        var coordsVE = coords.AsValueEnumerable();
-        var medium = new Vector2(coordsVE.Average(x => x.X), coordsVE.Average(x => x.Y));
-        var array = coordsVE.Select(x => x - medium).ToArray();
+        var medium = new Vector2(coords.Average(x => x.X), coords.Average(x => x.Y));
+        var array = coords.Select(x => x - medium).ToArray();
         Array.Sort(array, delegate (Vector2 a, Vector2 b)
         {
             var angleA = MathF.Atan2(a.Y, a.X);
             var angleB = MathF.Atan2(b.Y, b.X);
-            if (angleA == angleB)
+            if(angleA == angleB)
             {
-                var radiusA = MathF.Sqrt(a.X * a.X + a.Y * a.Y);
-                var radiusB = MathF.Sqrt(b.X * b.X + b.Y * b.Y);
+                var radiusA = MathF.Sqrt((a.X * a.X) + (a.Y * a.Y));
+                var radiusB = MathF.Sqrt((b.X * b.X) + (b.Y * b.Y));
                 return radiusA > radiusB ? 1 : -1;
             }
             return angleA > angleB ? 1 : -1;
         });
-        foreach (var x in array) yield return (x + medium, MathF.Atan2(x.Y, x.X));
+        foreach(var x in array) yield return (x + medium, MathF.Atan2(x.Y, x.X));
     }
 
     public static float Square(float x)
@@ -950,7 +1048,7 @@ public static unsafe class Utils
     /// <returns></returns>
     public static Vector3 RotatePoint(Vector3 origin, float angle, Vector3 point)
     {
-        if (angle == 0f) return point;
+        if(angle == 0f) return point;
         var s = (float)Math.Sin(angle);
         var c = (float)Math.Cos(angle);
 
@@ -958,8 +1056,8 @@ public static unsafe class Utils
         point -= origin;
 
         // rotate point
-        var xnew = point.X * c - point.Y * s;
-        var ynew = point.X * s + point.Y * c;
+        var xnew = (point.X * c) - (point.Y * s);
+        var ynew = (point.X * s) + (point.Y * c);
         point.X = xnew;
         point.Y = ynew;
 
@@ -978,7 +1076,7 @@ public static unsafe class Utils
     /// <returns></returns>
     public static Vector3 RotatePoint(float cx, float cy, float angle, Vector3 p)
     {
-        if (angle == 0f) return p;
+        if(angle == 0f) return p;
         var s = (float)Math.Sin(angle);
         var c = (float)Math.Cos(angle);
 
@@ -987,8 +1085,8 @@ public static unsafe class Utils
         p.Y -= cy;
 
         // rotate point
-        var xnew = p.X * c - p.Y * s;
-        var ynew = p.X * s + p.Y * c;
+        var xnew = (p.X * c) - (p.Y * s);
+        var ynew = (p.X * s) + (p.Y * c);
 
         // translate point back:
         p.X = xnew + cx;
@@ -1075,13 +1173,13 @@ public static unsafe class Utils
     public static void PerpOffset(Vector2 a, Vector2 b, float position, float offset, out Vector2 c, out Vector2 d)
     {
         //p3 is located at the x or y delta * position + p1x or p1y original.
-        var p3 = new Vector2((b.X - a.X) * position + a.X, (b.Y - a.Y) * position + a.Y);
+        var p3 = new Vector2(((b.X - a.X) * position) + a.X, ((b.Y - a.Y) * position) + a.Y);
 
         //returns an angle in radians between p1 and p2 + 1.5708 (90degress).
         var angleRadians = MathF.Atan2(a.Y - b.Y, a.X - b.X) + 1.5708f;
 
         //locates p4 at the given angle and distance from p3.
-        var p4 = new Vector2(p3.X + MathF.Cos(angleRadians) * offset, p3.Y + MathF.Sin(angleRadians) * offset);
+        var p4 = new Vector2(p3.X + (MathF.Cos(angleRadians) * offset), p3.Y + (MathF.Sin(angleRadians) * offset));
 
         //send out the calculated points
         c = p3;
