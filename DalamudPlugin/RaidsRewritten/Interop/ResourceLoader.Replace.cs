@@ -25,11 +25,11 @@ public unsafe partial class ResourceLoader
 
     public delegate byte ReadSqPackPrototype(IntPtr fileHandler, SeFileDescriptor* fileDesc, int priority, bool isSync);
 
-    public delegate void* GetResourceSyncPrototype(void* resourceManager, void* category, uint* type,
-        uint* hash, byte* path, void* unknown, void* unkDebugPtr, uint unkDebugInt);
+    public delegate void* GetResourceSyncPrototype(IntPtr resourceManager, uint* categoryId, ResourceType* resourceType,
+        int* resourceHash, byte* path, GetResourceParameters* resParams, void* unkDebugPtr, uint unkDebugInt);
 
-    public delegate void* GetResourceAsyncPrototype(void* resourceManager, void* category, uint* type,
-        uint* hash, byte* path, void* unknown, bool isUnknown, void* unkDebugPtr, uint unkDebugInt);
+    public delegate void* GetResourceAsyncPrototype(IntPtr resourceManager, uint* categoryId, ResourceType* resourceType,
+        int* resourceHash, byte* path, GetResourceParameters* resParams, bool isUnknown, void* unkDebugPtr, uint unkDebugInt);
 
     // ===== FILES HOOKS =========
 
@@ -58,51 +58,51 @@ public unsafe partial class ResourceLoader
     }
 
     private void* GetResourceSyncDetour(
-        void* resourceManager,
-        void* category,
-        uint* type,
-        uint* hash,
+        IntPtr resourceManager,
+        uint* categoryId,
+        ResourceType* resourceType,
+        int* resourceHash,
         byte* path,
-        void* unknown,
+        GetResourceParameters* resParams,
         void* unkDebugPtr,
         uint unkDebugInt
-    ) => GetResourceHandler(true, resourceManager, category, type, hash, path, unknown, false, unkDebugPtr, unkDebugInt);
+    ) => GetResourceHandler(true, resourceManager, categoryId, resourceType, resourceHash, path, resParams, false, unkDebugPtr, unkDebugInt);
 
     private void* GetResourceAsyncDetour(
-        void* resourceManager,
-        void* category,
-        uint* type,
-        uint* hash,
+        IntPtr resourceManager,
+        uint* categoryId,
+        ResourceType* resourceType,
+        int* resourceHash,
         byte* path,
-        void* unknown,
+        GetResourceParameters* resParams,
         bool isUnknown,
         void* unkDebugPtr,
         uint unkDebugInt
-    ) => GetResourceHandler(false, resourceManager, category, type, hash, path, unknown, isUnknown, unkDebugPtr, unkDebugInt);
+    ) => GetResourceHandler(false, resourceManager, categoryId, resourceType, resourceHash, path, resParams, isUnknown, unkDebugPtr, unkDebugInt);
 
     private void* CallOriginalHandler(
         bool isSync,
-        void* resourceManager,
-        void* category,
-        uint* type,
-        uint* hash,
+        IntPtr resourceManager,
+        uint* categoryId,
+        ResourceType* resourceType,
+        int* resourceHash,
         byte* path,
-        void* unknown,
+        GetResourceParameters* resParams,
         bool isUnknown,
         void* unkDebugPtr,
         uint unkDebugInt
     ) => isSync
-        ? GetResourceSyncHook.Original(resourceManager, category, type, hash, path, unknown, unkDebugPtr, unkDebugInt)
-        : GetResourceAsyncHook.Original(resourceManager, category, type, hash, path, unknown, isUnknown, unkDebugPtr, unkDebugInt);
+        ? GetResourceSyncHook.Original(resourceManager, categoryId, resourceType, resourceHash, path, resParams, unkDebugPtr, unkDebugInt)
+        : GetResourceAsyncHook.Original(resourceManager, categoryId, resourceType, resourceHash, path, resParams, isUnknown, unkDebugPtr, unkDebugInt);
 
     private void* GetResourceHandler(
         bool isSync,
-        void* resourceManager,
-        void* category,
-        uint* type,
-        uint* hash,
+        IntPtr resourceManager,
+        uint* categoryId,
+        ResourceType* resourceType,
+        int* resourceHash,
         byte* path,
-        void* unknown,
+        GetResourceParameters* resParams,
         bool isUnknown,
         void* unkDebugPtr,
         uint unkDebugInt
@@ -110,7 +110,7 @@ public unsafe partial class ResourceLoader
     {
         if (!Utf8GamePath.FromPointer(path, MetaDataComputation.None, out var gamePath))
         {
-            return CallOriginalHandler(isSync, resourceManager, category, type, hash, path, unknown, isUnknown, unkDebugPtr, unkDebugInt);
+            return CallOriginalHandler(isSync, resourceManager, categoryId, resourceType, resourceHash, path, resParams, isUnknown, unkDebugPtr, unkDebugInt);
         }
 
         var gamePathString = gamePath.ToString();
@@ -119,16 +119,16 @@ public unsafe partial class ResourceLoader
 
         if (replacedPath == null || replacedPath.Length >= 260)
         {
-            return CallOriginalHandler(isSync, resourceManager, category, type, hash, path, unknown, isUnknown, unkDebugPtr, unkDebugInt);
+            return CallOriginalHandler(isSync, resourceManager, categoryId, resourceType, resourceHash, path, resParams, isUnknown, unkDebugPtr, unkDebugInt);
         }
 
         var resolvedPath = new FullPath(replacedPath);
-        PathResolved?.Invoke((ResourceType)(*type), resolvedPath);
+        PathResolved?.Invoke(*resourceType, resolvedPath);
 
-        *hash = (uint)InteropUtils.ComputeHash(resolvedPath.InternalName, (GetResourceParameters*)unknown);
+        *resourceHash = InteropUtils.ComputeHash(resolvedPath.InternalName, resParams);
         path = resolvedPath.InternalName.Path;
 
-        return CallOriginalHandler(isSync, resourceManager, category, type, hash, path, unknown, isUnknown, unkDebugPtr, unkDebugInt);
+        return CallOriginalHandler(isSync, resourceManager, categoryId, resourceType, resourceHash, path, resParams, isUnknown, unkDebugPtr, unkDebugInt);
     }
 
     private byte ReadSqPackDetour(IntPtr fileHandler, SeFileDescriptor* fileDescriptor, int priority, bool isSync)
