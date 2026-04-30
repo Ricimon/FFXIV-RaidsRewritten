@@ -48,7 +48,7 @@ public static unsafe class AttachedInfo
 
         GenericHelpers.Safe(delegate
         {
-            GameObject_ctor_hook = PluginInitializer.GameInteropProvider.HookFromAddress<GameObject_ctor>(PluginInitializer.SigScanner.ScanText("48 8D 05 ?? ?? ?? ?? C7 81 ?? ?? ?? ?? ?? ?? ?? ?? 48 89 01 48 8B C1 C3"), GameObject_ctor_detour);
+            GameObject_ctor_hook = PluginInitializer.GameInteropProvider.HookFromAddress<GameObject_ctor>(PluginInitializer.SigScanner.ScanText("48 8D 05 ?? ?? ?? ?? 48 89 01 33 C0 48 89 41 10 48 89 41 18 89 81 ?? ?? ?? ?? 48 89 81"), GameObject_ctor_detour);
             GameObject_ctor_hook.Enable();
         });
         GenericHelpers.Safe(delegate
