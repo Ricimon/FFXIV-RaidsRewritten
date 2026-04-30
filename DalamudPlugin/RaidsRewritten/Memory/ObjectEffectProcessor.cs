@@ -11,10 +11,10 @@ namespace RaidsRewritten.Memory;
 
 public unsafe class ObjectEffectProcessor(DalamudServices dalamud, ILogger logger) : IDisposable
 {
-    internal delegate void ProcessObjectEffect(EventObject* a1, uint a2, uint a3, ulong a4);
+    internal delegate long ProcessObjectEffect(GameObject* a1, ushort a2, ushort a3, long a4);
     [Signature("4C 8B DC 53 48 81 EC ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 84 24 ?? ?? ?? ?? 49 89 6B F0 48 8B D9 49 89 7B E0", DetourName = nameof(ProcessObjectEffectDetour), Fallibility = Fallibility.Fallible)]
     internal Hook<ProcessObjectEffect> ProcessObjectEffectHook = null;
-    internal void ProcessObjectEffectDetour(EventObject* a1, uint a2, uint a3, ulong a4)
+    internal long ProcessObjectEffectDetour(GameObject* a1, ushort a2, ushort a3, ushort a4)
     {
         try
         {
@@ -32,16 +32,16 @@ public unsafe class ObjectEffectProcessor(DalamudServices dalamud, ILogger logge
             AttachedInfo.ObjectEffectInfos[ptr].Add(new()
             {
                 StartTime = Environment.TickCount64,
-                data1 = (ushort)a2,
-                data2 = (ushort)a3
+                data1 = a2,
+                data2 = a3
             });
-            this.callback?.Invoke(a1->EntityId, (ushort)a2, (ushort)a3);
+            this.callback?.Invoke(a1->EntityId, a2, a3);
         }
         catch (Exception e)
         {
             logger.Info(e.ToStringFull());
         }
-        ProcessObjectEffectHook.Original(a1, a2, a3, a4);
+        return ProcessObjectEffectHook.Original(a1, a2, a3, a4);
     }
 
     private Action<uint, ushort, ushort>? callback;
