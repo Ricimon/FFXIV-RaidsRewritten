@@ -145,15 +145,10 @@ public unsafe sealed partial class ResourceLoader : IDisposable
 
         // Textures
 
-        try
-        {
-            var loadIconByIdAddress = sigScanner.ScanText(LoadIconByIdSig);
+        if (sigScanner.TryScanText(LoadIconByIdSig, out var loadIconByIdAddress))
             LoadIconByID = Marshal.GetDelegateForFunctionPointer<LoadIconByIDDelegate>(loadIconByIdAddress);
-        }
-        catch (Exception)
-        {
-            // Signature not found in current game version; LoadIconByID functionality will be unavailable
-        }
+        else
+            logger.Error("Signature not found for {sig}; LoadIconByID functionality will be unavailable", nameof(LoadIconByIdSig));
         AtkComponentIconTextReceiveEventHook = hooks.HookFromSignature<AtkComponentIconText_ReceiveEvent>(AtkComponentIconTextReceiveEventSig, AtkComponentIconText_ReceiveEventDetour);
 
         AtkComponentIconTextReceiveEventHook.Enable();
