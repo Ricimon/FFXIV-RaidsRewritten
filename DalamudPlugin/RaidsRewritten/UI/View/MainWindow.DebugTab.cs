@@ -42,8 +42,9 @@ public partial class MainWindow
     {
         var style = ImGui.GetStyle();
         var displayLabel = nextLabel.Contains("##") ? nextLabel[..nextLabel.IndexOf("##")] : nextLabel;
-        var nextWidth = ImGui.CalcTextSize(displayLabel).X + style.FramePadding.X * 2;
-        if (ImGui.GetItemRectMax().X + style.ItemSpacing.X + nextWidth < ImGui.GetContentRegionMax().X)
+        var nextWidth =  ImGui.CalcTextSize(displayLabel).X + style.FramePadding.X * 2;
+        var maxWidth = ImGui.GetWindowPos().X + ImGui.GetWindowContentRegionMax().X;
+        if (ImGui.GetItemRectMax().X + style.ItemSpacing.X + nextWidth < maxWidth)
             ImGui.SameLine();
     }
 
@@ -52,7 +53,10 @@ public partial class MainWindow
         using var debugTab = ImRaii.TabItem("Debug");
         if (!debugTab) return;
 
-        var debug = true;
+        var debug = false;
+#if DEBUG
+        debug = true;
+#endif
 
         if (debug)
         {
@@ -175,7 +179,7 @@ public partial class MainWindow
                     Blind.ApplyToTarget(e, 5.0f);
                 });
             }
-
+            SameLineIfFits("Blind");
             if (ImGui.Button("Sleep"))
             {
                 commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
@@ -191,9 +195,7 @@ public partial class MainWindow
                     Hysteria.ApplyToTarget(e, 8.0f, 3.0f);
                 });
             }
-
             SameLineIfFits("Heavy (e)");
-
             if (ImGui.Button("Heavy (e)"))
             {
                 commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
@@ -260,20 +262,20 @@ public partial class MainWindow
                     }
                 }
             }
-
-        if (ImGui.Button("One Third Donut Omen"))
-        {
-            var player = this.dalamud.ObjectTable.LocalPlayer;
-            if (player != null)
+            SameLineIfFits("One Third Donut Omen");
+            if (ImGui.Button("One Third Donut Omen"))
             {
-                if (this.entityManager.TryCreateEntity<OneThirdDonutOmen>(out var donut))
+                var player = this.dalamud.ObjectTable.LocalPlayer;
+                if (player != null)
                 {
-                    donut.Set(new Position(player.Position));
-                    donut.Set(new Rotation(player.Rotation));
-                    donut.Set(new Scale(Vector3.One));
+                    if (this.entityManager.TryCreateEntity<OneThirdDonutOmen>(out var donut))
+                    {
+                        donut.Set(new Position(player.Position));
+                        donut.Set(new Rotation(player.Rotation));
+                        donut.Set(new Scale(Vector3.One));
+                    }
                 }
             }
-        }
 
         ImGui.Text("Test Attacks");
 
@@ -361,121 +363,117 @@ public partial class MainWindow
                 }
             }
 
-            if (ImGui.Button("Dreadknight"))
-            {
-                var player = this.dalamud.ObjectTable.LocalPlayer;
-                if (player != null)
+                if (ImGui.Button("Dreadknight"))
                 {
-                    if (this.entityManager.TryCreateEntity<Dreadknight>(out var dreadknight))
+                    var player = this.dalamud.ObjectTable.LocalPlayer;
+                    if (player != null)
                     {
-                        dreadknight.Set(new Position(player.Position));
+                        if (this.entityManager.TryCreateEntity<Dreadknight>(out var dreadknight))
+                        {
+                            dreadknight.Set(new Position(player.Position));
+                        }
                     }
                 }
-            }
-
                 SameLineIfFits("Dreadknight With Tether");
-
-            if (ImGui.Button("Dreadknight With Tether"))
-            {
-                var player = this.dalamud.ObjectTable.LocalPlayer;
-                if (player != null)
+                if (ImGui.Button("Dreadknight With Tether"))
                 {
-                    if (this.entityManager.TryCreateEntity<Dreadknight>(out var dreadknight))
+                    var player = this.dalamud.ObjectTable.LocalPlayer;
+                    if (player != null)
                     {
-                        dreadknight.Set(new Position(player.Position));
-                        Dreadknight.ApplyTarget(dreadknight, player);
-                        DelayedAction.Create(dreadknight.CsWorld(), () =>
+                        if (this.entityManager.TryCreateEntity<Dreadknight>(out var dreadknight))
                         {
-                            Stun.ApplyToTarget(dreadknight, 1f);
-                        }, 4f).ChildOf(dreadknight);
-                        DelayedAction.Create(dreadknight.CsWorld(), () =>
-                        {
-                            Bind.ApplyToTarget(dreadknight, 3f);
-                        }, 6f).ChildOf(dreadknight);
-                        DelayedAction.Create(dreadknight.CsWorld(), () =>
-                        {
-                            Dreadknight.RemoveCancellableCC(dreadknight);
-                        }, 7f).ChildOf(dreadknight);
-                        DelayedAction.Create(dreadknight.CsWorld(), () =>
-                        {
-                            Sleep.ApplyToTarget(dreadknight, 1f);
-                        }, 8f).ChildOf(dreadknight);
-                        DelayedAction.Create(dreadknight.CsWorld(), () =>
-                        {
-                            Heavy.ApplyToTarget(dreadknight, 5f);
-                            Dreadknight.SetTemporaryRelativeSpeed(dreadknight, .1f);
-                        }, 10f).ChildOf(dreadknight);
-                        DelayedAction.Create(dreadknight.CsWorld(), () =>
-                        {
-                            dreadknight.DestructChildEntity<Heavy.Component>();
-                        }, 12f).ChildOf(dreadknight);
+                            dreadknight.Set(new Position(player.Position));
+                            Dreadknight.ApplyTarget(dreadknight, player);
+                            DelayedAction.Create(dreadknight.CsWorld(), () =>
+                            {
+                                Stun.ApplyToTarget(dreadknight, 1f);
+                            }, 4f).ChildOf(dreadknight);
+                            DelayedAction.Create(dreadknight.CsWorld(), () =>
+                            {
+                                Bind.ApplyToTarget(dreadknight, 3f);
+                            }, 6f).ChildOf(dreadknight);
+                            DelayedAction.Create(dreadknight.CsWorld(), () =>
+                            {
+                                Dreadknight.RemoveCancellableCC(dreadknight);
+                            }, 7f).ChildOf(dreadknight);
+                            DelayedAction.Create(dreadknight.CsWorld(), () =>
+                            {
+                                Sleep.ApplyToTarget(dreadknight, 1f);
+                            }, 8f).ChildOf(dreadknight);
+                            DelayedAction.Create(dreadknight.CsWorld(), () =>
+                            {
+                                Heavy.ApplyToTarget(dreadknight, 5f);
+                                Dreadknight.SetTemporaryRelativeSpeed(dreadknight, .1f);
+                            }, 10f).ChildOf(dreadknight);
+                            DelayedAction.Create(dreadknight.CsWorld(), () =>
+                            {
+                                dreadknight.DestructChildEntity<Heavy.Component>();
+                            }, 12f).ChildOf(dreadknight);
+                        }
                     }
                 }
-            }
 
-            if (ImGui.Button("ADS"))
-            {
-                var player = this.dalamud.ObjectTable.LocalPlayer;
-                if (player != null)
+                if (ImGui.Button("ADS"))
                 {
-                    if (this.entityManager.TryCreateEntity<ADS>(out var ads))
+                    var player = this.dalamud.ObjectTable.LocalPlayer;
+                    if (player != null)
                     {
-                        var originalPosition = player.Position;
-                        ads.Set(new Position(player.Position))
-                            .Set(new Rotation(player.Rotation));
-                        DelayedAction.Create(ads.CsWorld(), () =>
+                        if (this.entityManager.TryCreateEntity<ADS>(out var ads))
                         {
-                            var player = this.dalamud.ObjectTable.LocalPlayer;
-                            if (player != null)
+                            var originalPosition = player.Position;
+                            ads.Set(new Position(player.Position))
+                                .Set(new Rotation(player.Rotation));
+                            DelayedAction.Create(ads.CsWorld(), () =>
                             {
-                                ADS.CastLineAoe(ads, MathUtilities.GetAbsoluteAngleFromSourceToTarget(originalPosition, player.Position));
-                            }
-                        }, 3f).ChildOf(ads);
-                        DelayedAction.Create(ads.CsWorld(), () =>
-                        {
-                            var player = this.dalamud.ObjectTable.LocalPlayer;
-                            if (player != null)
+                                var player = this.dalamud.ObjectTable.LocalPlayer;
+                                if (player != null)
+                                {
+                                    ADS.CastLineAoe(ads, MathUtilities.GetAbsoluteAngleFromSourceToTarget(originalPosition, player.Position));
+                                }
+                            }, 3f).ChildOf(ads);
+                            DelayedAction.Create(ads.CsWorld(), () =>
                             {
-                                ADS.CastLineAoe(ads, MathUtilities.GetAbsoluteAngleFromSourceToTarget(originalPosition, player.Position));
-                            }
-                        }, 9f).ChildOf(ads);
-                        DelayedAction.Create(ads.CsWorld(), ads.Destruct, 15f).ChildOf(ads);
+                                var player = this.dalamud.ObjectTable.LocalPlayer;
+                                if (player != null)
+                                {
+                                    ADS.CastLineAoe(ads, MathUtilities.GetAbsoluteAngleFromSourceToTarget(originalPosition, player.Position));
+                                }
+                            }, 9f).ChildOf(ads);
+                            DelayedAction.Create(ads.CsWorld(), ads.Destruct, 15f).ChildOf(ads);
+                        }
                     }
                 }
-            }
-
                 SameLineIfFits("ADS Stepped Leader");
-
-            if (ImGui.Button("ADS Stepped Leader"))
-            {
-                var player = this.dalamud.ObjectTable.LocalPlayer;
-                if (player != null)
+                if (ImGui.Button("ADS Stepped Leader"))
                 {
-                    if (this.entityManager.TryCreateEntity<ADS>(out var ads))
+                    var player = this.dalamud.ObjectTable.LocalPlayer;
+                    if (player != null)
                     {
-                        var originalPosition = player.Position;
-                        ads.Set(new Position(player.Position))
-                            .Set(new Rotation(player.Rotation));
-                        DelayedAction.Create(ads.CsWorld(), () =>
+                        if (this.entityManager.TryCreateEntity<ADS>(out var ads))
                         {
-                            var player = this.dalamud.ObjectTable.LocalPlayer;
-                            if (player != null)
+                            var originalPosition = player.Position;
+                            ads.Set(new Position(player.Position))
+                                .Set(new Rotation(player.Rotation));
+                            DelayedAction.Create(ads.CsWorld(), () =>
                             {
-                                ADS.CastSteppedLeader(ads, player.Position);
-                            }
-                        }, 3f).ChildOf(ads);
-                        DelayedAction.Create(ads.CsWorld(), () =>
-                        {
-                            var player = this.dalamud.ObjectTable.LocalPlayer;
-                            if (player != null)
+                                var player = this.dalamud.ObjectTable.LocalPlayer;
+                                if (player != null)
+                                {
+                                    ADS.CastSteppedLeader(ads, player.Position);
+                                }
+                            }, 3f).ChildOf(ads);
+                            DelayedAction.Create(ads.CsWorld(), () =>
                             {
-                                ADS.CastSteppedLeader(ads, player.Position);
-                            }
-                        }, 9f).ChildOf(ads);
-                        DelayedAction.Create(ads.CsWorld(), ads.Destruct, 15f).ChildOf(ads);
+                                var player = this.dalamud.ObjectTable.LocalPlayer;
+                                if (player != null)
+                                {
+                                    ADS.CastSteppedLeader(ads, player.Position);
+                                }
+                            }, 9f).ChildOf(ads);
+                            DelayedAction.Create(ads.CsWorld(), ads.Destruct, 15f).ChildOf(ads);
+                        }
                     }
                 }
-            }
 
             if (ImGui.Button("Close Tether to Target"))
             {
@@ -791,69 +789,76 @@ public partial class MainWindow
                 ImGui.TextColored(new Vector4(1, 1, 0, 1), "Active: " + (encounterManager.ActiveEncounter?.Name ?? "None"));
             }
 
-            if (encounterManager.ActiveEncounter != null && ImGui.CollapsingHeader("Mechanic Triggers"))
+            if (ImGui.CollapsingHeader("Mechanic Triggers"))
             {
-                ImGui.Text("Global Events:");
-                if (ImGui.Button("Combat Start"))
+                if (encounterManager.ActiveEncounter == null)
                 {
-                    foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
-                    {
-                        mechanic.OnCombatStart();
-                    }
+                    ImGui.Text("No active encounter");
                 }
-                SameLineIfFits("Combat End");
-                if (ImGui.Button("Combat End"))
+                else
                 {
-                    foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
+                    ImGui.Text("Global Events:");
+                    if (ImGui.Button("Combat Start"))
                     {
-                        mechanic.OnCombatEnd();
-                    }
-                }
-                SameLineIfFits("Director: Commence");
-                if (ImGui.Button("Director: Commence"))
-                {
-                    encounterManager.ActiveEncounter.IncrementRngSeed();
-                    foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
-                    {
-                        mechanic.OnDirectorUpdate(DirectorUpdateCategory.Commence);
-                    }
-                }
-                SameLineIfFits("Director: Wipe");
-                if (ImGui.Button("Director: Wipe"))
-                {
-                    foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
-                    {
-                        mechanic.OnDirectorUpdate(DirectorUpdateCategory.Wipe);
-                    }
-                }
-
-                ImGui.Separator();
-                ImGui.Text("Individual Mechanics:");
-                foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
-                {
-                    var name = mechanic.GetType().Name;
-                    if (ImGui.TreeNode(name))
-                    {
-                        if (ImGui.Button($"Simulate##{name}"))
-                        {
-                            mechanic.DebugSimulate();
-                        }
-                        SameLineIfFits($"OnCombatStart##{name}");
-                        if (ImGui.Button($"OnCombatStart##{name}"))
+                        foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
                         {
                             mechanic.OnCombatStart();
                         }
-                        SameLineIfFits($"OnCombatEnd##{name}");
-                        if (ImGui.Button($"OnCombatEnd##{name}"))
+                    }
+                    SameLineIfFits("Combat End");
+                    if (ImGui.Button("Combat End"))
+                    {
+                        foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
                         {
                             mechanic.OnCombatEnd();
                         }
-                        SameLineIfFits($"Reset##{name}");
-                        if (ImGui.Button($"Reset##{name}"))
+                    }
+                    SameLineIfFits("Director: Commence");
+                    if (ImGui.Button("Director: Commence"))
+                    {
+                        encounterManager.ActiveEncounter.IncrementRngSeed();
+                        foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
                         {
-                            mechanic.Reset();
+                            mechanic.OnDirectorUpdate(DirectorUpdateCategory.Commence);
                         }
-                        ImGui.TreePop();
+                    }
+                    SameLineIfFits("Director: Wipe");
+                    if (ImGui.Button("Director: Wipe"))
+                    {
+                        foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
+                        {
+                            mechanic.OnDirectorUpdate(DirectorUpdateCategory.Wipe);
+                        }
+                    }
+
+                    ImGui.Separator();
+                    ImGui.Text("Individual Mechanics:");
+                    foreach (var mechanic in encounterManager.ActiveEncounter.GetMechanics())
+                    {
+                        var name = mechanic.GetType().Name;
+                        if (ImGui.TreeNode(name))
+                        {
+                            if (ImGui.Button($"Simulate##{name}"))
+                            {
+                                mechanic.DebugSimulate();
+                            }
+                            SameLineIfFits($"OnCombatStart##{name}");
+                            if (ImGui.Button($"OnCombatStart##{name}"))
+                            {
+                                mechanic.OnCombatStart();
+                            }
+                            SameLineIfFits($"OnCombatEnd##{name}");
+                            if (ImGui.Button($"OnCombatEnd##{name}"))
+                            {
+                                mechanic.OnCombatEnd();
+                            }
+                            SameLineIfFits($"Reset##{name}");
+                            if (ImGui.Button($"Reset##{name}"))
+                            {
+                                mechanic.Reset();
+                            }
+                            ImGui.TreePop();
+                        }
                     }
                 }
             }
