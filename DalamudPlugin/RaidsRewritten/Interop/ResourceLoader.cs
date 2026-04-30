@@ -44,7 +44,6 @@ public unsafe sealed partial class ResourceLoader : IDisposable
     public const string SoundOnLoadSig = "40 56 57 41 54 48 81 EC 90 00 00 00 80 3A 0B 45 0F B6 E0 48 8B F2";
 
     public const string LoadIconByIdSig = "E8 ?? ?? ?? ?? 41 8D 45 3D";
-    public const string LoadIconByIdFallbackSig = "E8 ?? ?? ?? ?? 41 8D 47 2E";
     public const string AtkComponentIconTextReceiveEventSig = "44 0F B7 C2 4D 8B D1";
 
     public const string BattleLog_AddToScreenLogWithScreenLogKindSig = "48 85 C9 0F 84 ?? ?? ?? ?? 56 41 56";
@@ -153,15 +152,7 @@ public unsafe sealed partial class ResourceLoader : IDisposable
         }
         catch (Exception)
         {
-            try
-            {
-                var loadIconByIdAddress = sigScanner.ScanText(LoadIconByIdFallbackSig);
-                LoadIconByID = Marshal.GetDelegateForFunctionPointer<LoadIconByIDDelegate>(loadIconByIdAddress);
-            }
-            catch (Exception)
-            {
-                // Signature not found in current game version; LoadIconByID functionality will be unavailable
-            }
+            // Signature not found in current game version; LoadIconByID functionality will be unavailable
         }
         AtkComponentIconTextReceiveEventHook = hooks.HookFromSignature<AtkComponentIconText_ReceiveEvent>(AtkComponentIconTextReceiveEventSig, AtkComponentIconText_ReceiveEventDetour);
 
