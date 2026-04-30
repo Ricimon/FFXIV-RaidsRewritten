@@ -73,7 +73,7 @@ public sealed class EncounterManager(
         "vfx/common/eff/dk04ht_win0h.avfx",
         "vfx/common/eff/cmat_aoz0f.avfx",
     ];
-    private readonly Dictionary<ushort, IEncounter> encounterMap = encounters.AsValueEnumerable().ToDictionary(e => e.TerritoryId, e => e);
+    private readonly Dictionary<uint, IEncounter> encounterMap = encounters.AsValueEnumerable().ToDictionary(e => e.TerritoryId, e => e);
 
     private bool? inCombat = null;
     private byte weather = 0;
@@ -110,7 +110,7 @@ public sealed class EncounterManager(
         ActiveEncounter?.Unload();
         statusPartyListProcessor.Reset();
 
-        if (this.encounterMap.TryGetValue((ushort)obj, out var encounter))
+        if (this.encounterMap.TryGetValue(obj, out var encounter))
         {
             ActiveEncounter = encounter;
             encounter.RefreshMechanics();
