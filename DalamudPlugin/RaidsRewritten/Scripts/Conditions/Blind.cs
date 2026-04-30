@@ -15,7 +15,7 @@ public class Blind
         {
             var condition = Condition.ApplyToTarget(target, "Blind", duration, Id, extendDuration, overrideExistingDuration);
 
-            condition.Set(new Condition.Status(215012, "Blind", "Encroaching darkness is lowering accuracy.")).Add<Condition.StatusEnfeeblement>();
+            condition.Set(new Condition.Status(215012, "Blind", "Encroaching darkness is lowering visibility.")).Add<Condition.StatusEnfeeblement>();
 
             if (!condition.Has<Component>())
             {
