@@ -1,5 +1,5 @@
 ﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/GameHelpers/LegacyPlayer.cs
-// 67b7caa
+// d435e12
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
@@ -57,10 +57,10 @@ public static unsafe class Player
 
     public static bool IsInHomeWorld => Available && Object.CurrentWorld.RowId == Object.HomeWorld.RowId;
     public static bool IsInHomeDC => Available && Object.CurrentWorld.Value.DataCenter.RowId == Object.HomeWorld.Value.DataCenter.RowId;
-    public static string HomeWorld => Object.HomeWorld.Value.Name.ToString();
-    public static string CurrentWorld => Object.CurrentWorld.Value.Name.ToString();
-    public static string HomeDataCenter => Object.HomeWorld.Value.DataCenter.Value.Name.ToString();
-    public static string CurrentDataCenter => Object.CurrentWorld.Value.DataCenter.Value.Name.ToString();
+    public static string HomeWorld => Object?.HomeWorld.Value.Name.ToString();
+    public static string CurrentWorld => Object?.CurrentWorld.Value.Name.ToString();
+    public static string HomeDataCenter => Object?.HomeWorld.Value.DataCenter.Value.Name.ToString();
+    public static string CurrentDataCenter => Object?.CurrentWorld.Value.DataCenter.Value.Name.ToString();
 
     public static Character* Character => (Character*)Object.Address;
     public static BattleChara* BattleChara => (BattleChara*)Object.Address;
@@ -102,8 +102,8 @@ public static unsafe class Player
     public static float DistanceTo(Vector2 other) => Vector2.Distance(Position.ToVector2(), other);
     public static float DistanceTo(IGameObject other) => Vector3.Distance(Position, other.Position);
 
-    [Obsolete("Use IsJumping")]
+    [Obsolete("Use IsJumping", true)]
     public static unsafe bool Dismounting => **(byte**)(Svc.Objects.LocalPlayer!.Address + 1400) == 1;
-    [Obsolete("Use IsJumping")]
+    [Obsolete("Use IsJumping", true)]
     public static bool Jumping => Svc.Condition[ConditionFlag.Jumping] || Svc.Condition[ConditionFlag.Jumping61];
 }

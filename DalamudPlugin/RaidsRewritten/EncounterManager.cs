@@ -33,34 +33,9 @@ public sealed class EncounterManager(
     IEncounter[] encounters,
     ILogger logger) : IDalamudHook
 {
+    public IEncounter[] Encounters => encounters;
     public IEncounter? ActiveEncounter { get; private set; }
     public bool InCombat => inCombat ?? false;
-
-#if DEBUG
-    public IEncounter[] Encounters => encounters;
-
-    public void ForceActivateEncounter(IEncounter? encounter)
-    {
-        ActiveEncounter?.Unload();
-        statusPartyListProcessor.Reset();
-
-        if (encounter != null)
-        {
-            ActiveEncounter = encounter;
-            encounter.RefreshMechanics();
-            logger.Info("Force-activated encounter: {0}", encounter.Name);
-            if (!configuration.EverythingDisabled)
-            {
-                moodlesIPC.CheckMoodles();
-                mainWindow.Value.Visible = true;
-            }
-        }
-        else
-        {
-            ActiveEncounter = null;
-        }
-    }
-#endif
 
     private readonly List<string> BlacklistedPcVfx = [
         "vfx/common/eff/dk02ht_zan0m.avfx",
@@ -93,6 +68,28 @@ public sealed class EncounterManager(
         dalamud.ClientState.TerritoryChanged += this.OnTerritoryChanged;
         OnTerritoryChanged(dalamud.ClientState.TerritoryType);
         dalamud.Framework.Update += OnFrameworkUpdate;
+    }
+
+    public void ForceActivateEncounter(IEncounter? encounter)
+    {
+        ActiveEncounter?.Unload();
+        statusPartyListProcessor.Reset();
+
+        if (encounter != null)
+        {
+            ActiveEncounter = encounter;
+            encounter.RefreshMechanics();
+            logger.Info("Force-activated encounter: {0}", encounter.Name);
+            if (!configuration.EverythingDisabled)
+            {
+                moodlesIPC.CheckMoodles();
+                mainWindow.Value.Visible = true;
+            }
+        }
+        else
+        {
+            ActiveEncounter = null;
+        }
     }
 
     public void Dispose()
@@ -135,7 +132,7 @@ public sealed class EncounterManager(
         if (configuration.EverythingDisabled) { return; }
     }
 
-    private void OnObjectEffect(uint Target, uint Param1, uint Param2)
+    private void OnObjectEffect(uint Target, ushort Param1, ushort Param2)
     {
         var gameObject = dalamud.ObjectTable.SearchByEntityId(Target);
         if (gameObject == null) { return; }

@@ -115,12 +115,24 @@ public unsafe partial class ResourceLoader
 
         var gamePathString = gamePath.ToString();
 
+        //if( Plugin.Configuration?.LogAllFiles == true ) {
+        //    Dalamud.Log( $"[GetResourceHandler] {gamePathString}" );
+        //    if( SelectDialog.LoggedFiles.Count > 1000 ) SelectDialog.LoggedFiles.Clear();
+        //    SelectDialog.LoggedFiles.Add( gamePathString );
+        //}
+
+        //this.logger.Debug("Processing GetResource Path {0}", gamePathString);
+
         var replacedPath = GetReplacePath(gamePathString, out var localPath) ? localPath : null;
 
         if (replacedPath == null || replacedPath.Length >= 260)
         {
-            return CallOriginalHandler(isSync, resourceManager, categoryId, resourceType, resourceHash, path, resParams, isUnknown, unkDebugPtr, unkDebugInt);
+            var unreplaced = CallOriginalHandler(isSync, resourceManager, categoryId, resourceType, resourceHash, path, resParams, isUnknown, unkDebugPtr, unkDebugInt);
+            //if( Plugin.Configuration?.LogDebug == true && DoDebug( gamePathString ) ) Dalamud.Log( $"[GetResourceHandler] ORIGINAL: {gamePathString} -> " + new IntPtr( unreplaced ).ToString( "X8" ) );
+            return unreplaced;
         }
+
+        //this.logger.Debug("Got Replace Path {0}", replacedPath);
 
         var resolvedPath = new FullPath(replacedPath);
         PathResolved?.Invoke(*resourceType, resolvedPath);
@@ -128,7 +140,9 @@ public unsafe partial class ResourceLoader
         *resourceHash = InteropUtils.ComputeHash(resolvedPath.InternalName, resParams);
         path = resolvedPath.InternalName.Path;
 
-        return CallOriginalHandler(isSync, resourceManager, categoryId, resourceType, resourceHash, path, resParams, isUnknown, unkDebugPtr, unkDebugInt);
+        var replaced = CallOriginalHandler(isSync, resourceManager, categoryId, resourceType, resourceHash, path, resParams, isUnknown, unkDebugPtr, unkDebugInt);
+        //if( Plugin.Configuration?.LogDebug == true ) Dalamud.Log( $"[GetResourceHandler] REPLACED: {gamePathString} -> {replacedPath} -> " + new IntPtr( replaced ).ToString( "X8" ) );
+        return replaced;
     }
 
     private byte ReadSqpackDetour(IntPtr fileHandler, SeFileDescriptor* fileDescriptor, int priority, bool isSync)
