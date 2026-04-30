@@ -107,10 +107,20 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
         if (!this.font.Available) return;
         if (configuration.EverythingDisabled) return;
 
+        // Some clients don't render anything drawn to GetForegroundDrawList.
+        // Workaround: use a fullscreen transparent window and GetWindowDrawList instead.
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
+        ImGui.SetNextWindowPos(Vector2.Zero);
+        ImGui.SetNextWindowSize(ImGui.GetIO().DisplaySize);
+        ImGui.Begin("##EffectsRendererOverlay",
+            ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoBackground |
+            ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoSavedSettings |
+            ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoInputs);
+
         if (this.blindQuery.Count() > 0)
         {
             var viewport = ImGui.GetMainViewport();
-            var fgDraw = ImGui.GetForegroundDrawList();
+            var fgDraw = ImGui.GetWindowDrawList();
             fgDraw.AddRectFilled(viewport.Pos, viewport.Pos + viewport.Size, ImGui.ColorConvertFloat4ToU32(new Vector4(0, 0, 0, 1f)));
 
             // Show remaining time so the player isn't completely disoriented
@@ -141,7 +151,7 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
         toDraw.Clear();
         toGaugeDraw.Clear();
 
-        var drawList = ImGui.GetForegroundDrawList();
+        var drawList = ImGui.GetWindowDrawList();
         var maxWidth = 0f;
         var offsetY = 0f;
 
@@ -235,6 +245,8 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
 
         }
 
+        ImGui.End();
+        ImGui.PopStyleVar();
     }
 
     private void TextOutline(ImFontPtr font, float fontSize, Vector2 position, UInt32 color, string text, int outline, ImDrawListPtr drawListPtr)
