@@ -104,8 +104,8 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
                         {
                             *(Interop.Structs.ActorEquipment*)ptr = equipment;
                         }
-                        chara->DrawData.LoadWeapon(DrawDataContainer.WeaponSlot.MainHand, mainHand, 0, 0, 0, 0);
-                        chara->DrawData.LoadWeapon(DrawDataContainer.WeaponSlot.OffHand, offHand, 0, 0, 0, 0);
+                        chara->DrawData.LoadWeapon(DrawDataContainer.WeaponSlot.MainHand, mainHand, 0, 0, 0, 0, false);
+                        chara->DrawData.LoadWeapon(DrawDataContainer.WeaponSlot.OffHand, offHand, 0, 0, 0, 0, false);
                     }
 
                     var modelData = &chara->ModelContainer;

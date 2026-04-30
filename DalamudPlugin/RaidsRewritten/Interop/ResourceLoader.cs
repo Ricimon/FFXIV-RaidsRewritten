@@ -145,8 +145,15 @@ public unsafe sealed partial class ResourceLoader : IDisposable
 
         // Textures
 
-        var loadIconByIdAddress = sigScanner.ScanText(LoadIconByIdSig);
-        LoadIconByID = Marshal.GetDelegateForFunctionPointer<LoadIconByIDDelegate>(loadIconByIdAddress);
+        try
+        {
+            var loadIconByIdAddress = sigScanner.ScanText(LoadIconByIdSig);
+            LoadIconByID = Marshal.GetDelegateForFunctionPointer<LoadIconByIDDelegate>(loadIconByIdAddress);
+        }
+        catch (Exception)
+        {
+            // Signature may have changed in new game version; LoadIconByID functionality will be unavailable
+        }
         AtkComponentIconTextReceiveEventHook = hooks.HookFromSignature<AtkComponentIconText_ReceiveEvent>(AtkComponentIconTextReceiveEventSig, AtkComponentIconText_ReceiveEventDetour);
 
         AtkComponentIconTextReceiveEventHook.Enable();

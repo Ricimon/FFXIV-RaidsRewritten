@@ -25,11 +25,11 @@ public unsafe partial class ResourceLoader
 
     public delegate byte ReadSqPackPrototype(IntPtr fileHandler, SeFileDescriptor* fileDesc, int priority, bool isSync);
 
-    public delegate void* GetResourceSyncPrototype(IntPtr resourceManager, uint* categoryId, ResourceType* resourceType,
-        int* resourceHash, byte* path, GetResourceParameters* resParams);
+    public delegate void* GetResourceSyncPrototype(void* resourceManager, void* category, uint* type,
+        uint* hash, byte* path, void* unknown, void* unkDebugPtr, uint unkDebugInt);
 
-    public delegate void* GetResourceAsyncPrototype(IntPtr resourceManager, uint* categoryId, ResourceType* resourceType,
-        int* resourceHash, byte* path, GetResourceParameters* resParams, bool isUnknown);
+    public delegate void* GetResourceAsyncPrototype(void* resourceManager, void* category, uint* type,
+        uint* hash, byte* path, void* unknown, bool isUnknown, void* unkDebugPtr, uint unkDebugInt);
 
     // ===== FILES HOOKS =========
 
@@ -58,83 +58,77 @@ public unsafe partial class ResourceLoader
     }
 
     private void* GetResourceSyncDetour(
-        IntPtr resourceManager,
-        uint* categoryId,
-        ResourceType* resourceType,
-        int* resourceHash,
+        void* resourceManager,
+        void* category,
+        uint* type,
+        uint* hash,
         byte* path,
-        GetResourceParameters* resParams
-    ) => GetResourceHandler(true, resourceManager, categoryId, resourceType, resourceHash, path, resParams, false);
+        void* unknown,
+        void* unkDebugPtr,
+        uint unkDebugInt
+    ) => GetResourceHandler(true, resourceManager, category, type, hash, path, unknown, false, unkDebugPtr, unkDebugInt);
 
     private void* GetResourceAsyncDetour(
-        IntPtr resourceManager,
-        uint* categoryId,
-        ResourceType* resourceType,
-        int* resourceHash,
+        void* resourceManager,
+        void* category,
+        uint* type,
+        uint* hash,
         byte* path,
-        GetResourceParameters* resParams,
-        bool isUnknown
-    ) => GetResourceHandler(false, resourceManager, categoryId, resourceType, resourceHash, path, resParams, isUnknown);
+        void* unknown,
+        bool isUnknown,
+        void* unkDebugPtr,
+        uint unkDebugInt
+    ) => GetResourceHandler(false, resourceManager, category, type, hash, path, unknown, isUnknown, unkDebugPtr, unkDebugInt);
 
     private void* CallOriginalHandler(
         bool isSync,
-        IntPtr resourceManager,
-        uint* categoryId,
-        ResourceType* resourceType,
-        int* resourceHash,
+        void* resourceManager,
+        void* category,
+        uint* type,
+        uint* hash,
         byte* path,
-        GetResourceParameters* resParams,
-        bool isUnknown
+        void* unknown,
+        bool isUnknown,
+        void* unkDebugPtr,
+        uint unkDebugInt
     ) => isSync
-        ? GetResourceSyncHook.Original(resourceManager, categoryId, resourceType, resourceHash, path, resParams)
-        : GetResourceAsyncHook.Original(resourceManager, categoryId, resourceType, resourceHash, path, resParams, isUnknown);
+        ? GetResourceSyncHook.Original(resourceManager, category, type, hash, path, unknown, unkDebugPtr, unkDebugInt)
+        : GetResourceAsyncHook.Original(resourceManager, category, type, hash, path, unknown, isUnknown, unkDebugPtr, unkDebugInt);
 
     private void* GetResourceHandler(
         bool isSync,
-        IntPtr resourceManager,
-        uint* categoryId,
-        ResourceType* resourceType,
-        int* resourceHash,
+        void* resourceManager,
+        void* category,
+        uint* type,
+        uint* hash,
         byte* path,
-        GetResourceParameters* resParams,
-        bool isUnknown
+        void* unknown,
+        bool isUnknown,
+        void* unkDebugPtr,
+        uint unkDebugInt
     )
     {
         if (!Utf8GamePath.FromPointer(path, MetaDataComputation.None, out var gamePath))
         {
-            return CallOriginalHandler(isSync, resourceManager, categoryId, resourceType, resourceHash, path, resParams, isUnknown);
+            return CallOriginalHandler(isSync, resourceManager, category, type, hash, path, unknown, isUnknown, unkDebugPtr, unkDebugInt);
         }
 
         var gamePathString = gamePath.ToString();
-
-        //if( Plugin.Configuration?.LogAllFiles == true ) {
-        //    Dalamud.Log( $"[GetResourceHandler] {gamePathString}" );
-        //    if( SelectDialog.LoggedFiles.Count > 1000 ) SelectDialog.LoggedFiles.Clear();
-        //    SelectDialog.LoggedFiles.Add( gamePathString );
-        //}
-
-        //this.logger.Debug("Processing GetResource Path {0}", gamePathString);
 
         var replacedPath = GetReplacePath(gamePathString, out var localPath) ? localPath : null;
 
         if (replacedPath == null || replacedPath.Length >= 260)
         {
-            var unreplaced = CallOriginalHandler(isSync, resourceManager, categoryId, resourceType, resourceHash, path, resParams, isUnknown);
-            //if( Plugin.Configuration?.LogDebug == true && DoDebug( gamePathString ) ) Dalamud.Log( $"[GetResourceHandler] ORIGINAL: {gamePathString} -> " + new IntPtr( unreplaced ).ToString( "X8" ) );
-            return unreplaced;
+            return CallOriginalHandler(isSync, resourceManager, category, type, hash, path, unknown, isUnknown, unkDebugPtr, unkDebugInt);
         }
 
-        //this.logger.Debug("Got Replace Path {0}", replacedPath);
-
         var resolvedPath = new FullPath(replacedPath);
-        PathResolved?.Invoke(*resourceType, resolvedPath);
+        PathResolved?.Invoke((ResourceType)(*type), resolvedPath);
 
-        *resourceHash = InteropUtils.ComputeHash(resolvedPath.InternalName, resParams);
+        *hash = (uint)InteropUtils.ComputeHash(resolvedPath.InternalName, (GetResourceParameters*)unknown);
         path = resolvedPath.InternalName.Path;
 
-        var replaced = CallOriginalHandler(isSync, resourceManager, categoryId, resourceType, resourceHash, path, resParams, isUnknown);
-        //if( Plugin.Configuration?.LogDebug == true ) Dalamud.Log( $"[GetResourceHandler] REPLACED: {gamePathString} -> {replacedPath} -> " + new IntPtr( replaced ).ToString( "X8" ) );
-        return replaced;
+        return CallOriginalHandler(isSync, resourceManager, category, type, hash, path, unknown, isUnknown, unkDebugPtr, unkDebugInt);
     }
 
     private byte ReadSqPackDetour(IntPtr fileHandler, SeFileDescriptor* fileDescriptor, int priority, bool isSync)

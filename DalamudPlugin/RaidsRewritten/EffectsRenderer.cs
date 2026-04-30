@@ -83,7 +83,7 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
         {
             e.OnPreBuild(tk =>
             {
-                tk.AddDalamudAssetFont(Dalamud.DalamudAsset.NotoSansJpMedium, new()
+                tk.AddDalamudAssetFont(Dalamud.DalamudAsset.NotoSansCjkMedium, new()
                 {
                     SizePx = 50
                 });

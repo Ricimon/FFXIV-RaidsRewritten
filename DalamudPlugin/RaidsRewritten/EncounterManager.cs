@@ -105,12 +105,12 @@ public sealed class EncounterManager(
         dalamud.Framework.Update -= OnFrameworkUpdate;
     }
 
-    private void OnTerritoryChanged(ushort obj)
+    private void OnTerritoryChanged(uint obj)
     {
         ActiveEncounter?.Unload();
         statusPartyListProcessor.Reset();
 
-        if (this.encounterMap.TryGetValue(obj, out var encounter))
+        if (this.encounterMap.TryGetValue((ushort)obj, out var encounter))
         {
             ActiveEncounter = encounter;
             encounter.RefreshMechanics();
