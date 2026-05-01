@@ -112,11 +112,11 @@ public unsafe sealed class PlayerMovementOverride : IDisposable
         {
             if (forcedWalkState)
             {
-                wasWalking = Control.Instance()->IsWalking;
+                wasWalking = GetWalkState();
             }
             else
             {
-                Control.Instance()->IsWalking = wasWalking;
+                SetWalkState(wasWalking);
             }
         }
         forcedWalkStateLastFrame = forcedWalkState;
@@ -138,7 +138,7 @@ public unsafe sealed class PlayerMovementOverride : IDisposable
                     *sumLeft = dir.X;
                     *sumForward = dir.Y;
                     *haveBackwardOrStrafe = 0;
-                    Control.Instance()->IsWalking = false;
+                    SetWalkState(false);
                 }
                 else
                 {
@@ -155,8 +155,23 @@ public unsafe sealed class PlayerMovementOverride : IDisposable
 
         if (forcedWalkState)
         {
-            Control.Instance()->IsWalking = ForceWalk == ForcedWalkState.Walk;
+            SetWalkState(ForceWalk == ForcedWalkState.Walk);
         }
+    }
+
+    // Patch 7.5 changed the offset of the IsWalking variable
+    private bool GetWalkState()
+    {
+        return Marshal.ReadByte((nint)Control.Instance(), 0x7637) != 0;
+    }
+
+    private void SetWalkState(bool state)
+    {
+        var control = Control.Instance();
+        var b = state ? (byte)0x1 : (byte)0x0;
+        Marshal.WriteByte((nint)control, 0x7637, b);
+        // This is for setting walking during auto-run
+        Marshal.WriteByte((nint)control, 0x7518, b);
     }
 
     private bool CheckStrafeKeybind(IntPtr ptr, KeybindType keybind)
