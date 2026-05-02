@@ -119,7 +119,7 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
             return;
         }
 
-        var width = 350 * ImGuiHelpers.GlobalScale;
+        var width = 353 * ImGuiHelpers.GlobalScale;
         var height = 400 * ImGuiHelpers.GlobalScale;
         ImGui.SetNextWindowSize(new Vector2(width, height), ImGuiCond.FirstUseEver);
         var minHeight = 250 * ImGuiHelpers.GlobalScale;

@@ -44,6 +44,11 @@ public partial class MainWindow
         var displayLabel = nextLabel.Contains("##") ? nextLabel[..nextLabel.IndexOf("##")] : nextLabel;
         var nextWidth =  ImGui.CalcTextSize(displayLabel).X + style.FramePadding.X * 2;
         var maxWidth = ImGui.GetWindowPos().X + ImGui.GetWindowContentRegionMax().X;
+        var scrollbarVisible = ImGui.GetScrollMaxY() > 0.0f;
+        if (!scrollbarVisible)
+        {
+            maxWidth -= style.ScrollbarSize;
+        }
         if (ImGui.GetItemRectMax().X + style.ItemSpacing.X + nextWidth < maxWidth)
             ImGui.SameLine();
     }
