@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Dalamud.NET.Sdk/14.0.1">
+<Project Sdk="Dalamud.NET.Sdk/15.0.0">
   <PropertyGroup>
     <Authors>Ricimon</Authors>
     <Company></Company>
-    <Version>1.1.2.0</Version>
+    <Version>1.1.3.0</Version>
     <Description></Description>
     <Copyright></Copyright>
     <PackageProjectUrl>https://github.com/Ricimon/FFXIV-RaidsRewritten</PackageProjectUrl>

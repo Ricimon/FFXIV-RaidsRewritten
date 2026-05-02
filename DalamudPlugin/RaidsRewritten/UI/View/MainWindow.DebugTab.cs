@@ -276,21 +276,22 @@ public partial class MainWindow
                     }
                 }
             }
+        }
 
-        ImGui.Text("Test Attacks");
-
-        if (ImGui.Button("Spawn Twister"))
+        if (ImGui.CollapsingHeader("Test Attacks"))
         {
-            var player = this.dalamud.ObjectTable.LocalPlayer;
-            if (player != null)
+            if (ImGui.Button("Spawn Twister"))
             {
-                if (this.entityManager.TryCreateEntity<Twister>(out var twister))
+                var player = this.dalamud.ObjectTable.LocalPlayer;
+                if (player != null)
                 {
-                    twister.Set(new Position(player.Position));
-                    twister.Set(new Rotation(player.Rotation));
+                    if (this.entityManager.TryCreateEntity<Twister>(out var twister))
+                    {
+                        twister.Set(new Position(player.Position));
+                        twister.Set(new Rotation(player.Rotation));
+                    }
                 }
             }
-        }
 
             if (debug)
             {
@@ -350,18 +351,18 @@ public partial class MainWindow
                     }
                 }
 
-            if (ImGui.Button("Jumpwave"))
-            {
-                var player = this.dalamud.ObjectTable.LocalPlayer;
-                if (player != null)
+                if (ImGui.Button("Jumpwave"))
                 {
-                    if (this.entityManager.TryCreateEntity<JumpableShockwave>(out var jumpwave))
+                    var player = this.dalamud.ObjectTable.LocalPlayer;
+                    if (player != null)
                     {
-                        jumpwave.Set(new Position(player.Position + 0.0f * Vector3.UnitX))
-                            .Set(new Rotation(player.Rotation));
+                        if (this.entityManager.TryCreateEntity<JumpableShockwave>(out var jumpwave))
+                        {
+                            jumpwave.Set(new Position(player.Position + 0.0f * Vector3.UnitX))
+                                .Set(new Rotation(player.Rotation));
+                        }
                     }
                 }
-            }
 
                 if (ImGui.Button("Dreadknight"))
                 {
@@ -475,55 +476,55 @@ public partial class MainWindow
                     }
                 }
 
-            if (ImGui.Button("Close Tether to Target"))
-            {
-                var player = this.dalamud.ObjectTable.LocalPlayer;
-                if (player != null)
+                if (ImGui.Button("Close Tether to Target"))
                 {
-                    var target = player.TargetObject;
-                    if (target != null)
+                    var player = this.dalamud.ObjectTable.LocalPlayer;
+                    if (player != null)
                     {
-                        if (this.entityManager.TryCreateEntity<DistanceSnapshotTether>(out var tether))
+                        var target = player.TargetObject;
+                        if (target != null)
                         {
-                            DistanceSnapshotTether.SetTetherVfx(tether, TetherOmen.TetherVfx.ActivatedClose, player, target)
-                                .Set(new DistanceSnapshotTether.VfxOnFail(["vfx/monster/m0005/eff/m0005sp_15t0t.avfx"]))
-                                .Set(new DistanceSnapshotTether.Tether((e) => { Stun.ApplyToTarget(e, 5); }))
-                                .Set(new DistanceSnapshotTether.FailWhenFurtherThan(10));
-
-                            DelayedAction.Create(tether.CsWorld(), () =>
+                            if (this.entityManager.TryCreateEntity<DistanceSnapshotTether>(out var tether))
                             {
-                                tether.Add<DistanceSnapshotTether.Activated>();
-                            }, 3f).ChildOf(tether);
+                                DistanceSnapshotTether.SetTetherVfx(tether, TetherOmen.TetherVfx.ActivatedClose, player, target)
+                                    .Set(new DistanceSnapshotTether.VfxOnFail(["vfx/monster/m0005/eff/m0005sp_15t0t.avfx"]))
+                                    .Set(new DistanceSnapshotTether.Tether((e) => { Stun.ApplyToTarget(e, 5); }))
+                                    .Set(new DistanceSnapshotTether.FailWhenFurtherThan(10));
+
+                                DelayedAction.Create(tether.CsWorld(), () =>
+                                {
+                                    tether.Add<DistanceSnapshotTether.Activated>();
+                                }, 3f).ChildOf(tether);
+                            }
                         }
                     }
                 }
-            }
 
                 SameLineIfFits("Far Tether to Target");
 
-            if (ImGui.Button("Far Tether to Target"))
-            {
-                var player = this.dalamud.ObjectTable.LocalPlayer;
-                if (player != null)
+                if (ImGui.Button("Far Tether to Target"))
                 {
-                    var target = player.TargetObject;
-                    if (target != null)
+                    var player = this.dalamud.ObjectTable.LocalPlayer;
+                    if (player != null)
                     {
-                        if (this.entityManager.TryCreateEntity<DistanceSnapshotTether>(out var tether))
+                        var target = player.TargetObject;
+                        if (target != null)
                         {
-                            DistanceSnapshotTether.SetTetherVfx(tether, TetherOmen.TetherVfx.ActivatedFar, player, target)
-                                .Set(new DistanceSnapshotTether.VfxOnFail(["vfx/monster/m0005/eff/m0005sp_15t0t.avfx"]))
-                                .Set(new DistanceSnapshotTether.Tether((e) => { Stun.ApplyToTarget(e, 5); }))
-                                .Set(new DistanceSnapshotTether.FailWhenCloserThan(10));
-
-                            DelayedAction.Create(tether.CsWorld(), () =>
+                            if (this.entityManager.TryCreateEntity<DistanceSnapshotTether>(out var tether))
                             {
-                                tether.Add<DistanceSnapshotTether.Activated>();
-                            }, 3f).ChildOf(tether);
+                                DistanceSnapshotTether.SetTetherVfx(tether, TetherOmen.TetherVfx.ActivatedFar, player, target)
+                                    .Set(new DistanceSnapshotTether.VfxOnFail(["vfx/monster/m0005/eff/m0005sp_15t0t.avfx"]))
+                                    .Set(new DistanceSnapshotTether.Tether((e) => { Stun.ApplyToTarget(e, 5); }))
+                                    .Set(new DistanceSnapshotTether.FailWhenCloserThan(10));
+
+                                DelayedAction.Create(tether.CsWorld(), () =>
+                                {
+                                    tether.Add<DistanceSnapshotTether.Activated>();
+                                }, 3f).ChildOf(tether);
+                            }
                         }
                     }
                 }
-            }
 
                 if (ImGui.Button("Expanding Puddle"))
                 {
@@ -563,86 +564,86 @@ public partial class MainWindow
                     }
                 }
 
-            if (ImGui.Button("Tornado"))
-            {
-                var player = this.dalamud.ObjectTable.LocalPlayer;
-
-                if (player != null)
+                if (ImGui.Button("Tornado"))
                 {
-                    if (this.entityManager.TryCreateEntity<Tornado>(out var tornado))
+                    var player = this.dalamud.ObjectTable.LocalPlayer;
+
+                    if (player != null)
                     {
-                        tornado.Set(new Position(player.Position));
-                        DelayedAction.Create(tornado.CsWorld(), () =>
+                        if (this.entityManager.TryCreateEntity<Tornado>(out var tornado))
                         {
-                            tornado.Destruct();
-                        }, 10f).ChildOf(tornado);
+                            tornado.Set(new Position(player.Position));
+                            DelayedAction.Create(tornado.CsWorld(), () =>
+                            {
+                                tornado.Destruct();
+                            }, 10f).ChildOf(tornado);
+                        }
                     }
                 }
-            }
 
                 SameLineIfFits("Donut Tornado");
 
-            if (ImGui.Button("Donut Tornado"))
-            {
-                var player = this.dalamud.ObjectTable.LocalPlayer;
-
-                if (player != null)
+                if (ImGui.Button("Donut Tornado"))
                 {
-                    if (this.entityManager.TryCreateEntity<OctetDonut>(out var tornado))
+                    var player = this.dalamud.ObjectTable.LocalPlayer;
+
+                    if (player != null)
                     {
-                        tornado.Set(new Position(player.Position));
-                        DelayedAction.Create(tornado.CsWorld(), () =>
+                        if (this.entityManager.TryCreateEntity<OctetDonut>(out var tornado))
                         {
-                            tornado.Destruct();
-                        }, 26f).ChildOf(tornado);
+                            tornado.Set(new Position(player.Position));
+                            DelayedAction.Create(tornado.CsWorld(), () =>
+                            {
+                                tornado.Destruct();
+                            }, 26f).ChildOf(tornado);
+                        }
                     }
                 }
-            }
 
-            if (ImGui.Button("Transition ADS"))
-            {
-                var player = this.dalamud.ObjectTable.LocalPlayer;
-
-                if (player != null)
+                if (ImGui.Button("Transition ADS"))
                 {
-                    if (this.entityManager.TryCreateEntity<RepellingCannonADS>(out var ads))
+                    var player = this.dalamud.ObjectTable.LocalPlayer;
+
+                    if (player != null)
                     {
-                        ads.Set(new Position(player.Position));
+                        if (this.entityManager.TryCreateEntity<RepellingCannonADS>(out var ads))
+                        {
+                            ads.Set(new Position(player.Position));
+                        }
                     }
                 }
-            }
 
                 SameLineIfFits("Transition Melusine");
 
-            if (ImGui.Button("Transition Melusine"))
-            {
-                var player = this.dalamud.ObjectTable.LocalPlayer;
-
-                if (player != null)
+                if (ImGui.Button("Transition Melusine"))
                 {
-                    if (this.entityManager.TryCreateEntity<CircleBladeMelusine>(out var melusine))
+                    var player = this.dalamud.ObjectTable.LocalPlayer;
+
+                    if (player != null)
                     {
-                        melusine.Set(new Position(player.Position))
-                            .Set(new Rotation(player.Rotation));
+                        if (this.entityManager.TryCreateEntity<CircleBladeMelusine>(out var melusine))
+                        {
+                            melusine.Set(new Position(player.Position))
+                                .Set(new Rotation(player.Rotation));
+                        }
                     }
                 }
-            }
 
                 SameLineIfFits("Transition Kaliya");
 
-            if (ImGui.Button("Transition Kaliya"))
-            {
-                var player = this.dalamud.ObjectTable.LocalPlayer;
-
-                if (player != null)
+                if (ImGui.Button("Transition Kaliya"))
                 {
-                    if (this.entityManager.TryCreateEntity<NerveGasKaliya>(out var kaliya))
+                    var player = this.dalamud.ObjectTable.LocalPlayer;
+
+                    if (player != null)
                     {
-                        kaliya.Set(new Position(player.Position))
-                            .Set(new Rotation(player.Rotation));
+                        if (this.entityManager.TryCreateEntity<NerveGasKaliya>(out var kaliya))
+                        {
+                            kaliya.Set(new Position(player.Position))
+                                .Set(new Rotation(player.Rotation));
+                        }
                     }
                 }
-            }
 
                 ImGui.Text("Heat Stuff");
                 if (ImGui.Button("Add Temperature"))
@@ -679,60 +680,6 @@ public partial class MainWindow
                                         .Set(new Rotation(player.Rotation));
                         }
                     }
-                }
-            }
-        }
-
-        if (ImGui.CollapsingHeader("Test Attacks (Networked)"))
-        {
-            this.networkClientUi.DrawConfig();
-            using (ImRaii.Disabled(!this.networkClient.IsConnected))
-            {
-                if (ImGui.Button("Clear Networked Mechanics"))
-                {
-                    this.networkClient.SendAsync(new Message
-                    {
-                        action = Message.Action.ClearMechanics,
-                    }).SafeFireAndForget();
-                }
-
-                if (ImGui.Button("Spread"))
-                {
-                    this.networkClient.SendAsync(new Message
-                    {
-                        action = Message.Action.StartMechanic,
-                        startMechanic = new Message.StartMechanicPayload
-                        {
-                            requestId = Guid.NewGuid().ToString(),
-                            mechanicId = 1,
-                        }
-                    }).SafeFireAndForget();
-                }
-                SameLineIfFits("Enum");
-                if (ImGui.Button("Enum"))
-                {
-                    this.networkClient.SendAsync(new Message
-                    {
-                        action = Message.Action.StartMechanic,
-                        startMechanic = new Message.StartMechanicPayload
-                        {
-                            requestId = Guid.NewGuid().ToString(),
-                            mechanicId = 10,
-                        }
-                    }).SafeFireAndForget();
-                }
-
-                if (ImGui.Button("Place Trap"))
-                {
-                    var placeEntity = World.Entity()
-                        .Set(new PlaceMechanicWithMouse(3));
-                    World.Entity()
-                        .Set(new Message.StartMechanicPayload
-                        {
-                            requestId = Guid.NewGuid().ToString(),
-                            mechanicId = 20,
-                        })
-                        .ChildOf(placeEntity);
                 }
             }
         }

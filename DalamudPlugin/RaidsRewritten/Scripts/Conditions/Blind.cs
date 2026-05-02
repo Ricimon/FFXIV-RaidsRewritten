@@ -1,5 +1,4 @@
 using Flecs.NET.Core;
-using RaidsRewritten.Scripts.Components;
 
 namespace RaidsRewritten.Scripts.Conditions;
 
@@ -14,8 +13,6 @@ public class Blind
         DelayedAction.Create(target.CsWorld(), (ref Iter it) =>
         {
             var condition = Condition.ApplyToTarget(target, "Blind", duration, Id, extendDuration, overrideExistingDuration);
-
-            condition.Set(new Condition.Status(215012, "Blind", "Encroaching darkness is lowering visibility.")).Add<Condition.StatusEnfeeblement>();
 
             if (!condition.Has<Component>())
             {

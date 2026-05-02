@@ -70,7 +70,6 @@ public sealed class EncounterManager(
     public void ForceActivateEncounter(IEncounter? encounter)
     {
         ActiveEncounter?.Unload();
-        statusPartyListProcessor.Reset();
 
         if (encounter != null)
         {
@@ -79,7 +78,6 @@ public sealed class EncounterManager(
             logger.Info("Force-activated encounter: {0}", encounter.Name);
             if (!configuration.EverythingDisabled)
             {
-                moodlesIPC.CheckMoodles();
                 mainWindow.Value.Visible = true;
             }
         }
