@@ -14,7 +14,7 @@ namespace RaidsRewritten.Scripts.Attacks;
 
 public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) : IEntity, ISystem
 {
-    public record struct Component(float ElapsedTime, float NextRefresh, float StartEnrage = 7f, float Enrage = 12f, bool EnrageLoop = false, bool BackupActive = false);
+    public record struct Component(float ElapsedTime, float NextRefresh, float StartEnrage = 6f, float Enrage = 11f, bool EnrageLoop = false, bool BackupActive = false);
     public record struct Target(IGameObject? Value);
     public record struct BackupTarget(IGameObject? Value);
     public record struct Speed(float Value);
