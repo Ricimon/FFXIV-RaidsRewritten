@@ -1,14 +1,16 @@
-﻿using System;
-using Flecs.NET.Core;
+﻿using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Components;
+using RaidsRewritten.Utility;
+using System;
 
 namespace RaidsRewritten.Scripts.Conditions;
 
 public class Paralysis(Random random, ILogger logger) : ISystem
 {
     public const int Id = 0x91FA;
+    private const int IconId = 215006;
 
     public record struct Component(float StunInterval, float StunDuration,
         float ElapsedTime = 0, float TimeOffset = 0, bool StunActive = false, int LastTimeIntervalEvaluation = -1);
@@ -25,7 +27,9 @@ public class Paralysis(Random random, ILogger logger) : ISystem
                 condition.Set(new Component(stunInterval, stunDuration, TimeOffset: stunInterval));
             }
 
-            condition.Set(new Condition.Status(215006, "Paralysis", "Deadened nerves are sometimes preventing the execution of actions.")).Add<Condition.StatusEnfeeblement>();
+            condition.Set(new Condition.Status(IconId, "Paralysis", "Deadened nerves are sometimes preventing the execution of actions."))
+                .Add<Condition.StatusEnfeeblement>()
+                .AddFileReplacementStatusIcon(IconId);
 
         }, 0, true).ChildOf(target);
     }

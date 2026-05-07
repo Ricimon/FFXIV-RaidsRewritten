@@ -1,11 +1,13 @@
 ﻿using Flecs.NET.Core;
 using RaidsRewritten.Scripts.Components;
+using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Conditions;
 
 public class Stun
 {
     public const int Id = 0x5709;
+    private const int IconId = 215004;
 
     public record struct Component(object _);
 
@@ -17,7 +19,9 @@ public class Stun
 
             var condition = Condition.ApplyToTarget(target, "Stunned", duration, Id, extendDuration, overrideExistingDuration);
 
-            condition.Set(new Condition.Status(215004, "Stun", "Unable to execute actions.")).Add<Condition.StatusEnfeeblement>();
+            condition.Set(new Condition.Status(IconId, "Stun", "Unable to execute actions."))
+                .Add<Condition.StatusEnfeeblement>()
+                .AddFileReplacementStatusIcon(IconId);
 
             // Application VFX
             world.Entity()

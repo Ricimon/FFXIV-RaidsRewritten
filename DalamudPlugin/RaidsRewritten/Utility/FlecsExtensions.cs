@@ -1,5 +1,7 @@
-﻿using System;
-using Flecs.NET.Core;
+﻿using Flecs.NET.Core;
+using RaidsRewritten.Scripts.Components;
+using System;
+using System.IO;
 
 namespace RaidsRewritten.Utility;
 
@@ -75,5 +77,14 @@ public static class FlecsExtensions
                 child.Destruct();
             }
         });
+    }
+
+    public static Entity AddFileReplacementStatusIcon(this Entity e, int iconId)
+    {
+        var replacementPath = Path.Combine("statuses", $"{iconId}_hr1.tex");
+        replacementPath = PluginInitializer.PluginInterface.GetResourcePath(replacementPath);
+        var folder = iconId - iconId % 1000;
+        PluginInitializer.Log.Debug($"ui/icon/{folder:D6}/{iconId}_hr1.tex");
+        return e.Set(new FileReplacement($"ui/icon/{folder:D6}/{iconId}_hr1.tex", replacementPath));
     }
 }

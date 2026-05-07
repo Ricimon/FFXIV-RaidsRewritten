@@ -1,11 +1,13 @@
 using Flecs.NET.Core;
 using RaidsRewritten.Scripts.Components;
+using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Conditions;
 
 public class Blind
 {
     public const int Id = 15;
+    private const int IconId = 215012;
 
     public record struct Component(object _);
 
@@ -15,7 +17,9 @@ public class Blind
         {
             var condition = Condition.ApplyToTarget(target, "Blind", duration, Id, extendDuration, overrideExistingDuration);
 
-            condition.Set(new Condition.Status(215012, "Blind", "Encroaching darkness is lowering visibility.")).Add<Condition.StatusEnfeeblement>();
+            condition.Set(new Condition.Status(IconId, "Blind", "Encroaching darkness is lowering visibility."))
+                .Add<Condition.StatusEnfeeblement>()
+                .AddFileReplacementStatusIcon(IconId);
 
             if (!condition.Has<Component>())
             {

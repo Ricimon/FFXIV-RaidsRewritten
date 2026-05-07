@@ -1,11 +1,13 @@
 ﻿using Flecs.NET.Core;
 using RaidsRewritten.Scripts.Components;
+using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Conditions;
 
 public class Sleep
 {
     public const int Id = 0x51EE9;
+    private const int IconId = 215013;
 
     public record struct Component(object _);
 
@@ -17,7 +19,9 @@ public class Sleep
 
             var condition = Condition.ApplyToTarget(target, "Slept", duration, Id, extendDuration, overrideExistingDuration);
 
-            condition.Set(new Condition.Status(215013, "Sleep", "Overwhelming drowsiness is preventing the execution of actions.")).Add<Condition.StatusEnfeeblement>();
+            condition.Set(new Condition.Status(IconId, "Sleep", "Overwhelming drowsiness is preventing the execution of actions."))
+                .Add<Condition.StatusEnfeeblement>()
+                .AddFileReplacementStatusIcon(IconId);
 
             // Application VFX
             world.Entity()
