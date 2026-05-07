@@ -232,6 +232,7 @@ public unsafe class StatusPartyListProcessor
             List<Status> statusList = [];
             foreach (var status in pChara->GetStatusManager()->Status)
             {
+                if (status.StatusId == 0) { continue; }
                 var temp = new Status(status);
                 if (!temp.IsEnhancement && !temp.IsEnfeeblement && !temp.IsConditionalEnhancement) { continue; }
                 if (status.SourceObject == pChara->GetGameObjectId()) { temp.SourceIsSelf = true; }
@@ -471,6 +472,7 @@ public unsafe class StatusPartyListProcessor
             List<Status> statusList = [];
             foreach (var status in pChara->GetStatusManager()->Status)
             {
+                if (status.StatusId == 0) { continue; }
                 var temp = new Status(status);
                 if (!temp.IsEnhancement && !temp.IsEnfeeblement && !temp.IsConditionalEnhancement) { continue; }
                 if (status.SourceObject == pChara->GetGameObjectId()) { temp.SourceIsSelf = true; }
