@@ -78,12 +78,4 @@ public static class FlecsExtensions
             }
         });
     }
-
-    public static Entity AddFileReplacementStatusIcon(this Entity e, int iconId)
-    {
-        var replacementPath = Path.Combine("statuses", $"{iconId}_hr1.tex");
-        replacementPath = PluginInitializer.PluginInterface.GetResourcePath(replacementPath);
-        var folder = iconId - iconId % 1000;
-        return e.Set(new FileReplacement($"ui/icon/{folder:D6}/{iconId}_hr1.tex", replacementPath));
-    }
 }

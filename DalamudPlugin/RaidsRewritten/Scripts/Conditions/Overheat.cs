@@ -19,7 +19,7 @@ public class Overheat
 
             entity.Set(new Condition.Status(IconId, "Overheated", "(RaidsRewritten) Body is overheated, forcing forward movement."))
                 .Add<Condition.StatusEnfeeblement>()
-                .AddFileReplacementStatusIcon(IconId);
+                .Set(new Condition.StatusIconReplacement(IconId));
 
             if (!entity.Has<Component>())
             {

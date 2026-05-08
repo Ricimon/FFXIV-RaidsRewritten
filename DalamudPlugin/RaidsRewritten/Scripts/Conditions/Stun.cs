@@ -21,7 +21,7 @@ public class Stun
 
             condition.Set(new Condition.Status(IconId, "Stun", "(RaidsRewritten) Unable to execute actions."))
                 .Add<Condition.StatusEnfeeblement>()
-                .AddFileReplacementStatusIcon(IconId);
+                .Set(new Condition.StatusIconReplacement(IconId));
 
             // Application VFX
             world.Entity()

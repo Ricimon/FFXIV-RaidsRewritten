@@ -19,7 +19,7 @@ public class Blind
 
             condition.Set(new Condition.Status(IconId, "Blind", "(RaidsRewritten) Encroaching darkness is lowering visibility."))
                 .Add<Condition.StatusEnfeeblement>()
-                .AddFileReplacementStatusIcon(IconId);
+                .Set(new Condition.StatusIconReplacement(IconId));
 
             if (!condition.Has<Component>())
             {

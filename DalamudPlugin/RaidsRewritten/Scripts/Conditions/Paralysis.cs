@@ -29,7 +29,7 @@ public class Paralysis(Random random, ILogger logger) : ISystem
 
             condition.Set(new Condition.Status(IconId, "Paralysis", "(RaidsRewritten) Deadened nerves are sometimes preventing the execution of actions."))
                 .Add<Condition.StatusEnfeeblement>()
-                .AddFileReplacementStatusIcon(IconId);
+                .Set(new Condition.StatusIconReplacement(IconId));
 
         }, 0, true).ChildOf(target);
     }

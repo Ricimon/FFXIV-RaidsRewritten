@@ -21,7 +21,7 @@ public class Bind
 
             condition.Set(new Condition.Status(IconId, "Bind", "(RaidsRewritten) Unable to move."))
                 .Add<Condition.StatusEnfeeblement>()
-                .AddFileReplacementStatusIcon(IconId);
+                .Set(new Condition.StatusIconReplacement(IconId));
 
             // Application VFX
             world.Entity()

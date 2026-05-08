@@ -21,7 +21,7 @@ public class Sleep
 
             condition.Set(new Condition.Status(IconId, "Sleep", "(RaidsRewritten) Overwhelming drowsiness is preventing the execution of actions."))
                 .Add<Condition.StatusEnfeeblement>()
-                .AddFileReplacementStatusIcon(IconId);
+                .Set(new Condition.StatusIconReplacement(IconId));
 
             // Application VFX
             world.Entity()

@@ -21,7 +21,7 @@ public class Heavy
 
             condition.Set(new Condition.Status(IconId, "Heavy", "(RaidsRewritten) Movement speed is reduced."))
                 .Add<Condition.StatusEnfeeblement>()
-                .AddFileReplacementStatusIcon(IconId);
+                .Set(new Condition.StatusIconReplacement(IconId));
 
             // Application VFX
             world.Entity()

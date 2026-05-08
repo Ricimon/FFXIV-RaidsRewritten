@@ -19,7 +19,7 @@ public class Deepfreeze
 
             entity.Set(new Condition.Status(IconId, "Deep Freeze", "(RaidsRewritten) Frozen solid and unable to execute actions."))
                 .Add<Condition.StatusEnfeeblement>()
-                .AddFileReplacementStatusIcon(IconId);
+                .Set(new Condition.StatusIconReplacement(IconId));
 
             if (!entity.Has<Component>())
             {

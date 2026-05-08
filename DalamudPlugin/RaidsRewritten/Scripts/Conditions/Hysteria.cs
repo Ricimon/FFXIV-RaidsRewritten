@@ -26,7 +26,7 @@ public class Hysteria(Random random, ILogger logger) : ISystem
 
             condition.Set(new Condition.Status(IconId, "Hysteria", "(RaidsRewritten) Unable to act on your own free will."))
                 .Add<Condition.StatusEnfeeblement>()
-                .AddFileReplacementStatusIcon(IconId);
+                .Set(new Condition.StatusIconReplacement(IconId));
 
             world.Entity()
                 .Set(new ActorVfx("vfx/common/eff/dk05th_stdn0t.avfx"))

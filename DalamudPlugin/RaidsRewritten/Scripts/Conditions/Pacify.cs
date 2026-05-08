@@ -21,7 +21,7 @@ public class Pacify
 
             condition.Set(new Condition.Status(IconId, "Pacification", "(RaidsRewritten) Unable to use attack-oriented abilities, spells, and weaponskills."))
                 .Add<Condition.StatusEnfeeblement>()
-                .AddFileReplacementStatusIcon(IconId);
+                .Set(new Condition.StatusIconReplacement(IconId));
 
             world.Entity()
                 .Set(new ActorVfx("vfx/common/eff/dk05ht_ipws0t.avfx"))

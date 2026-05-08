@@ -85,7 +85,7 @@ public sealed class Knockback : IDalamudHook
 
             condition.Set(new Condition.Status(IconId, "Knockback", "(RaidsRewritten) Forced movement to simulate a real knockback."))
                 .Add<Condition.StatusEnfeeblement>()
-                .AddFileReplacementStatusIcon(215723);
+                .Set(new Condition.StatusIconReplacement(IconId));
 
         }, 0, true).ChildOf(target);
     }
