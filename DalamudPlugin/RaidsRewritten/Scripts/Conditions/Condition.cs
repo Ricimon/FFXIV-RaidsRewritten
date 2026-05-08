@@ -12,7 +12,7 @@ public class Condition(ILogger logger, DalamudServices dalamud) : ISystem
 {
     public record struct Component(string Name, float TimeRemaining, DateTime CreationTime);
     public record struct Id(int Value);
-    public record struct StatusIconReplacement(int IconId);
+    public record struct StatusIconReplacement(int CustomStatusIconId, int IconToReplace);
     public struct Hidden;
     public struct IgnoreOnDeath;
 
@@ -90,10 +90,10 @@ public class Condition(ILogger logger, DalamudServices dalamud) : ISystem
         world.Observer<StatusIconReplacement>().Event(Ecs.OnSet)
             .Each((Entity e, ref StatusIconReplacement r) =>
             {
-                var replacementPath = Path.Combine("statuses", $"{r.IconId}_hr1.tex");
+                var replacementPath = Path.Combine("statuses", $"{r.CustomStatusIconId}_hr1.tex");
                 replacementPath = dalamud.PluginInterface.GetResourcePath(replacementPath);
-                var folder = r.IconId - r.IconId % 1000;
-                e.Set(new FileReplacement($"ui/icon/{folder:D6}/{r.IconId}_hr1.tex", replacementPath));
+                var folder = r.CustomStatusIconId - r.CustomStatusIconId % 1000;
+                e.Set(new FileReplacement($"ui/icon/{folder:D6}/{r.IconToReplace}_hr1.tex", replacementPath));
             });
 
         world.Observer<StatusIconReplacement>().Event(Ecs.OnRemove)

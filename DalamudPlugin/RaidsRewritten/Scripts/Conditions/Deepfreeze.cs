@@ -7,6 +7,7 @@ namespace RaidsRewritten.Scripts.Conditions;
 public class Deepfreeze
 {
     private const int IconId = 215637;
+    private const int IconToReplace = 210259;
 
     public record struct Component(object _);
 
@@ -17,9 +18,9 @@ public class Deepfreeze
             var world = target.CsWorld();
             var entity = Condition.ApplyToTarget(target, "Frozen", duration, id, false, false);
 
-            entity.Set(new Condition.Status(IconId, "Deep Freeze", "(RaidsRewritten) Frozen solid and unable to execute actions."))
-                .Add<Condition.StatusEnfeeblement>()
-                .Set(new Condition.StatusIconReplacement(IconId));
+            entity.Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
+                .Set(new Condition.Status(IconToReplace, "Deep Freeze", "(RaidsRewritten) Frozen solid and unable to execute actions."))
+                .Add<Condition.StatusEnfeeblement>();
 
             if (!entity.Has<Component>())
             {

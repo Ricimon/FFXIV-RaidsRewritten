@@ -8,6 +8,7 @@ public class Heavy
 {
     public const int Id = 0x8EA11;
     private const int IconId = 215002;
+    private const int IconToReplace = 210260;
 
     public record struct Component(object _);
 
@@ -19,9 +20,9 @@ public class Heavy
 
             var condition = Condition.ApplyToTarget(target, "Slowed", duration, Id, extendDuration, overrideExistingDuration);
 
-            condition.Set(new Condition.Status(IconId, "Heavy", "(RaidsRewritten) Movement speed is reduced."))
-                .Add<Condition.StatusEnfeeblement>()
-                .Set(new Condition.StatusIconReplacement(IconId));
+            condition.Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
+                .Set(new Condition.Status(IconToReplace, "Heavy", "(RaidsRewritten) Movement speed is reduced."))
+                .Add<Condition.StatusEnfeeblement>();
 
             // Application VFX
             world.Entity()

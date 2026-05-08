@@ -12,6 +12,7 @@ public class Hysteria(Random random, ILogger logger) : ISystem
 {
     public const int Id = 0x5CA6E;
     private const int IconId = 215552;
+    private const int IconToReplace = 210261;
 
     public record struct Component(float RedirectionInterval,
         float TimeUntilRedirection = 0, Vector3 MoveDirection = default);
@@ -24,9 +25,9 @@ public class Hysteria(Random random, ILogger logger) : ISystem
 
             var condition = Condition.ApplyToTarget(target, "Hysteria", duration, Id, extendDuration, overrideExistingDuration);
 
-            condition.Set(new Condition.Status(IconId, "Hysteria", "(RaidsRewritten) Unable to act on your own free will."))
-                .Add<Condition.StatusEnfeeblement>()
-                .Set(new Condition.StatusIconReplacement(IconId));
+            condition.Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
+                .Set(new Condition.Status(IconToReplace, "Hysteria", "(RaidsRewritten) Unable to act on your own free will."))
+                .Add<Condition.StatusEnfeeblement>();
 
             world.Entity()
                 .Set(new ActorVfx("vfx/common/eff/dk05th_stdn0t.avfx"))

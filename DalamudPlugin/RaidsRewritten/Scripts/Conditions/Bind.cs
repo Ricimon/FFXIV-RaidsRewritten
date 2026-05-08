@@ -8,6 +8,7 @@ public class Bind
 {
     public const int Id = 0xB19D;
     private const int IconId = 215003;
+    private const int IconToReplace = 210257;
 
     public record struct Component(object _);
 
@@ -19,9 +20,9 @@ public class Bind
 
             var condition = Condition.ApplyToTarget(target, "Bound", duration, Id, extendDuration, overrideExistingDuration);
 
-            condition.Set(new Condition.Status(IconId, "Bind", "(RaidsRewritten) Unable to move."))
-                .Add<Condition.StatusEnfeeblement>()
-                .Set(new Condition.StatusIconReplacement(IconId));
+            condition.Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
+                .Set(new Condition.Status(IconToReplace, "Bind", "(RaidsRewritten) Unable to move."))
+                .Add<Condition.StatusEnfeeblement>();
 
             // Application VFX
             world.Entity()

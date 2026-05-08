@@ -7,6 +7,7 @@ namespace RaidsRewritten.Scripts.Conditions;
 public class Overheat
 {
     private const int IconId = 214278;
+    private const int IconToReplace = 210264;
 
     public record struct Component(object _);
 
@@ -17,9 +18,9 @@ public class Overheat
             var world = target.CsWorld();
             var entity = Condition.ApplyToTarget(target, "Overheated", duration, id, false, false);
 
-            entity.Set(new Condition.Status(IconId, "Overheated", "(RaidsRewritten) Body is overheated, forcing forward movement."))
-                .Add<Condition.StatusEnfeeblement>()
-                .Set(new Condition.StatusIconReplacement(IconId));
+            entity.Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
+                .Set(new Condition.Status(IconToReplace, "Overheated", "(RaidsRewritten) Body is overheated, forcing forward movement."))
+                .Add<Condition.StatusEnfeeblement>();
 
             if (!entity.Has<Component>())
             {

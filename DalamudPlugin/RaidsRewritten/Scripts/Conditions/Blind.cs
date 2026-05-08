@@ -8,6 +8,7 @@ public class Blind
 {
     public const int Id = 15;
     private const int IconId = 215012;
+    private const int IconToReplace = 210258;
 
     public record struct Component(object _);
 
@@ -17,9 +18,9 @@ public class Blind
         {
             var condition = Condition.ApplyToTarget(target, "Blind", duration, Id, extendDuration, overrideExistingDuration);
 
-            condition.Set(new Condition.Status(IconId, "Blind", "(RaidsRewritten) Encroaching darkness is lowering visibility."))
-                .Add<Condition.StatusEnfeeblement>()
-                .Set(new Condition.StatusIconReplacement(IconId));
+            condition.Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
+                .Set(new Condition.Status(IconToReplace, "Blind", "(RaidsRewritten) Encroaching darkness is lowering visibility."))
+                .Add<Condition.StatusEnfeeblement>();
 
             if (!condition.Has<Component>())
             {

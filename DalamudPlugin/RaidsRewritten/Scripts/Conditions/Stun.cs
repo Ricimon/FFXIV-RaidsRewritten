@@ -8,6 +8,7 @@ public class Stun
 {
     public const int Id = 0x5709;
     private const int IconId = 215004;
+    private const int IconToReplace = 210305;
 
     public record struct Component(object _);
 
@@ -19,9 +20,9 @@ public class Stun
 
             var condition = Condition.ApplyToTarget(target, "Stunned", duration, Id, extendDuration, overrideExistingDuration);
 
-            condition.Set(new Condition.Status(IconId, "Stun", "(RaidsRewritten) Unable to execute actions."))
-                .Add<Condition.StatusEnfeeblement>()
-                .Set(new Condition.StatusIconReplacement(IconId));
+            condition.Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
+                .Set(new Condition.Status(IconToReplace, "Stun", "(RaidsRewritten) Unable to execute actions."))
+                .Add<Condition.StatusEnfeeblement>();
 
             // Application VFX
             world.Entity()
