@@ -17,7 +17,7 @@ public class Blind
         {
             var condition = Condition.ApplyToTarget(target, "Blind", duration, Id, extendDuration, overrideExistingDuration);
 
-            condition.Set(new Condition.Status(IconId, "Blind", "Encroaching darkness is lowering visibility."))
+            condition.Set(new Condition.Status(IconId, "Blind", "(RaidsRewritten) Encroaching darkness is lowering visibility."))
                 .Add<Condition.StatusEnfeeblement>()
                 .AddFileReplacementStatusIcon(IconId);
 

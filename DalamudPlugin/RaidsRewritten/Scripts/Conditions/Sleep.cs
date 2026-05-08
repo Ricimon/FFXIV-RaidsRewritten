@@ -19,7 +19,7 @@ public class Sleep
 
             var condition = Condition.ApplyToTarget(target, "Slept", duration, Id, extendDuration, overrideExistingDuration);
 
-            condition.Set(new Condition.Status(IconId, "Sleep", "Overwhelming drowsiness is preventing the execution of actions."))
+            condition.Set(new Condition.Status(IconId, "Sleep", "(RaidsRewritten) Overwhelming drowsiness is preventing the execution of actions."))
                 .Add<Condition.StatusEnfeeblement>()
                 .AddFileReplacementStatusIcon(IconId);
 

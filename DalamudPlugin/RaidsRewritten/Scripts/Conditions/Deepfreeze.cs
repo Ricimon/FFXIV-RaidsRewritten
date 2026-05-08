@@ -17,7 +17,7 @@ public class Deepfreeze
             var world = target.CsWorld();
             var entity = Condition.ApplyToTarget(target, "Frozen", duration, id, false, false);
 
-            entity.Set(new Condition.Status(IconId, "Deep Freeze", "Frozen solid and unable to execute actions."))
+            entity.Set(new Condition.Status(IconId, "Deep Freeze", "(RaidsRewritten) Frozen solid and unable to execute actions."))
                 .Add<Condition.StatusEnfeeblement>()
                 .AddFileReplacementStatusIcon(IconId);
 

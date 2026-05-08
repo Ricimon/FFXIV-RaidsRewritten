@@ -19,7 +19,7 @@ public class Bind
 
             var condition = Condition.ApplyToTarget(target, "Bound", duration, Id, extendDuration, overrideExistingDuration);
 
-            condition.Set(new Condition.Status(IconId, "Bind", "Unable to move."))
+            condition.Set(new Condition.Status(IconId, "Bind", "(RaidsRewritten) Unable to move."))
                 .Add<Condition.StatusEnfeeblement>()
                 .AddFileReplacementStatusIcon(IconId);
 

@@ -24,7 +24,7 @@ public class Hysteria(Random random, ILogger logger) : ISystem
 
             var condition = Condition.ApplyToTarget(target, "Hysteria", duration, Id, extendDuration, overrideExistingDuration);
 
-            condition.Set(new Condition.Status(IconId, "Hysteria", "Unable to act on your own free will."))
+            condition.Set(new Condition.Status(IconId, "Hysteria", "(RaidsRewritten) Unable to act on your own free will."))
                 .Add<Condition.StatusEnfeeblement>()
                 .AddFileReplacementStatusIcon(IconId);
 

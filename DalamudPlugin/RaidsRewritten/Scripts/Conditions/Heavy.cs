@@ -19,7 +19,7 @@ public class Heavy
 
             var condition = Condition.ApplyToTarget(target, "Slowed", duration, Id, extendDuration, overrideExistingDuration);
 
-            condition.Set(new Condition.Status(IconId, "Heavy", "Movement speed is reduced."))
+            condition.Set(new Condition.Status(IconId, "Heavy", "(RaidsRewritten) Movement speed is reduced."))
                 .Add<Condition.StatusEnfeeblement>()
                 .AddFileReplacementStatusIcon(IconId);
 

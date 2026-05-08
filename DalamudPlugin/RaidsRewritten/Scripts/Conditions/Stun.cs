@@ -19,7 +19,7 @@ public class Stun
 
             var condition = Condition.ApplyToTarget(target, "Stunned", duration, Id, extendDuration, overrideExistingDuration);
 
-            condition.Set(new Condition.Status(IconId, "Stun", "Unable to execute actions."))
+            condition.Set(new Condition.Status(IconId, "Stun", "(RaidsRewritten) Unable to execute actions."))
                 .Add<Condition.StatusEnfeeblement>()
                 .AddFileReplacementStatusIcon(IconId);
 
