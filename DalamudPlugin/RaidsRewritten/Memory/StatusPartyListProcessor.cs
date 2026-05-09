@@ -446,30 +446,6 @@ public unsafe class StatusPartyListProcessor
         }
     }
 
-    public AtkResNode*[] GetNodeIconArray(AtkResNode* node, bool reverse = false)
-    {
-        this.GetNodeIconArrayList.Clear();
-        var atk = node->GetAsAtkComponentNode();
-        if (atk is null) return [];
-        var uldm = atk->Component->UldManager;
-        for (var i = 0; i < uldm.NodeListCount; i++)
-        {
-            var next = uldm.NodeList[i];
-            if (next == null) continue;
-            if ((int)next->Type < 1000) continue;
-            if (((AtkUldComponentInfo*)next->GetAsAtkComponentNode()->Component->UldManager.Objects)->ComponentType == ComponentType.IconText)
-            {
-                this.GetNodeIconArrayList.Add((nint)next);
-            }
-        }
-        var ret = new AtkResNode*[this.GetNodeIconArrayList.Count];
-        for (var i = 0; i < this.GetNodeIconArrayList.Count; i++)
-        {
-            ret[i] = (AtkResNode*)this.GetNodeIconArrayList[reverse ? this.GetNodeIconArrayList.Count - 1 - i : i];
-        }
-        return ret;
-    }
-
     private void ResetPartyList(AtkUnitBase* addon, nint player, AtkResNode*[] iconArray)
     {
         var gameObj = (GameObject*)player;
