@@ -86,22 +86,5 @@ public class Condition(ILogger logger, DalamudServices dalamud) : ISystem
                     logger.Error(e.ToStringFull());
                 }
             });
-
-        world.Observer<StatusIconReplacement>().Event(Ecs.OnSet)
-            .Each((Entity e, ref StatusIconReplacement r) =>
-            {
-                var replacementPath = Path.Combine("statuses", $"{r.CustomStatusIconId}_hr1.tex");
-                replacementPath = dalamud.PluginInterface.GetResourcePath(replacementPath);
-                var folder = r.CustomStatusIconId - r.CustomStatusIconId % 1000;
-                e.Set(new FileReplacement($"ui/icon/{folder:D6}/{r.IconToReplace}_hr1.tex", replacementPath));
-            });
-
-        world.Observer<StatusIconReplacement>().Event(Ecs.OnRemove)
-            .Each((Entity e, ref StatusIconReplacement r) =>
-            {
-                if (e.TryGet<FileReplacement>(out var fileReplacement)) {
-                    e.Remove<FileReplacement>();
-                }
-            });
     }
 }

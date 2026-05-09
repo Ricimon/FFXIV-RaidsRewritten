@@ -243,9 +243,9 @@ public unsafe class StatusPartyListProcessor
             {
                 if (condition.TimeRemaining > 0)
                 {
-                    if (e.TryGet<FileReplacement>(out var replacement))
+                    if (e.TryGet<FileReplacementReference>(out var replacement))
                     {
-                        statusList.Add(new Status(status, condition, StatusType.SelfEnfeeblement, replacement));
+                        statusList.Add(new Status(status, condition, StatusType.SelfEnfeeblement, replacement.Replacement));
                     } else
                     {
                         statusList.Add(new Status(status, condition, StatusType.SelfEnfeeblement));

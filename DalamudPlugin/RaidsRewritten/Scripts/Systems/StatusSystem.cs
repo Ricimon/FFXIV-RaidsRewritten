@@ -1,5 +1,4 @@
 ﻿using FFXIVClientStructs.FFXIV.Client.Game.Character;
-using FFXIVClientStructs.FFXIV.Component.GUI;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
@@ -8,18 +7,19 @@ using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Utility;
 using System;
-using System.Collections.Generic;
-using System.Text;
+using System.IO;
 
 namespace RaidsRewritten.Scripts.Systems;
 
 public unsafe class StatusSystem(
     Configuration configuration,
+    DalamudServices dalamud,
     StatusCommonProcessor statusCommonProcessor,
     Lazy<StatusFlyPopupTextProcessor> statusFlyPopupTextProcessor,
     ILogger logger) : ISystem
 {
     private readonly Configuration configuration = configuration;
+    private readonly DalamudServices dalamud = dalamud;
     private readonly StatusCommonProcessor statusCommonProcessor = statusCommonProcessor;
     private readonly Lazy<StatusFlyPopupTextProcessor> statusFlyPopupTextProcessor = statusFlyPopupTextProcessor;
     private readonly ILogger logger = logger;
@@ -42,57 +42,55 @@ public unsafe class StatusSystem(
             .Event(Ecs.OnSet)
             .Each((e, ref status) => HandleApplyStatus(e, status));
 
-        world.Observer<Condition.Status>()
-            .With<Condition.StatusEnhancement>()
-            .With<Player.LocalPlayer>().Up()
-            .Event(Ecs.OnRemove)
-            .Each((e, ref status) => HandleRemoveStatus(e, status));
-        world.Observer<Condition.Status>()
-            .With<Condition.StatusEnfeeblement>()
-            .With<Player.LocalPlayer>().Up()
-            .Event(Ecs.OnRemove)
-            .Each((e, ref status) => HandleRemoveStatus(e, status));
-        world.Observer<Condition.Status>()
-            .With<Condition.StatusOther>()
-            .With<Player.LocalPlayer>().Up()
-            .Event(Ecs.OnRemove)
-            .Each((e, ref status) => HandleRemoveStatus(e, status));
+        world.System<FlyText>()
+            .Each((Entity e, ref FlyText flytext) =>
+            {
+                // handles status fall off flytext
+                if (e.Target(Ecs.DependsOn).IsValid()) { return; }
+                var chara = (Character*)StatusCommonProcessor.LocalPlayer();
+                if (chara == null || !chara->IsCharacter())
+                {
+                    e.Destruct();
+                    return; 
+                }
+                if (e.Has<FlyTextReady>()) { return; }
+                e.Set(new FlyTextReady(new(flytext.Status, false, chara->EntityId)));
+            });
     }
 
-    private void HandleApplyStatus(Entity e, Condition.Status status)
+    private void HandleApplyStatus(Entity statusEntity, Condition.Status status)
     {
+        //logger.Debug("STATUS APPLY");
         if (!configuration.EverythingDisabled && !configuration.UseLegacyStatusRendering)
         {
+
             var chara = (Character*)StatusCommonProcessor.LocalPlayer();
             if (chara == null || !chara->IsCharacter()) { return; }
 
-            if (e.TryGet<FileReplacement>(out var replacement))
+            // handle extended statuses
+            statusEntity.Children(Ecs.DependsOn, (Entity e) =>
             {
-                statusFlyPopupTextProcessor.Value.Enqueue(new(e, status, true, chara->EntityId, replacement));
-            } else
-            {
-                statusFlyPopupTextProcessor.Value.Enqueue(new(e, status, true, chara->EntityId));
-            }
-        }
-    }
+                e.Destruct();
+            });
 
-    private void HandleRemoveStatus(Entity e, Condition.Status status)
-    {
-        if (!configuration.EverythingDisabled && !configuration.UseLegacyStatusRendering)
-        {
-            // ensure tooltip doesn't get stuck when debuff expires while showing tooltip
-            statusCommonProcessor.DisableActiveTooltip();
-            //logger.Debug($"REMOVE: {status.Icon} {status.Title} {status.Description}");
-            var chara = (Character*)StatusCommonProcessor.LocalPlayer();
-            if (chara == null || !chara->IsCharacter()) { return; }
-            if (e.TryGet<FileReplacement>(out var replacement))
+            DelayedAction.Create(statusEntity.CsWorld(), () =>
             {
-                statusFlyPopupTextProcessor.Value.Enqueue(new(e, status, false, chara->EntityId, replacement));
-            } else
-            {
-                statusFlyPopupTextProcessor.Value.Enqueue(new(e, status, false, chara->EntityId));
-            }
+                var isEnfeeblement = statusEntity.Has<Condition.StatusEnfeeblement>();
+                var flytext = statusEntity.CsWorld().Entity()
+                    .Set(new FlyText(statusEntity, status, isEnfeeblement))
+                    .Set(new FlyTextReady(new(status, true, chara->EntityId)))
+                    .Add(Ecs.DependsOn, statusEntity);
 
+                if (statusEntity.TryGet<Condition.StatusIconReplacement>(out var r))
+                {
+                    var replacementPath = Path.Combine("statuses", $"{r.CustomStatusIconId}_hr1.tex");
+                    replacementPath = dalamud.PluginInterface.GetResourcePath(replacementPath);
+                    var folder = r.CustomStatusIconId - r.CustomStatusIconId % 1000;
+                    var fr = new FileReplacement($"ui/icon/{folder:D6}/{r.IconToReplace}_hr1.tex", replacementPath);
+                    flytext.Set(fr);
+                    statusEntity.Set(new FileReplacementReference(fr));
+                }
+            }, 0, true);
         }
     }
 }

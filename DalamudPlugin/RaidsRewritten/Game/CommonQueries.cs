@@ -16,6 +16,7 @@ public sealed class CommonQueries : IDisposable
     public Query<Condition.Component, Condition.Status> StatusEnhancementQuery { get; private set; }
     public Query<Condition.Component, Condition.Status> StatusEnfeeblementQuery { get; private set; }
     public Query<Condition.Component, Condition.Status> StatusOtherQuery { get; private set; }
+    public Query<FlyText, FlyTextReady> StatusFlyTextReadyQuery { get; private set; }
 
     private bool disposed;
 
@@ -48,6 +49,10 @@ public sealed class CommonQueries : IDisposable
         {
             this.StatusOtherQuery = StatusCommonProcessor.QueryForStatusType<Condition.StatusOther>(world);
         }
+        if (!this.StatusFlyTextReadyQuery.IsValid())
+        {
+            this.StatusFlyTextReadyQuery = world.QueryBuilder<FlyText, FlyTextReady>().Cached().Build();
+        }
     }
 
     public void Dispose()
@@ -61,6 +66,7 @@ public sealed class CommonQueries : IDisposable
         if (this.StatusEnhancementQuery.IsValid()) { this.StatusEnhancementQuery.Dispose(); }
         if (this.StatusEnfeeblementQuery.IsValid()) { this.StatusEnfeeblementQuery.Dispose(); }
         if (this.StatusOtherQuery.IsValid()) { this.StatusOtherQuery.Dispose(); }
+        if (this.StatusFlyTextReadyQuery.IsValid()) { this.StatusFlyTextReadyQuery.Dispose(); }
         disposed = true;
     }
 }
