@@ -75,7 +75,9 @@ public unsafe class StatusSystem(
 
             DelayedAction.Create(statusEntity.CsWorld(), () =>
             {
+                if (!statusEntity.IsValid()) { return; }
                 var isEnfeeblement = statusEntity.Has<Condition.StatusEnfeeblement>();
+
                 var flytext = statusEntity.CsWorld().Entity()
                     .Set(new FlyText(statusEntity, status, isEnfeeblement))
                     .Set(new FlyTextReady(new(status, true, chara->EntityId)))
