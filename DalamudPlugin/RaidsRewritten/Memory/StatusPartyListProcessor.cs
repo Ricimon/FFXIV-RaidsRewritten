@@ -10,6 +10,7 @@ using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
+using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using Flecs.NET.Core;
 using RaidsRewritten.Data;
@@ -160,7 +161,7 @@ public unsafe class StatusPartyListProcessor
         if (iconArrayRequestUpdate)
         {
             iconArrayRequestUpdate = false;
-            BuildIconArrayDict(addon);
+            BuildIconArrayDict();
         }
 
         // if dirty, hide all visible status icons
@@ -278,23 +279,30 @@ public unsafe class StatusPartyListProcessor
         });
     }
 
-    private void BuildIconArrayDict(AtkUnitBase* addonBase)
+    private void BuildIconArrayDict()
     {
         this.pPlayerDict.Clear();
-        var index = 23;
-        var ctr = 0;
+
+        var addon = (AddonPartyList*)dalamudServices.GameGui.GetAddonByName("_PartyList").Address;
+        if (addon == null) { return; }
+
         var party = GetVisibleParty();
         prevPartyListSize = party.Count;
-        foreach (var element in party)
+        for (int pMemberIndex = 0; pMemberIndex < party.Count; pMemberIndex++)
         {
+            var element = party[pMemberIndex];
             var player = element.GameObj;
             if (player != nint.Zero)
             {
-                var iconArray = GetNodeIconArray(addonBase->UldManager.NodeList[index]);
+                var icons = addon->PartyMembers[pMemberIndex].StatusIcons;
+                AtkResNode*[] iconArray = new AtkResNode*[icons.Length];
+                for (int iconIndex = 0; iconIndex < icons.Length; iconIndex++)
+                {
+                    iconArray[iconIndex] = (AtkResNode*)icons[iconIndex].Value->OwnerNode;
+                    //logger.Debug($"{pMemberIndex}: {iconIndex} {(IntPtr)icons[iconIndex].Value->AtkResNode:X2}");
+                }
                 this.pPlayerDict[player] = new(iconArray, false, -1, element.Order);
             }
-            ctr++;
-            index--;
         }
     }
 
@@ -436,30 +444,6 @@ public unsafe class StatusPartyListProcessor
                 AtkStage.Instance()->TooltipManager.HideTooltip(addon->Id);
             }
         }
-    }
-
-    public AtkResNode*[] GetNodeIconArray(AtkResNode* node, bool reverse = false)
-    {
-        this.GetNodeIconArrayList.Clear();
-        var atk = node->GetAsAtkComponentNode();
-        if (atk is null) return [];
-        var uldm = atk->Component->UldManager;
-        for (var i = 0; i < uldm.NodeListCount; i++)
-        {
-            var next = uldm.NodeList[i];
-            if (next == null) continue;
-            if ((int)next->Type < 1000) continue;
-            if (((AtkUldComponentInfo*)next->GetAsAtkComponentNode()->Component->UldManager.Objects)->ComponentType == ComponentType.IconText)
-            {
-                this.GetNodeIconArrayList.Add((nint)next);
-            }
-        }
-        var ret = new AtkResNode*[this.GetNodeIconArrayList.Count];
-        for (var i = 0; i < this.GetNodeIconArrayList.Count; i++)
-        {
-            ret[i] = (AtkResNode*)this.GetNodeIconArrayList[reverse ? this.GetNodeIconArrayList.Count - 1 - i : i];
-        }
-        return ret;
     }
 
     private void ResetPartyList(AtkUnitBase* addon, nint player, AtkResNode*[] iconArray)
