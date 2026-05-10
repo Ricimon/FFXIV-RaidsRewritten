@@ -14,6 +14,7 @@ using Lumina.Excel.Sheets;
 using RaidsRewritten.Game;
 using RaidsRewritten.Interop;
 using RaidsRewritten.Log;
+using RaidsRewritten.Scripts;
 using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Utility;
 using System;
@@ -143,7 +144,15 @@ public unsafe class StatusFlyPopupTextProcessor
         });
 
         if (toRemove.HasValue) { toRemove.Value.Remove<FlyTextReady>(); }
-        if (toDestroy.HasValue) { toDestroy.Value.Destruct(); }
+        if (toDestroy.HasValue)
+        {
+            toDestroy.Value.Remove<FlyTextReady>()
+                .Remove<FlyText>();
+            DelayedAction.Create(ecsContainer.World, () =>
+            {
+                toDestroy.Value.Destruct();
+            }, 5, false);
+        }
     }
 
     private void ProcessPopupText()
