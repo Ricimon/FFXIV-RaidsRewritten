@@ -188,14 +188,14 @@ public unsafe class StatusFlyPopupTextProcessor
             var candidate = addon->UldManager.NodeList[i];
             if (IsCandidateValid(candidate, CurrentElement))
             {
-                logger.Debug("valid");
+                //logger.Debug("valid");
                 var c = candidate->GetAsAtkComponentNode()->Component;
                 var sestr = new SeStringBuilder().AddText(CurrentElement.IsAddition ? "+ " : "- ").Append(CurrentElement.Status.Title);
                 c->UldManager.NodeList[1]->GetAsAtkTextNode()->SetText(sestr.Encode());
 
                 if (CurrentElement.Replacement != null)
                 {
-                    logger.Debug("DALMAUD LOAD ICON");
+                    //logger.Debug("DALMAUD LOAD ICON");
                     c->UldManager.NodeList[2]->GetAsAtkImageNode()->LoadTexture(CurrentElement.Replacement.Value.OriginalPath);
                 }
 
