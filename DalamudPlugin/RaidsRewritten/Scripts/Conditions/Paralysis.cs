@@ -29,7 +29,8 @@ public class Paralysis(Random random, ILogger logger) : ISystem
             }
 
             condition.Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
-                .Set(new Condition.Status(IconToReplace, "Paralysis", "(RaidsRewritten) Deadened nerves are sometimes preventing the execution of actions."))
+                .Set(new Condition.Status(IconToReplace, "Paralysis", "Deadened nerves are sometimes preventing the execution of actions."))
+                .Set(new Condition.StatusTooltip("Paralysis (RaidsRewritten)"))
                 .Add<Condition.StatusEnfeeblement>();
 
         }, 0, true).ChildOf(target);

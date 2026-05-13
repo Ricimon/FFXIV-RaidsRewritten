@@ -19,7 +19,8 @@ public class Overheat
             var entity = Condition.ApplyToTarget(target, "Overheated", duration, id, false, false);
 
             entity.Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
-                .Set(new Condition.Status(IconToReplace, "Overheated", "(RaidsRewritten) Body is overheated, forcing forward movement."))
+                .Set(new Condition.Status(IconToReplace, "Overheated", "Body is overheated, forcing forward movement."))
+                .Set(new Condition.StatusTooltip("Overheated (RaidsRewritten)"))
                 .Add<Condition.StatusEnfeeblement>();
 
             if (!entity.Has<Component>())

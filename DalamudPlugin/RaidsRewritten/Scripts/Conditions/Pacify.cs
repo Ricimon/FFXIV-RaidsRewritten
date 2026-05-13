@@ -21,7 +21,8 @@ public class Pacify
             var condition = Condition.ApplyToTarget(target, "Pacified", duration, Id, extendDuration, overrideExistingDuration);
 
             condition.Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
-                .Set(new Condition.Status(IconToReplace, "Pacification", "(RaidsRewritten) Unable to use attack-oriented abilities, spells, and weaponskills."))
+                .Set(new Condition.Status(IconToReplace, "Pacification", "Unable to use attack-oriented abilities, spells, and weaponskills."))
+                .Set(new Condition.StatusTooltip("Pacification (RaidsRewritten)"))
                 .Add<Condition.StatusEnfeeblement>();
 
             world.Entity()

@@ -122,17 +122,17 @@ public unsafe class StatusTargetInfoProcessor
                 if (player.PlayerCharacter != null && player.PlayerCharacter.Address == target.Address)
                 {
                     var statusQuery = StatusCommonProcessor.GetAllStatusesOfEntity(e);
-                    statusQuery.Each((e, ref condition, ref status) =>
+                    statusQuery.Each((e, ref condition, ref status, ref statusTooltip) =>
                     {
                         if (baseCnt < 3) { return; }
                         if (condition.TimeRemaining > 0)
                         {
                             if (e.TryGet<FileReplacementReference>(out var replacement))
                             {
-                                SetIcon(addon, baseCnt, ref status, ref condition, replacement.Replacement);
+                                SetIcon(addon, baseCnt, ref status, ref statusTooltip, ref condition, replacement.Replacement);
                             } else
                             {
-                                SetIcon(addon, baseCnt, ref status, ref condition);
+                                SetIcon(addon, baseCnt, ref status, ref statusTooltip, ref condition);
                             }
                             baseCnt--;
                         }
@@ -142,9 +142,9 @@ public unsafe class StatusTargetInfoProcessor
         }
     }
 
-    private void SetIcon(AtkUnitBase* addon, int index, ref Condition.Status status, ref Condition.Component condition, FileReplacement? replacement = null)
+    private void SetIcon(AtkUnitBase* addon, int index, ref Condition.Status status, ref Condition.StatusTooltip statusTooltip, ref Condition.Component condition, FileReplacement? replacement = null)
     {
         var container = addon->UldManager.NodeList[index];
-        statusCommonProcessor.SetIcon(addon, ref status, ref condition, container, replacement);
+        statusCommonProcessor.SetIcon(addon, ref status, ref statusTooltip, ref condition, container, replacement);
     }
 }

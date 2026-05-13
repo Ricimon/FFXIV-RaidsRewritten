@@ -21,7 +21,8 @@ public class Sleep
             var condition = Condition.ApplyToTarget(target, "Slept", duration, Id, extendDuration, overrideExistingDuration);
 
             condition.Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
-                .Set(new Condition.Status(IconToReplace, "Sleep", "(RaidsRewritten) Overwhelming drowsiness is preventing the execution of actions."))
+                .Set(new Condition.Status(IconToReplace, "Sleep", "Overwhelming drowsiness is preventing the execution of actions."))
+                .Set(new Condition.StatusTooltip("Sleep (RaidsRewritten)"))
                 .Add<Condition.StatusEnfeeblement>();
 
             // Application VFX

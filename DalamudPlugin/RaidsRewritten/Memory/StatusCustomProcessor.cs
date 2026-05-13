@@ -146,15 +146,15 @@ public unsafe class StatusCustomProcessor : IDisposable
         //PluginLog.Verbose($"Post1 update {args.Addon:X16}");
         var addon = (AtkUnitBase*)args.Addon.Address;
         int baseCnt = AddonStatusCustomPrerequisite(addon, NumStatuses2);
-        commonQueries.StatusOtherQuery.Each((Entity e, ref Condition.Component condition, ref Condition.Status status) =>
+        commonQueries.StatusOtherQuery.Each((Entity e, ref Condition.Component condition, ref Condition.Status status, ref Condition.StatusTooltip statusTooltip) =>
         {
             if (baseCnt < 5) return;
             if (e.TryGet<FileReplacementReference>(out var replacement))
             {
-                UpdateStatusCustom((AtkUnitBase*)args.Addon.Address, ref condition, ref status, baseCnt, replacement.Replacement);
+                UpdateStatusCustom((AtkUnitBase*)args.Addon.Address, ref condition, ref status, ref statusTooltip, baseCnt, replacement.Replacement);
             } else
             {
-                UpdateStatusCustom((AtkUnitBase*)args.Addon.Address, ref condition, ref status, baseCnt);
+                UpdateStatusCustom((AtkUnitBase*)args.Addon.Address, ref condition, ref status, ref statusTooltip, baseCnt);
 
             }
             baseCnt--;
@@ -169,15 +169,15 @@ public unsafe class StatusCustomProcessor : IDisposable
         //PluginLog.Verbose($"Post1 update {args.Addon:X16}");
         var addon = (AtkUnitBase*)args.Addon.Address;
         int baseCnt = AddonStatusCustomPrerequisite(addon, NumStatuses1);
-        commonQueries.StatusEnfeeblementQuery.Each((Entity e, ref Condition.Component condition, ref Condition.Status status) =>
+        commonQueries.StatusEnfeeblementQuery.Each((Entity e, ref Condition.Component condition, ref Condition.Status status, ref Condition.StatusTooltip statusTooltip) =>
         {
             if (baseCnt < 5) return;
             if (e.TryGet<FileReplacementReference>(out var replacement))
             {
-                UpdateStatusCustom((AtkUnitBase*)args.Addon.Address, ref condition, ref status, baseCnt, replacement.Replacement);
+                UpdateStatusCustom((AtkUnitBase*)args.Addon.Address, ref condition, ref status, ref statusTooltip, baseCnt, replacement.Replacement);
             } else
             {
-                UpdateStatusCustom((AtkUnitBase*)args.Addon.Address, ref condition, ref status, baseCnt);
+                UpdateStatusCustom((AtkUnitBase*)args.Addon.Address, ref condition, ref status, ref statusTooltip, baseCnt);
 
             }
             baseCnt--;
@@ -192,15 +192,15 @@ public unsafe class StatusCustomProcessor : IDisposable
         //PluginLog.Verbose($"Post1 update {args.Addon:X16}");
         var addon = (AtkUnitBase*)args.Addon.Address;
         int baseCnt = AddonStatusCustomPrerequisite(addon, NumStatuses0);
-        commonQueries.StatusEnhancementQuery.Each((Entity e, ref Condition.Component condition, ref Condition.Status status) =>
+        commonQueries.StatusEnhancementQuery.Each((Entity e, ref Condition.Component condition, ref Condition.Status status, ref Condition.StatusTooltip statusTooltip) =>
         {
             if (baseCnt < 5) return;
             if (e.TryGet<FileReplacementReference>(out var replacement))
             {
-                UpdateStatusCustom((AtkUnitBase*)args.Addon.Address, ref condition, ref status, baseCnt, replacement.Replacement);
+                UpdateStatusCustom((AtkUnitBase*)args.Addon.Address, ref condition, ref status, ref statusTooltip, baseCnt, replacement.Replacement);
             } else
             {
-                UpdateStatusCustom((AtkUnitBase*)args.Addon.Address, ref condition, ref status, baseCnt);
+                UpdateStatusCustom((AtkUnitBase*)args.Addon.Address, ref condition, ref status, ref statusTooltip, baseCnt);
 
             }
             baseCnt--;
@@ -222,9 +222,9 @@ public unsafe class StatusCustomProcessor : IDisposable
     }
 
     // The common logic method with all statuses of a defined type in the player's status manager.
-    public void UpdateStatusCustom(AtkUnitBase* addon, ref Condition.Component condition, ref Condition.Status status, int baseCnt, FileReplacement? replacement = null)
+    public void UpdateStatusCustom(AtkUnitBase* addon, ref Condition.Component condition, ref Condition.Status status, ref Condition.StatusTooltip statusTooltip, int baseCnt, FileReplacement? replacement = null)
     {
-        SetIcon(addon, baseCnt, ref status, ref condition, replacement);
+        SetIcon(addon, baseCnt, ref status, ref statusTooltip, ref condition, replacement);
     }
 
     private void AddonRequestedUpdate(AtkUnitBase* addon, ref int StatusCnt)
@@ -248,10 +248,10 @@ public unsafe class StatusCustomProcessor : IDisposable
         }
     }
 
-    private unsafe void SetIcon(AtkUnitBase* addon, int index, ref Condition.Status status, ref Condition.Component condition, FileReplacement? replacement = null)
+    private unsafe void SetIcon(AtkUnitBase* addon, int index, ref Condition.Status status, ref Condition.StatusTooltip statusTooltip, ref Condition.Component condition, FileReplacement? replacement = null)
     {
         var container = addon->UldManager.NodeList[index];
-        statusCommonProcessor.SetIcon(addon, ref status, ref condition, container, replacement);
+        statusCommonProcessor.SetIcon(addon, ref status, ref statusTooltip, ref condition, container, replacement);
     }
 
 }

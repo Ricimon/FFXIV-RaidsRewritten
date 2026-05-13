@@ -1,5 +1,9 @@
 ﻿// adapted from https://github.com/kawaii/Moodles/blob/main/Moodles/GameGuiProcessors/CommonProcessor.cs
 // 346527d
+using System;
+using System.Buffers.Binary;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
@@ -13,11 +17,6 @@ using RaidsRewritten.Interop;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
-using System;
-using System.Buffers.Binary;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Text;
 
 namespace RaidsRewritten.Memory;
 
@@ -49,7 +48,7 @@ public unsafe class StatusCommonProcessor(
         }
     }
 
-    public void SetIcon(AtkUnitBase* addon, ref Condition.Status status, ref Condition.Component condition, AtkResNode* container, FileReplacement? replacement = null)
+    public void SetIcon(AtkUnitBase* addon, ref Condition.Status status, ref Condition.StatusTooltip statusTooltip, ref Condition.Component condition, AtkResNode* container, FileReplacement? replacement = null)
     {
         if (configuration.UseLegacyStatusRendering || configuration.EverythingDisabled) { return; }
         if (!container->IsVisible())
@@ -95,14 +94,14 @@ public unsafe class StatusCommonProcessor(
         var addr = (nint)container->GetAsAtkComponentNode()->Component;
         if (HoveringOver == addr && status.TooltipShown == -1)
         {
-            commonQueries.StatusQuery.Each((ref _, ref status) =>
+            commonQueries.StatusQuery.Each((ref _, ref status, ref statusTooltip) =>
             {
                 status.TooltipShown = -1;
             });
             status.TooltipShown = addon->Id;
             ActiveTooltip = addon->Id;
             AtkStage.Instance()->TooltipManager.HideTooltip(addon->Id);
-            var str = status.Title;
+            var str = statusTooltip.Title;
             if (status.Description != "")
             {
                 str += $"\n{status.Description}";
@@ -142,10 +141,10 @@ public unsafe class StatusCommonProcessor(
         return ">9d";
     }
 
-    public static Query<Condition.Component, Condition.Status> QueryForStatus(World world) => world.QueryBuilder<Condition.Component, Condition.Status>().Up().Cached().Build();
-    public static Query<Condition.Component, Condition.Status> QueryForStatusType<T>(World world)
+    public static Query<Condition.Component, Condition.Status, Condition.StatusTooltip> QueryForStatus(World world) => world.QueryBuilder<Condition.Component, Condition.Status, Condition.StatusTooltip>().Up().Cached().Build();
+    public static Query<Condition.Component, Condition.Status, Condition.StatusTooltip> QueryForStatusType<T>(World world)
     {
-        return world.QueryBuilder<Condition.Component, Condition.Status>().With<T>().With<Player.LocalPlayer>().Up().Cached().Build();
+        return world.QueryBuilder<Condition.Component, Condition.Status, Condition.StatusTooltip>().With<T>().With<Player.LocalPlayer>().Up().Cached().Build();
     }
 
     // adapted from https://github.com/NightmareXIV/ECommons/blob/master/ECommons/GenericHelpers/AddonHelpers.cs
@@ -163,6 +162,6 @@ public unsafe class StatusCommonProcessor(
 
     public static unsafe bool LocalPlayerAvailable() => Control.Instance()->LocalPlayer is not null;
     public static unsafe nint LocalPlayer() => (nint)Control.Instance()->LocalPlayer;
-    public static Query<Condition.Component, Condition.Status> GetAllStatusesOfEntity(Entity e) => e.CsWorld().QueryBuilder<Condition.Component, Condition.Status>().With(flecs.EcsChildOf, e).Build();
+    public static Query<Condition.Component, Condition.Status, Condition.StatusTooltip> GetAllStatusesOfEntity(Entity e) => e.CsWorld().QueryBuilder<Condition.Component, Condition.Status, Condition.StatusTooltip>().With(flecs.EcsChildOf, e).Build();
     public AtkUnitBase* GetAddon(string addonName) => (AtkUnitBase*)dalamudServices.GameGui.GetAddonByName(addonName).Address;
 }

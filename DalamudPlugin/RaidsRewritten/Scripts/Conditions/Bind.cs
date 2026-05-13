@@ -21,7 +21,8 @@ public class Bind
             var condition = Condition.ApplyToTarget(target, "Bound", duration, Id, extendDuration, overrideExistingDuration);
 
             condition.Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
-                .Set(new Condition.Status(IconToReplace, "Bind", "(RaidsRewritten) Unable to move."))
+                .Set(new Condition.Status(IconToReplace, "Bind", "Unable to move."))
+                .Set(new Condition.StatusTooltip("Bind (RaidsRewritten)"))
                 .Add<Condition.StatusEnfeeblement>();
 
             // Application VFX

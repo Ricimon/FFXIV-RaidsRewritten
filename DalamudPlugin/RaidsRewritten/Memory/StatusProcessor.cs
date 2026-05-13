@@ -2,7 +2,6 @@
 // 37e76d3
 using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
-using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using RaidsRewritten.Game;
 using RaidsRewritten.Interop;
@@ -10,9 +9,6 @@ using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Utility;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace RaidsRewritten.Memory;
 
@@ -26,7 +22,15 @@ public unsafe class StatusProcessor
     private readonly CommonQueries commonQueries;
     private readonly ILogger logger;
 
-    public int NumStatuses = 0;
+    private enum DisplayOption
+    {
+        Normal,
+        LeftJustified1,
+        LeftJustified2,
+        LeftJustified3,
+    }
+
+    private int rightmostRealStatusIndex;
 
     public StatusProcessor(
         Configuration configuration,
@@ -64,11 +68,10 @@ public unsafe class StatusProcessor
     {
         if (!StatusCommonProcessor.LocalPlayerAvailable()) return;
 
-
         var addon = statusCommonProcessor.GetAddon("_Status");
         if (StatusCommonProcessor.IsAddonReady(addon))
         {
-            UpdateStatus(addon, NumStatuses, true);
+            UpdateStatus(addon, true);
         }
     }
 
@@ -78,42 +81,54 @@ public unsafe class StatusProcessor
     {
         if (!StatusCommonProcessor.LocalPlayerAvailable()) return;
 
-        UpdateStatus((AtkUnitBase*)args.Addon.Address, NumStatuses);
+        UpdateStatus((AtkUnitBase*)args.Addon.Address);
     }
 
-    private int GetAddonStatusElementFlag()
+    private DisplayOption GetDisplayOption()
     {
-        var uiModule = UIModule.Instance();
-        if (uiModule == null) { return -1; }
-        var addonConfig = uiModule->GetAddonConfig();
-        if (addonConfig == null) { return -1; }
-        var activeDataSet = addonConfig->ActiveDataSet;
-        if (activeDataSet == null) { return -1; }
-        return (int)activeDataSet->HudLayoutConfigEntries[3].ElementFlags;
+        var addon = statusCommonProcessor.GetAddon("_Status");
+        return addon->Param switch
+        {
+            1 => DisplayOption.Normal,
+            17 => DisplayOption.LeftJustified1,
+            33 => DisplayOption.LeftJustified2,
+            49 => DisplayOption.LeftJustified3,
+            _ => DisplayOption.LeftJustified1,
+        };
     }
 
     private void AddonRequestedUpdate(AtkUnitBase* addonBase)
     {
         if (!StatusCommonProcessor.IsAddonReady(addonBase)) { return; }
-        NumStatuses = 0;
+
+        var startIndex = 30;
+        if (GetDisplayOption() == DisplayOption.Normal)
+        {
+            // "Normal" display puts the first debuff on index 6
+            startIndex = 6;
+        }
+        // LeftJustified2 orders statuses as Enhancements Space Enfeeblements
+        // Without any real Enfeeblements, fake statuses will go right next to Enhancements, not properly leaving a space.
+        // This is too annoying to solve so TODO, I guess - Ricimon
+        rightmostRealStatusIndex = startIndex + 1;
+
+        for (var i = 1; i <= startIndex; i++)
+        {
+            var c = addonBase->UldManager.NodeList[i];
+            if (c->IsVisible())
+            {
+                rightmostRealStatusIndex = i;
+                break;
+            }
+        }
 
         // nodelist # right (low #) to left (high #)
-        var startIndex = 30;
-        if (GetAddonStatusElementFlag() == 1)
-        {
-            // if "normal" status bar is selected, put custom statuses on right side
-            // in this case, we're only appending to debuff area for now.
-            // order is nodes 6 through 1 (still populates left to right despite reversed node #s)
-            startIndex = 6;
-        } 
         for (var i = startIndex; i >= 1; i--)
         {
             var c = addonBase->UldManager.NodeList[i];
             if (c->IsVisible())
             {
-                NumStatuses++;
-
-                // mark node as dirty
+                // mark node as dirty to place real statuses back
                 var temp = (Interop.Structs.AtkComponentIconText*)c->GetAsAtkComponentNode()->Component;
                 var iconId = temp->IconId;
                 temp->IconId = 0;
@@ -122,22 +137,15 @@ public unsafe class StatusProcessor
         }
     }
 
-    public void UpdateStatus(AtkUnitBase* addon, int StatusCnt, bool hideAll = false)
+    public void UpdateStatus(AtkUnitBase* addon, bool hideAll = false)
     {
         if (!hideAll && (configuration.UseLegacyStatusRendering || configuration.EverythingDisabled)) { return; }
         if (addon != null && StatusCommonProcessor.IsAddonReady(addon))
         {
             // nodelist is right (low #) to left (high #)
-            var startIndex = 30;
-            if (GetAddonStatusElementFlag() == 1)
-            {
-                // if "normal" status bar is selected, put custom statuses on right side
-                // order is nodes 6 through 1 (still populates left to right despite reversed node #s)
-                startIndex = 6;
-            }
-
-            // start populating custom statuses to the right (subtract) of the leftmost node
-            int baseCnt = startIndex - NumStatuses;  
+            // start populating custom statuses to the right (subtract) of the rightmost node
+            // first, hide all nodes without real statuses
+            int baseCnt = rightmostRealStatusIndex - 1;
             for (var i = baseCnt; i >= 1; i--)
             {
                 var c = addon->UldManager.NodeList[i];
@@ -149,7 +157,7 @@ public unsafe class StatusProcessor
             commonQueries.LocalPlayerQuery.Each((e, ref player) =>
             {
                 var statusQuery = StatusCommonProcessor.GetAllStatusesOfEntity(e);
-                statusQuery.Each((e, ref condition, ref status) =>
+                statusQuery.Each((e, ref condition, ref status, ref statusTooltip) =>
                 {
                     // rightmost node reached
                     if (baseCnt <= 0) { return; }
@@ -157,10 +165,10 @@ public unsafe class StatusProcessor
                     {
                         if (e.TryGet<FileReplacementReference>(out var replacement))
                         {
-                            SetIcon(addon, baseCnt, ref status, ref condition, replacement.Replacement);
+                            SetIcon(addon, baseCnt, ref status, ref statusTooltip, ref condition, replacement.Replacement);
                         } else
                         {
-                            SetIcon(addon, baseCnt, ref status, ref condition);
+                            SetIcon(addon, baseCnt, ref status, ref statusTooltip, ref condition);
                         }
                         // traverse left to right
                         baseCnt--;
@@ -170,10 +178,10 @@ public unsafe class StatusProcessor
         }
     }
 
-    private void SetIcon(AtkUnitBase* addon, int index, ref Condition.Status status, ref Condition.Component condition, FileReplacement? replacement = null)
+    private void SetIcon(AtkUnitBase* addon, int index, ref Condition.Status status, ref Condition.StatusTooltip statusTooltip, ref Condition.Component condition, FileReplacement? replacement = null)
     {
         var container = addon->UldManager.NodeList[index];
-        statusCommonProcessor.SetIcon(addon, ref status, ref condition, container, replacement);
+        statusCommonProcessor.SetIcon(addon, ref status, ref statusTooltip, ref condition, container, replacement);
     }
 
 }

@@ -26,7 +26,8 @@ public class Hysteria(Random random, ILogger logger) : ISystem
             var condition = Condition.ApplyToTarget(target, "Hysteria", duration, Id, extendDuration, overrideExistingDuration);
 
             condition.Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
-                .Set(new Condition.Status(IconToReplace, "Hysteria", "(RaidsRewritten) Unable to act on your own free will."))
+                .Set(new Condition.Status(IconToReplace, "Hysteria", "Unable to act on your own free will."))
+                .Set(new Condition.StatusTooltip("Hysteria (RaidsRewritten)"))
                 .Add<Condition.StatusEnfeeblement>();
 
             world.Entity()

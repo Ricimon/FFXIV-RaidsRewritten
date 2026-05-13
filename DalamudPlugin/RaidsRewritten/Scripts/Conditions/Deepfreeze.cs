@@ -19,7 +19,8 @@ public class Deepfreeze
             var entity = Condition.ApplyToTarget(target, "Frozen", duration, id, false, false);
 
             entity.Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
-                .Set(new Condition.Status(IconToReplace, "Deep Freeze", "(RaidsRewritten) Frozen solid and unable to execute actions."))
+                .Set(new Condition.Status(IconToReplace, "Deep Freeze", "Frozen solid and unable to execute actions."))
+                .Set(new Condition.StatusTooltip("Deep Freeze (RaidsRewritten)"))
                 .Add<Condition.StatusEnfeeblement>();
 
             if (!entity.Has<Component>())

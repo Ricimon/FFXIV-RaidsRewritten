@@ -118,16 +118,16 @@ public unsafe class StatusTargetInfoBuffDebuffProcessor
                     if (player.PlayerCharacter != null && player.PlayerCharacter.Address == target.Address)
                     {
                         var statusQuery = StatusCommonProcessor.GetAllStatusesOfEntity(e);
-                        statusQuery.Each((e, ref condition, ref status) =>
+                        statusQuery.Each((e, ref condition, ref status, ref statusTooltip) =>
                         {
                             if (condition.TimeRemaining > 0)
                             {
                                 if (e.TryGet<FileReplacementReference>(out var replacement))
                                 {
-                                    SetIcon(addon, baseCnt, ref status, ref condition, replacement.Replacement);
+                                    SetIcon(addon, baseCnt, ref status, ref statusTooltip, ref condition, replacement.Replacement);
                                 } else
                                 {
-                                    SetIcon(addon, baseCnt, ref status, ref condition);
+                                    SetIcon(addon, baseCnt, ref status, ref statusTooltip, ref condition);
                                 }
                                 baseCnt++;
                             }
@@ -138,10 +138,10 @@ public unsafe class StatusTargetInfoBuffDebuffProcessor
         }
     }
 
-    private void SetIcon(AtkUnitBase* addon, int id, ref Condition.Status status, ref Condition.Component condition, FileReplacement? replacement = null)
+    private void SetIcon(AtkUnitBase* addon, int id, ref Condition.Status status, ref Condition.StatusTooltip statusTooltip, ref Condition.Component condition, FileReplacement? replacement = null)
     {
         var container = addon->UldManager.SearchNodeById((uint)id);
-        statusCommonProcessor.SetIcon(addon, ref status, ref condition, container, replacement);
+        statusCommonProcessor.SetIcon(addon, ref status, ref statusTooltip, ref condition, container, replacement);
     }
 
 

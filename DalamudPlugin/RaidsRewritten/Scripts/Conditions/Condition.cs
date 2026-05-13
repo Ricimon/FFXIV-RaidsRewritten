@@ -1,10 +1,8 @@
-﻿using Flecs.NET.Core;
+﻿using System;
+using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
-using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Utility;
-using System;
-using System.IO;
 
 namespace RaidsRewritten.Scripts.Conditions;
 
@@ -17,6 +15,7 @@ public class Condition(ILogger logger, DalamudServices dalamud) : ISystem
     public struct IgnoreOnDeath;
 
     public record struct Status(int Icon, string Title, string Description, int TooltipShown = -1);
+    public record struct StatusTooltip(string Title);
     public struct StatusEnhancement;
     public struct StatusEnfeeblement;
     public struct StatusOther;

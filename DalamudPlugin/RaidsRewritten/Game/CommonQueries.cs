@@ -12,10 +12,10 @@ public sealed class CommonQueries : IDisposable
     public Query<Player.Component> LocalPlayerQuery { get; private set; }
     public Query<Player.Component> AllPlayersQuery { get; private set; }
 
-    public Query<Condition.Component, Condition.Status> StatusQuery { get; private set; }
-    public Query<Condition.Component, Condition.Status> StatusEnhancementQuery { get; private set; }
-    public Query<Condition.Component, Condition.Status> StatusEnfeeblementQuery { get; private set; }
-    public Query<Condition.Component, Condition.Status> StatusOtherQuery { get; private set; }
+    public Query<Condition.Component, Condition.Status, Condition.StatusTooltip> StatusQuery { get; private set; }
+    public Query<Condition.Component, Condition.Status, Condition.StatusTooltip> StatusEnhancementQuery { get; private set; }
+    public Query<Condition.Component, Condition.Status, Condition.StatusTooltip> StatusEnfeeblementQuery { get; private set; }
+    public Query<Condition.Component, Condition.Status, Condition.StatusTooltip> StatusOtherQuery { get; private set; }
     public Query<FlyText, FlyTextReady> StatusFlyTextReadyQuery { get; private set; }
 
     private bool disposed;

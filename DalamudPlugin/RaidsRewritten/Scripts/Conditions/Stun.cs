@@ -21,7 +21,8 @@ public class Stun
             var condition = Condition.ApplyToTarget(target, "Stunned", duration, Id, extendDuration, overrideExistingDuration);
 
             condition.Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
-                .Set(new Condition.Status(IconToReplace, "Stun", "(RaidsRewritten) Unable to execute actions."))
+                .Set(new Condition.Status(IconToReplace, "Stun", "Unable to execute actions."))
+                .Set(new Condition.StatusTooltip("Stun (RaidsRewritten)"))
                 .Add<Condition.StatusEnfeeblement>();
 
             // Application VFX

@@ -19,7 +19,8 @@ public class Blind
             var condition = Condition.ApplyToTarget(target, "Blind", duration, Id, extendDuration, overrideExistingDuration);
 
             condition.Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
-                .Set(new Condition.Status(IconToReplace, "Blind", "(RaidsRewritten) Encroaching darkness is lowering visibility."))
+                .Set(new Condition.Status(IconToReplace, "Blind", "Encroaching darkness is lowering visibility."))
+                .Set(new Condition.StatusTooltip("Blind (RaidsRewritten)"))
                 .Add<Condition.StatusEnfeeblement>();
 
             if (!condition.Has<Component>())

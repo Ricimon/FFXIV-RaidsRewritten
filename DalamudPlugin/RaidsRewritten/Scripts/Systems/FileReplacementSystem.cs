@@ -1,14 +1,11 @@
 ﻿using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Interop;
-using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Components;
-using RaidsRewritten.Scripts.Conditions;
-using static FFXIVClientStructs.FFXIV.Client.System.String.Utf8String.Delegates;
 
 namespace RaidsRewritten.Scripts.Systems;
 
-public class FileReplacementSystem(ResourceLoader resourceLoader, ILogger logger) : ISystem
+public class FileReplacementSystem(ResourceLoader resourceLoader) : ISystem
 {
     public void Register(World world)
     {

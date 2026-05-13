@@ -21,7 +21,8 @@ public class Heavy
             var condition = Condition.ApplyToTarget(target, "Slowed", duration, Id, extendDuration, overrideExistingDuration);
 
             condition.Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
-                .Set(new Condition.Status(IconToReplace, "Heavy", "(RaidsRewritten) Movement speed is reduced."))
+                .Set(new Condition.Status(IconToReplace, "Heavy", "Movement speed is reduced."))
+                .Set(new Condition.StatusTooltip("Heavy (RaidsRewritten)"))
                 .Add<Condition.StatusEnfeeblement>();
 
             // Application VFX

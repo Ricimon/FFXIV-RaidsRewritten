@@ -240,7 +240,7 @@ public unsafe class StatusPartyListProcessor
                 statusList.Add(temp);
             }
 
-            statusQuery.Each((e, ref condition, ref status) =>
+            statusQuery.Each((e, ref condition, ref status, ref _) =>
             {
                 if (condition.TimeRemaining > 0)
                 {
@@ -419,7 +419,7 @@ public unsafe class StatusPartyListProcessor
         var addr = (nint)container->GetAsAtkComponentNode()->Component;
         if (statusCommonProcessor.HoveringOver == addr && (ActiveNodeIdForTooltip == -1))
         {
-            commonQueries.StatusQuery.Each((ref _, ref status) =>
+            commonQueries.StatusQuery.Each((ref _, ref status, ref _) =>
             {
                 status.TooltipShown = -1;
             });
