@@ -217,7 +217,7 @@ public sealed class EncounterManager(
         }
     }
 
-    private void OnDirectorUpdate(long a1, long a2, DirectorUpdateCategory a3, uint a4, uint a5, int a6, int a7, int a8, int a9)
+    private void OnDirectorUpdate(nint a1, uint a2, DirectorUpdateCategory a3, uint a4, uint a5, int a6, int a7, int a8, int a9)
     {
         var text = $"DIRECTOR_UPDATE: {a3}, {a4:X8}, {a5:X8}, {a6:X8}, {a7:X8}, {a8:X8}, {a9:X8}";
         logger.Trace(text);
