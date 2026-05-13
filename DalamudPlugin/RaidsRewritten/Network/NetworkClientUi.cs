@@ -48,7 +48,7 @@ public class NetworkClientUi(NetworkClient client, Configuration configuration)
 
         var labelSize = ImGui.CalcTextSize("Custom Party ID");
         using (ImRaii.Disabled(!configuration.UseCustomPartyId))
-        using (ImRaii.ItemWidth(ImGui.GetWindowWidth() * 58.0f / labelSize.X))
+        using (ImRaii.ItemWidth(ImGui.GetWindowWidth() * 52.8f / labelSize.X))
         {
             string customPartyId = configuration.CustomPartyId;
             if (ImGui.InputText("Custom Party ID", ref customPartyId))
