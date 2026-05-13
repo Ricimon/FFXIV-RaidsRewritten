@@ -1,5 +1,5 @@
 ﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/Hooks/DirectorUpdate.cs
-// cbc095d
+// 391c409
 using Dalamud.Hooking;
 using ECommons.DalamudServices;
 using ECommons.EzHookManager;
@@ -13,16 +13,16 @@ public static class DirectorUpdate
 {
     private static readonly string Sig = "40 53 57 48 83 EC 58 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 44 24 ?? 41 8B F9";
 
-    public delegate long ProcessDirectorUpdate(long a1, long a2, DirectorUpdateCategory a3, uint a4, uint a5, int a6, int a7, int a8, int a9);
+    public delegate nint ProcessDirectorUpdate(nint a1, uint a2, DirectorUpdateCategory a3, uint a4, uint a5, int a6, int a7, int a8, int a9);
     internal static Hook<ProcessDirectorUpdate> ProcessDirectorUpdateHook = null;
-    private static Action<long, long, DirectorUpdateCategory, uint, uint, int, int, int, int> FullParamsCallback = null;
+    private static Action<nint, uint, DirectorUpdateCategory, uint, uint, int, int, int, int> FullParamsCallback = null;
     private static Action<DirectorUpdateCategory> CategoryOnlyCallback = null;
     private static ProcessDirectorUpdate OriginalDelegate;
     public static ProcessDirectorUpdate Delegate
     {
         get
         {
-            if (ProcessDirectorUpdateHook != null && !ProcessDirectorUpdateHook.IsDisposed)
+            if(ProcessDirectorUpdateHook != null && !ProcessDirectorUpdateHook.IsDisposed)
             {
                 return ProcessDirectorUpdateHook.Original;
             }
@@ -34,39 +34,39 @@ public static class DirectorUpdate
         }
     }
 
-    internal static long ProcessDirectorUpdateDetour_Full(long a1, long a2, DirectorUpdateCategory a3, uint a4, uint a5, int a6, int a7, int a8, int a9)
+    internal static nint ProcessDirectorUpdateDetour_Full(nint a1, uint a2, DirectorUpdateCategory a3, uint a4, uint a5, int a6, int a7, int a8, int a9)
     {
         try
         {
             FullParamsCallback(a1, a2, a3, a4, a5, a6, a7, a8, a9);
         }
-        catch (Exception e)
+        catch(Exception e)
         {
             e.Log();
         }
         return ProcessDirectorUpdateHook.Original(a1, a2, a3, a4, a5, a6, a7, a8, a9);
     }
 
-    internal static long ProcessDirectorUpdateDetour_Category(long a1, long a2, DirectorUpdateCategory a3, uint a4, uint a5, int a6, int a7, int a8, int a9)
+    internal static nint ProcessDirectorUpdateDetour_Category(nint a1, uint a2, DirectorUpdateCategory a3, uint a4, uint a5, int a6, int a7, int a8, int a9)
     {
         try
         {
             CategoryOnlyCallback(a3);
         }
-        catch (Exception e)
+        catch(Exception e)
         {
             e.Log();
         }
         return ProcessDirectorUpdateHook.Original(a1, a2, a3, a4, a5, a6, a7, a8, a9);
     }
 
-    public static void Init(Action<long, long, DirectorUpdateCategory, uint, uint, int, int, int, int> fullParamsCallback)
+    public static void Init(Action<nint, uint, DirectorUpdateCategory, uint, uint, int, int, int, int> fullParamsCallback)
     {
-        if (ProcessDirectorUpdateHook != null)
+        if(ProcessDirectorUpdateHook != null)
         {
             throw new Exception("Director Update Hook is already initialized!");
         }
-        if (Svc.SigScanner.TryScanText(Sig, out var ptr))
+        if(Svc.SigScanner.TryScanText(Sig, out var ptr))
         {
             FullParamsCallback = fullParamsCallback;
             ProcessDirectorUpdateHook = Svc.Hook.HookFromAddress<ProcessDirectorUpdate>(ptr, ProcessDirectorUpdateDetour_Full);
@@ -81,11 +81,11 @@ public static class DirectorUpdate
 
     public static void Init(Action<DirectorUpdateCategory> categoryOnlyCallback)
     {
-        if (ProcessDirectorUpdateHook != null)
+        if(ProcessDirectorUpdateHook != null)
         {
             throw new Exception("Director Update Hook is already initialized!");
         }
-        if (Svc.SigScanner.TryScanText(Sig, out var ptr))
+        if(Svc.SigScanner.TryScanText(Sig, out var ptr))
         {
             CategoryOnlyCallback = categoryOnlyCallback;
             ProcessDirectorUpdateHook = Svc.Hook.HookFromAddress<ProcessDirectorUpdate>(ptr, ProcessDirectorUpdateDetour_Category);
@@ -100,17 +100,17 @@ public static class DirectorUpdate
 
     public static void Enable()
     {
-        if (ProcessDirectorUpdateHook?.IsEnabled == false) ProcessDirectorUpdateHook?.Enable();
+        if(ProcessDirectorUpdateHook?.IsEnabled == false) ProcessDirectorUpdateHook?.Enable();
     }
 
     public static void Disable()
     {
-        if (ProcessDirectorUpdateHook?.IsEnabled == true) ProcessDirectorUpdateHook?.Disable();
+        if(ProcessDirectorUpdateHook?.IsEnabled == true) ProcessDirectorUpdateHook?.Disable();
     }
 
     public static void Dispose()
     {
-        if (ProcessDirectorUpdateHook != null)
+        if(ProcessDirectorUpdateHook != null)
         {
             PluginLog.Information($"Disposing Director Update Hook");
             Disable();
