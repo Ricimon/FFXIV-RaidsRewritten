@@ -2,6 +2,7 @@
 // 37e76d3
 using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
+using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using RaidsRewritten.Game;
 using RaidsRewritten.Interop;
@@ -80,13 +81,35 @@ public unsafe class StatusProcessor
         UpdateStatus((AtkUnitBase*)args.Addon.Address, NumStatuses);
     }
 
+    private int GetAddonStatusElementFlag()
+    {
+        var uiModule = UIModule.Instance();
+        if (uiModule == null) { return -1; }
+        var addonConfig = uiModule->GetAddonConfig();
+        if (addonConfig == null) { return -1; }
+        var activeDataSet = addonConfig->ActiveDataSet;
+        if (activeDataSet == null) { return -1; }
+        return (int)activeDataSet->HudLayoutConfigEntries[3].ElementFlags;
+    }
+
     private void AddonRequestedUpdate(AtkUnitBase* addonBase)
     {
         if (!StatusCommonProcessor.IsAddonReady(addonBase)) { return; }
         NumStatuses = 0;
-        for (var i = 25; i >= 1; i--)
+
+        // nodelist # right (low #) to left (high #)
+        var startIndex = 30;
+        if (GetAddonStatusElementFlag() == 1)
+        {
+            // if "normal" status bar is selected, put custom statuses on right side
+            // in this case, we're only appending to debuff area for now.
+            // order is nodes 6 through 1 (still populates left to right despite reversed node #s)
+            startIndex = 6;
+        } 
+        for (var i = startIndex; i >= 1; i--)
         {
             var c = addonBase->UldManager.NodeList[i];
+            logger.Debug($"{i}");
             if (c->IsVisible())
             {
                 NumStatuses++;
@@ -105,7 +128,17 @@ public unsafe class StatusProcessor
         if (!hideAll && (configuration.UseLegacyStatusRendering || configuration.EverythingDisabled)) { return; }
         if (addon != null && StatusCommonProcessor.IsAddonReady(addon))
         {
-            int baseCnt = 25 - StatusCnt;
+            // nodelist is right (low #) to left (high #)
+            var startIndex = 30;
+            if (GetAddonStatusElementFlag() == 1)
+            {
+                // if "normal" status bar is selected, put custom statuses on right side
+                // order is nodes 6 through 1 (still populates left to right despite reversed node #s)
+                startIndex = 6;
+            }
+
+            // start populating custom statuses to the right (subtract) of the leftmost node
+            int baseCnt = startIndex - NumStatuses;  
             for (var i = baseCnt; i >= 1; i--)
             {
                 var c = addon->UldManager.NodeList[i];
@@ -119,6 +152,8 @@ public unsafe class StatusProcessor
                 var statusQuery = StatusCommonProcessor.GetAllStatusesOfEntity(e);
                 statusQuery.Each((e, ref condition, ref status) =>
                 {
+                    // rightmost node reached
+                    if (baseCnt <= 0) { return; }
                     if (condition.TimeRemaining > 0)
                     {
                         if (e.TryGet<FileReplacementReference>(out var replacement))
@@ -128,6 +163,7 @@ public unsafe class StatusProcessor
                         {
                             SetIcon(addon, baseCnt, ref status, ref condition);
                         }
+                        // traverse left to right
                         baseCnt--;
                     }
                 });
