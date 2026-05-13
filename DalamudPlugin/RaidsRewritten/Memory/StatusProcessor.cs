@@ -109,7 +109,6 @@ public unsafe class StatusProcessor
         for (var i = startIndex; i >= 1; i--)
         {
             var c = addonBase->UldManager.NodeList[i];
-            logger.Debug($"{i}");
             if (c->IsVisible())
             {
                 NumStatuses++;
