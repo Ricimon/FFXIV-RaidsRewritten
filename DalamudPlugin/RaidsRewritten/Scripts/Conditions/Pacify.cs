@@ -1,11 +1,14 @@
 ﻿using Flecs.NET.Core;
 using RaidsRewritten.Scripts.Components;
+using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Conditions;
 
 public class Pacify
 {
     public const int Id = 0x9AC1F1;
+    private const int IconId = 215017;
+    private const int IconToReplace = 210265;
 
     public record struct Component(object _);
 
@@ -17,7 +20,9 @@ public class Pacify
 
             var condition = Condition.ApplyToTarget(target, "Pacified", duration, Id, extendDuration, overrideExistingDuration);
 
-            condition.Set(new Condition.Status(215017, "Pacification", "Unable to use attack-oriented abilities, spells, and weaponskills.")).Add<Condition.StatusEnfeeblement>();
+            condition.Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
+                .Set(new Condition.Status(IconToReplace, "Pacification", "(RaidsRewritten) Unable to use attack-oriented abilities, spells, and weaponskills."))
+                .Add<Condition.StatusEnfeeblement>();
 
             world.Entity()
                 .Set(new ActorVfx("vfx/common/eff/dk05ht_ipws0t.avfx"))

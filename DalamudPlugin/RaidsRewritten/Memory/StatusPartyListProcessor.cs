@@ -233,6 +233,7 @@ public unsafe class StatusPartyListProcessor
             List<Status> statusList = [];
             foreach (var status in pChara->GetStatusManager()->Status)
             {
+                if (status.StatusId == 0) { continue; }
                 var temp = new Status(status);
                 if (!temp.IsEnhancement && !temp.IsEnfeeblement && !temp.IsConditionalEnhancement) { continue; }
                 if (status.SourceObject == pChara->GetGameObjectId()) { temp.SourceIsSelf = true; }
@@ -243,9 +244,9 @@ public unsafe class StatusPartyListProcessor
             {
                 if (condition.TimeRemaining > 0)
                 {
-                    if (e.TryGet<FileReplacement>(out var replacement))
+                    if (e.TryGet<FileReplacementReference>(out var replacement))
                     {
-                        statusList.Add(new Status(status, condition, StatusType.SelfEnfeeblement, replacement));
+                        statusList.Add(new Status(status, condition, StatusType.SelfEnfeeblement, replacement.Replacement));
                     } else
                     {
                         statusList.Add(new Status(status, condition, StatusType.SelfEnfeeblement));
@@ -455,6 +456,7 @@ public unsafe class StatusPartyListProcessor
             List<Status> statusList = [];
             foreach (var status in pChara->GetStatusManager()->Status)
             {
+                if (status.StatusId == 0) { continue; }
                 var temp = new Status(status);
                 if (!temp.IsEnhancement && !temp.IsEnfeeblement && !temp.IsConditionalEnhancement) { continue; }
                 if (status.SourceObject == pChara->GetGameObjectId()) { temp.SourceIsSelf = true; }

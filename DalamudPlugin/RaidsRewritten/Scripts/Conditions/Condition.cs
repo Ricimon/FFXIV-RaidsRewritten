@@ -1,15 +1,18 @@
-﻿using System;
-using Flecs.NET.Core;
+﻿using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
+using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Utility;
+using System;
+using System.IO;
 
 namespace RaidsRewritten.Scripts.Conditions;
 
-public class Condition(ILogger logger) : ISystem
+public class Condition(ILogger logger, DalamudServices dalamud) : ISystem
 {
     public record struct Component(string Name, float TimeRemaining, DateTime CreationTime);
     public record struct Id(int Value);
+    public record struct StatusIconReplacement(int CustomStatusIconId, int IconToReplace);
     public struct Hidden;
     public struct IgnoreOnDeath;
 

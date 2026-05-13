@@ -1,10 +1,14 @@
 ﻿using Flecs.NET.Core;
 using RaidsRewritten.Scripts.Components;
+using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Conditions;
 
 public class Deepfreeze
 {
+    private const int IconId = 215637;
+    private const int IconToReplace = 210259;
+
     public record struct Component(object _);
 
     public static void ApplyToTarget(Entity target, float duration, int id = 0)
@@ -14,7 +18,9 @@ public class Deepfreeze
             var world = target.CsWorld();
             var entity = Condition.ApplyToTarget(target, "Frozen", duration, id, false, false);
 
-            entity.Set(new Condition.Status(215637, "Deep Freeze", "Frozen solid and unable to execute actions.")).Add<Condition.StatusEnfeeblement>();
+            entity.Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
+                .Set(new Condition.Status(IconToReplace, "Deep Freeze", "(RaidsRewritten) Frozen solid and unable to execute actions."))
+                .Add<Condition.StatusEnfeeblement>();
 
             if (!entity.Has<Component>())
             {

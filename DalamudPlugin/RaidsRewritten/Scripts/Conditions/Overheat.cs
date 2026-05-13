@@ -1,10 +1,14 @@
 ﻿using Flecs.NET.Core;
 using RaidsRewritten.Scripts.Components;
+using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Conditions;
 
 public class Overheat
 {
+    private const int IconId = 214278;
+    private const int IconToReplace = 210264;
+
     public record struct Component(object _);
 
     public static void ApplyToTarget(Entity target, float duration, int id = 0)
@@ -14,7 +18,9 @@ public class Overheat
             var world = target.CsWorld();
             var entity = Condition.ApplyToTarget(target, "Overheated", duration, id, false, false);
 
-            entity.Set(new Condition.Status(214278, "Overheated", "Body is overheated, forcing forward movement.")).Add<Condition.StatusEnfeeblement>();
+            entity.Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
+                .Set(new Condition.Status(IconToReplace, "Overheated", "(RaidsRewritten) Body is overheated, forcing forward movement."))
+                .Add<Condition.StatusEnfeeblement>();
 
             if (!entity.Has<Component>())
             {

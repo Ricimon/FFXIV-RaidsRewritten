@@ -149,9 +149,9 @@ public unsafe class StatusCustomProcessor : IDisposable
         commonQueries.StatusOtherQuery.Each((Entity e, ref Condition.Component condition, ref Condition.Status status) =>
         {
             if (baseCnt < 5) return;
-            if (e.TryGet<FileReplacement>(out var replacement))
+            if (e.TryGet<FileReplacementReference>(out var replacement))
             {
-                UpdateStatusCustom((AtkUnitBase*)args.Addon.Address, ref condition, ref status, baseCnt, replacement);
+                UpdateStatusCustom((AtkUnitBase*)args.Addon.Address, ref condition, ref status, baseCnt, replacement.Replacement);
             } else
             {
                 UpdateStatusCustom((AtkUnitBase*)args.Addon.Address, ref condition, ref status, baseCnt);
@@ -172,9 +172,9 @@ public unsafe class StatusCustomProcessor : IDisposable
         commonQueries.StatusEnfeeblementQuery.Each((Entity e, ref Condition.Component condition, ref Condition.Status status) =>
         {
             if (baseCnt < 5) return;
-            if (e.TryGet<FileReplacement>(out var replacement))
+            if (e.TryGet<FileReplacementReference>(out var replacement))
             {
-                UpdateStatusCustom((AtkUnitBase*)args.Addon.Address, ref condition, ref status, baseCnt, replacement);
+                UpdateStatusCustom((AtkUnitBase*)args.Addon.Address, ref condition, ref status, baseCnt, replacement.Replacement);
             } else
             {
                 UpdateStatusCustom((AtkUnitBase*)args.Addon.Address, ref condition, ref status, baseCnt);
@@ -195,9 +195,9 @@ public unsafe class StatusCustomProcessor : IDisposable
         commonQueries.StatusEnhancementQuery.Each((Entity e, ref Condition.Component condition, ref Condition.Status status) =>
         {
             if (baseCnt < 5) return;
-            if (e.TryGet<FileReplacement>(out var replacement))
+            if (e.TryGet<FileReplacementReference>(out var replacement))
             {
-                UpdateStatusCustom((AtkUnitBase*)args.Addon.Address, ref condition, ref status, baseCnt, replacement);
+                UpdateStatusCustom((AtkUnitBase*)args.Addon.Address, ref condition, ref status, baseCnt, replacement.Replacement);
             } else
             {
                 UpdateStatusCustom((AtkUnitBase*)args.Addon.Address, ref condition, ref status, baseCnt);

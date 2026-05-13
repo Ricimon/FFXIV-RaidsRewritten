@@ -127,9 +127,9 @@ public unsafe class StatusTargetInfoProcessor
                         if (baseCnt < 3) { return; }
                         if (condition.TimeRemaining > 0)
                         {
-                            if (e.TryGet<FileReplacement>(out var replacement))
+                            if (e.TryGet<FileReplacementReference>(out var replacement))
                             {
-                                SetIcon(addon, baseCnt, ref status, ref condition, replacement);
+                                SetIcon(addon, baseCnt, ref status, ref condition, replacement.Replacement);
                             } else
                             {
                                 SetIcon(addon, baseCnt, ref status, ref condition);

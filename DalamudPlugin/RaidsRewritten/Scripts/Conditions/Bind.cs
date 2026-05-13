@@ -1,11 +1,14 @@
 ﻿using Flecs.NET.Core;
 using RaidsRewritten.Scripts.Components;
+using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Conditions;
 
 public class Bind
 {
     public const int Id = 0xB19D;
+    private const int IconId = 215003;
+    private const int IconToReplace = 210257;
 
     public record struct Component(object _);
 
@@ -17,7 +20,9 @@ public class Bind
 
             var condition = Condition.ApplyToTarget(target, "Bound", duration, Id, extendDuration, overrideExistingDuration);
 
-            condition.Set(new Condition.Status(215003, "Bind", "Unable to move.")).Add<Condition.StatusEnfeeblement>();
+            condition.Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
+                .Set(new Condition.Status(IconToReplace, "Bind", "(RaidsRewritten) Unable to move."))
+                .Add<Condition.StatusEnfeeblement>();
 
             // Application VFX
             world.Entity()
