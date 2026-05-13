@@ -56,7 +56,7 @@ public class LightningCorridor : Mechanic
         if (set.Action?.RowId == ChainLightningApplicationActionRowId)
         {
             var currentTime = this.Dalamud.Framework.LastUpdateUTC;
-            if (set.TargetEffects != null)
+            if (set.TargetEffects != null && set.TargetEffects.Length >= 2)
             {
                 var t1 = this.Dalamud.ObjectTable.SearchById(set.TargetEffects[0].TargetID);
                 var t2 = this.Dalamud.ObjectTable.SearchById(set.TargetEffects[1].TargetID);
