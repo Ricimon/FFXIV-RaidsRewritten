@@ -14,14 +14,6 @@ namespace RaidsRewritten.Memory;
 
 public unsafe class StatusProcessor
 {
-    private readonly Configuration configuration;
-    private readonly DalamudServices dalamudServices;
-    private readonly StatusCommonProcessor statusCommonProcessor;
-    private readonly EcsContainer ecsContainer;
-    private readonly ResourceLoader resourceLoader;
-    private readonly CommonQueries commonQueries;
-    private readonly ILogger logger;
-
     private enum DisplayOption
     {
         Normal,
@@ -30,7 +22,16 @@ public unsafe class StatusProcessor
         LeftJustified3,
     }
 
+    private readonly Configuration configuration;
+    private readonly DalamudServices dalamudServices;
+    private readonly StatusCommonProcessor statusCommonProcessor;
+    private readonly EcsContainer ecsContainer;
+    private readonly ResourceLoader resourceLoader;
+    private readonly CommonQueries commonQueries;
+    private readonly ILogger logger;
+
     private int rightmostRealStatusIndex;
+    private bool isRightmostDebuff = false;
 
     public StatusProcessor(
         Configuration configuration,
@@ -102,7 +103,8 @@ public unsafe class StatusProcessor
         if (!StatusCommonProcessor.IsAddonReady(addonBase)) { return; }
 
         var startIndex = 30;
-        if (GetDisplayOption() == DisplayOption.Normal)
+        var displayOption = GetDisplayOption();
+        if (displayOption == DisplayOption.Normal)
         {
             // "Normal" display puts the first debuff on index 6
             startIndex = 6;
@@ -118,6 +120,14 @@ public unsafe class StatusProcessor
             if (c->IsVisible())
             {
                 rightmostRealStatusIndex = i;
+                if (displayOption == DisplayOption.LeftJustified2)
+                {
+                    var temp = (Interop.Structs.AtkComponentIconText*)c->GetAsAtkComponentNode()->Component;
+                    if (statusCommonProcessor.StatusData.TryGetValue(temp->IconId, out var status))
+                    {
+                        if (!status.IsEnfeeblement) { rightmostRealStatusIndex -= 1; }
+                    }
+                }
                 break;
             }
         }
