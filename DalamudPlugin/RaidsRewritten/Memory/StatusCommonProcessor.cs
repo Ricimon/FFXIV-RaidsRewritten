@@ -1,9 +1,5 @@
 ﻿// adapted from https://github.com/kawaii/Moodles/blob/main/Moodles/GameGuiProcessors/CommonProcessor.cs
 // 346527d
-using System;
-using System.Buffers.Binary;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
@@ -11,31 +7,78 @@ using FFXIVClientStructs.FFXIV.Client.Graphics;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using Flecs.NET.Bindings;
 using Flecs.NET.Core;
+using Lumina.Excel.Sheets;
 using RaidsRewritten.Data;
 using RaidsRewritten.Game;
 using RaidsRewritten.Interop;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
+using System;
+using System.Buffers.Binary;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using Condition = RaidsRewritten.Scripts.Conditions.Condition;
+using Status = RaidsRewritten.Data.Status;
+using World = Flecs.NET.Core.World;
 
 namespace RaidsRewritten.Memory;
 
-public unsafe class StatusCommonProcessor(
-    Configuration configuration,
-    DalamudServices dalamudServices,
-    ResourceLoader resourceLoader,
-    CommonQueries commonQueries,
-    ILogger logger) : IDisposable
+public sealed unsafe class StatusCommonProcessor : IDisposable
 {
+    private Configuration configuration;
+    private DalamudServices dalamudServices;
+    private ResourceLoader resourceLoader;
+    private CommonQueries commonQueries;
+    private ILogger logger;
+
+    public record struct IconStatusData(uint StatusId, string Name, uint StackCount, bool IsEnfeeblement);
+
     public nint HoveringOver = 0;
 
     public readonly nint TooltipMemory = Marshal.AllocHGlobal(2 * 1024);
     private int ActiveTooltip = -1;
 
     public readonly List<List<Status>> SortedStatusList = [[], [], [], [], [], [], [], []];
+    public Dictionary<uint, IconStatusData> StatusData = [];
+
+    public StatusCommonProcessor(
+        Configuration configuration,
+        DalamudServices dalamudServices,
+        ResourceLoader resourceLoader,
+        CommonQueries commonQueries,
+        ILogger logger)
+    {
+        this.configuration = configuration;
+        this.dalamudServices = dalamudServices;
+        this.resourceLoader = resourceLoader;
+        this.commonQueries = commonQueries;
+        this.logger = logger;
+
+        foreach (var x in dalamudServices.DataManager.GetExcelSheet<Lumina.Excel.Sheets.Status>())
+        {
+            var baseData = new IconStatusData(x.RowId, x.Name.ExtractText(), 0, x.StatusCategory == 2);
+            StatusData[x.Icon] = baseData;
+            for (var i = 2; i <= x.MaxStacks; i++)
+            {
+                StatusData[(uint)(x.Icon + i - 1)] = baseData with { StackCount = (uint) i };
+            }
+        }
+
+        dalamudServices.Framework.Update += Framework_Update;
+    }
+
+    private void Framework_Update(Dalamud.Plugin.Services.IFramework framework)
+    {
+        if (HoveringOver == 0)
+        {
+            DisableActiveTooltip();
+        }
+    }
 
     public void Dispose()
     {
+        dalamudServices.Framework.Update -= Framework_Update;
         Marshal.FreeHGlobal(TooltipMemory);
     }
 
@@ -45,6 +88,15 @@ public unsafe class StatusCommonProcessor(
         {
             AtkStage.Instance()->TooltipManager.HideTooltip((ushort)ActiveTooltip);
             ActiveTooltip = -1;
+        }
+    }
+
+    public void HideTooltipIfMatch(AtkResNode* container)
+    {
+        var addr = (nint)container->GetAsAtkComponentNode()->Component;
+        if (HoveringOver == addr)
+        {
+            DisableActiveTooltip();
         }
     }
 

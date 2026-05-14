@@ -35,8 +35,6 @@ public unsafe class StatusFlyPopupTextProcessor
         public uint OwnerEntityId = owner;
     }
 
-    public record struct IconStatusData(uint StatusId, string Name, uint StackCount);
-
     private readonly Configuration configuration;
     private readonly DalamudServices dalamudServices;
     private readonly ResourceLoader resourceLoader;
@@ -47,7 +45,6 @@ public unsafe class StatusFlyPopupTextProcessor
 
     private List<FlyPopupTextData> Queue = [];
     public FlyPopupTextData CurrentElement = null!;
-    public Dictionary<uint, IconStatusData> StatusData = [];
 
     public StatusFlyPopupTextProcessor(
         Configuration configuration,
@@ -66,15 +63,6 @@ public unsafe class StatusFlyPopupTextProcessor
         this.commonQueries = commonQueries;
         this.logger = logger;
 
-        foreach (var x in this.dalamudServices.DataManager.GetExcelSheet<Status>())
-        {
-            var baseData = new IconStatusData(x.RowId, x.Name.ExtractText(), 0);
-            StatusData[x.Icon] = baseData;
-            for (var i = 2; i <= x.MaxStacks; i++)
-            {
-                StatusData[(uint)(x.Icon + i - 1)] = baseData with { StackCount = (uint)i };
-            }
-        }
         this.dalamudServices.Framework.Update += Framework_Update;
     }
 
@@ -123,7 +111,7 @@ public unsafe class StatusFlyPopupTextProcessor
                 {
                     kind = data.IsAddition ? FlyTextKind.Buff : FlyTextKind.BuffFading;
                 }
-                if (StatusData.TryGetValue((uint)data.Status.Icon, out var statusData))
+                if (statusCommonProcessor.StatusData.TryGetValue((uint)data.Status.Icon, out var statusData))
                 {
                     resourceLoader.BattleLog_AddToScreenLogWithScreenLogKind((nint)target, (nint)target, kind, 5, 0, 0, (int)statusData.StatusId, (int)statusData.StackCount, 0);
                 }
@@ -218,7 +206,7 @@ public unsafe class StatusFlyPopupTextProcessor
         var text = c->UldManager.NodeList[1]->GetAsAtkTextNode()->NodeText.Read().GetText();
         if (text is null || e.IsAddition ? text!.StartsWith('-') : text.StartsWith('+')) return false;
 
-        if (StatusData.TryGetValue((uint)CurrentElement.Status.Icon, out var data))
+        if (statusCommonProcessor.StatusData.TryGetValue((uint)CurrentElement.Status.Icon, out var data))
         {
             if (!text.Contains(data.Name)) return false;
         } else
