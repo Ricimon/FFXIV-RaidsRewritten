@@ -64,10 +64,21 @@ public unsafe class StatusCommonProcessor : IDisposable
                 StatusData[(uint)(x.Icon + i - 1)] = baseData with { StackCount = (uint) i };
             }
         }
+
+        dalamudServices.Framework.Update += Framework_Update;
+    }
+
+    private void Framework_Update(Dalamud.Plugin.Services.IFramework framework)
+    {
+        if (HoveringOver == 0)
+        {
+            DisableActiveTooltip();
+        }
     }
 
     public void Dispose()
     {
+        dalamudServices.Framework.Update -= Framework_Update;
         Marshal.FreeHGlobal(TooltipMemory);
     }
 
@@ -77,6 +88,15 @@ public unsafe class StatusCommonProcessor : IDisposable
         {
             AtkStage.Instance()->TooltipManager.HideTooltip((ushort)ActiveTooltip);
             ActiveTooltip = -1;
+        }
+    }
+
+    public void HideTooltipIfMatch(AtkResNode* container)
+    {
+        var addr = (nint)container->GetAsAtkComponentNode()->Component;
+        if (HoveringOver == addr)
+        {
+            DisableActiveTooltip();
         }
     }
 
