@@ -80,6 +80,7 @@ public unsafe class StatusCommonProcessor : IDisposable
     {
         dalamudServices.Framework.Update -= Framework_Update;
         Marshal.FreeHGlobal(TooltipMemory);
+        GC.SuppressFinalize(this);
     }
 
     public void DisableActiveTooltip()
