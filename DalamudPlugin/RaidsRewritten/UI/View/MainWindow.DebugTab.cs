@@ -213,11 +213,16 @@ public partial class MainWindow
             }
 
             ImGui.Text("Apply to random party member");
-            if (ImGui.Button("Bind"))
+            if (ImGui.Button("Bind##BindOther"))
             {
-                commonQueries.AllOtherPlayersQuery.Each((Entity e, ref Player.Component pc) =>
+                var targetCount = commonQueries.AllOtherPlayersQuery.Count();
+                var r = random.Next(targetCount);
+                commonQueries.AllOtherPlayersQuery.Each((Iter it, int i, ref Player.Component pc) =>
                 {
-                    Bind.ApplyToTarget(e, 3.0f);
+                    if (i == r)
+                    {
+                        Bind.ApplyToTarget(it.Entity(i), 3.0f);
+                    }
                 });
             }
         }

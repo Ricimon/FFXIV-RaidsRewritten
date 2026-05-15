@@ -7,7 +7,7 @@ using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Systems;
 
-public sealed class PartyPlayersSystem(DalamudServices dalamud, ILogger logger) : ISystem, IDisposable
+public sealed class PartyPlayersSystem(DalamudServices dalamud, Configuration configuration, ILogger logger) : ISystem, IDisposable
 {
     private Query<Player.Component> otherPlayersQuery;
 
@@ -25,6 +25,13 @@ public sealed class PartyPlayersSystem(DalamudServices dalamud, ILogger logger) 
             .Without<Player.LocalPlayer>()
             .Each((Iter it, int i, ref Player.Component player) =>
             {
+                if (configuration.EverythingDisabled)
+                {
+                    it.Entity(i).Destruct();
+                    logger.Info("Destructed a Player entity");
+                    return;
+                }
+
                 if (player.PlayerCharacter == null)
                 {
                     it.Entity(i).Destruct();
@@ -48,6 +55,11 @@ public sealed class PartyPlayersSystem(DalamudServices dalamud, ILogger logger) 
         world.System()
             .Each((Iter it, int _) =>
             {
+                if (configuration.EverythingDisabled)
+                { 
+                    return;
+                }
+
                 foreach(var partyMember in dalamud.PartyList)
                 {
                     var id = partyMember?.GameObject?.GameObjectId;
