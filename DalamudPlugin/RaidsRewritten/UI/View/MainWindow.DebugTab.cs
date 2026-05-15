@@ -129,6 +129,7 @@ public partial class MainWindow
 
         if (ImGui.CollapsingHeader("Fake Statuses"))
         {
+            ImGui.Text("Apply to self");
             if (ImGui.Button("Bind"))
             {
                 commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
@@ -208,6 +209,15 @@ public partial class MainWindow
                 commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
                 {
                     Heavy.ApplyToTarget(e, 5.0f, true);
+                });
+            }
+
+            ImGui.Text("Apply to random party member");
+            if (ImGui.Button("Bind"))
+            {
+                commonQueries.AllOtherPlayersQuery.Each((Entity e, ref Player.Component pc) =>
+                {
+                    Bind.ApplyToTarget(e, 3.0f);
                 });
             }
         }

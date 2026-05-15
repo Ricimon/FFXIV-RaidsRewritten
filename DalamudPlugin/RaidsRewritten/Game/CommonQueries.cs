@@ -11,6 +11,7 @@ public sealed class CommonQueries : IDisposable
 {
     public Query<Player.Component> LocalPlayerQuery { get; private set; }
     public Query<Player.Component> AllPlayersQuery { get; private set; }
+    public Query<Player.Component> AllOtherPlayersQuery { get; private set; }
 
     public Query<Condition.Component, Condition.Status, Condition.StatusTooltip> StatusQuery { get; private set; }
     public Query<Condition.Component, Condition.Status, Condition.StatusTooltip> StatusEnhancementQuery { get; private set; }
@@ -24,13 +25,16 @@ public sealed class CommonQueries : IDisposable
     {
         if (!this.LocalPlayerQuery.IsValid())
         {
-            this.LocalPlayerQuery = Player.QueryForLocalPlayer(world);
+            this.LocalPlayerQuery = world.QueryBuilder<Player.Component>().With<Player.LocalPlayer>().Cached().Build();
         }
         if (!this.AllPlayersQuery.IsValid())
         {
-            this.AllPlayersQuery = Player.QueryForAllPlayers(world);
+            this.AllPlayersQuery = world.QueryBuilder<Player.Component>().Cached().Build();
         }
-
+        if (!this.AllOtherPlayersQuery.IsValid())
+        {
+            this.AllOtherPlayersQuery = world.QueryBuilder<Player.Component>().Without<Player.LocalPlayer>().Cached().Build();
+        }
 
         // these are here because I crash on dispose if I put these in StatusCustomProcessor
         if (!this.StatusQuery.IsValid())
@@ -63,6 +67,7 @@ public sealed class CommonQueries : IDisposable
 
         if (this.LocalPlayerQuery.IsValid()) { this.LocalPlayerQuery.Dispose(); }
         if (this.AllPlayersQuery.IsValid()) { this.AllPlayersQuery.Dispose(); }
+        if (this.AllOtherPlayersQuery.IsValid()) { this.AllOtherPlayersQuery.Dispose(); }
         if (this.StatusEnhancementQuery.IsValid()) { this.StatusEnhancementQuery.Dispose(); }
         if (this.StatusEnfeeblementQuery.IsValid()) { this.StatusEnfeeblementQuery.Dispose(); }
         if (this.StatusOtherQuery.IsValid()) { this.StatusOtherQuery.Dispose(); }

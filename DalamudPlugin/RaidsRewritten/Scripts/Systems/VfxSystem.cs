@@ -121,13 +121,12 @@ public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogge
 
         world.System<Player.Component, ActorVfx>()
             .TermAt(0).Up()
-            .With<Player.LocalPlayer>().Up()
             .Each((Iter it, int i, ref Player.Component pc, ref ActorVfx vfx) =>
             {
-                var localPlayer = dalamud.ObjectTable.LocalPlayer;
-                if (vfx.VfxPtr == null && localPlayer != null)
+                var target = pc.PlayerCharacter;
+                if (vfx.VfxPtr == null && target != null)
                 {
-                    vfx.VfxPtr = vfxSpawn.SpawnActorVfx(vfx.Path, localPlayer, localPlayer);
+                    vfx.VfxPtr = vfxSpawn.SpawnActorVfx(vfx.Path, target, target);
                 }
 
                 // Vfx self-destructed, because it finished playing

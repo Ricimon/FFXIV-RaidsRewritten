@@ -127,6 +127,7 @@ public class PluginModule : NinjectModule
         Bind<ISystem>().To<InputSystem>();
         Bind<ISystem>().To<NetworkClientSystem>();
         Bind<ISystem>().To<StatusSystem>();
+        Bind<ISystem>().To<PartyPlayersSystem>();
 
         // Conditions
         Bind<ISystem>().To<Condition>();
