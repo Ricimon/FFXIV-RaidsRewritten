@@ -121,18 +121,22 @@ public unsafe class StatusTargetInfoProcessor
             {
                 if (player.PlayerCharacter != null && player.PlayerCharacter.Address == target.Address)
                 {
-                    var statusQuery = StatusCommonProcessor.GetAllStatusesOfEntity(e);
-                    statusQuery.Each((e, ref condition, ref status, ref statusTooltip) =>
+                    e.Children((Entity child) =>
                     {
+                        if (!StatusCommonProcessor.IsCustomStatus(child, out var condition, out var customStatus, out var statusTooltip))
+                        {
+                            return;
+                        }
                         if (baseCnt < 3) { return; }
                         if (condition.TimeRemaining > 0)
                         {
                             if (e.TryGet<FileReplacementReference>(out var replacement))
                             {
-                                SetIcon(addon, baseCnt, ref status, ref statusTooltip, ref condition, replacement.Replacement);
-                            } else
+                                SetIcon(addon, baseCnt, ref customStatus, ref statusTooltip, ref condition, replacement.Replacement);
+                            }
+                            else
                             {
-                                SetIcon(addon, baseCnt, ref status, ref statusTooltip, ref condition);
+                                SetIcon(addon, baseCnt, ref customStatus, ref statusTooltip, ref condition);
                             }
                             baseCnt--;
                         }

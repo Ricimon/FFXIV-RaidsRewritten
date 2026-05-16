@@ -15,6 +15,7 @@ using RaidsRewritten.Utility;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using static RaidsRewritten.Scripts.Conditions.Condition;
 
 namespace RaidsRewritten.Memory;
 
@@ -118,18 +119,23 @@ public unsafe class StatusFocusTargetProcessor
             commonQueries.AllPlayersQuery.Each((Entity e, ref Player.Component player) =>
             {
                 if (player.PlayerCharacter == null || player.PlayerCharacter.Address != pc.Address) { return; }
-                var statusQuery = StatusCommonProcessor.GetAllStatusesOfEntity(e);
-                statusQuery.Each((e, ref condition, ref status, ref statusTooltip) =>
+                e.Children((Entity child) =>
                 {
+                    if (!StatusCommonProcessor.IsCustomStatus(child, out var condition, out var customStatus, out var statusTooltip))
+                    {
+                        return;
+                    }
+
                     if (baseCnt < 4) { return; }
                     if (condition.TimeRemaining > 0)
                     {
                         if (e.TryGet<FileReplacementReference>(out var replacement))
                         {
-                            SetIcon(addon, baseCnt, ref status, ref statusTooltip, ref condition, replacement.Replacement);
-                        } else
+                            SetIcon(addon, baseCnt, ref customStatus, ref statusTooltip, ref condition, replacement.Replacement);
+                        }
+                        else
                         {
-                            SetIcon(addon, baseCnt, ref status, ref statusTooltip, ref condition);
+                            SetIcon(addon, baseCnt, ref customStatus, ref statusTooltip, ref condition);
                         }
                         baseCnt--;
                     }
