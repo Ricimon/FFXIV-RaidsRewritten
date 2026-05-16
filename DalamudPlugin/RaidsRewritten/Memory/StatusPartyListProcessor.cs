@@ -24,8 +24,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using WinRT;
-using static FFXIVClientStructs.FFXIV.Client.UI.AddonJobHudMNK1.ChakraGauge;
 
 namespace RaidsRewritten.Memory;
 
