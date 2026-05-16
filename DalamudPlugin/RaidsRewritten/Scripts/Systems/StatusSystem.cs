@@ -13,12 +13,14 @@ using System.IO;
 namespace RaidsRewritten.Scripts.Systems;
 
 public unsafe class StatusSystem(
+    CommonQueries commonQueries,
     Configuration configuration,
     DalamudServices dalamud,
     StatusCommonProcessor statusCommonProcessor,
     Lazy<StatusFlyPopupTextProcessor> statusFlyPopupTextProcessor,
     ILogger logger) : ISystem
 {
+    private readonly CommonQueries commonQueries = commonQueries;
     private readonly Configuration configuration = configuration;
     private readonly DalamudServices dalamud = dalamud;
     private readonly StatusCommonProcessor statusCommonProcessor = statusCommonProcessor;
@@ -29,17 +31,17 @@ public unsafe class StatusSystem(
     {
         world.Observer<Condition.Status>()
             .With<Condition.StatusEnhancement>()
-            .With<Player.LocalPlayer>().Up()
+            .With<Player.Component>().Up()
             .Event(Ecs.OnSet)
             .Each((e, ref status) => HandleApplyStatus(e, status));
         world.Observer<Condition.Status>()
             .With<Condition.StatusEnfeeblement>()
-            .With<Player.LocalPlayer>().Up()
+            .With<Player.Component>().Up()
             .Event(Ecs.OnSet)
             .Each((e, ref status) => HandleApplyStatus(e, status));
         world.Observer<Condition.Status>()
             .With<Condition.StatusOther>()
-            .With<Player.LocalPlayer>().Up()
+            .With<Player.Component>().Up()
             .Event(Ecs.OnSet)
             .Each((e, ref status) => HandleApplyStatus(e, status));
 
@@ -61,41 +63,45 @@ public unsafe class StatusSystem(
 
     private void HandleApplyStatus(Entity statusEntity, Condition.Status status)
     {
-        //logger.Debug("STATUS APPLY");
         if (!configuration.EverythingDisabled && !configuration.UseLegacyStatusRendering)
         {
-
-            var chara = (Character*)StatusCommonProcessor.LocalPlayer();
-            if (chara == null || !chara->IsCharacter()) { return; }
-
             // handle extended statuses
-            statusEntity.Children(Ecs.DependsOn, (Entity e) =>
+            statusEntity.Children(Ecs.DependsOn, (Entity child) =>
             {
-                e.Destruct();
+                child.Destruct();
             });
 
-            DelayedAction.Create(statusEntity.CsWorld(), () =>
+            commonQueries.AllPlayersQuery.Each((Entity pEntity, ref Player.Component player) =>
             {
-                if (!statusEntity.IsValid()) { return; }
-                var isEnfeeblement = statusEntity.Has<Condition.StatusEnfeeblement>();
+                if (!statusEntity.IsChildOf(pEntity)) { return; }
+                var dChara = player.PlayerCharacter;
+                if (dChara == null || !dChara.IsValid()) { return; }
+                var chara = (Character*)dChara.Address;
+                if (!chara->IsCharacter()) { return; }
 
-                var flytext = statusEntity.CsWorld().Entity()
-                    .Set(new FlyText(statusEntity, status, isEnfeeblement))
-                    .Set(new FlyTextReady(new(status, true, chara->EntityId)))
-                    .Add(Ecs.DependsOn, statusEntity);
-
-                if (statusEntity.TryGet<Condition.StatusIconReplacement>(out var r))
+                DelayedAction.Create(statusEntity.CsWorld(), () =>
                 {
-                    // DefaultTextureScale 1 == low res, 2 == high res
-                    var hr = IsUsingHighResTextures() ? "_hr1" : "";
-                    var replacementPath = Path.Combine("statuses", $"{r.CustomStatusIconId}{hr}.tex");
-                    replacementPath = dalamud.PluginInterface.GetResourcePath(replacementPath);
-                    var folder = r.CustomStatusIconId - r.CustomStatusIconId % 1000;
-                    var fr = new FileReplacement($"ui/icon/{folder:D6}/{r.IconToReplace}{hr}.tex", replacementPath);
-                    flytext.Set(fr);
-                    statusEntity.Set(new FileReplacementReference(fr));
-                }
-            }, 0, true);
+                    if (!statusEntity.IsValid()) { return; }
+                    var isEnfeeblement = statusEntity.Has<Condition.StatusEnfeeblement>();
+
+                    var flytext = statusEntity.CsWorld().Entity()
+                        .Set(new FlyText(statusEntity, status, isEnfeeblement))
+                        .Set(new FlyTextReady(new(status, true, chara->EntityId)))
+                        .Add(Ecs.DependsOn, statusEntity);
+
+                    if (statusEntity.TryGet<Condition.StatusIconReplacement>(out var r))
+                    {
+                        // DefaultTextureScale 1 == low res, 2 == high res
+                        var hr = IsUsingHighResTextures() ? "_hr1" : "";
+                        var replacementPath = Path.Combine("statuses", $"{r.CustomStatusIconId}{hr}.tex");
+                        replacementPath = dalamud.PluginInterface.GetResourcePath(replacementPath);
+                        var folder = r.CustomStatusIconId - r.CustomStatusIconId % 1000;
+                        var fr = new FileReplacement($"ui/icon/{folder:D6}/{r.IconToReplace}{hr}.tex", replacementPath);
+                        flytext.Set(fr);
+                        statusEntity.Set(new FileReplacementReference(fr));
+                    }
+                }, 0, true);
+            });
         }
     }
 
