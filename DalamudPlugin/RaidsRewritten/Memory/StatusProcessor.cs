@@ -3,6 +3,7 @@
 using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Interop;
 using RaidsRewritten.Log;
@@ -164,21 +165,26 @@ public unsafe class StatusProcessor
 
             if (hideAll) { return; }
 
-            commonQueries.LocalPlayerQuery.Each((e, ref player) =>
+            commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component player) =>
             {
-                var statusQuery = StatusCommonProcessor.GetAllStatusesOfEntity(e);
-                statusQuery.Each((e, ref condition, ref status, ref statusTooltip) =>
+                e.Children((Entity child) =>
                 {
+                    if (!StatusCommonProcessor.IsCustomStatus(child, out var condition, out var customStatus, out var statusTooltip))
+                    {
+                        return;
+                    }
+
                     // rightmost node reached
                     if (baseCnt <= 0) { return; }
                     if (condition.TimeRemaining > 0)
                     {
                         if (e.TryGet<FileReplacementReference>(out var replacement))
                         {
-                            SetIcon(addon, baseCnt, ref status, ref statusTooltip, ref condition, replacement.Replacement);
-                        } else
+                            SetIcon(addon, baseCnt, ref customStatus, ref statusTooltip, ref condition, replacement.Replacement);
+                        }
+                        else
                         {
-                            SetIcon(addon, baseCnt, ref status, ref statusTooltip, ref condition);
+                            SetIcon(addon, baseCnt, ref customStatus, ref statusTooltip, ref condition);
                         }
                         // traverse left to right
                         baseCnt--;

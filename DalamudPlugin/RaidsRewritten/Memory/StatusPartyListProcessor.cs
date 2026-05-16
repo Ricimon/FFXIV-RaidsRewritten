@@ -18,11 +18,14 @@ using RaidsRewritten.Game;
 using RaidsRewritten.Interop;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Components;
+using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using WinRT;
+using static FFXIVClientStructs.FFXIV.Client.UI.AddonJobHudMNK1.ChakraGauge;
 
 namespace RaidsRewritten.Memory;
 
@@ -211,11 +214,52 @@ public unsafe class StatusPartyListProcessor
                 return;
             }
 
+            var pChara = playerChara.Character();
+
+            var hasCustomStatuses = false;
+            List<Status> statusList = [];
+            e.Children((Entity child) =>
+            {
+                if (!StatusCommonProcessor.IsCustomStatus(child, out var condition, out var customStatus, out var _))
+                {
+                    return;
+                }
+
+                hasCustomStatuses = true;
+
+                // compile a list of statuses and sort them, do it only once
+                if (statusList.Count == 0)
+                {
+                    foreach (var nativeStatus in pChara->GetStatusManager()->Status)
+                    {
+                        if (nativeStatus.StatusId == 0) { continue; }
+                        var temp = new Status(nativeStatus);
+                        if (!temp.IsEnhancement && !temp.IsEnfeeblement && !temp.IsConditionalEnhancement) { continue; }
+                        if (nativeStatus.SourceObject == pChara->GetGameObjectId()) { temp.SourceIsSelf = true; }
+                        statusList.Add(temp);
+                    }
+                }
+
+                if (condition.TimeRemaining > 0)
+                {
+                    if (child.TryGet<FileReplacementReference>(out var replacement))
+                    {
+                        statusList.Add(new Status(customStatus, condition, StatusType.SelfEnfeeblement, replacement.Replacement));
+                    }
+                    else
+                    {
+                        statusList.Add(new Status(customStatus, condition, StatusType.SelfEnfeeblement));
+                    }
+                    element.Dirty = true;
+                    pPlayerDict[(nint)pChara] = element;
+                }
+
+            });
+
             // avoid processing statuses when custom statuses are absent
             // but ensure that it runs once without custom statuses
             // to clean up
-            var statusQuery = StatusCommonProcessor.GetAllStatusesOfEntity(e);
-            if (statusQuery.Count() == 0)
+            if (!hasCustomStatuses)
             {
                 if (!element.Dirty)
                 {
@@ -227,34 +271,6 @@ public unsafe class StatusPartyListProcessor
                     if (ActiveContainerForTooltip != null) { ResetTooltip(addon); }
                 }
             }
-
-            // compile a list of statuses and sort them
-            var pChara = playerChara.Character();
-            List<Status> statusList = [];
-            foreach (var status in pChara->GetStatusManager()->Status)
-            {
-                if (status.StatusId == 0) { continue; }
-                var temp = new Status(status);
-                if (!temp.IsEnhancement && !temp.IsEnfeeblement && !temp.IsConditionalEnhancement) { continue; }
-                if (status.SourceObject == pChara->GetGameObjectId()) { temp.SourceIsSelf = true; }
-                statusList.Add(temp);
-            }
-
-            statusQuery.Each((e, ref condition, ref status, ref _) =>
-            {
-                if (condition.TimeRemaining > 0)
-                {
-                    if (e.TryGet<FileReplacementReference>(out var replacement))
-                    {
-                        statusList.Add(new Status(status, condition, StatusType.SelfEnfeeblement, replacement.Replacement));
-                    } else
-                    {
-                        statusList.Add(new Status(status, condition, StatusType.SelfEnfeeblement));
-                    }
-                    element.Dirty = true;
-                    pPlayerDict[(nint)pChara] = element;
-                }
-            });
 
             var sortedList = statusList
                 .OrderBy(s => s.SourceIsSelf)

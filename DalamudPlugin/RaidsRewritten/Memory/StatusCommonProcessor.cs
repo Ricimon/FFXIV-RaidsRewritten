@@ -14,6 +14,7 @@ using RaidsRewritten.Interop;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
+using RaidsRewritten.Utility;
 using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
@@ -212,8 +213,26 @@ public sealed unsafe class StatusCommonProcessor : IDisposable
         }
     }
 
+    public static bool IsCustomStatus(Entity e, out Condition.Component condition, out Condition.Status customStatus, out Condition.StatusTooltip statusTooltip)
+    {
+        if (
+            !e.TryGet<Condition.Component>(out var _condition) ||
+            !e.TryGet<Condition.Status>(out var _customStatus) ||
+            !e.TryGet<Condition.StatusTooltip>(out var _statusTooltip))
+        {
+            condition = default;
+            customStatus = default;
+            statusTooltip = default;
+            return false;
+        }
+
+        condition = _condition;
+        customStatus = _customStatus;
+        statusTooltip = _statusTooltip;
+        return true;
+    }
+
     public static unsafe bool LocalPlayerAvailable() => Control.Instance()->LocalPlayer is not null;
     public static unsafe nint LocalPlayer() => (nint)Control.Instance()->LocalPlayer;
-    public static Query<Condition.Component, Condition.Status, Condition.StatusTooltip> GetAllStatusesOfEntity(Entity e) => e.CsWorld().QueryBuilder<Condition.Component, Condition.Status, Condition.StatusTooltip>().With(flecs.EcsChildOf, e).Build();
     public AtkUnitBase* GetAddon(string addonName) => (AtkUnitBase*)dalamudServices.GameGui.GetAddonByName(addonName).Address;
 }
