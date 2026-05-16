@@ -1,4 +1,5 @@
 ﻿using FFXIVClientStructs.FFXIV.Client.Game.Character;
+using FFXIVClientStructs.FFXIV.Client.UI;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
@@ -85,14 +86,19 @@ public unsafe class StatusSystem(
 
                 if (statusEntity.TryGet<Condition.StatusIconReplacement>(out var r))
                 {
-                    var replacementPath = Path.Combine("statuses", $"{r.CustomStatusIconId}_hr1.tex");
+                    // DefaultTextureScale 1 == low res, 2 == high res
+                    var hr = IsUsingHighResTextures() ? "_hr1" : "";
+                    var replacementPath = Path.Combine("statuses", $"{r.CustomStatusIconId}{hr}.tex");
                     replacementPath = dalamud.PluginInterface.GetResourcePath(replacementPath);
                     var folder = r.CustomStatusIconId - r.CustomStatusIconId % 1000;
-                    var fr = new FileReplacement($"ui/icon/{folder:D6}/{r.IconToReplace}_hr1.tex", replacementPath);
+                    var fr = new FileReplacement($"ui/icon/{folder:D6}/{r.IconToReplace}{hr}.tex", replacementPath);
                     flytext.Set(fr);
                     statusEntity.Set(new FileReplacementReference(fr));
                 }
             }, 0, true);
         }
     }
+
+    // DefaultTextureScale 1 == low res, 2 == high res
+    private bool IsUsingHighResTextures() => RaptureAtkModule.Instance()->AtkModule.AtkTextureResourceManager.DefaultTextureScale == 2;
 }
