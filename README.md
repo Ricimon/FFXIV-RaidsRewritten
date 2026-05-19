@@ -10,7 +10,7 @@ This plugin augments existing raids with custom mechanics just for fun.
 
 ### Available fights
 
-- UCOB Rewritten
+- [UCOB Rewritten](https://youtu.be/0PvRGXtUa4k?si=07t9IPrpSh8Rfsm_)
 - ??? (in ~~time stasis~~ development)
 
 ## What's happening?
