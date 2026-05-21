@@ -92,7 +92,7 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
                         }
                         if (destroy)
                         {
-                            c.Mut(ref it).Destruct();
+                            c.Destruct();
                         }
                     });
 

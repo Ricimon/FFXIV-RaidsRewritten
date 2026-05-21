@@ -60,18 +60,23 @@ public sealed class PartyPlayersSystem(DalamudServices dalamud, Configuration co
                     return;
                 }
 
+                if (!dalamud.PlayerState.IsLoaded || dalamud.ObjectTable.LocalPlayer == null)
+                {
+                    return;
+                }
+
                 foreach(var partyMember in dalamud.PartyList)
                 {
-                    var id = partyMember?.GameObject?.GameObjectId;
+                    var id = partyMember?.GameObject?.EntityId;
                     if (id != null)
                     {
-                        if (partyMember!.GameObject == dalamud.ObjectTable.LocalPlayer)
+                        if (id == dalamud.PlayerState.EntityId)
                         {
                             // Is local player
                             continue;
                         }
 
-                        var playerEntity = otherPlayersQuery.Find((ref p) => p.PlayerCharacter?.GameObjectId == id);
+                        var playerEntity = otherPlayersQuery.Find((ref p) => p.PlayerCharacter?.EntityId == id);
                         if (!playerEntity.IsValid())
                         {
                             if (partyMember!.GameObject is IPlayerCharacter pc)
