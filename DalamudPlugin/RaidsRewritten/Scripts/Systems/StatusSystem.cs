@@ -50,14 +50,17 @@ public unsafe class StatusSystem(
             {
                 // handles status fall off flytext
                 if (e.Target(Ecs.DependsOn).IsValid()) { return; }
-                var chara = (Character*)StatusCommonProcessor.LocalPlayer();
+                var charaEntityId = flytext.OwnerEntityId;
+                var dChara = dalamud.ObjectTable.SearchByEntityId(charaEntityId);
+                if (dChara == null) { return; }
+                var chara = (Character*)dChara.Address;
                 if (chara == null || !chara->IsCharacter())
                 {
                     e.Destruct();
                     return; 
                 }
                 if (e.Has<FlyTextReady>()) { return; }
-                e.Set(new FlyTextReady(new(flytext.Status, false, chara->EntityId)));
+                e.Set(new FlyTextReady(new(flytext.Status, false)));
             });
     }
 
@@ -85,8 +88,8 @@ public unsafe class StatusSystem(
                     var isEnfeeblement = statusEntity.Has<Condition.StatusEnfeeblement>();
 
                     var flytext = statusEntity.CsWorld().Entity()
-                        .Set(new FlyText(statusEntity, status, isEnfeeblement))
-                        .Set(new FlyTextReady(new(status, true, chara->EntityId)))
+                        .Set(new FlyText(statusEntity, status, isEnfeeblement, chara->EntityId))
+                        .Set(new FlyTextReady(new(status, true)))
                         .Add(Ecs.DependsOn, statusEntity);
 
                     if (statusEntity.TryGet<Condition.StatusIconReplacement>(out var r))
