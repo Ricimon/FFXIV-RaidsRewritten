@@ -143,6 +143,7 @@ public unsafe class StatusFlyPopupTextProcessor
         }
     }
 
+    // flytext for other players
     private void ProcessPopupText()
     {
         if (CurrentElement == null) { return; }
@@ -157,7 +158,13 @@ public unsafe class StatusFlyPopupTextProcessor
                 var c = candidate->GetAsAtkComponentNode()->Component;
                 var sestr = new SeStringBuilder().AddText(CurrentElement.IsAddition ? "+ " : "- ").Append(CurrentElement.Status.Title);
                 c->UldManager.NodeList[1]->GetAsAtkTextNode()->SetText(sestr.Encode());
-                c->UldManager.NodeList[2]->GetAsAtkImageNode()->LoadTexture(this.dalamudServices.TextureProvider.GetIconPath(CurrentElement.Status.Icon), 1);
+
+                if (CurrentElement.Replacement != null)
+                {
+                    //logger.Debug("DALMAUD LOAD ICON");
+                    c->UldManager.NodeList[2]->GetAsAtkImageNode()->LoadTexture(CurrentElement.Replacement.Value.OriginalPath);
+                }
+
                 CurrentElement = null!;
                 return;
             }
