@@ -32,7 +32,7 @@ public sealed class PartyPlayersSystem(DalamudServices dalamud, Configuration co
                     return;
                 }
 
-                if (player.PlayerCharacter == null)
+                if (player.PlayerCharacter == null || !player.PlayerCharacter.IsValid())
                 {
                     it.Entity(i).Destruct();
                     logger.Info("Destructed a Player entity");
@@ -41,7 +41,12 @@ public sealed class PartyPlayersSystem(DalamudServices dalamud, Configuration co
 
                 foreach(var partyMember in dalamud.PartyList)
                 {
-                    if (player.PlayerCharacter.GameObjectId == partyMember?.GameObject?.GameObjectId)
+                    if (partyMember?.GameObject == null || !partyMember.GameObject.IsValid())
+                    {
+                        continue;
+                    }
+
+                    if (player.PlayerCharacter.GameObjectId == partyMember.GameObject.GameObjectId)
                     {
                         return;
                     }
@@ -60,30 +65,41 @@ public sealed class PartyPlayersSystem(DalamudServices dalamud, Configuration co
                     return;
                 }
 
-                if (!dalamud.PlayerState.IsLoaded || dalamud.ObjectTable.LocalPlayer == null)
+                if (!dalamud.PlayerState.IsLoaded ||
+                    dalamud.ObjectTable.LocalPlayer == null || !dalamud.ObjectTable.LocalPlayer.IsValid())
                 {
                     return;
                 }
 
                 foreach(var partyMember in dalamud.PartyList)
                 {
-                    var id = partyMember?.GameObject?.EntityId;
-                    if (id != null)
+                    if (partyMember?.GameObject == null || !partyMember.GameObject.IsValid())
                     {
-                        if (id == dalamud.PlayerState.EntityId)
-                        {
-                            // Is local player
-                            continue;
-                        }
+                        continue;
+                    }
 
-                        var playerEntity = otherPlayersQuery.Find((ref p) => p.PlayerCharacter?.EntityId == id);
-                        if (!playerEntity.IsValid())
+                    var id = partyMember.GameObject.GameObjectId;
+                    if (id == dalamud.ObjectTable.LocalPlayer.GameObjectId)
+                    {
+                        // Is local player
+                        continue;
+                    }
+
+                    var playerEntity = otherPlayersQuery.Find((ref p) =>
+                    {
+                        if (p.PlayerCharacter == null || !p.PlayerCharacter.IsValid())
                         {
-                            if (partyMember!.GameObject is IPlayerCharacter pc)
-                            {
-                                Player.Create(it.World(), false, pc);
-                                logger.Info("Created a Player entity with id {0}, name {1}", id, pc.GetPlayerFullName()!);
-                            }
+                            return false;
+                        }
+                        return p.PlayerCharacter.GameObjectId == id;
+                    });
+
+                    if (!playerEntity.IsValid())
+                    {
+                        if (partyMember.GameObject is IPlayerCharacter pc)
+                        {
+                            Player.Create(it.World(), false, pc);
+                            logger.Info("Created a Player entity with id {0}, name {1}", id, pc.GetPlayerFullName()!);
                         }
                     }
                 }
