@@ -259,15 +259,14 @@ public unsafe class StatusPartyListProcessor
             // to clean up
             if (!hasCustomStatuses)
             {
-                if (!element.Dirty)
-                {
-                    return;
-                } else
+                if (element.Dirty)
                 {
                     element.Dirty = false;
                     pPlayerDict[playerChara.Address] = element;
                     if (ActiveContainerForTooltip != null) { ResetTooltip(addon); }
+                    ResetPartyList(addon, playerChara.Address, element.IconArray);
                 }
+                return;
             }
 
             var sortedList = statusList
