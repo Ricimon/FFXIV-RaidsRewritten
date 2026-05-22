@@ -27,12 +27,11 @@ namespace RaidsRewritten.Memory;
 
 public unsafe class StatusFlyPopupTextProcessor
 {
-    public class FlyPopupTextData(Scripts.Conditions.Condition.Status status, bool isAddition, uint owner,  FileReplacement? replacement = null)
+    public class FlyPopupTextData(Scripts.Conditions.Condition.Status status, bool isAddition,  FileReplacement? replacement = null)
     {
         public Scripts.Conditions.Condition.Status Status = status;
         public FileReplacement? Replacement = replacement;
         public bool IsAddition = isAddition;
-        public uint OwnerEntityId = owner;
     }
 
     private readonly Configuration configuration;
@@ -43,7 +42,6 @@ public unsafe class StatusFlyPopupTextProcessor
     private readonly CommonQueries commonQueries;
     private readonly ILogger logger;
 
-    private List<FlyPopupTextData> Queue = [];
     public FlyPopupTextData CurrentElement = null!;
 
     public StatusFlyPopupTextProcessor(
@@ -84,7 +82,7 @@ public unsafe class StatusFlyPopupTextProcessor
             {
                 GameObject* obj = pc.GameObject();
                 if (obj == null) continue;
-                if (obj->EntityId != data.OwnerEntityId) continue;
+                if (obj->EntityId != flytext.OwnerEntityId) continue;
                 if (!obj->IsCharacter()) continue;
 
                 target = (Character*)obj;
@@ -127,7 +125,7 @@ public unsafe class StatusFlyPopupTextProcessor
             }
             else
             {
-                PluginLog.Debug($"Skipping {data.Status.Title} for {data.OwnerEntityId:X8}, not found...");
+                PluginLog.Debug($"Skipping {data.Status.Title} for {flytext.OwnerEntityId:X8}, not found...");
             }
         });
 
@@ -143,6 +141,7 @@ public unsafe class StatusFlyPopupTextProcessor
         }
     }
 
+    // flytext for other players
     private void ProcessPopupText()
     {
         if (CurrentElement == null) { return; }
@@ -157,7 +156,13 @@ public unsafe class StatusFlyPopupTextProcessor
                 var c = candidate->GetAsAtkComponentNode()->Component;
                 var sestr = new SeStringBuilder().AddText(CurrentElement.IsAddition ? "+ " : "- ").Append(CurrentElement.Status.Title);
                 c->UldManager.NodeList[1]->GetAsAtkTextNode()->SetText(sestr.Encode());
-                c->UldManager.NodeList[2]->GetAsAtkImageNode()->LoadTexture(this.dalamudServices.TextureProvider.GetIconPath(CurrentElement.Status.Icon), 1);
+
+                if (CurrentElement.Replacement != null)
+                {
+                    //logger.Debug("DALMAUD LOAD ICON");
+                    c->UldManager.NodeList[2]->GetAsAtkImageNode()->LoadTexture(CurrentElement.Replacement.Value.OriginalPath);
+                }
+
                 CurrentElement = null!;
                 return;
             }

@@ -129,7 +129,7 @@ public unsafe class StatusFocusTargetProcessor
                     if (baseCnt < 4) { return; }
                     if (condition.TimeRemaining > 0)
                     {
-                        if (e.TryGet<FileReplacementReference>(out var replacement))
+                        if (child.TryGet<FileReplacementReference>(out var replacement))
                         {
                             SetIcon(addon, baseCnt, ref customStatus, ref statusTooltip, ref condition, replacement.Replacement);
                         }
