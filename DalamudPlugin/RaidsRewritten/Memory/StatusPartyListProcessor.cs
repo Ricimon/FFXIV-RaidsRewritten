@@ -263,7 +263,6 @@ public unsafe class StatusPartyListProcessor
                 {
                     element.Dirty = false;
                     pPlayerDict[playerChara.Address] = element;
-                    if (ActiveContainerForTooltip != null) { ResetTooltip(addon); }
                     ResetPartyList(addon, playerChara.Address, element.IconArray);
                 }
                 return;
@@ -278,6 +277,13 @@ public unsafe class StatusPartyListProcessor
             element.PrevNumStatuses = sortedList.Count();
             pPlayerDict[(nint)pChara] = element;
             redrawTooltip |= shouldRedrawTooltip;
+
+            // SetIcon will handle redrawing tooltip
+            if (shouldRedrawTooltip)
+            {
+                ActiveContainerForTooltip = null;
+                ActiveNodeIdForTooltip = -1;
+            }
 
             int curIndex = 0;
             var hasConfig = this.dalamudServices.GameConfig.UiConfig.TryGet("PartyListStatus", out uint optionInt);
@@ -482,6 +488,10 @@ public unsafe class StatusPartyListProcessor
             int currIndex = 0;
             var hasConfig = this.dalamudServices.GameConfig.UiConfig.TryGet("PartyListStatus", out uint optionInt);
 
+            // SetIcon will handle redrawing tooltip
+            ActiveContainerForTooltip = null;
+            ActiveNodeIdForTooltip = -1;
+
             var maxLength = hasConfig ? Math.Min(iconArray.Length, optionInt) : iconArray.Length;
             foreach (var status in sortedList)
             {
@@ -489,7 +499,12 @@ public unsafe class StatusPartyListProcessor
                 SetIcon(addon, iconArray[currIndex], status);
                 currIndex++;
             }
-            ResetTooltip(addon);
+
+            // edge case with 1 custom status 0 native statuses, custom status falling off while tooltip is showing
+            if (ActiveContainerForTooltip == null && statusCommonProcessor.HoveringOver != 0)
+            {
+                AtkStage.Instance()->TooltipManager.HideTooltip(addon->Id);
+            }
         }
     }
 
