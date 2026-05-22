@@ -38,11 +38,11 @@ public struct Status
     // Hoofing It in Occult Crescent (Id 1778)
     public readonly bool IsVisible => ParamEffect != 31 && Id != 1778;
 
-    public Status(Condition.Status status, Condition.Component condition, StatusType statusType, FileReplacement? replacement = null)
+    public Status(Condition.Status status, Condition.StatusTooltip statusTooltip, Condition.Component condition, StatusType statusType, FileReplacement? replacement = null)
     {
         IsCustom = true;
         IconId = (uint)status.Icon;
-        Name = status.Title;
+        Name = statusTooltip.Title;
         if (replacement != null)
         {
             OriginalPath = replacement.Value.OriginalPath;

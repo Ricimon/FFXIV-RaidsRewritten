@@ -218,7 +218,7 @@ public unsafe class StatusPartyListProcessor
             List<Status> statusList = [];
             e.Children((Entity child) =>
             {
-                if (!StatusCommonProcessor.IsCustomStatus(child, out var condition, out var customStatus, out var _))
+                if (!StatusCommonProcessor.IsCustomStatus(child, out var condition, out var customStatus, out var statusTooltip))
                 {
                     return;
                 }
@@ -242,11 +242,11 @@ public unsafe class StatusPartyListProcessor
                 {
                     if (child.TryGet<FileReplacementReference>(out var replacement))
                     {
-                        statusList.Add(new Status(customStatus, condition, StatusType.SelfEnfeeblement, replacement.Replacement));
+                        statusList.Add(new Status(customStatus, statusTooltip, condition, StatusType.SelfEnfeeblement, replacement.Replacement));
                     }
                     else
                     {
-                        statusList.Add(new Status(customStatus, condition, StatusType.SelfEnfeeblement));
+                        statusList.Add(new Status(customStatus, statusTooltip, condition, StatusType.SelfEnfeeblement));
                     }
                     element.Dirty = true;
                     pPlayerDict[(nint)pChara] = element;
