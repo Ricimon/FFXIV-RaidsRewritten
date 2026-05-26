@@ -179,15 +179,7 @@ public partial class MainWindow
                     Pacify.ApplyToTarget(e, 5.0f);
                 });
             }
-            SameLineIfFits("Blind");
-            if (ImGui.Button("Blind"))
-            {
-                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
-                {
-                    Blind.ApplyToTarget(e, 5.0f);
-                });
-            }
-            SameLineIfFits("Blind");
+            SameLineIfFits("Sleep");
             if (ImGui.Button("Sleep"))
             {
                 commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
@@ -209,6 +201,13 @@ public partial class MainWindow
                 commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
                 {
                     Heavy.ApplyToTarget(e, 5.0f, true);
+                });
+            }
+            if (ImGui.Button("Blind"))
+            {
+                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+                {
+                    Blind.ApplyToTarget(e, 5.0f);
                 });
             }
 
