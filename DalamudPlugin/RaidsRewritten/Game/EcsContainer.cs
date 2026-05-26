@@ -3,7 +3,6 @@ using Dalamud.Plugin.Services;
 using Flecs.NET.Bindings;
 using Flecs.NET.Core;
 using RaidsRewritten.Log;
-using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Game;
 
@@ -31,7 +30,7 @@ public sealed class EcsContainer : IDisposable
         this.commonQueries.CreateQueries(this.World);
 
         // Register all systems
-        foreach(var system in systems)
+        foreach (var system in systems)
         {
             system.Register(this.World);
         }

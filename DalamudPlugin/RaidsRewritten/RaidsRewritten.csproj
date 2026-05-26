@@ -8,7 +8,6 @@
     <Copyright></Copyright>
     <PackageProjectUrl>https://github.com/Ricimon/FFXIV-RaidsRewritten</PackageProjectUrl>
     <IsPackable>false</IsPackable>
-    <TargetFramework>net10.0-windows10.0.17763.0</TargetFramework>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
