@@ -8,6 +8,7 @@ using Dalamud.Memory;
 using ECommons;
 using ECommons.DalamudServices;
 using ECommons.GameFunctions;
+using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI;
@@ -24,6 +25,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ZLinq;
 
 namespace RaidsRewritten.Memory;
 
@@ -152,7 +154,11 @@ public unsafe class StatusPartyListProcessor
         if (!StatusCommonProcessor.LocalPlayerAvailable()) { return; }
         if (!StatusCommonProcessor.IsAddonReady(addon)) { return; }
 
-        HashSet<nint> validPC = [.. this.dalamudServices.ObjectTable.PlayerObjects.Select(pc => pc.Address)];
+        HashSet<nint> validPC = [.. CharacterManager.Instance()->BattleCharas.AsValueEnumerable()
+            .Where(bc => (BattleChara*)bc != null)
+            .Select(bc => (nint)(BattleChara*)bc)];
+        // This method can sometimes be called off the main thread, causing the following line to crash
+        //HashSet<nint> validPC = [.. this.dalamudServices.ObjectTable.PlayerObjects.Select(pc => pc.Address)];
 
         var party = GetVisibleParty();
         // some players could be dced, so pPlayerDict.Count is not suitable
@@ -355,7 +361,7 @@ public unsafe class StatusPartyListProcessor
         } else
         {
             var pListIndex = 1;
-            for (var i = 0; i < Math.Min(8, Svc.Party.Length); i++)
+            for (var i = 0; i < Math.Min(8, this.dalamudServices.PartyList.Length); i++)
             {
                 var obj = Resolve($"<{pListIndex}>");
                 if (obj != null)
