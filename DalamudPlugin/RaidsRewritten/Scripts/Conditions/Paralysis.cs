@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Numerics;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
@@ -15,13 +16,31 @@ public class Paralysis(Random random, ILogger logger) : ISystem
     public record struct Component(float StunInterval, float StunDuration,
         float ElapsedTime = 0, float TimeOffset = 0, bool StunActive = false, int LastTimeIntervalEvaluation = -1);
 
-    public static void ApplyToTarget(Entity target, float duration, float stunInterval, float stunDuration, bool extendDuration = false)
+    public static void ApplyToTarget(
+        Entity target,
+        float duration,
+        float stunInterval,
+        float stunDuration,
+        bool extendDuration = false)
+    {
+        ApplyToTarget(target, duration, stunInterval, stunDuration, Id, extendDuration);
+    }
+
+    public static void ApplyToTarget(
+        Entity target,
+        float duration,
+        float stunInterval,
+        float stunDuration,
+        BigInteger id,
+        bool extendDuration = false,
+        bool overrideExistingDuration = false,
+        bool isClientControlled = true)
     {
         DelayedAction.Create(target.CsWorld(), (ref Iter it) =>
         {
             var world = it.World();
 
-            var condition = Condition.ApplyToTarget(target, "Paralyzed", duration, Id, extendDuration, false);
+            var condition = Condition.ApplyToTarget(target, "Paralyzed", duration, id, extendDuration, overrideExistingDuration, isClientControlled);
             if (!condition.Has<Component>())
             {
                 condition.Set(new Component(stunInterval, stunDuration, TimeOffset: stunInterval));
@@ -44,12 +63,13 @@ public class Paralysis(Random random, ILogger logger) : ISystem
             .With<Player.LocalPlayer>().Up()
             .Each((Iter it, int i, ref Player.Component pc, ref Component component) =>
             {
-                //if (component.ElapsedTime == 0)
-                //{
-                //    component.TimeOffset = random.NextSingle() * component.StunInterval;
-                //}
-
                 component.ElapsedTime += it.DeltaTime();
+
+                if (component.StunInterval == 0 || component.StunDuration == 0)
+                {
+                    component.StunActive = false;
+                    return;
+                }
 
                 var elapsedTime = component.ElapsedTime + component.TimeOffset;
                 var interval = component.StunInterval + component.StunDuration;

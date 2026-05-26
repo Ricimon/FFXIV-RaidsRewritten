@@ -113,6 +113,8 @@ pub struct SyncConditionsOnSelfConditionDetails {
     pub condition: Condition,
     #[serde(rename = "t")]
     pub time_remaining: f32,
+    #[serde(rename = "n")]
+    pub newly_applied: bool,
 }
 
 // To client ===============
@@ -193,17 +195,25 @@ pub struct UpdateConditionsPlayer {
     #[serde(rename = "c")]
     pub conditions: Vec<UpdateConditionsConditionDetails>,
 }
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Default, Debug)]
 pub struct UpdateConditionsConditionDetails {
     pub id: u128,
     #[serde(rename = "c")]
     pub condition: Condition,
     #[serde(rename = "t")]
     pub time_remaining: f32,
+    #[serde(rename = "n")]
+    pub newly_applied: bool,
     #[serde(rename = "cc")]
     pub is_client_controlled: bool,
+
     #[serde(rename = "kbx")]
     pub knockback_direction_x: Option<f32>,
     #[serde(rename = "kbz")]
     pub knockback_direction_z: Option<f32>,
+
+    #[serde(rename = "psi")]
+    pub paralysis_stun_interval: Option<f32>,
+    #[serde(rename = "psd")]
+    pub paralysis_stun_duration: Option<f32>,
 }

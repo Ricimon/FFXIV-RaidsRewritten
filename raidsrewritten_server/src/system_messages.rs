@@ -41,4 +41,5 @@ pub struct ConditionDetails {
     pub id: u128,
     pub condition: Condition,
     pub time_remaining: f32,
+    pub newly_applied: bool,
 }

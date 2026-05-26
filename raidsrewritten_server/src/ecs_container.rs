@@ -239,6 +239,9 @@ fn process_messages(world: &World, queries: &CommonQueries, rx_from_ws: &Receive
                                     broadcast = true;
                                 }
                             });
+                            if c.newly_applied {
+                                ce.remove(BroadcastedCondition);
+                            }
                         }
                     });
 

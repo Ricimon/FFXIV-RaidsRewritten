@@ -6,7 +6,7 @@ use tracing::info;
 
 use crate::{
     game::{
-        components::{self, BroadcastConditions, Party, PartyContainer, Player, Socket},
+        components::{self, BroadcastConditions, BroadcastedCondition, ClientCondition, Party, PartyContainer, Player, Socket},
         utils::*,
     },
     webserver::message::{
@@ -67,6 +67,7 @@ pub fn create_systems(world: &World) {
                     c1.each_child(|c2| {
                         c2.try_get::<&components::Condition>(|c| {
                             condition_details.push(build_condition_details(c2, c));
+                            c2.add(BroadcastedCondition);
                         });
                     });
                     players.push(UpdateConditionsPlayer {
@@ -105,18 +106,19 @@ fn build_condition_details(
         id: condition.id,
         condition: condition.condition,
         time_remaining: condition.time_remaining,
-        is_client_controlled: false,
-        knockback_direction_x: None,
-        knockback_direction_z: None,
+        newly_applied: !entity.has(BroadcastedCondition),
+        is_client_controlled: entity.has(ClientCondition),
+        ..Default::default()
     };
-
-    if entity.has(components::ClientCondition) {
-        uccd.is_client_controlled = true;
-    }
 
     entity.try_get::<&components::conditions::Knockback>(|kb| {
         uccd.knockback_direction_x = Some(kb.knockback_direction_x);
         uccd.knockback_direction_z = Some(kb.knockback_direction_z);
+    });
+
+    entity.try_get::<&components::conditions::Paralysis>(|p| {
+        uccd.paralysis_stun_interval = Some(p.stun_interval);
+        uccd.paralysis_stun_duration = Some(p.stun_duration);
     });
 
     uccd

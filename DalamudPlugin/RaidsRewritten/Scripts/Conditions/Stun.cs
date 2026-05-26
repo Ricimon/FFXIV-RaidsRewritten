@@ -21,7 +21,8 @@ public class Stun
         ApplyToTarget(target, duration, Id, extendDuration, overrideExistingDuration);
     }
 
-    public static void ApplyToTarget(Entity target,
+    public static void ApplyToTarget(
+        Entity target,
         float duration,
         BigInteger id,
         bool extendDuration = false,

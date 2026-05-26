@@ -82,6 +82,7 @@ pub struct Transform {
 
 // Conditions ===============
 
+// Meant to be set to the Player entity, indicating a conditions update should occur
 #[derive(Component)]
 pub struct BroadcastConditions;
 
@@ -91,6 +92,10 @@ pub struct Condition {
     pub condition: condition::Condition,
     pub time_remaining: f32,
 }
+
+// Meant to be set to the Condition entity, indicating this particular condition is not new and has already been broadcasted to clients
+#[derive(Component)]
+pub struct BroadcastedCondition;
 
 #[derive(Component)]
 pub struct ClientCondition;
@@ -102,5 +107,11 @@ pub mod conditions {
     pub struct Knockback {
         pub knockback_direction_x: f32,
         pub knockback_direction_z: f32,
+    }
+
+    #[derive(Component, Debug)]
+    pub struct Paralysis {
+        pub stun_interval: f32,
+        pub stun_duration: f32,
     }
 }

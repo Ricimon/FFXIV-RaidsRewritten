@@ -227,17 +227,20 @@ public class NetworkClientMessageHandler(
 
                             bool foundExistingCondition = false;
 
-                            // Update existing condition
-                            q.Each((Entity e, ref Condition.Component condition, ref Condition.Id id) =>
+                            if (!c.newlyApplied)
                             {
-                                if (id.Value == c.id)
+                                // Update existing condition
+                                q.Each((Entity e, ref Condition.Component condition, ref Condition.Id id) =>
                                 {
-                                    // Note: This will NOT update the condition type if it changed for some reason
-                                    // TODO: Latency-adjust this value
-                                    condition.TimeRemaining = c.timeRemaining;
-                                    foundExistingCondition = true;
-                                }
-                            });
+                                    if (id.Value == c.id)
+                                    {
+                                        // Note: This will NOT update the condition type if it changed for some reason
+                                        // TODO: Latency-adjust this value
+                                        condition.TimeRemaining = c.timeRemaining;
+                                        foundExistingCondition = true;
+                                    }
+                                });
+                            }
 
                             // Create new condition
                             if (!foundExistingCondition)
@@ -246,6 +249,12 @@ public class NetworkClientMessageHandler(
                                 {
                                     case Message.Condition.Stun:
                                         Stun.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: false);
+                                        break;
+                                    case Message.Condition.Paralysis:
+                                        Paralysis.ApplyToTarget(playerEntity, c.timeRemaining, c.paralysisStunInterval, c.paralysisStunDuration, c.id, overrideExistingDuration: true, isClientControlled: false);
+                                        break;
+                                    case Message.Condition.Bind:
+                                        Bind.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: false);
                                         break;
                                 }
                             }

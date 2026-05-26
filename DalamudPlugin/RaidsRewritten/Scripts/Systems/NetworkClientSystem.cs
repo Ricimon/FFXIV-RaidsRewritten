@@ -71,6 +71,7 @@ public sealed class NetworkClientSystem(DalamudServices dalamud, NetworkClient n
                             id = id.Value,
                             condition = networkMessage.Condition,
                             timeRemaining = condition.TimeRemaining,
+                            newlyApplied = !e.Has<Condition.SyncedToServer>(),
                         });
                         e.Add<Condition.SyncedToServer>();
                     });

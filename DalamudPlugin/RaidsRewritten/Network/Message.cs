@@ -105,6 +105,8 @@ public struct Message
             public Condition condition;
             [JsonProperty(PropertyName = "t")]
             public float timeRemaining;
+            [JsonProperty(PropertyName = "n")]
+            public bool newlyApplied;
         }
         [JsonProperty(PropertyName = "c")]
         public ConditionDetails[] conditions;
@@ -199,12 +201,20 @@ public struct Message
             public Condition condition;
             [JsonProperty(PropertyName = "t")]
             public float timeRemaining;
+            [JsonProperty(PropertyName = "n")]
+            public bool newlyApplied;
             [JsonProperty(PropertyName = "cc")]
             public bool isClientControlled;
+
             [JsonProperty(PropertyName = "kbx")]
-            public float? knockbackDirectionX;
+            public float knockbackDirectionX;
             [JsonProperty(PropertyName = "kbz")]
-            public float? knockbackDirectionZ;
+            public float knockbackDirectionZ;
+
+            [JsonProperty(PropertyName = "psi")]
+            public float paralysisStunInterval;
+            [JsonProperty(PropertyName = "psd")]
+            public float paralysisStunDuration;
         }
         public struct Player
         {

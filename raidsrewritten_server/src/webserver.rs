@@ -102,6 +102,7 @@ async fn on_message_impl(
                         id: c.id,
                         condition: c.condition,
                         time_remaining: c.time_remaining,
+                        newly_applied: c.newly_applied,
                     })
                     .collect();
                 tx.send(MessageToEcs::SyncConditionsOnSelf {
