@@ -1,10 +1,9 @@
-﻿using Flecs.NET.Core;
+﻿using System;
+using System.Numerics;
+using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Components;
-using RaidsRewritten.Utility;
-using System;
-using System.Numerics;
 
 namespace RaidsRewritten.Scripts.Conditions;
 
@@ -25,7 +24,9 @@ public class Hysteria(Random random, ILogger logger) : ISystem
 
             var condition = Condition.ApplyToTarget(target, "Hysteria", duration, Id, extendDuration, overrideExistingDuration);
 
-            condition.Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
+            condition
+                .Set(new Condition.NetworkMessage(Network.Message.Condition.Hysteria))
+                .Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
                 .Set(new Condition.Status(IconToReplace, "Hysteria", "Unable to act on your own free will."))
                 .Set(new Condition.StatusTooltip("Hysteria (RaidsRewritten)"))
                 .Add<Condition.StatusEnfeeblement>();

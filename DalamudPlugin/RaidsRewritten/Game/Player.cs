@@ -11,6 +11,7 @@ namespace RaidsRewritten.Game;
 public sealed class Player(DalamudServices dalamud, PlayerManager playerManager, Configuration configuration, ILogger logger) : ISystem, IDisposable
 {
     public record struct Component(IPlayerCharacter? PlayerCharacter);
+    public record struct ContentId(ulong Value);
     public struct LocalPlayer;
 
     private Query<Condition.Component, Knockback.Component> knockbackQuery;
@@ -24,12 +25,16 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
     private Query<Condition.Component> overheatQuery;
     private Query<Condition.Component> deepfreezeQuery;
 
-    public static Entity Create(World world, bool isLocalPlayer, IPlayerCharacter? playerCharacter = null)
+    public static Entity Create(World world, bool isLocalPlayer, IPlayerCharacter? playerCharacter = null, ulong? contentId = null)
     {
         var entity = world.Entity().Set(new Component(playerCharacter));
         if (isLocalPlayer)
         {
             entity.Add<LocalPlayer>();
+        }
+        if (contentId.HasValue)
+        {
+            entity.Set(new ContentId(contentId.Value));
         }
         return entity;
     }
@@ -80,6 +85,7 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
 
                 var player = dalamud.ObjectTable.LocalPlayer;
                 component.PlayerCharacter = player;
+                playerEntity.Set(new ContentId(dalamud.PlayerState.ContentId));
                 if (configuration.EverythingDisabled || player == null || player.IsDead)
                 {
                     playerEntity.Children(c =>

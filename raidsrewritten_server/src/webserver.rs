@@ -1,7 +1,7 @@
 pub mod message;
 pub mod metrics;
 
-use crate::system_messages::MessageToEcs;
+use crate::system_messages::{ConditionDetails, MessageToEcs};
 use crate::{game::components::*, webserver::metrics::*};
 use axum::{Router, middleware};
 use axum::{response::Html, routing::get};
@@ -94,6 +94,22 @@ async fn on_message_impl(
                 socket_id: socket.id,
             })
             .unwrap();
+        }
+        message::Action::SyncConditionsOnSelf => {
+            if let Some(sync_conditions_on_self) = message.sync_conditions_on_self {
+                let conditions = sync_conditions_on_self.conditions.iter()
+                    .map(|c| ConditionDetails {
+                        id: c.id,
+                        condition: c.condition,
+                        time_remaining: c.time_remaining,
+                    })
+                    .collect();
+                tx.send(MessageToEcs::SyncConditionsOnSelf {
+                    socket_id: socket.id,
+                    conditions,
+                })
+                .unwrap();
+            }
         }
         _ => {}
     }

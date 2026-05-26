@@ -1,6 +1,5 @@
 ﻿using Flecs.NET.Core;
 using RaidsRewritten.Scripts.Components;
-using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Conditions;
 
@@ -20,7 +19,9 @@ public class Sleep
 
             var condition = Condition.ApplyToTarget(target, "Slept", duration, Id, extendDuration, overrideExistingDuration);
 
-            condition.Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
+            condition
+                .Set(new Condition.NetworkMessage(Network.Message.Condition.Sleep))
+                .Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
                 .Set(new Condition.Status(IconToReplace, "Sleep", "Overwhelming drowsiness is preventing the execution of actions."))
                 .Set(new Condition.StatusTooltip("Sleep (RaidsRewritten)"))
                 .Add<Condition.StatusEnfeeblement>();

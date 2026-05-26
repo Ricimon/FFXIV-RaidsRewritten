@@ -14,19 +14,35 @@ public struct Message
         UpdateStatus = 2,
         StartMechanic = 3,
         ClearMechanics = 4,
+        SyncConditionsOnSelf = 5,
 
         // To client
         // Deprecated: 51, 55
-        ApplyCondition = 52,
+        ApplyCondition = 52, // deprecate
         UpdatePartyStatus = 53,
         PlayStaticVfx = 54,
         PlayActorVfxOnTarget = 56,
         PlayActorVfxOnPosition = 57,
         StopVfx = 58,
+        UpdateConditions = 59,
     }
-
     [JsonProperty(PropertyName = "a")]
     public Action action;
+
+    // Common ============
+
+    public enum Condition : uint
+    {
+        None = 0,
+        Stun = 1,
+        Paralysis = 2,
+        Bind = 3,
+        Heavy = 4,
+        Hysteria = 5,
+        Pacify = 6,
+        Sleep = 7,
+        Knockback = 8,
+    }
 
     // To server ============
 
@@ -79,22 +95,27 @@ public struct Message
     [JsonProperty(PropertyName = "sm")]
     public StartMechanicPayload? startMechanic;
 
+    public struct SyncConditionsOnSelf
+    {
+        public struct ConditionDetails
+        {
+            // Json deserialization cannot deserialize to UInt128, it has to deserialize to BigInteger
+            public BigInteger id;
+            [JsonProperty(PropertyName = "c")]
+            public Condition condition;
+            [JsonProperty(PropertyName = "t")]
+            public float timeRemaining;
+        }
+        [JsonProperty(PropertyName = "c")]
+        public ConditionDetails[] conditions;
+    }
+    [JsonProperty(PropertyName = "scos")]
+    public SyncConditionsOnSelf? syncConditionsOnSelf;
+
     // To client ============
 
     public struct ApplyConditionPayload
     {
-        public enum Condition : uint
-        {
-            None = 0,
-            Stun = 1,
-            Paralysis = 2,
-            Bind = 3,
-            Heavy = 4,
-            Hysteria = 5,
-            Pacify = 6,
-            Sleep = 7,
-            Knockback = 8,
-        }
         [JsonProperty(PropertyName = "c")]
         public Condition condition;
         [JsonProperty(PropertyName = "d")]
@@ -168,4 +189,33 @@ public struct Message
     }
     [JsonProperty(PropertyName = "sv")]
     public StopVfxPayload? stopVfx;
+
+    public struct UpdateConditionsPayload
+    {
+        public struct ConditionDetails
+        {
+            public BigInteger id;
+            [JsonProperty(PropertyName = "c")]
+            public Condition condition;
+            [JsonProperty(PropertyName = "t")]
+            public float timeRemaining;
+            [JsonProperty(PropertyName = "cc")]
+            public bool isClientControlled;
+            [JsonProperty(PropertyName = "kbx")]
+            public float? knockbackDirectionX;
+            [JsonProperty(PropertyName = "kbz")]
+            public float? knockbackDirectionZ;
+        }
+        public struct Player
+        {
+            [JsonProperty(PropertyName = "i")]
+            public ulong contentId;
+            [JsonProperty(PropertyName = "c")]
+            public ConditionDetails[] conditions;
+        }
+        [JsonProperty(PropertyName = "p")]
+        public Player[] players;
+    }
+    [JsonProperty(PropertyName = "uc")]
+    public UpdateConditionsPayload? updateConditions;
 }

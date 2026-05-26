@@ -1,6 +1,6 @@
-﻿using Flecs.NET.Core;
+﻿using System.Numerics;
+using Flecs.NET.Core;
 using RaidsRewritten.Scripts.Components;
-using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Conditions;
 
@@ -12,15 +12,31 @@ public class Stun
 
     public record struct Component(object _);
 
-    public static void ApplyToTarget(Entity target, float duration, bool extendDuration = false, bool overrideExistingDuration = false)
+    public static void ApplyToTarget(
+        Entity target,
+        float duration,
+        bool extendDuration = false,
+        bool overrideExistingDuration = false)
+    {
+        ApplyToTarget(target, duration, Id, extendDuration, overrideExistingDuration);
+    }
+
+    public static void ApplyToTarget(Entity target,
+        float duration,
+        BigInteger id,
+        bool extendDuration = false,
+        bool overrideExistingDuration = false,
+        bool isClientControlled = true)
     {
         DelayedAction.Create(target.CsWorld(), (ref Iter it) =>
         {
             var world = it.World();
 
-            var condition = Condition.ApplyToTarget(target, "Stunned", duration, Id, extendDuration, overrideExistingDuration);
+            var condition = Condition.ApplyToTarget(target, "Stunned", duration, id, extendDuration, overrideExistingDuration, isClientControlled);
 
-            condition.Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
+            condition
+                .Set(new Condition.NetworkMessage(Network.Message.Condition.Stun))
+                .Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
                 .Set(new Condition.Status(IconToReplace, "Stun", "Unable to execute actions."))
                 .Set(new Condition.StatusTooltip("Stun (RaidsRewritten)"))
                 .Add<Condition.StatusEnfeeblement>();

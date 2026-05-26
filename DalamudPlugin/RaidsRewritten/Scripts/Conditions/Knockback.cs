@@ -84,7 +84,9 @@ public sealed class Knockback : IDalamudHook
                 .Set(new Component(knockbackDirection))
                 .ChildOf(target);
 
-            condition.Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
+            condition
+                .Set(new Condition.NetworkMessage(Network.Message.Condition.Knockback))
+                .Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
                 .Set(new Condition.Status(IconToReplace, "Knockback", "Forced movement to simulate a real knockback."))
                 .Set(new Condition.StatusTooltip("Knockback (RaidsRewritten)"))
                 .Add<Condition.StatusEnfeeblement>();

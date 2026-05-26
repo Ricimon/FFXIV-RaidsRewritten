@@ -1,4 +1,4 @@
-use crate::game::role::Role;
+use crate::game::{condition::Condition, role::Role};
 use socketioxide::socket::Sid;
 
 pub enum MessageToEcs {
@@ -31,4 +31,14 @@ pub enum MessageToEcs {
     ClearMechanics {
         socket_id: Sid,
     },
+    SyncConditionsOnSelf {
+        socket_id: Sid,
+        conditions: Vec<ConditionDetails>,
+    },
+}
+
+pub struct ConditionDetails {
+    pub id: u128,
+    pub condition: Condition,
+    pub time_remaining: f32,
 }

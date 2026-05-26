@@ -1,6 +1,4 @@
 using Flecs.NET.Core;
-using RaidsRewritten.Scripts.Components;
-using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Conditions;
 

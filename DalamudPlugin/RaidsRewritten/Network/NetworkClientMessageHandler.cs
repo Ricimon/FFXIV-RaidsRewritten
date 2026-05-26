@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using AsyncAwaitBestPractices;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
+using Flecs.NET.Bindings;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
@@ -68,6 +69,9 @@ public class NetworkClientMessageHandler(
             case Message.Action.StopVfx:
                 if (message.stopVfx != null) { StopVfx(message.stopVfx.Value); }
                 break;
+            case Message.Action.UpdateConditions:
+                if (message.updateConditions != null) { UpdateConditions(message.updateConditions.Value); }
+                break;
         }
     }
 
@@ -89,7 +93,7 @@ public class NetworkClientMessageHandler(
         {
             switch (payload.condition)
             {
-                case Message.ApplyConditionPayload.Condition.Stun:
+                case Message.Condition.Stun:
                     commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
                     {
                         Stun.ApplyToTarget(e, payload.duration);
@@ -179,6 +183,75 @@ public class NetworkClientMessageHandler(
                         it.Entity(i).Destruct();
                     }
                 });
+            });
+        }).SafeFireAndForget();
+    }
+
+    private void UpdateConditions(Message.UpdateConditionsPayload payload)
+    {
+        dalamud.Framework.Run(() =>
+        {
+            World.Defer(() =>
+            {
+                foreach(var p in payload.players)
+                {
+                    var playerEntity = World.Query<Player.ContentId>().Find((ref id) => id.Value == p.contentId);
+                    if (playerEntity.IsValid())
+                    {
+                        var isLocalPlayer = playerEntity.Has<Player.LocalPlayer>();
+
+                        var conditionIds = p.conditions.AsValueEnumerable().Select(c => c.id).ToList();
+
+                        // Cleanup conditions that no longer exist
+                        using var q = World
+                            .QueryBuilder<Condition.Component, Condition.Id>()
+                            .With<Condition.ServerCondition>()
+                            .With(flecs.EcsChildOf, playerEntity)
+                            .Build();
+
+                        q.Each((Entity e, ref Condition.Component _, ref Condition.Id id) =>
+                        {
+                            if (!conditionIds.Contains(id.Value))
+                            {
+                                e.Destruct();
+                            }
+                        });
+
+                        foreach(var c in p.conditions)
+                        {
+                            if (c.isClientControlled && isLocalPlayer)
+                            {
+                                // Ignore client controlled statuses that the local player created
+                                continue;
+                            }
+
+                            bool foundExistingCondition = false;
+
+                            // Update existing condition
+                            q.Each((Entity e, ref Condition.Component condition, ref Condition.Id id) =>
+                            {
+                                if (id.Value == c.id)
+                                {
+                                    // Note: This will NOT update the condition type if it changed for some reason
+                                    // TODO: Latency-adjust this value
+                                    condition.TimeRemaining = c.timeRemaining;
+                                    foundExistingCondition = true;
+                                }
+                            });
+
+                            // Create new condition
+                            if (!foundExistingCondition)
+                            {
+                                switch(c.condition)
+                                {
+                                    case Message.Condition.Stun:
+                                        Stun.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: false);
+                                        break;
+                                }
+                            }
+                        }
+                    }
+                }
             });
         }).SafeFireAndForget();
     }

@@ -154,7 +154,7 @@ pub fn send_stop_vfx(io: SocketIo, socket_id: Sid, payload: StopVfxPayload) {
     );
 }
 
-fn send_message(io: SocketIo, socket_id: Sid, message: Message) {
+pub fn send_message(io: SocketIo, socket_id: Sid, message: Message) {
     tokio::spawn(async move {
         io.to(socket_id).emit("message", &message).await.unwrap();
     });

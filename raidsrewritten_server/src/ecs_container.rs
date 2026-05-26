@@ -1,4 +1,4 @@
-use crate::game::components::*;
+use crate::game::{components::*, condition};
 use crate::game::{mechanics, utils::*};
 use crate::system_messages::MessageToEcs;
 use crate::webserver::message::{Action, Message, UpdatePartyStatusPayload};
@@ -195,12 +195,79 @@ fn process_messages(world: &World, queries: &CommonQueries, rx_from_ws: &Receive
                     });
                 });
             }
+
+            MessageToEcs::SyncConditionsOnSelf {
+                socket_id,
+                conditions,
+            } => {
+                let Some(e) = find_socket(&queries.query_socket, socket_id) else {
+                    return;
+                };
+                info!(
+                    socket_str = socket_id.as_str(),
+                    condition_count = conditions.len(),
+                    "Syncing Conditions on self"
+                );
+                // Sync condition entities, and then broadcast to other players
+                let mut broadcast = false;
+
+                let condition_ids: Vec<u128> = conditions.iter().map(|c| c.id).collect();
+
+                // Cleanup conditions that no longer exist
+                e.each_child(|ce| {
+                    if ce.has(ClientCondition) {
+                        ce.try_get::<&Condition>(|condition| {
+                            if !condition_ids.contains(&condition.id) {
+                                ce.destruct();
+                                broadcast = true;
+                            }
+                        });
+                    }
+                });
+
+                for c in conditions {
+                    let mut found_existing_condition = false;
+
+                    // Update existing condition
+                    e.each_child(|ce| {
+                        if ce.has(ClientCondition) {
+                            ce.try_get::<&mut Condition>(|condition| {
+                                if condition.id == c.id {
+                                    condition.condition = c.condition;
+                                    condition.time_remaining = c.time_remaining;
+                                    found_existing_condition = true;
+                                    broadcast = true;
+                                }
+                            });
+                        }
+                    });
+
+                    // Create new condition
+                    if !found_existing_condition {
+                        world
+                            .entity()
+                            .set(Condition {
+                                id: c.id,
+                                condition: c.condition,
+                                time_remaining: c.time_remaining,
+                            })
+                            .add(ClientCondition)
+                            .child_of(e);
+                        broadcast = true;
+                    }
+                }
+
+                if broadcast && let Some(p) = e.parent() {
+                    p.add(BroadcastConditions);
+                }
+            }
         }
     }
 }
 
 fn create_systems(world: &World) {
     mechanics::create_systems(world);
+    condition::create_systems(world);
 }
 
 fn create_observers(world: &World) {

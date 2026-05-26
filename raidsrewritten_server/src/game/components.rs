@@ -1,4 +1,4 @@
-use crate::game::role;
+use crate::game::{condition, role};
 use flecs_ecs::prelude::*;
 use socketioxide::{SocketIo, socket::Sid};
 use std::collections::HashMap;
@@ -78,4 +78,29 @@ pub struct Transform {
     pub y: f32,
     pub z: f32,
     pub rotation: f32,
+}
+
+// Conditions ===============
+
+#[derive(Component)]
+pub struct BroadcastConditions;
+
+#[derive(Component, Debug)]
+pub struct Condition {
+    pub id: u128,
+    pub condition: condition::Condition,
+    pub time_remaining: f32,
+}
+
+#[derive(Component)]
+pub struct ClientCondition;
+
+pub mod conditions {
+    use flecs_ecs::prelude::*;
+
+    #[derive(Component, Debug)]
+    pub struct Knockback {
+        pub knockback_direction_x: f32,
+        pub knockback_direction_z: f32,
+    }
 }

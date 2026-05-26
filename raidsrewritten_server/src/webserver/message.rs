@@ -14,15 +14,17 @@ pub enum Action {
     UpdateStatus = 2,
     StartMechanic = 3,
     ClearMechanics = 4,
+    SyncConditionsOnSelf = 5,
 
     // To client
     // Deprecated: 51, 55
-    ApplyCondition = 52,
+    ApplyCondition = 52, // to deprecate
     UpdatePartyStatus = 53,
     PlayStaticVfx = 54,
     PlayActorVfxOnTarget = 56,
     PlayActorVfxOnPosition = 57,
     StopVfx = 58,
+    UpdateConditions = 59,
 }
 
 #[serde_with::skip_serializing_none]
@@ -38,6 +40,8 @@ pub struct Message {
     pub update_status: Option<UpdateStatusPayload>,
     #[serde(rename = "sm")]
     pub start_mechanic: Option<StartMechanicPayload>,
+    #[serde(rename = "scos")]
+    pub sync_conditions_on_self: Option<SyncConditionsOnSelfPayload>,
 
     // To client
     #[serde(rename = "ac")]
@@ -52,6 +56,8 @@ pub struct Message {
     pub play_actor_vfx_on_position: Option<PlayActorVfxOnPositionPayload>,
     #[serde(rename = "sv")]
     pub stop_vfx: Option<StopVfxPayload>,
+    #[serde(rename = "uc")]
+    pub update_conditions: Option<UpdateConditionsPayload>,
 }
 
 // To server ===============
@@ -93,6 +99,20 @@ pub struct StartMechanicPayload {
     pub world_position_z: Option<f32>,
     #[serde(rename = "r")]
     pub rotation: Option<f32>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct SyncConditionsOnSelfPayload {
+    #[serde(rename = "c")]
+    pub conditions: Vec<SyncConditionsOnSelfConditionDetails>,
+}
+#[derive(Serialize, Deserialize, Debug)]
+pub struct SyncConditionsOnSelfConditionDetails {
+    pub id: u128,
+    #[serde(rename = "c")]
+    pub condition: Condition,
+    #[serde(rename = "t")]
+    pub time_remaining: f32,
 }
 
 // To client ===============
@@ -159,4 +179,31 @@ pub struct PlayActorVfxOnPositionPayload {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct StopVfxPayload {
     pub id: u128,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UpdateConditionsPayload {
+    #[serde(rename = "p")]
+    pub players: Vec<UpdateConditionsPlayer>,
+}
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct UpdateConditionsPlayer {
+    #[serde(rename = "i")]
+    pub content_id: u64,
+    #[serde(rename = "c")]
+    pub conditions: Vec<UpdateConditionsConditionDetails>,
+}
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct UpdateConditionsConditionDetails {
+    pub id: u128,
+    #[serde(rename = "c")]
+    pub condition: Condition,
+    #[serde(rename = "t")]
+    pub time_remaining: f32,
+    #[serde(rename = "cc")]
+    pub is_client_controlled: bool,
+    #[serde(rename = "kbx")]
+    pub knockback_direction_x: Option<f32>,
+    #[serde(rename = "kbz")]
+    pub knockback_direction_z: Option<f32>,
 }

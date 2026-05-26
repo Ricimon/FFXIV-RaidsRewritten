@@ -16,7 +16,6 @@ public class Temperature(DalamudServices dalamud, CommonQueries commonQueries, I
     public const string GaugeYPositionConfig = "UCOB Rewritten.TemperatureControlY";
     public const string GaugeScaleConfig = "UCOB Rewritten.TemperatureControlScale";
     public const string GaugeImagePath = "temperature_gauge.png";
-    private const int TemperatureID = 420;
     public record struct Component()
     {
         public float CurrentTemperature = 0.0f;
@@ -156,7 +155,7 @@ public class Temperature(DalamudServices dalamud, CommonQueries commonQueries, I
                         commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
                         {
                             world.DeleteWith<Overheat.Component>();
-                            Deepfreeze.ApplyToTarget(e, float.PositiveInfinity, TemperatureID);
+                            Deepfreeze.ApplyToTarget(e, float.PositiveInfinity);
                         });
                         return;
                     }
@@ -166,7 +165,7 @@ public class Temperature(DalamudServices dalamud, CommonQueries commonQueries, I
                         commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
                         {
                             world.DeleteWith<Deepfreeze.Component>();
-                            Overheat.ApplyToTarget(e, float.PositiveInfinity, TemperatureID);
+                            Overheat.ApplyToTarget(e, float.PositiveInfinity);
                         });
                         return;
                     }

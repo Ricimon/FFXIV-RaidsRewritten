@@ -1,6 +1,5 @@
 ﻿using Flecs.NET.Core;
 using RaidsRewritten.Scripts.Components;
-using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Conditions;
 
@@ -20,7 +19,9 @@ public class Pacify
 
             var condition = Condition.ApplyToTarget(target, "Pacified", duration, Id, extendDuration, overrideExistingDuration);
 
-            condition.Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
+            condition
+                .Set(new Condition.NetworkMessage(Network.Message.Condition.Pacify))
+                .Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
                 .Set(new Condition.Status(IconToReplace, "Pacification", "Unable to use attack-oriented abilities, spells, and weaponskills."))
                 .Set(new Condition.StatusTooltip("Pacification (RaidsRewritten)"))
                 .Add<Condition.StatusEnfeeblement>();

@@ -24,9 +24,9 @@ public sealed class EcsContainer : IDisposable
         this.logger = logger;
 
         this.World = World.Create();
-#if DEBUG
-        this.World.Set<flecs.EcsRest>(default);
-#endif
+//#if DEBUG
+//        this.World.Set<flecs.EcsRest>(default);
+//#endif
 
         this.commonQueries.CreateQueries(this.World);
 
@@ -58,16 +58,9 @@ public sealed class EcsContainer : IDisposable
 
     private void OnFrameworkUpdate(IFramework framework)
     {
-        try
-        {
-            // This value isn't always accurate, but is here in case something needs it
-            this.World.Set(new FrameworkDeltaTime(framework.UpdateDelta));
-            // Use Flecs self-calculated delta time as this is more accurate than the one reported by IFramework
-            this.World.Progress();
-        }
-        catch(Exception e)
-        {
-            this.logger.Error(e.ToStringFull());
-        }
+        // This value isn't always accurate, but is here in case something needs it
+        this.World.Set(new FrameworkDeltaTime(framework.UpdateDelta));
+        // Use Flecs self-calculated delta time as this is more accurate than the one reported by IFramework
+        this.World.Progress();
     }
 }

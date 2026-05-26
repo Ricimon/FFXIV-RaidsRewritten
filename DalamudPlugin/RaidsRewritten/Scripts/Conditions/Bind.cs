@@ -19,7 +19,9 @@ public class Bind
 
             var condition = Condition.ApplyToTarget(target, "Bound", duration, Id, extendDuration, overrideExistingDuration);
 
-            condition.Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
+            condition
+                .Set(new Condition.NetworkMessage(Network.Message.Condition.Bind))
+                .Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
                 .Set(new Condition.Status(IconToReplace, "Bind", "Unable to move."))
                 .Set(new Condition.StatusTooltip("Bind (RaidsRewritten)"))
                 .Add<Condition.StatusEnfeeblement>();

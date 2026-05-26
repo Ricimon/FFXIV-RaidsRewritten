@@ -1,9 +1,8 @@
-﻿using Flecs.NET.Core;
+﻿using System;
+using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Components;
-using RaidsRewritten.Utility;
-using System;
 
 namespace RaidsRewritten.Scripts.Conditions;
 
@@ -16,19 +15,21 @@ public class Paralysis(Random random, ILogger logger) : ISystem
     public record struct Component(float StunInterval, float StunDuration,
         float ElapsedTime = 0, float TimeOffset = 0, bool StunActive = false, int LastTimeIntervalEvaluation = -1);
 
-    public static void ApplyToTarget(Entity target, float duration, float stunInterval, float stunDuration, int id = Id, bool extendDuration = false)
+    public static void ApplyToTarget(Entity target, float duration, float stunInterval, float stunDuration, bool extendDuration = false)
     {
         DelayedAction.Create(target.CsWorld(), (ref Iter it) =>
         {
             var world = it.World();
 
-            var condition = Condition.ApplyToTarget(target, "Paralyzed", duration, id, extendDuration, false);
+            var condition = Condition.ApplyToTarget(target, "Paralyzed", duration, Id, extendDuration, false);
             if (!condition.Has<Component>())
             {
                 condition.Set(new Component(stunInterval, stunDuration, TimeOffset: stunInterval));
             }
 
-            condition.Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
+            condition
+                .Set(new Condition.NetworkMessage(Network.Message.Condition.Paralysis))
+                .Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
                 .Set(new Condition.Status(IconToReplace, "Paralysis", "Deadened nerves are sometimes preventing the execution of actions."))
                 .Set(new Condition.StatusTooltip("Paralysis (RaidsRewritten)"))
                 .Add<Condition.StatusEnfeeblement>();

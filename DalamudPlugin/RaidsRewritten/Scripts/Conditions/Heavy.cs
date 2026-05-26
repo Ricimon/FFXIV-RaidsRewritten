@@ -1,6 +1,5 @@
 ﻿using Flecs.NET.Core;
 using RaidsRewritten.Scripts.Components;
-using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Conditions;
 
@@ -20,7 +19,9 @@ public class Heavy
 
             var condition = Condition.ApplyToTarget(target, "Slowed", duration, Id, extendDuration, overrideExistingDuration);
 
-            condition.Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
+            condition
+                .Set(new Condition.NetworkMessage(Network.Message.Condition.Heavy))
+                .Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
                 .Set(new Condition.Status(IconToReplace, "Heavy", "Movement speed is reduced."))
                 .Set(new Condition.StatusTooltip("Heavy (RaidsRewritten)"))
                 .Add<Condition.StatusEnfeeblement>();

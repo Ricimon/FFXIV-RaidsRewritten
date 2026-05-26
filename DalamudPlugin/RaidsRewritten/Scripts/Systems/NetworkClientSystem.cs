@@ -1,26 +1,116 @@
 ﻿using System;
+using System.Collections.Generic;
 using AsyncAwaitBestPractices;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
+using RaidsRewritten.Log;
 using RaidsRewritten.Network;
+using RaidsRewritten.Scripts.Conditions;
+using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Systems;
 
-public class NetworkClientSystem(DalamudServices dalamud, NetworkClient networkClient, Configuration configuration) : ISystem
+public sealed class NetworkClientSystem(DalamudServices dalamud, NetworkClient networkClient, Configuration configuration, ILogger logger) : ISystem, IDisposable
 {
     private const int SendPositionIntervalMs = 250;
 
+    private struct SyncConditions;
+
+    private Query<Condition.Component, Condition.Id, Condition.NetworkMessage> localPlayerClientConditions;
+    private Query<Condition.Component, Condition.Id, Condition.NetworkMessage> localPlayerUnsyncedClientConditions;
     private long? syncedPartyId;
     private DateTime nextAllowedPositionSend;
 
     public void Register(World world)
     {
+        localPlayerClientConditions = world.QueryBuilder<Condition.Component, Condition.Id, Condition.NetworkMessage>()
+            .With<Player.LocalPlayer>().Up()
+            .Without<Condition.ServerCondition>().Cached().Build();
+        localPlayerUnsyncedClientConditions = world.QueryBuilder<Condition.Component, Condition.Id, Condition.NetworkMessage>()
+            .With<Player.LocalPlayer>().Up()
+            .Without<Condition.ServerCondition>().Without<Condition.SyncedToServer>().Cached().Build();
+
         world.System()
             .Each((_, _) =>
             {
                 RunPartySync();
                 RunPositionSync();
             });
+
+        world.System<Condition.Component>()
+            .With<Player.LocalPlayer>().Up()
+            .Each((Iter it, int i, ref Condition.Component _) =>
+            {
+                var entity = it.Entity(i);
+                if (!networkClient.IsConnected)
+                {
+                    entity.Remove<Condition.SyncedToServer>();
+                    return;
+                }
+            });
+
+        // Client-controlled condition syncing
+        world.System()
+            .With<Player.LocalPlayer>()
+            .Each((Iter it, int i) =>
+            {
+                var entity = it.Entity(i);
+                if (!networkClient.IsConnected)
+                {
+                    return;
+                }
+
+                if (localPlayerUnsyncedClientConditions.IsTrue() ||
+                    entity.Has<SyncConditions>())
+                {
+                    var conditions = new List<Message.SyncConditionsOnSelf.ConditionDetails>();
+                    localPlayerClientConditions.Each((Entity e, ref Condition.Component condition, ref Condition.Id id, ref Condition.NetworkMessage networkMessage) =>
+                    {
+                        conditions.Add(new Message.SyncConditionsOnSelf.ConditionDetails
+                        {
+                            id = id.Value,
+                            condition = networkMessage.Condition,
+                            timeRemaining = condition.TimeRemaining,
+                        });
+                        e.Add<Condition.SyncedToServer>();
+                    });
+                    var syncConditionsOnSelf = new Message
+                    {
+                        action = Message.Action.SyncConditionsOnSelf,
+                        syncConditionsOnSelf = new Message.SyncConditionsOnSelf
+                        {
+                            conditions = [..conditions],
+                        }
+                    };
+                    networkClient.SendAsync(syncConditionsOnSelf).SafeFireAndForget();
+
+                    entity.Remove<SyncConditions>();
+                }
+            });
+
+        // Broadcast conditions to server when any client-controlled conditions are removed
+        // Trying to use With/Without methods on an OnRemove observer causes a crash on Dispose, not sure why
+        world.Observer<Condition.Component>()
+            .Event(Ecs.OnRemove)
+            .Each((Entity e, ref Condition.Component _) =>
+            {
+                if (!networkClient.IsConnected) { return; }
+
+                if (!e.IsValid()) { return; }
+                if (e.Has<Condition.ServerCondition>()) { return; }
+
+                var parent = e.Parent();
+                if (!parent.IsValid()) { return; }
+                if (!parent.Has<Player.LocalPlayer>()) { return; }
+
+                parent.Add<SyncConditions>();
+            });
+    }
+
+    public void Dispose()
+    {
+        if (localPlayerClientConditions.IsValid()) { localPlayerClientConditions.Dispose(); }
+        if (localPlayerUnsyncedClientConditions.IsValid()) { localPlayerUnsyncedClientConditions.Dispose(); }
     }
 
     private void RunPartySync()

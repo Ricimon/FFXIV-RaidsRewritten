@@ -98,7 +98,7 @@ public sealed class PartyPlayersSystem(DalamudServices dalamud, Configuration co
                     {
                         if (partyMember.GameObject is IPlayerCharacter pc)
                         {
-                            Player.Create(it.World(), false, pc);
+                            Player.Create(it.World(), false, pc, partyMember.ContentId);
                             logger.Info("Created a Player entity with id {0}, name {1}", id, pc.GetPlayerFullName()!);
                         }
                     }
