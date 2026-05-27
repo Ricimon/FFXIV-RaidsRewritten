@@ -116,7 +116,8 @@ public sealed class NetworkClientSystem(DalamudServices dalamud, NetworkClient n
 
     private void RunPartySync()
     {
-        if (!networkClient.IsConnected)
+        if (!networkClient.IsConnected ||
+            !dalamud.PlayerState.IsLoaded)
         {
             syncedPartyId = null;
             return;

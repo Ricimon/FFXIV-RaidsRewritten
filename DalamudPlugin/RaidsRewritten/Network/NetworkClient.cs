@@ -179,7 +179,7 @@ public sealed class NetworkClient(
 
         if (!dalamud.PlayerState.IsLoaded)
         {
-            logger.Error("PlayerState is not loaded. Disconnecting client.");
+            logger.Warn("PlayerState is not loaded. Disconnecting client.");
             DisconnectAsync().SafeFireAndForget();
             return;
         }
