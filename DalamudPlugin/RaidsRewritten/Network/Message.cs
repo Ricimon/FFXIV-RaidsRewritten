@@ -215,6 +215,9 @@ public struct Message
             public float paralysisStunInterval;
             [JsonProperty(PropertyName = "psd")]
             public float paralysisStunDuration;
+
+            [JsonProperty(PropertyName = "hri")]
+            public float hysteriaRedirectionInterval;
         }
         public struct Player
         {

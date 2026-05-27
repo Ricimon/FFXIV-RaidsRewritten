@@ -216,4 +216,7 @@ pub struct UpdateConditionsConditionDetails {
     pub paralysis_stun_interval: Option<f32>,
     #[serde(rename = "psd")]
     pub paralysis_stun_duration: Option<f32>,
+
+    #[serde(rename = "hri")]
+    pub hysteria_redirection_interval: Option<f32>,
 }

@@ -256,6 +256,21 @@ public class NetworkClientMessageHandler(
                                     case Message.Condition.Bind:
                                         Bind.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: false);
                                         break;
+                                    case Message.Condition.Heavy:
+                                        Heavy.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: false);
+                                        break;
+                                    case Message.Condition.Hysteria:
+                                        Hysteria.ApplyToTarget(playerEntity, c.timeRemaining, c.hysteriaRedirectionInterval, c.id, overrideExistingDuration: true, isClientControlled: false);
+                                        break;
+                                    case Message.Condition.Pacify:
+                                        Pacify.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: false);
+                                        break;
+                                    case Message.Condition.Sleep:
+                                        Sleep.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: false);
+                                        break;
+                                    case Message.Condition.Knockback:
+                                        Knockback.ApplyToTarget(playerEntity, new(c.knockbackDirectionX, 0, c.knockbackDirectionZ), c.timeRemaining, false);
+                                        break;
                                 }
                             }
                         }

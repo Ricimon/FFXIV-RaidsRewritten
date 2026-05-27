@@ -16,13 +16,30 @@ public class Hysteria(Random random, ILogger logger) : ISystem
     public record struct Component(float RedirectionInterval,
         float TimeUntilRedirection = 0, Vector3 MoveDirection = default);
 
-    public static void ApplyToTarget(Entity target, float duration, float redirectionInterval, bool extendDuration = false, bool overrideExistingDuration = false)
+    public static void ApplyToTarget(
+        Entity target,
+        float duration,
+        float redirectionInterval,
+        bool extendDuration = false,
+        bool overrideExistingDuration = false)
+    {
+        ApplyToTarget(target, duration, redirectionInterval, Id, extendDuration, overrideExistingDuration);
+    }
+
+    public static void ApplyToTarget(
+        Entity target,
+        float duration,
+        float redirectionInterval,
+        BigInteger id,
+        bool extendDuration = false,
+        bool overrideExistingDuration = false,
+        bool isClientControlled = true)
     {
         DelayedAction.Create(target.CsWorld(), (ref Iter it) =>
         {
             var world = it.World();
 
-            var condition = Condition.ApplyToTarget(target, "Hysteria", duration, Id, extendDuration, overrideExistingDuration);
+            var condition = Condition.ApplyToTarget(target, "Hysteria", duration, id, extendDuration, overrideExistingDuration, isClientControlled);
 
             condition
                 .Set(new Condition.NetworkMessage(Network.Message.Condition.Hysteria))
@@ -49,6 +66,11 @@ public class Hysteria(Random random, ILogger logger) : ISystem
             .With<Player.LocalPlayer>().Up()
             .Each((Iter it, int i, ref Player.Component pc, ref Component component) =>
             {
+                if (component.RedirectionInterval <= 0)
+                {
+                    return;
+                }
+
                 component.TimeUntilRedirection -= it.DeltaTime();
 
                 if (component.TimeUntilRedirection <= 0)
