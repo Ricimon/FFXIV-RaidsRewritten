@@ -235,13 +235,13 @@ fn process_messages(world: &World, queries: &CommonQueries, rx_from_ws: &Receive
                                 if condition.id == c.id {
                                     condition.condition = c.condition;
                                     condition.time_remaining = c.time_remaining;
+                                    if c.newly_applied {
+                                        ce.remove(BroadcastedCondition);
+                                    }
                                     found_existing_condition = true;
                                     broadcast = true;
                                 }
                             });
-                            if c.newly_applied {
-                                ce.remove(BroadcastedCondition);
-                            }
                         }
                     });
 

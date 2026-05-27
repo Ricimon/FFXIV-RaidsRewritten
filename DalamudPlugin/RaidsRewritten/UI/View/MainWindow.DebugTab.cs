@@ -98,7 +98,7 @@ public partial class MainWindow
             var player = this.dalamud.ObjectTable.LocalPlayer;
             if (player != null)
             {
-                this.logger.Info($"Player position:{player.Position}, address:0x{player.Address:X}, entityId:0x{player.EntityId:X}, gameObjectId:0x{player.GameObjectId:X}");
+                this.logger.Info($"Player position:{player.Position}, address:0x{player.Address:X}, entityId:0x{player.EntityId:X}, gameObjectId:0x{player.GameObjectId:X}, contentId:{dalamud.PlayerState.ContentId}");
             }
         }
         SameLineIfFits("Print Target Data");
