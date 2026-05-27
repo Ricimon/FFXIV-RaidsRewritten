@@ -106,6 +106,7 @@ pub struct SyncConditionsOnSelfPayload {
     #[serde(rename = "c")]
     pub conditions: Vec<SyncConditionsOnSelfConditionDetails>,
 }
+#[serde_as]
 #[derive(Serialize, Deserialize, Debug)]
 pub struct SyncConditionsOnSelfConditionDetails {
     pub id: u128,
@@ -114,6 +115,7 @@ pub struct SyncConditionsOnSelfConditionDetails {
     #[serde(rename = "t")]
     pub time_remaining: f32,
     #[serde(rename = "n")]
+    #[serde_as(as = "BoolFromInt<Flexible>")]
     pub newly_applied: bool,
 }
 
