@@ -21,7 +21,7 @@ public static class FlecsExtensions
     {
         unsafe
         {
-            return query.CPtr() != null;
+            return query.CPtr() != null && query.Entity().IsValid();
         }
     }
 
@@ -29,7 +29,7 @@ public static class FlecsExtensions
     {
         unsafe
         {
-            return query.CPtr() != null;
+            return query.CPtr() != null && query.Entity().IsValid();
         }
     }
 
@@ -37,8 +37,23 @@ public static class FlecsExtensions
     {
         unsafe
         {
-            return query.CPtr() != null;
+            return query.CPtr() != null && query.Entity().IsValid();
         }
+    }
+
+    public static void SafeDispose<T>(this ref Query<T> query)
+    {
+        if (query.IsValid()) { query.Dispose(); }
+    }
+
+    public static void SafeDispose<T0, T1>(this ref Query<T0, T1> query)
+    {
+        if (query.IsValid()) { query.Dispose(); }
+    }
+
+    public static void SafeDispose<T0, T1, T2>(this ref Query<T0, T1, T2> query)
+    {
+        if (query.IsValid()) { query.Dispose(); }
     }
 
     public static bool HasChildren(this Entity entity)

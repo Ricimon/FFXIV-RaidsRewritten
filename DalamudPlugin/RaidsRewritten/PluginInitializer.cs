@@ -7,6 +7,7 @@ using Dalamud.Plugin.Services;
 using ECommons.DalamudServices;
 using Ninject;
 using Ninject.Extensions.Factory;
+using Ninject.Planning.Bindings.Resolvers;
 using RaidsRewritten.Log;
 using RaidsRewritten.Ninject;
 using RaidsRewritten.Utility;
@@ -46,6 +47,8 @@ public sealed class PluginInitializer : IDalamudPlugin
     public PluginInitializer()
     {
         this.kernel = new StandardKernel(new PluginModule(), new FuncModule());
+        // Remove implicit bindings - all bindings must be explicitly declared
+        this.kernel.Components.Remove<IMissingBindingResolver, SelfBindingResolver>();
 
         //Services
         Svc.Init(PluginInterface, this.kernel.Get<ILogger>());

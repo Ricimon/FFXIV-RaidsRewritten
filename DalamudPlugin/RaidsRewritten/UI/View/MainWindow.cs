@@ -96,6 +96,8 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
         this.random = random;
         this.logger = logger;
 
+        encounterManager.EncounterLoaded += OpenWindow;
+
         var version = GetType().Assembly.GetName().Version?.ToString() ?? string.Empty;
         this.windowName = PluginInitializer.Name;
         if (version.Length > 0)
@@ -152,7 +154,13 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
 
     public void Dispose()
     {
+        encounterManager.EncounterLoaded -= OpenWindow;
         windowSystem.RemoveWindow(this);
+    }
+
+    private void OpenWindow()
+    {
+        Visible = true;
     }
 
     private void DrawContents()

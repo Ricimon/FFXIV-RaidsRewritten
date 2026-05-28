@@ -1,5 +1,6 @@
 ﻿// adapted from https://github.com/kawaii/Moodles/blob/main/Moodles/GameGuiProcessors/StatusProcessor.cs
 // 37e76d3
+using System;
 using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -13,7 +14,7 @@ using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Memory;
 
-public unsafe class StatusProcessor
+public unsafe sealed class StatusProcessor : IDisposable
 {
     private enum DisplayOption
     {

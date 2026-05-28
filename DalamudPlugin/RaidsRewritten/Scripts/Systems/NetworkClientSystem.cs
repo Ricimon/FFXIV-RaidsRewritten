@@ -110,8 +110,8 @@ public sealed class NetworkClientSystem(DalamudServices dalamud, NetworkClient n
 
     public void Dispose()
     {
-        if (localPlayerClientConditions.IsValid()) { localPlayerClientConditions.Dispose(); }
-        if (localPlayerUnsyncedClientConditions.IsValid()) { localPlayerUnsyncedClientConditions.Dispose(); }
+        localPlayerClientConditions.SafeDispose();
+        localPlayerUnsyncedClientConditions.SafeDispose();
     }
 
     private void RunPartySync()

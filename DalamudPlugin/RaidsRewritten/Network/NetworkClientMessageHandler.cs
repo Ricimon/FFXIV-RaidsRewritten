@@ -15,16 +15,17 @@ using ZLinq;
 
 namespace RaidsRewritten.Network;
 
-public class NetworkClientMessageHandler(
-    Lazy<NetworkClient> networkClient,
+public sealed class NetworkClientMessageHandler(
     DalamudServices dalamud,
     VfxSpawn vfxSpawn,
-    Lazy<EcsContainer> ecsContainer,
+    EcsContainer ecsContainer,
     CommonQueries commonQueries,
     Configuration configuration,
     ILogger logger)
 {
-    private World World => ecsContainer.Value.World;
+    public NetworkClient? Client { get; set; }
+
+    private World World => ecsContainer.World;
 
     public void OnMessage(SocketIOResponse response)
     {
@@ -105,7 +106,7 @@ public class NetworkClientMessageHandler(
 
     private void UpdatePartyStatus(Message.UpdatePartyStatusPayload payload)
     {
-        networkClient.Value.ConnectedPlayersInParty = payload.connectedPlayersInParty;
+        Client?.ConnectedPlayersInParty = payload.connectedPlayersInParty;
     }
 
     private void PlayStaticVfx(Message.PlayStaticVfxPayload payload)
@@ -176,7 +177,8 @@ public class NetworkClientMessageHandler(
         {
             World.Defer(() =>
             {
-                World.Query<VfxId>().Each((Iter it, int i, ref VfxId vfxId) =>
+                using var q = World.Query<VfxId>();
+                q.Each((Iter it, int i, ref VfxId vfxId) =>
                 {
                     if (vfxId.Value == payload.id)
                     {
@@ -195,7 +197,8 @@ public class NetworkClientMessageHandler(
             {
                 foreach(var p in payload.players)
                 {
-                    var playerEntity = World.Query<Player.ContentId>().Find((ref id) => id.Value == p.contentId);
+                    using var pq = World.Query<Player.ContentId>();
+                    var playerEntity = pq.Find((ref id) => id.Value == p.contentId);
                     if (playerEntity.IsValid())
                     {
                         var isLocalPlayer = playerEntity.Has<Player.LocalPlayer>();

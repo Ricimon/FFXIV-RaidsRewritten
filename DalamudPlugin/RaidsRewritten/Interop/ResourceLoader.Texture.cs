@@ -15,6 +15,7 @@ public unsafe partial class ResourceLoader
 
     public delegate void AtkComponentIconText_ReceiveEvent(nint a1, short a2, nint a3, nint a4, nint a5);
     public Hook<AtkComponentIconText_ReceiveEvent> AtkComponentIconTextReceiveEventHook { get; private set; }
+    public event Action<nint> OnAtkComponentIconTextReceiveHoverEvent;
 
     private void AtkComponentIconText_ReceiveEventDetour(nint a1, short a2, nint a3, nint a4, nint a5)
     {
@@ -23,11 +24,11 @@ public unsafe partial class ResourceLoader
             //PluginLog.Debug($"{a1:X16}, {a2}, {a3:X16}, {a4:X16}, {a5:X16}");
             if (a2 == 6)
             {
-                statusCommonProcessor.Value.HoveringOver = a1;
+                OnAtkComponentIconTextReceiveHoverEvent?.Invoke(a1);
             }
             if (a2 == 7)
             {
-                statusCommonProcessor.Value.HoveringOver = 0;
+                OnAtkComponentIconTextReceiveHoverEvent?.Invoke(0);
             }
             //// Handle Cancellation Request on Right Click
             //if (a2 == 9 && P.CommonProcessor.WasRightMousePressed)

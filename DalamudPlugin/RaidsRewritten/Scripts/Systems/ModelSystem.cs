@@ -1,5 +1,4 @@
-﻿using System;
-using Dalamud.Hooking;
+﻿using Dalamud.Hooking;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Flecs.NET.Core;
@@ -11,53 +10,19 @@ using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Systems;
 
-public unsafe sealed class ModelSystem : ISystem, IDisposable
+public unsafe sealed class ModelSystem(DalamudServices dalamud, EcsContainer ecsContainer, ILogger logger) : ISystem, IDalamudHook
 {
-    private readonly DalamudServices dalamud;
-    private readonly Lazy<EcsContainer> ecsContainer;
-    private readonly ILogger logger;
-
     private const string CalculateAndApplyOverallSpeedSig = "E8 ?? ?? ?? ?? 48 8D 8B ?? ?? ?? ?? 48 8B 01 FF 50 ?? 48 8D 8B ?? ?? ?? ?? 48 8B 01 FF 50 ?? F6 83";
     private delegate bool CalculateAndApplyOverallSpeedDelegate(TimelineContainer* a1);
-    private readonly Hook<CalculateAndApplyOverallSpeedDelegate> calculateAndApplyOverallSpeedHook = null!;
+    private Hook<CalculateAndApplyOverallSpeedDelegate> calculateAndApplyOverallSpeedHook = null!;
 
     private Query<Model, ModelTimelineSpeed> modelTimelineSpeedQuery;
 
-    public ModelSystem(DalamudServices dalamud, Lazy<EcsContainer> ecsContainer, ILogger logger)
+    public void HookToDalamud()
     {
-        this.dalamud = dalamud;
-        this.ecsContainer = ecsContainer;
-        this.logger = logger;
-
         var calculateAndApplyAddress = dalamud.SigScanner.ScanText(CalculateAndApplyOverallSpeedSig);
         calculateAndApplyOverallSpeedHook = dalamud.GameInteropProvider.HookFromAddress<CalculateAndApplyOverallSpeedDelegate>(calculateAndApplyAddress, CalculateAndApplyOverallSpeedDetour);
         calculateAndApplyOverallSpeedHook.Enable();
-    }
-
-    public void Dispose()
-    {
-        calculateAndApplyOverallSpeedHook.Dispose();
-
-        this.modelTimelineSpeedQuery.Dispose();
-
-        using (var q = this.ecsContainer.Value.World.Query<Model>())
-        {
-            q.Each((Iter it, int i, ref Model model) =>
-            {
-                if (model.Spawned)
-                {
-                    DeleteModel(model.GameObjectIndex);
-                }
-            });
-        }
-
-        using (var q = this.ecsContainer.Value.World.Query<ModelFadeOut>())
-        {
-            q.Each((Iter it, int i, ref ModelFadeOut model) =>
-            {
-                DeleteModel(model.GameObjectIndex);
-            });
-        }
     }
 
     public void Register(Flecs.NET.Core.World world)
@@ -73,7 +38,7 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
                     var idx = ClientObjectManager.Instance()->CreateBattleCharacter();
                     if (idx == 0xFFFFFFFF)
                     {
-                        this.logger.Warn("Model could not be spawned");
+                        logger.Warn("Model could not be spawned");
                         return;
                     }
 
@@ -120,7 +85,7 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
                     // Needed to get Actor VFX to play on GameObject
                     obj->RenderFlags = 0;
 
-                    model.GameObject = this.dalamud.ObjectTable.CreateObjectReference((nint)obj);
+                    model.GameObject = dalamud.ObjectTable.CreateObjectReference((nint)obj);
 
                     if (model.GameObject != null)
                     {
@@ -238,17 +203,46 @@ public unsafe sealed class ModelSystem : ISystem, IDisposable
             });
     }
 
+    public void Dispose()
+    {
+        calculateAndApplyOverallSpeedHook?.Dispose();
+
+        modelTimelineSpeedQuery.SafeDispose();
+
+        if (!ecsContainer.World.ShouldQuit())
+        {
+            using (var q = ecsContainer.World.Query<Model>())
+            {
+                q.Each((Iter it, int i, ref Model model) =>
+                {
+                    if (model.Spawned)
+                    {
+                        DeleteModel(model.GameObjectIndex);
+                    }
+                });
+            }
+
+            using (var q = ecsContainer.World.Query<ModelFadeOut>())
+            {
+                q.Each((Iter it, int i, ref ModelFadeOut model) =>
+                {
+                    DeleteModel(model.GameObjectIndex);
+                });
+            }
+        }
+    }
+
     private bool CalculateAndApplyOverallSpeedDetour(TimelineContainer* a1)
     {
-        if (!this.modelTimelineSpeedQuery.IsValid())
+        if (!modelTimelineSpeedQuery.IsValid())
         {
             // This can't be constructed in the constructor because it would cause a circular dependency reference
-            this.modelTimelineSpeedQuery = this.ecsContainer.Value.World.Query<Model, ModelTimelineSpeed>();
+            modelTimelineSpeedQuery = ecsContainer.World.Query<Model, ModelTimelineSpeed>();
         }
 
         bool result = calculateAndApplyOverallSpeedHook.Original(a1);
         // Convert this to a dictionary lookup if needed
-        this.modelTimelineSpeedQuery.Each((ref Model model, ref ModelTimelineSpeed speed) =>
+        modelTimelineSpeedQuery.Each((ref Model model, ref ModelTimelineSpeed speed) =>
         {
             if (model.GameObject != null &&
                 model.GameObject.Address == (nint)a1->OwnerObject)

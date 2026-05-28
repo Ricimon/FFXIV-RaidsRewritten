@@ -29,7 +29,7 @@ using ZLinq;
 
 namespace RaidsRewritten.Memory;
 
-public unsafe class StatusPartyListProcessor
+public unsafe sealed class StatusPartyListProcessor : IDisposable
 {
     private record struct PlayerDictElement(AtkResNode*[] IconArray, bool Dirty, int PrevNumStatuses, int Order);
     private record struct VisiblePartyElement(nint GameObj, int Order);

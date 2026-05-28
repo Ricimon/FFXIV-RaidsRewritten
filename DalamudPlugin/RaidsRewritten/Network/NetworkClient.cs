@@ -14,11 +14,7 @@ using SocketIOClient;
 
 namespace RaidsRewritten.Network;
 
-public sealed class NetworkClient(
-    NetworkClientMessageHandler messageHandler,
-    DalamudServices dalamud,
-    Configuration configuration,
-    ILogger logger) : IDisposable
+public sealed class NetworkClient : IDisposable
 {
     public bool IsConnecting { get; private set; }
     public bool IsConnected { get; private set; }
@@ -32,8 +28,25 @@ public sealed class NetworkClient(
         ContractResolver = new LongNameContractResolver(),
         Converters = [new StringEnumConverter()],
     };
-
+    private readonly NetworkClientMessageHandler messageHandler;
+    private readonly DalamudServices dalamud;
+    private readonly Configuration configuration;
+    private readonly ILogger logger;
     private SocketIOClient.SocketIO? client;
+
+    public NetworkClient(
+        NetworkClientMessageHandler messageHandler,
+        DalamudServices dalamud,
+        Configuration configuration,
+        ILogger logger)
+    {
+        this.messageHandler = messageHandler;
+        this.dalamud = dalamud;
+        this.configuration = configuration;
+        this.logger = logger;
+
+        messageHandler.Client = this;
+    }
 
     public string GetServerUrl()
     {
@@ -161,6 +174,7 @@ public sealed class NetworkClient(
             client.OnDisconnected -= OnDisconnected;
             client.OnError -= OnError;
             client.OnReconnectAttempt -= OnReconnectAttempt;
+            client.Off("message");
         }
         client = null;
         IsConnecting = IsConnected = false;

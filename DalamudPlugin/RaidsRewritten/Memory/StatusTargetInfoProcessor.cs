@@ -18,7 +18,7 @@ using System.Text;
 
 namespace RaidsRewritten.Memory;
 
-public unsafe class StatusTargetInfoProcessor
+public unsafe sealed class StatusTargetInfoProcessor : IDisposable
 {
     private readonly Configuration configuration;
     private readonly DalamudServices dalamudServices;

@@ -17,14 +17,12 @@ public unsafe class StatusSystem(
     Configuration configuration,
     DalamudServices dalamud,
     StatusCommonProcessor statusCommonProcessor,
-    Lazy<StatusFlyPopupTextProcessor> statusFlyPopupTextProcessor,
     ILogger logger) : ISystem
 {
     private readonly CommonQueries commonQueries = commonQueries;
     private readonly Configuration configuration = configuration;
     private readonly DalamudServices dalamud = dalamud;
     private readonly StatusCommonProcessor statusCommonProcessor = statusCommonProcessor;
-    private readonly Lazy<StatusFlyPopupTextProcessor> statusFlyPopupTextProcessor = statusFlyPopupTextProcessor;
     private readonly ILogger logger = logger;
 
     public void Register(World world)

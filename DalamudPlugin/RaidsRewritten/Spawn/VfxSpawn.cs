@@ -45,10 +45,22 @@ public class VfxLoopItem
     }
 }
 
-public unsafe sealed class VfxSpawn(ResourceLoader resourceLoader, ILogger logger) : IDisposable
+public unsafe sealed class VfxSpawn : IDisposable
 {
     public readonly Dictionary<BaseVfx, VfxSpawnItem> Vfxs = [];
     public readonly List<VfxLoopItem> ToLoop = [];
+
+    private readonly ResourceLoader resourceLoader;
+    private readonly ILogger logger;
+
+    public VfxSpawn(ResourceLoader resourceLoader, ILogger logger)
+    {
+        this.resourceLoader = resourceLoader;
+        this.logger = logger;
+
+        resourceLoader.OnStaticVfxRemoved += InteropRemoved;
+        resourceLoader.OnActorVfxRemoved += InteropRemoved;
+    }
 
     public StaticVfx SpawnStaticVfx(string path, Vector3 position, float rotation)
     {
@@ -74,6 +86,8 @@ public unsafe sealed class VfxSpawn(ResourceLoader resourceLoader, ILogger logge
     public void Dispose()
     {
         Clear();
+        resourceLoader.OnStaticVfxRemoved -= InteropRemoved;
+        resourceLoader.OnActorVfxRemoved -= InteropRemoved;
     }
 
     public void Clear()
@@ -108,5 +122,10 @@ public unsafe sealed class VfxSpawn(ResourceLoader resourceLoader, ILogger logge
         vfx = null!;
         if (data == IntPtr.Zero || Vfxs.Count == 0) { return false; }
         return Vfxs.Keys.FindFirst(x => data == x.GetVfxPointer(), out vfx!);
+    }
+
+    private void InteropRemoved(IntPtr data, char a2)
+    {
+        InteropRemoved(data);
     }
 }

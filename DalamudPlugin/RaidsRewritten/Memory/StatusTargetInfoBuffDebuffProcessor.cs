@@ -15,7 +15,7 @@ using System.Text;
 
 namespace RaidsRewritten.Memory;
 
-public unsafe class StatusTargetInfoBuffDebuffProcessor
+public unsafe sealed class StatusTargetInfoBuffDebuffProcessor : IDisposable
 {
     private readonly Configuration configuration;
     private readonly DalamudServices dalamudServices;

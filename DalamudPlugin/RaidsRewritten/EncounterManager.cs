@@ -28,7 +28,6 @@ public sealed class EncounterManager(
     ActorControlProcessor actorControlProcessor,
     StatusPartyListProcessor statusPartyListProcessor,
     MoodlesIPC moodlesIPC,
-    Lazy<MainWindow> mainWindow,
     Configuration configuration,
     IEncounter[] encounters,
     ILogger logger) : IDalamudHook
@@ -36,6 +35,8 @@ public sealed class EncounterManager(
     public IEncounter[] Encounters => encounters;
     public IEncounter? ActiveEncounter { get; private set; }
     public bool InCombat => inCombat ?? false;
+
+    public event Action? EncounterLoaded;
 
     private readonly List<string> BlacklistedPcVfx = [
         "vfx/common/eff/dk02ht_zan0m.avfx",
@@ -83,7 +84,7 @@ public sealed class EncounterManager(
             if (!configuration.EverythingDisabled)
             {
                 moodlesIPC.CheckMoodles();
-                mainWindow.Value.Visible = true;
+                EncounterLoaded?.Invoke();
             }
         }
         else
@@ -115,7 +116,7 @@ public sealed class EncounterManager(
             if (!configuration.EverythingDisabled)
             {
                 moodlesIPC.CheckMoodles();
-                mainWindow.Value.Visible = true;
+                EncounterLoaded?.Invoke();
             }
         }
         else

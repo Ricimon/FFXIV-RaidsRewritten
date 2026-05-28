@@ -1,5 +1,6 @@
 ﻿using System;
 using Flecs.NET.Core;
+using RaidsRewritten.Log;
 using RaidsRewritten.Memory;
 using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
@@ -7,71 +8,42 @@ using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Game;
 
-public sealed class CommonQueries : IDisposable
+public sealed class CommonQueries(ILogger logger) : IDisposable
 {
-    public Query<Player.Component> LocalPlayerQuery { get; private set; }
-    public Query<Player.Component> AllPlayersQuery { get; private set; }
-    public Query<Player.Component> AllOtherPlayersQuery { get; private set; }
+    public Query<Player.Component> LocalPlayerQuery;
+    public Query<Player.Component> AllPlayersQuery;
+    public Query<Player.Component> AllOtherPlayersQuery;
 
-    public Query<Condition.Component, Condition.Status, Condition.StatusTooltip> StatusQuery { get; private set; }
-    public Query<Condition.Component, Condition.Status, Condition.StatusTooltip> StatusEnhancementQuery { get; private set; }
-    public Query<Condition.Component, Condition.Status, Condition.StatusTooltip> StatusEnfeeblementQuery { get; private set; }
-    public Query<Condition.Component, Condition.Status, Condition.StatusTooltip> StatusOtherQuery { get; private set; }
-    public Query<FlyText, FlyTextReady> StatusFlyTextReadyQuery { get; private set; }
-
-    private bool disposed;
+    public Query<Condition.Component, Condition.Status, Condition.StatusTooltip> StatusQuery;
+    public Query<Condition.Component, Condition.Status, Condition.StatusTooltip> StatusEnhancementQuery;
+    public Query<Condition.Component, Condition.Status, Condition.StatusTooltip> StatusEnfeeblementQuery;
+    public Query<Condition.Component, Condition.Status, Condition.StatusTooltip> StatusOtherQuery;
+    public Query<FlyText, FlyTextReady> StatusFlyTextReadyQuery;
 
     public void CreateQueries(World world)
     {
-        if (!this.LocalPlayerQuery.IsValid())
-        {
-            this.LocalPlayerQuery = world.QueryBuilder<Player.Component>().With<Player.LocalPlayer>().Cached().Build();
-        }
-        if (!this.AllPlayersQuery.IsValid())
-        {
-            this.AllPlayersQuery = world.QueryBuilder<Player.Component>().Cached().Build();
-        }
-        if (!this.AllOtherPlayersQuery.IsValid())
-        {
-            this.AllOtherPlayersQuery = world.QueryBuilder<Player.Component>().Without<Player.LocalPlayer>().Cached().Build();
-        }
+        LocalPlayerQuery = world.QueryBuilder<Player.Component>().With<Player.LocalPlayer>().Cached().Build();
+        AllPlayersQuery = world.QueryBuilder<Player.Component>().Cached().Build();
+        AllOtherPlayersQuery = world.QueryBuilder<Player.Component>().Without<Player.LocalPlayer>().Cached().Build();
 
         // these are here because I crash on dispose if I put these in StatusCustomProcessor
-        if (!this.StatusQuery.IsValid())
-        {
-            this.StatusQuery = StatusCommonProcessor.QueryForStatus(world);
-        }
-        if (!this.StatusEnhancementQuery.IsValid())
-        {
-            this.StatusEnhancementQuery = StatusCommonProcessor.QueryForStatusType<Condition.StatusEnhancement>(world);
-        }
-        if (!this.StatusEnfeeblementQuery.IsValid())
-        {
-            this.StatusEnfeeblementQuery = StatusCommonProcessor.QueryForStatusType<Condition.StatusEnfeeblement>(world);
-        }
-        if (!this.StatusOtherQuery.IsValid())
-        {
-            this.StatusOtherQuery = StatusCommonProcessor.QueryForStatusType<Condition.StatusOther>(world);
-        }
-        if (!this.StatusFlyTextReadyQuery.IsValid())
-        {
-            this.StatusFlyTextReadyQuery = world.QueryBuilder<FlyText, FlyTextReady>().Cached().Build();
-        }
+        StatusQuery = StatusCommonProcessor.QueryForStatus(world);
+        StatusEnhancementQuery = StatusCommonProcessor.QueryForStatusType<Condition.StatusEnhancement>(world);
+        StatusEnfeeblementQuery = StatusCommonProcessor.QueryForStatusType<Condition.StatusEnfeeblement>(world);
+        StatusOtherQuery = StatusCommonProcessor.QueryForStatusType<Condition.StatusOther>(world);
+        StatusFlyTextReadyQuery = world.QueryBuilder<FlyText, FlyTextReady>().Cached().Build();
     }
 
     public void Dispose()
     {
-        // Anything related to queries cannot be accessed after the world has been destroyed, so only
-        // allow this Dispose method to be called once, which should be right before World destruction.
-        if (disposed) { return; }
+        LocalPlayerQuery.SafeDispose();
+        AllPlayersQuery.SafeDispose();
+        AllOtherPlayersQuery.SafeDispose();
 
-        if (this.LocalPlayerQuery.IsValid()) { this.LocalPlayerQuery.Dispose(); }
-        if (this.AllPlayersQuery.IsValid()) { this.AllPlayersQuery.Dispose(); }
-        if (this.AllOtherPlayersQuery.IsValid()) { this.AllOtherPlayersQuery.Dispose(); }
-        if (this.StatusEnhancementQuery.IsValid()) { this.StatusEnhancementQuery.Dispose(); }
-        if (this.StatusEnfeeblementQuery.IsValid()) { this.StatusEnfeeblementQuery.Dispose(); }
-        if (this.StatusOtherQuery.IsValid()) { this.StatusOtherQuery.Dispose(); }
-        if (this.StatusFlyTextReadyQuery.IsValid()) { this.StatusFlyTextReadyQuery.Dispose(); }
-        disposed = true;
+        StatusQuery.SafeDispose();
+        StatusEnhancementQuery.SafeDispose();
+        StatusEnfeeblementQuery.SafeDispose();
+        StatusOtherQuery.SafeDispose();
+        StatusFlyTextReadyQuery.SafeDispose();
     }
 }

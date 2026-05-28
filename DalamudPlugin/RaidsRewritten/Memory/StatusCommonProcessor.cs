@@ -25,7 +25,7 @@ using World = Flecs.NET.Core.World;
 
 namespace RaidsRewritten.Memory;
 
-public sealed unsafe class StatusCommonProcessor : IDisposable
+public sealed unsafe class StatusCommonProcessor : IDalamudHook, IDisposable
 {
     private Configuration configuration;
     private DalamudServices dalamudServices;
@@ -65,8 +65,12 @@ public sealed unsafe class StatusCommonProcessor : IDisposable
                 StatusData[(uint)(x.Icon + i - 1)] = baseData with { StackCount = (uint) i };
             }
         }
+    }
 
+    public void HookToDalamud()
+    {
         dalamudServices.Framework.Update += Framework_Update;
+        resourceLoader.OnAtkComponentIconTextReceiveHoverEvent += OnAtkComponentIconTextReceiveHoverEvent;
     }
 
     private void Framework_Update(Dalamud.Plugin.Services.IFramework framework)
@@ -80,6 +84,7 @@ public sealed unsafe class StatusCommonProcessor : IDisposable
     public void Dispose()
     {
         dalamudServices.Framework.Update -= Framework_Update;
+        resourceLoader.OnAtkComponentIconTextReceiveHoverEvent -= OnAtkComponentIconTextReceiveHoverEvent;
         Marshal.FreeHGlobal(TooltipMemory);
     }
 
@@ -171,6 +176,11 @@ public sealed unsafe class StatusCommonProcessor : IDisposable
                 AtkStage.Instance()->TooltipManager.HideTooltip(addon->Id);
             }
         }
+    }
+
+    private void OnAtkComponentIconTextReceiveHoverEvent(nint obj)
+    {
+        HoveringOver = obj;
     }
 
     public unsafe static ByteColor CreateColor(uint color)

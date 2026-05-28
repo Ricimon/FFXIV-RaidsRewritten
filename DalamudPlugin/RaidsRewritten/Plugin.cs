@@ -1,22 +1,18 @@
-﻿using System.Collections.Generic;
-using RaidsRewritten.Log;
+﻿using RaidsRewritten.Log;
 
 namespace RaidsRewritten;
 
 public class Plugin(
-    IEnumerable<IDalamudHook> dalamudHooks,
+    IDalamudHook[] dalamudHooks,
     ILogger logger)
 {
-    private IEnumerable<IDalamudHook> DalamudHooks { get; init; } = dalamudHooks;
-    private ILogger Logger { get; init; } = logger;
-
     public void Initialize()
     {
-        foreach (var dalamudHook in this.DalamudHooks)
+        foreach (var dalamudHook in dalamudHooks)
         {
             dalamudHook.HookToDalamud();
         }
 
-        Logger.Info($"{PluginInitializer.Name} initialized");
+        logger.Info($"{PluginInitializer.Name} initialized");
     }
 }

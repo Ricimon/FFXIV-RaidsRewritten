@@ -60,9 +60,9 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
     private readonly ILogger logger;
 
     private readonly IFontHandle font;
-    private readonly Query<Condition.Component> componentsQuery;
-    private readonly Query<Temperature.Component> temperatureQuery;
-    private readonly Query<Blind.Component> blindQuery;
+    private Query<Condition.Component> componentsQuery;
+    private Query<Temperature.Component> temperatureQuery;
+    private Query<Blind.Component> blindQuery;
 
     private readonly List<EffectTextEntry> toDraw = [];
     private readonly List<EffectGaugeEntry> toGaugeDraw = [];
@@ -100,8 +100,9 @@ public sealed class EffectsRenderer : IPluginUIView, IDisposable
     public void Dispose()
     {
         this.font.Dispose();
-        this.componentsQuery.Dispose();
-        this.blindQuery.Dispose();
+        this.componentsQuery.SafeDispose();
+        this.temperatureQuery.SafeDispose();
+        this.blindQuery.SafeDispose();
     }
 
     public void Draw()

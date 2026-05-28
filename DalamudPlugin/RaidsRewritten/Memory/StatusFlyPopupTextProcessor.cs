@@ -25,9 +25,9 @@ using System.Text;
 
 namespace RaidsRewritten.Memory;
 
-public unsafe class StatusFlyPopupTextProcessor
+public unsafe sealed class StatusFlyPopupTextProcessor : IDalamudHook, IDisposable
 {
-    public class FlyPopupTextData(Scripts.Conditions.Condition.Status status, bool isAddition,  FileReplacement? replacement = null)
+    public class FlyPopupTextData(Scripts.Conditions.Condition.Status status, bool isAddition, FileReplacement? replacement = null)
     {
         public Scripts.Conditions.Condition.Status Status = status;
         public FileReplacement? Replacement = replacement;
@@ -42,7 +42,7 @@ public unsafe class StatusFlyPopupTextProcessor
     private readonly CommonQueries commonQueries;
     private readonly ILogger logger;
 
-    public FlyPopupTextData CurrentElement = null!;
+    public FlyPopupTextData? CurrentElement = null;
 
     public StatusFlyPopupTextProcessor(
         Configuration configuration,
@@ -60,8 +60,16 @@ public unsafe class StatusFlyPopupTextProcessor
         this.ecsContainer = ecsContainer;
         this.commonQueries = commonQueries;
         this.logger = logger;
+    }
 
+    public void HookToDalamud()
+    {
         this.dalamudServices.Framework.Update += Framework_Update;
+    }
+
+    public void Dispose()
+    {
+        this.dalamudServices.Framework.Update -= Framework_Update;
     }
 
     private unsafe void Framework_Update(IFramework framework)
@@ -220,10 +228,4 @@ public unsafe class StatusFlyPopupTextProcessor
         }
         return true;
     }
-
-    public void Dispose()
-    {
-        this.dalamudServices.Framework.Update -= Framework_Update;
-    }
-
 }

@@ -13,7 +13,7 @@ public sealed class PartyPlayersSystem(DalamudServices dalamud, Configuration co
 
     public void Dispose()
     {
-        otherPlayersQuery.Dispose();
+        otherPlayersQuery.SafeDispose();
     }
 
     public void Register(World world)

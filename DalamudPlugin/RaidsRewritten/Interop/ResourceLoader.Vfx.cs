@@ -35,6 +35,7 @@ public unsafe partial class ResourceLoader
     public Hook<StaticVfxCreateDelegate> StaticVfxCreateHook { get; private set; }
     
     public Hook<StaticVfxRemoveDelegate> StaticVfxRemoveHook { get; private set; }
+    public event Action<IntPtr> OnStaticVfxRemoved;
 
     // ======= ACTOR =========
     public delegate IntPtr ActorVfxCreateDelegate(string path, IntPtr a2, IntPtr a3, float a4, char a5, ushort a6, char a7);
@@ -49,6 +50,7 @@ public unsafe partial class ResourceLoader
     public Hook<ActorVfxCreateDelegate> ActorVfxCreateHook { get; private set; }
 
     public Hook<ActorVfxRemoveDelegate> ActorVfxRemoveHook { get; private set; }
+    public event Action<IntPtr, char> OnActorVfxRemoved;
 
     // ============================
 
@@ -60,7 +62,7 @@ public unsafe partial class ResourceLoader
 
     private IntPtr StaticVfxRemoveDetour(IntPtr vfx)
     {
-        this.vfxSpawn.Value.InteropRemoved(vfx);
+        OnStaticVfxRemoved?.Invoke(vfx);
         return StaticVfxRemoveHook.Original(vfx);
     }
 
@@ -72,7 +74,7 @@ public unsafe partial class ResourceLoader
 
     private IntPtr ActorVfxRemoveDetour(IntPtr vfx, char a2)
     {
-        this.vfxSpawn.Value.InteropRemoved(vfx);
+        OnActorVfxRemoved?.Invoke(vfx, a2);
         return ActorVfxRemoveHook.Original(vfx, a2);
     }
 }

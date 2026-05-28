@@ -93,8 +93,8 @@ public class Temperature(DalamudServices dalamud, CommonQueries commonQueries, I
     }
     public void Dispose()
     {
-        overheatQuery.Dispose();
-        deepfreezeQuery.Dispose();
+        overheatQuery.SafeDispose();
+        deepfreezeQuery.SafeDispose();
     }
 
     public void Register(World world)

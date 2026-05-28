@@ -5,6 +5,7 @@ using Flecs.NET.Core;
 using RaidsRewritten.Interop;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Conditions;
+using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Game;
 
@@ -41,16 +42,16 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
 
     public void Dispose()
     {
-        this.knockbackQuery.Dispose();
-        this.bindQuery.Dispose();
-        this.stunQuery.Dispose();
-        this.paralysisQuery.Dispose();
-        this.heavyQuery.Dispose();
-        this.pacifyQuery.Dispose();
-        this.sleepQuery.Dispose();
-        this.hysteriaQuery.Dispose();
-        this.overheatQuery.Dispose();
-        this.deepfreezeQuery.Dispose();
+        this.knockbackQuery.SafeDispose();
+        this.bindQuery.SafeDispose();
+        this.stunQuery.SafeDispose();
+        this.paralysisQuery.SafeDispose();
+        this.heavyQuery.SafeDispose();
+        this.pacifyQuery.SafeDispose();
+        this.sleepQuery.SafeDispose();
+        this.hysteriaQuery.SafeDispose();
+        this.overheatQuery.SafeDispose();
+        this.deepfreezeQuery.SafeDispose();
     }
 
     public void Register(World world)
@@ -83,9 +84,17 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
             {
                 var playerEntity = it.Entity(i);
 
+                if (dalamud.PlayerState.IsLoaded)
+                {
+                    playerEntity.Set(new ContentId(dalamud.PlayerState.ContentId));
+                }
+                else
+                {
+                    playerEntity.Remove<ContentId>();
+                }
+
                 var player = dalamud.ObjectTable.LocalPlayer;
                 component.PlayerCharacter = player;
-                playerEntity.Set(new ContentId(dalamud.PlayerState.ContentId));
                 if (configuration.EverythingDisabled || player == null || player.IsDead)
                 {
                     playerEntity.Children(c =>

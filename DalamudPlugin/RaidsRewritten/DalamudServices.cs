@@ -1,6 +1,4 @@
-﻿using Dalamud.Game;
-using Dalamud.Game.ClientState.Objects;
-using Dalamud.Plugin;
+﻿using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 
 namespace RaidsRewritten;

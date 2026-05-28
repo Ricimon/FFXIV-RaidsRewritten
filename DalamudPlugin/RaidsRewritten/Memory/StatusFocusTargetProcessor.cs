@@ -19,7 +19,7 @@ using static RaidsRewritten.Scripts.Conditions.Condition;
 
 namespace RaidsRewritten.Memory;
 
-public unsafe class StatusFocusTargetProcessor
+public unsafe sealed class StatusFocusTargetProcessor : IDisposable
 {
     private readonly Configuration configuration;
     private readonly DalamudServices dalamudServices;

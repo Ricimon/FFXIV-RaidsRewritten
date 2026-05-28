@@ -49,22 +49,13 @@ public unsafe sealed partial class ResourceLoader : IDisposable
     public const string BattleLog_AddToScreenLogWithScreenLogKindSig = "48 85 C9 0F 84 ?? ?? ?? ?? 56 41 56";
 
     private DalamudServices dalamud;
-    private CommonQueries commonQueries;
-    private readonly Lazy<VfxSpawn> vfxSpawn;
-    private readonly Lazy<StatusCommonProcessor> statusCommonProcessor;
     private readonly ILogger logger;
 
     public ResourceLoader(
         DalamudServices dalamud,
-        CommonQueries commonQueries,
-        Lazy<VfxSpawn> vfxSpawn,
-        Lazy<StatusCommonProcessor> statusCommonProcessor,
         ILogger logger)
     {
         this.dalamud = dalamud;
-        this.vfxSpawn = vfxSpawn;
-        this.commonQueries = commonQueries;
-        this.statusCommonProcessor = statusCommonProcessor;
         this.logger = logger;
 
         var sigScanner = dalamud.SigScanner;
