@@ -57,7 +57,10 @@ public sealed class EcsRunner : IDalamudHook
                 d.Dispose();
             }
         }
-        world.Dispose();
+        // World.Dispose() is very prone to crashes due to operations on the World after Dispose
+        // (including checking for disposal state). Instead, World.Quit() is used as this does flip a readable boolean.
+        // Actual World disposal is done in PluginInitializer.
+        world.Quit();
     }
 
     private void OnFrameworkUpdate(IFramework framework)

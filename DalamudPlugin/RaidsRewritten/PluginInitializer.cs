@@ -8,6 +8,7 @@ using ECommons.DalamudServices;
 using Ninject;
 using Ninject.Extensions.Factory;
 using Ninject.Planning.Bindings.Resolvers;
+using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 using RaidsRewritten.Ninject;
 using RaidsRewritten.Utility;
@@ -64,7 +65,12 @@ public sealed class PluginInitializer : IDalamudPlugin
     public void Dispose()
     {
         TaskScheduler.UnobservedTaskException -= OnUnobservedTaskException;
+        // Because of unordered disposal in the kernel, that any Flecs operations can crash after World disposal,
+        // and there not being a reliable way to check if the World has been disposed, the World disposal operation
+        // is moved outside of the kernel, and World.Quit() is used inside. See EcsRunner.
+        var ecsContainer = this.kernel.Get<EcsContainer>();
         this.kernel.Dispose();
+        ecsContainer.World.Dispose();
     }
 
     private void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)

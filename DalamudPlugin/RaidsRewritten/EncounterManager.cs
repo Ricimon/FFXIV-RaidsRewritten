@@ -15,7 +15,6 @@ using RaidsRewritten.IPC;
 using RaidsRewritten.Log;
 using RaidsRewritten.Memory;
 using RaidsRewritten.Scripts.Encounters;
-using RaidsRewritten.UI.View;
 using RaidsRewritten.Utility;
 using ZLinq;
 

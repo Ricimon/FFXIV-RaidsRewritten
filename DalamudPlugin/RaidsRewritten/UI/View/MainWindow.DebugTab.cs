@@ -111,7 +111,12 @@ public partial class MainWindow
                 this.logger.Info($"Target position:{target.Position}, address:0x{target.Address:X}, entityId:0x{target.EntityId:X}, gameObjectId:0x{target.GameObjectId:X}, baseId:0x{target.BaseId:X}");
             }
         }
-
+        SameLineIfFits("Print Map Data");
+        if (ImGui.Button("Print Map Data"))
+        {
+            this.logger.Info($"Current territory ID:{dalamud.ClientState.TerritoryType}");
+        }
+        SameLineIfFits("Print Weather/Time Data");
         if (ImGui.Button("Print Weather/Time Data"))
         {
             unsafe

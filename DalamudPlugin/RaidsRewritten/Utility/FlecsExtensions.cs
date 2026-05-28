@@ -21,7 +21,7 @@ public static class FlecsExtensions
     {
         unsafe
         {
-            return query.CPtr() != null && query.Entity().IsValid();
+            return query.CPtr() != null && query.Entity().IsValid() && !query.World().ShouldQuit();
         }
     }
 
@@ -29,7 +29,7 @@ public static class FlecsExtensions
     {
         unsafe
         {
-            return query.CPtr() != null && query.Entity().IsValid();
+            return query.CPtr() != null && query.Entity().IsValid() && !query.World().ShouldQuit();
         }
     }
 
@@ -37,7 +37,7 @@ public static class FlecsExtensions
     {
         unsafe
         {
-            return query.CPtr() != null && query.Entity().IsValid();
+            return query.CPtr() != null && query.Entity().IsValid() && !query.World().ShouldQuit();
         }
     }
 
