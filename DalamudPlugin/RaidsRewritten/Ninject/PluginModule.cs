@@ -15,6 +15,7 @@ using RaidsRewritten.Scripts.Attacks.Omens;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Scripts.Encounters;
 using RaidsRewritten.Scripts.Encounters.E1S;
+using RaidsRewritten.Scripts.Encounters.TEA;
 using RaidsRewritten.Scripts.Encounters.UCOB;
 using RaidsRewritten.Scripts.Models;
 using RaidsRewritten.Scripts.Systems;
@@ -81,8 +82,9 @@ public class PluginModule : NinjectModule
         Bind<Configuration>().ToMethod(GetConfiguration).InSingletonScope();
 
         // Encounters
-        Bind<IEncounter>().To<UcobRewritten>().InSingletonScope();
         Bind<IEncounter>().To<EdenPrimeTest>().InSingletonScope();
+        Bind<IEncounter>().To<UcobRewritten>().InSingletonScope();
+        Bind<IEncounter>().To<TeaRewritten>().InSingletonScope();
 
         // Entities
         // Models
