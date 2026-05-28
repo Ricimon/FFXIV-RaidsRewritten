@@ -36,12 +36,12 @@ public class PluginModule : NinjectModule
         Bind<ResourceLoader>().ToSelf().InSingletonScope();
         Bind<VfxSpawn>().ToSelf().InSingletonScope();
         Bind<IDalamudHook, StatusCommonProcessor>().To<StatusCommonProcessor>().InSingletonScope();
-        Bind<StatusProcessor>().ToSelf().InSingletonScope();
-        Bind<StatusCustomProcessor>().ToSelf().InSingletonScope();
-        Bind<StatusPartyListProcessor>().ToSelf().InSingletonScope();
-        Bind<StatusTargetInfoProcessor>().ToSelf().InSingletonScope();
-        Bind<StatusTargetInfoBuffDebuffProcessor>().ToSelf().InSingletonScope();
-        Bind<StatusFocusTargetProcessor>().ToSelf().InSingletonScope();
+        Bind<IDalamudHook, StatusProcessor>().To<StatusProcessor>().InSingletonScope();
+        Bind<IDalamudHook, StatusCustomProcessor>().To<StatusCustomProcessor>().InSingletonScope();
+        Bind<IDalamudHook, StatusPartyListProcessor>().To<StatusPartyListProcessor>().InSingletonScope();
+        Bind<IDalamudHook, StatusTargetInfoProcessor>().To<StatusTargetInfoProcessor>().InSingletonScope();
+        Bind<IDalamudHook, StatusTargetInfoBuffDebuffProcessor>().To<StatusTargetInfoBuffDebuffProcessor>().InSingletonScope();
+        Bind<IDalamudHook, StatusFocusTargetProcessor>().To<StatusFocusTargetProcessor>().InSingletonScope();
         Bind<IDalamudHook, StatusFlyPopupTextProcessor>().To<StatusFlyPopupTextProcessor>().InSingletonScope();
 
         // IPC

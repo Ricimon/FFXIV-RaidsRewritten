@@ -25,7 +25,7 @@ using World = Flecs.NET.Core.World;
 
 namespace RaidsRewritten.Memory;
 
-public sealed unsafe class StatusCommonProcessor : IDalamudHook, IDisposable
+public sealed unsafe class StatusCommonProcessor : IDalamudHook
 {
     private Configuration configuration;
     private DalamudServices dalamudServices;

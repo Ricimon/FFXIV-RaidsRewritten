@@ -29,18 +29,17 @@ using ZLinq;
 
 namespace RaidsRewritten.Memory;
 
-public unsafe sealed class StatusPartyListProcessor : IDisposable
+public unsafe sealed class StatusPartyListProcessor(
+    Configuration configuration,
+    DalamudServices dalamudServices,
+    StatusCommonProcessor statusCommonProcessor,
+    EcsContainer ecsContainer,
+    ResourceLoader resourceLoader,
+    CommonQueries commonQueries,
+    ILogger logger) : IDalamudHook
 {
     private record struct PlayerDictElement(AtkResNode*[] IconArray, bool Dirty, int PrevNumStatuses, int Order);
     private record struct VisiblePartyElement(nint GameObj, int Order);
-
-    private readonly Configuration configuration;
-    private readonly DalamudServices dalamudServices;
-    private readonly StatusCommonProcessor statusCommonProcessor;
-    private readonly EcsContainer ecsContainer;
-    private readonly ResourceLoader resourceLoader;
-    private readonly CommonQueries commonQueries;
-    private readonly ILogger logger;
 
     private int ActiveNodeIdForTooltip = -1;
     private AtkResNode* ActiveContainerForTooltip = null;
@@ -51,25 +50,11 @@ public unsafe sealed class StatusPartyListProcessor : IDisposable
     private List<nint> GetNodeIconArrayList = [];
 
     private int[] NumStatuses = [0, 0, 0, 0, 0, 0, 0, 0];
-    public StatusPartyListProcessor(
-        Configuration configuration,
-        DalamudServices dalamudServices,
-        StatusCommonProcessor statusCommonProcessor,
-        EcsContainer ecsContainer,
-        ResourceLoader resourceLoader,
-        CommonQueries commonQueries,
-        ILogger logger)
-    {
-        this.configuration = configuration;
-        this.dalamudServices = dalamudServices;
-        this.statusCommonProcessor = statusCommonProcessor;
-        this.ecsContainer = ecsContainer;
-        this.resourceLoader = resourceLoader;
-        this.commonQueries = commonQueries;
-        this.logger = logger;
 
-        this.dalamudServices.AddonLifecycle.RegisterListener(AddonEvent.PostUpdate, "_PartyList", OnPartyListUpdate);
-        this.dalamudServices.AddonLifecycle.RegisterListener(AddonEvent.PostRequestedUpdate, "_PartyList", OnAlcPartyListRequestedUpdate);
+    public void HookToDalamud()
+    {
+        dalamudServices.AddonLifecycle.RegisterListener(AddonEvent.PostUpdate, "_PartyList", OnPartyListUpdate);
+        dalamudServices.AddonLifecycle.RegisterListener(AddonEvent.PostRequestedUpdate, "_PartyList", OnAlcPartyListRequestedUpdate);
 
         if (StatusCommonProcessor.LocalPlayerAvailable())
         {
@@ -101,8 +86,8 @@ public unsafe sealed class StatusPartyListProcessor : IDisposable
 
     public void Dispose()
     {
-        this.dalamudServices.AddonLifecycle.UnregisterListener(AddonEvent.PostUpdate, "_PartyList", OnPartyListUpdate);
-        this.dalamudServices.AddonLifecycle.UnregisterListener(AddonEvent.PostRequestedUpdate, "_PartyList", OnAlcPartyListRequestedUpdate);
+        dalamudServices.AddonLifecycle.UnregisterListener(AddonEvent.PostUpdate, "_PartyList", OnPartyListUpdate);
+        dalamudServices.AddonLifecycle.UnregisterListener(AddonEvent.PostRequestedUpdate, "_PartyList", OnAlcPartyListRequestedUpdate);
     }
 
     // Func helper to get around 7.4's internal AddonArgs while removing ArtificialAddonArgs usage 
@@ -292,7 +277,7 @@ public unsafe sealed class StatusPartyListProcessor : IDisposable
             }
 
             int curIndex = 0;
-            var hasConfig = this.dalamudServices.GameConfig.UiConfig.TryGet("PartyListStatus", out uint optionInt);
+            var hasConfig = dalamudServices.GameConfig.UiConfig.TryGet("PartyListStatus", out uint optionInt);
             var maxLength = hasConfig ? Math.Min(element.IconArray.Length, optionInt) : element.IconArray.Length;
             foreach (var status in sortedList)
             {
@@ -355,13 +340,13 @@ public unsafe sealed class StatusPartyListProcessor : IDisposable
     private List<VisiblePartyElement> GetVisibleParty()
     {
         List<VisiblePartyElement> ret = [new(StatusCommonProcessor.LocalPlayer(), 0)];
-        if (this.dalamudServices.PartyList.Length < 2)
+        if (dalamudServices.PartyList.Length < 2)
         {
             return ret;
         } else
         {
             var pListIndex = 1;
-            for (var i = 0; i < Math.Min(8, this.dalamudServices.PartyList.Length); i++)
+            for (var i = 0; i < Math.Min(8, dalamudServices.PartyList.Length); i++)
             {
                 var obj = Resolve($"<{pListIndex}>");
                 if (obj != null)
@@ -492,7 +477,7 @@ public unsafe sealed class StatusPartyListProcessor : IDisposable
                 .ThenByDescending(s => s.PartyListPriority);
 
             int currIndex = 0;
-            var hasConfig = this.dalamudServices.GameConfig.UiConfig.TryGet("PartyListStatus", out uint optionInt);
+            var hasConfig = dalamudServices.GameConfig.UiConfig.TryGet("PartyListStatus", out uint optionInt);
 
             // SetIcon will handle redrawing tooltip
             ActiveContainerForTooltip = null;

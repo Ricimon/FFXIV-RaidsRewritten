@@ -15,33 +15,20 @@ using System.Text;
 
 namespace RaidsRewritten.Memory;
 
-public unsafe sealed class StatusTargetInfoBuffDebuffProcessor : IDisposable
+public unsafe sealed class StatusTargetInfoBuffDebuffProcessor(
+    Configuration configuration,
+    DalamudServices dalamudServices,
+    StatusCommonProcessor statusCommonProcessor,
+    EcsContainer ecsContainer,
+    ResourceLoader resourceLoader,
+    CommonQueries commonQueries) : IDalamudHook
 {
-    private readonly Configuration configuration;
-    private readonly DalamudServices dalamudServices;
-    private readonly StatusCommonProcessor statusCommonProcessor;
-    private readonly ResourceLoader resourceLoader;
-    private readonly EcsContainer ecsContainer;
-    private readonly CommonQueries commonQueries;
-
     public int NumStatuses = 0;
-    public StatusTargetInfoBuffDebuffProcessor(
-        Configuration configuration,
-        DalamudServices dalamudServices,
-        StatusCommonProcessor statusCommonProcessor,
-        EcsContainer ecsContainer,
-        ResourceLoader resourceLoader,
-        CommonQueries commonQueries)
-    {
-        this.configuration = configuration;
-        this.dalamudServices = dalamudServices;
-        this.statusCommonProcessor = statusCommonProcessor;
-        this.ecsContainer = ecsContainer;
-        this.resourceLoader = resourceLoader;
-        this.commonQueries = commonQueries;
 
-        this.dalamudServices.AddonLifecycle.RegisterListener(AddonEvent.PostUpdate, "_TargetInfoBuffDebuff", OnTargetInfoBuffDebuffUpdate);
-        this.dalamudServices.AddonLifecycle.RegisterListener(AddonEvent.PostRequestedUpdate, "_TargetInfoBuffDebuff", OnTargetInfoBuffDebuffRequestedUpdate);
+    public void HookToDalamud()
+    {
+        dalamudServices.AddonLifecycle.RegisterListener(AddonEvent.PostUpdate, "_TargetInfoBuffDebuff", OnTargetInfoBuffDebuffUpdate);
+        dalamudServices.AddonLifecycle.RegisterListener(AddonEvent.PostRequestedUpdate, "_TargetInfoBuffDebuff", OnTargetInfoBuffDebuffRequestedUpdate);
 
         var addon = statusCommonProcessor.GetAddon("_TargetInfoBuffDebuff");
         if (StatusCommonProcessor.LocalPlayerAvailable() && StatusCommonProcessor.IsAddonReady(addon))
@@ -52,8 +39,8 @@ public unsafe sealed class StatusTargetInfoBuffDebuffProcessor : IDisposable
 
     public void Dispose()
     {
-        this.dalamudServices.AddonLifecycle.UnregisterListener(AddonEvent.PostUpdate, "_TargetInfoBuffDebuff", OnTargetInfoBuffDebuffUpdate);
-        this.dalamudServices.AddonLifecycle.UnregisterListener(AddonEvent.PostRequestedUpdate, "_TargetInfoBuffDebuff", OnTargetInfoBuffDebuffRequestedUpdate);
+        dalamudServices.AddonLifecycle.UnregisterListener(AddonEvent.PostUpdate, "_TargetInfoBuffDebuff", OnTargetInfoBuffDebuffUpdate);
+        dalamudServices.AddonLifecycle.UnregisterListener(AddonEvent.PostRequestedUpdate, "_TargetInfoBuffDebuff", OnTargetInfoBuffDebuffRequestedUpdate);
     }
 
     public void HideAll()
@@ -99,7 +86,7 @@ public unsafe sealed class StatusTargetInfoBuffDebuffProcessor : IDisposable
     public unsafe void UpdateAddon(AtkUnitBase* addon, bool hideAll = false)
     {
         if (!hideAll && (configuration.UseLegacyStatusRendering || configuration.EverythingDisabled)) { return; }
-        var target = this.dalamudServices.TargetManager.SoftTarget! ?? this.dalamudServices.TargetManager.Target!;
+        var target = dalamudServices.TargetManager.SoftTarget! ?? dalamudServices.TargetManager.Target!;
         if (target is IPlayerCharacter pc)
         {
             if (StatusCommonProcessor.IsAddonReady(addon))

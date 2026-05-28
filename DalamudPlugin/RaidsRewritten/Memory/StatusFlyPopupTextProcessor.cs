@@ -25,7 +25,14 @@ using System.Text;
 
 namespace RaidsRewritten.Memory;
 
-public unsafe sealed class StatusFlyPopupTextProcessor : IDalamudHook, IDisposable
+public unsafe sealed class StatusFlyPopupTextProcessor(
+    Configuration configuration,
+    DalamudServices dalamudServices,
+    ResourceLoader resourceLoader,
+    StatusCommonProcessor statusCommonProcessor,
+    EcsContainer ecsContainer,
+    CommonQueries commonQueries,
+    ILogger logger) : IDalamudHook
 {
     public class FlyPopupTextData(Scripts.Conditions.Condition.Status status, bool isAddition, FileReplacement? replacement = null)
     {
@@ -34,42 +41,16 @@ public unsafe sealed class StatusFlyPopupTextProcessor : IDalamudHook, IDisposab
         public bool IsAddition = isAddition;
     }
 
-    private readonly Configuration configuration;
-    private readonly DalamudServices dalamudServices;
-    private readonly ResourceLoader resourceLoader;
-    private readonly StatusCommonProcessor statusCommonProcessor;
-    private readonly EcsContainer ecsContainer;
-    private readonly CommonQueries commonQueries;
-    private readonly ILogger logger;
-
     public FlyPopupTextData? CurrentElement = null;
-
-    public StatusFlyPopupTextProcessor(
-        Configuration configuration,
-        DalamudServices dalamudServices,
-        ResourceLoader resourceLoader,
-        StatusCommonProcessor statusCommonProcessor,
-        EcsContainer ecsContainer,
-        CommonQueries commonQueries,
-        ILogger logger)
-    {
-        this.configuration = configuration;
-        this.dalamudServices = dalamudServices;
-        this.resourceLoader = resourceLoader;
-        this.statusCommonProcessor = statusCommonProcessor;
-        this.ecsContainer = ecsContainer;
-        this.commonQueries = commonQueries;
-        this.logger = logger;
-    }
 
     public void HookToDalamud()
     {
-        this.dalamudServices.Framework.Update += Framework_Update;
+        dalamudServices.Framework.Update += Framework_Update;
     }
 
     public void Dispose()
     {
-        this.dalamudServices.Framework.Update -= Framework_Update;
+        dalamudServices.Framework.Update -= Framework_Update;
     }
 
     private unsafe void Framework_Update(IFramework framework)
@@ -86,7 +67,7 @@ public unsafe sealed class StatusFlyPopupTextProcessor : IDalamudHook, IDisposab
             if (executedThisFrame) return;
             var data = flytextData.Data;
             Character* target = null;
-            foreach (var pc in this.dalamudServices.ObjectTable.PlayerObjects)
+            foreach (var pc in dalamudServices.ObjectTable.PlayerObjects)
             {
                 GameObject* obj = pc.GameObject();
                 if (obj == null) continue;

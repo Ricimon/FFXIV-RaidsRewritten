@@ -16,7 +16,7 @@ using System.Text;
 
 namespace RaidsRewritten.Memory;
 
-public unsafe class StatusCustomProcessor : IDisposable
+public unsafe sealed class StatusCustomProcessor : IDalamudHook
 {
     private readonly Configuration configuration;
     private readonly DalamudServices dalamudServices;
@@ -51,7 +51,10 @@ public unsafe class StatusCustomProcessor : IDisposable
         this.logger = logger;
 
         TooltipMemory = Marshal.AllocHGlobal(2 * 1024);
+    }
 
+    public void HookToDalamud()
+    {
         dalamudServices.AddonLifecycle.RegisterListener(AddonEvent.PostUpdate, "_StatusCustom0", OnStatusCustom0Update);
         dalamudServices.AddonLifecycle.RegisterListener(AddonEvent.PostRequestedUpdate, "_StatusCustom0", OnStatusCustom0RequestedUpdate);
         dalamudServices.AddonLifecycle.RegisterListener(AddonEvent.PostUpdate, "_StatusCustom1", OnStatusCustom1Update);
@@ -83,6 +86,7 @@ public unsafe class StatusCustomProcessor : IDisposable
             }
         }
     }
+
     public void Dispose()
     {
         dalamudServices.AddonLifecycle.UnregisterListener(AddonEvent.PostUpdate, "_StatusCustom0", OnStatusCustom0Update);
@@ -93,6 +97,7 @@ public unsafe class StatusCustomProcessor : IDisposable
         dalamudServices.AddonLifecycle.UnregisterListener(AddonEvent.PostRequestedUpdate, "_StatusCustom2", OnStatusCustom2RequestedUpdate);
         Marshal.FreeHGlobal(TooltipMemory);
     }
+
     public void HideAll()
     {
         if (!StatusCommonProcessor.LocalPlayerAvailable()) return;
