@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using AsyncAwaitBestPractices;
 using Dalamud.IoC;
@@ -65,12 +66,33 @@ public sealed class PluginInitializer : IDalamudPlugin
     public void Dispose()
     {
         TaskScheduler.UnobservedTaskException -= OnUnobservedTaskException;
+        var debug = false;
+#if DEBUG
+        debug = true;
+#endif
+        var logger = this.kernel.Get<ILogger>();
         // Because of unordered disposal in the kernel, that any Flecs operations can crash after World disposal,
         // and there not being a reliable way to check if the World has been disposed, the World disposal operation
         // is moved outside of the kernel, and World.Quit() is used inside. See EcsRunner.
         var ecsContainer = this.kernel.Get<EcsContainer>();
-        this.kernel.Dispose();
-        ecsContainer.World.Dispose();
+
+        if (debug)
+        {
+            var stopwatch = new Stopwatch();
+
+            stopwatch.Start();
+            this.kernel.Dispose();
+            logger.Debug("Kernel disposal took {0}ms", stopwatch.ElapsedMilliseconds);
+
+            stopwatch.Restart();
+            ecsContainer.World.Dispose();
+            logger.Debug("Flecs World disposal took {0}ms", stopwatch.ElapsedMilliseconds);
+        }
+        else
+        {
+            this.kernel.Dispose();
+            ecsContainer.World.Dispose();
+        }
     }
 
     private void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)

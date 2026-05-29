@@ -13,6 +13,8 @@ public sealed class EcsRunner : IDalamudHook
 
     private readonly World world;
 
+    private DateTime lastInfoPrint;
+
     public EcsRunner(
         EcsContainer container,
         DalamudServices dalamud,
@@ -69,5 +71,17 @@ public sealed class EcsRunner : IDalamudHook
         world.Set(new FrameworkDeltaTime(framework.UpdateDelta));
         // Use Flecs self-calculated delta time as this is more accurate than the one reported by IFramework
         world.Progress();
+
+#if DEBUG
+        var now = DateTime.UtcNow;
+        if (now - lastInfoPrint > TimeSpan.FromSeconds(30))
+        {
+            lastInfoPrint = now;
+            var info = world.GetInfo();
+            logger.Debug("Flecs World component count:{0}, created:{1}, deleted:{2}; merge count:{3}; rematch count:{4}; frame count:{5}",
+                info.ComponentIdCount, info.IdCreateTotal, info.IdDeleteTotal,
+                info.MergeCountTotal, info.RematchCountTotal, info.FrameCountTotal);
+        }
+#endif
     }
 }

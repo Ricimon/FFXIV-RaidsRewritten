@@ -27,6 +27,8 @@ public unsafe sealed class ModelSystem(DalamudServices dalamud, EcsContainer ecs
 
     public void Register(Flecs.NET.Core.World world)
     {
+        modelTimelineSpeedQuery = world.QueryBuilder<Model, ModelTimelineSpeed>().Cached().Build();
+
         world.System<Model, Position, Rotation, UniformScale>()
             .Each((Iter it, int i, ref Model model, ref Position position, ref Rotation rotation, ref UniformScale scale) =>
             {
@@ -234,13 +236,12 @@ public unsafe sealed class ModelSystem(DalamudServices dalamud, EcsContainer ecs
 
     private bool CalculateAndApplyOverallSpeedDetour(TimelineContainer* a1)
     {
+        bool result = calculateAndApplyOverallSpeedHook.Original(a1);
         if (!modelTimelineSpeedQuery.IsValid())
         {
-            // This can't be constructed in the constructor because it would cause a circular dependency reference
-            modelTimelineSpeedQuery = ecsContainer.World.Query<Model, ModelTimelineSpeed>();
+            return result;
         }
 
-        bool result = calculateAndApplyOverallSpeedHook.Original(a1);
         // Convert this to a dictionary lookup if needed
         modelTimelineSpeedQuery.Each((ref Model model, ref ModelTimelineSpeed speed) =>
         {
