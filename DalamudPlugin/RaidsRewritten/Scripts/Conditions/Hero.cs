@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Numerics;
 using Flecs.NET.Core;
 using RaidsRewritten.Scripts.Components;
 
@@ -6,6 +7,8 @@ namespace RaidsRewritten.Scripts.Conditions;
 
 public class EpicHero
 {
+    public struct Component;
+
     public static void ApplyToTarget(Entity target)
     {
         ApplyToTarget(target, ConditionTable.Id.EpicHero);
@@ -21,12 +24,15 @@ public class EpicHero
             "Epic Hero (RaidsRewritten)",
             "Dueling in a decisive battle.",
             "epic_hero",
-            ConditionTable.IconToReplace.EpicHero);
+            ConditionTable.IconToReplace.EpicHero,
+            e => e.Add<Component>());
     }
 }
 
 public class FatedHero
 {
+    public struct Component;
+
     public static void ApplyToTarget(Entity target)
     {
         ApplyToTarget(target, ConditionTable.Id.FatedHero);
@@ -42,7 +48,8 @@ public class FatedHero
             "Fated Hero (RaidsRewritten)",
             "Dueling in a decisive battle.",
             "fated_hero",
-            ConditionTable.IconToReplace.FatedHero);
+            ConditionTable.IconToReplace.FatedHero,
+            e => e.Add<Component>());
     }
 }
 
@@ -56,7 +63,8 @@ file class Hero
         string statusTooltipName,
         string statusDescription,
         string iconName,
-        int iconToReplace)
+        int iconToReplace,
+        Action<Entity> actionOnEntity)
     {
         DelayedAction.Create(target.CsWorld(), (ref Iter it) =>
         {
@@ -69,6 +77,8 @@ file class Hero
                 .Set(new Condition.Status(iconToReplace, statusName, statusDescription))
                 .Set(new Condition.StatusTooltip(statusTooltipName))
                 .Add<Condition.StatusEnfeeblement>();
+
+            actionOnEntity.Invoke(condition);
 
             // Application VFX
             world.Entity()

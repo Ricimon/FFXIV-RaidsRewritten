@@ -2,6 +2,7 @@
 // 41fc913
 using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory;
@@ -340,6 +341,41 @@ public unsafe sealed class StatusPartyListProcessor(
     private List<VisiblePartyElement> GetVisibleParty()
     {
         List<VisiblePartyElement> ret = [new(StatusCommonProcessor.LocalPlayer(), 0)];
+
+        // The PartyList doesn't hold information about party members in Duty Recorder, so this is a different way of gathering party information
+        if (dalamudServices.Condition[ConditionFlag.DutyRecorderPlayback])
+        {
+            var battleCharas = CharacterManager.Instance()->BattleCharas.AsValueEnumerable()
+                .Where(bc => !bc.IsNull)
+                .Select(bc => (nint)bc.Value);
+
+            var players = new List<(nint, byte)>();
+            foreach(var addr in battleCharas)
+            {
+                if (addr == ret[0].GameObj) { continue; }
+                var bc = *(BattleChara*)addr;
+                if (bc.ObjectKind != ObjectKind.Pc) { continue; }
+                players.Add((addr, bc.ClassJob));
+            }
+
+            var sortedPlayers = players
+                .OrderBy(t =>
+                {
+                    var classJob = t.Item2;
+                    return dalamudServices.DataManager.GetExcelSheet<Lumina.Excel.Sheets.ClassJob>().GetRow(classJob).UIPriority;
+                })
+                // Not sure if this ThenBy is accurate
+                .ThenBy(t => ((BattleChara*)t.Item1)->GetGameObjectId());
+
+            var pListIndex = 1;
+            foreach(var t in sortedPlayers)
+            {
+                ret.Add(new(t.Item1, pListIndex));
+                pListIndex++;
+            }
+            return ret;
+        }
+
         if (dalamudServices.PartyList.Length < 2)
         {
             return ret;

@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using Dalamud.Bindings.ImGui;
+using RaidsRewritten.UI.Util;
+using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Encounters.TEA;
 
@@ -12,6 +14,7 @@ public class TeaRewritten : IEncounter
     // Config
     private string RngSeedKey => $"{Name}.RngSeed";
     private string FireTornadoKey => $"{Name}.FireTornado";
+    private string PickyDollsKey => $"{Name}.PickyDolls";
 
     private readonly Mechanic.Factory mechanicFactory;
     private readonly DalamudServices dalamud;
@@ -30,6 +33,7 @@ public class TeaRewritten : IEncounter
         this.defaultBoolSettings = new()
         {
             { FireTornadoKey, true },
+            { PickyDollsKey, true },
         };
 
         this.defaultIntSettings = new()
@@ -46,9 +50,18 @@ public class TeaRewritten : IEncounter
     {
         Unload();
 
-        if (configuration.GetEncounterSetting(FireTornadoKey, this.defaultBoolSettings[FireTornadoKey]))
+        var rngSeedString = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
+        int rngSeed = RandomUtilities.HashToRngSeed(rngSeedString);
+
+        if (configuration.GetEncounterSetting(FireTornadoKey, defaultBoolSettings[FireTornadoKey]))
         {
-            this.mechanics.Add(mechanicFactory.Create<FireTornado>());
+            mechanics.Add(mechanicFactory.Create<FireTornado>());
+        }
+        if (configuration.GetEncounterSetting(PickyDollsKey, defaultBoolSettings[PickyDollsKey]))
+        {
+            var pickyDolls = mechanicFactory.Create<PickyDolls>();
+            pickyDolls.RngSeed = rngSeed;
+            mechanics.Add(pickyDolls);
         }
     }
 
@@ -63,6 +76,12 @@ public class TeaRewritten : IEncounter
 
     public void IncrementRngSeed()
     {
+        string rngSeed = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
+        rngSeed = EncounterUtilities.IncrementRngSeed(rngSeed);
+        configuration.EncounterSettings[RngSeedKey] = rngSeed;
+        configuration.Save();
+        this.dalamud.ChatGui.PrintSystemMessage($"RNG seed is now {rngSeed}", PluginInitializer.Name);
+        RefreshMechanics();
     }
 
     public void DrawConfig()
@@ -77,7 +96,18 @@ public class TeaRewritten : IEncounter
             DisableEverything();
         }
 
-        bool fireTornado = configuration.GetEncounterSetting(FireTornadoKey, this.defaultBoolSettings[FireTornadoKey]);
+        ImGui.SetNextItemWidth(140);
+        string rngSeed = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
+        if (ImGui.InputText("RNG Seed", ref rngSeed, 100))
+        {
+            configuration.EncounterSettings[RngSeedKey] = rngSeed;
+            configuration.Save();
+            RefreshMechanics();
+        }
+        ImGui.SameLine();
+        Common.HelpMarker("Make sure all players are on the same RNG seed");
+
+        bool fireTornado = configuration.GetEncounterSetting(FireTornadoKey, defaultBoolSettings[FireTornadoKey]);
         if (ImGui.Checkbox("Fire Tornado", ref fireTornado))
         {
             configuration.EncounterSettings[FireTornadoKey] =
@@ -85,16 +115,25 @@ public class TeaRewritten : IEncounter
             configuration.Save();
             RefreshMechanics();
         }
+
+        bool pickyDolls = configuration.GetEncounterSetting(PickyDollsKey, defaultBoolSettings[PickyDollsKey]);
+        if (ImGui.Checkbox("Picky Dolls", ref pickyDolls))
+        {
+            configuration.EncounterSettings[PickyDollsKey] =
+                pickyDolls ? bool.TrueString : bool.FalseString;
+            configuration.Save();
+            RefreshMechanics();
+        }
     }
 
     private void ApplyIntendedFightSettings()
     {
-        foreach(var setting in this.defaultBoolSettings)
+        foreach(var setting in defaultBoolSettings)
         {
             configuration.EncounterSettings[setting.Key] = setting.Value.ToString();
         }
 
-        foreach(var setting in this.defaultIntSettings)
+        foreach(var setting in defaultIntSettings)
         {
             configuration.EncounterSettings[setting.Key] = setting.Value.ToString();
         }
@@ -105,7 +144,7 @@ public class TeaRewritten : IEncounter
 
     private void DisableEverything()
     {
-        foreach(var setting in this.defaultBoolSettings)
+        foreach(var setting in defaultBoolSettings)
         {
             configuration.EncounterSettings[setting.Key] = bool.FalseString;
         }
