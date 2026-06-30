@@ -12,7 +12,7 @@ public class Condition(ILogger logger) : ISystem
     public record struct Component(string Name, float TimeRemaining, DateTime CreationTime);
     public record struct Id(BigInteger Value);
     public record struct NetworkMessage(Message.Condition Condition);
-    public record struct StatusIconReplacement(int CustomStatusIconId, int IconToReplace);
+    public record struct StatusIconReplacement(string CustomIconName, int IconToReplace);
     public struct Hidden;
     public struct IgnoreOnDeath;
     public struct SyncedToServer;

@@ -9,9 +9,7 @@ namespace RaidsRewritten.Scripts.Conditions;
 
 public class Hysteria(Random random, ILogger logger) : ISystem
 {
-    public const int Id = 0x5CA6E;
-    private const int IconId = 215552;
-    private const int IconToReplace = 210261;
+    private const string IconId = "215552";
 
     public record struct Component(float RedirectionInterval,
         float TimeUntilRedirection = 0, Vector3 MoveDirection = default);
@@ -23,7 +21,7 @@ public class Hysteria(Random random, ILogger logger) : ISystem
         bool extendDuration = false,
         bool overrideExistingDuration = false)
     {
-        ApplyToTarget(target, duration, redirectionInterval, Id, extendDuration, overrideExistingDuration);
+        ApplyToTarget(target, duration, redirectionInterval, ConditionTable.Id.Hysteria, extendDuration, overrideExistingDuration);
     }
 
     public static void ApplyToTarget(
@@ -43,8 +41,8 @@ public class Hysteria(Random random, ILogger logger) : ISystem
 
             condition
                 .Set(new Condition.NetworkMessage(Network.Message.Condition.Hysteria))
-                .Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
-                .Set(new Condition.Status(IconToReplace, "Hysteria", "Unable to act on your own free will."))
+                .Set(new Condition.StatusIconReplacement(IconId, ConditionTable.IconToReplace.Hysteria))
+                .Set(new Condition.Status(ConditionTable.IconToReplace.Hysteria, "Hysteria", "Unable to act on your own free will."))
                 .Set(new Condition.StatusTooltip("Hysteria (RaidsRewritten)"))
                 .Add<Condition.StatusEnfeeblement>();
 

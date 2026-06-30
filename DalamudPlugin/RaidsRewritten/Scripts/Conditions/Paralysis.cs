@@ -9,9 +9,7 @@ namespace RaidsRewritten.Scripts.Conditions;
 
 public class Paralysis(Random random, ILogger logger) : ISystem
 {
-    public const int Id = 0x91FA;
-    private const int IconId = 215006;
-    private const int IconToReplace = 210301;
+    private const string IconId = "215006";
 
     public record struct Component(float StunInterval, float StunDuration,
         float ElapsedTime = 0, float TimeOffset = 0, bool StunActive = false, int LastTimeIntervalEvaluation = -1);
@@ -23,7 +21,7 @@ public class Paralysis(Random random, ILogger logger) : ISystem
         float stunDuration,
         bool extendDuration = false)
     {
-        ApplyToTarget(target, duration, stunInterval, stunDuration, Id, extendDuration);
+        ApplyToTarget(target, duration, stunInterval, stunDuration, ConditionTable.Id.Paralysis, extendDuration);
     }
 
     public static void ApplyToTarget(
@@ -48,8 +46,8 @@ public class Paralysis(Random random, ILogger logger) : ISystem
 
             condition
                 .Set(new Condition.NetworkMessage(Network.Message.Condition.Paralysis))
-                .Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
-                .Set(new Condition.Status(IconToReplace, "Paralysis", "Deadened nerves are sometimes preventing the execution of actions."))
+                .Set(new Condition.StatusIconReplacement(IconId, ConditionTable.IconToReplace.Paralysis))
+                .Set(new Condition.Status(ConditionTable.IconToReplace.Paralysis, "Paralysis", "Deadened nerves are sometimes preventing the execution of actions."))
                 .Set(new Condition.StatusTooltip("Paralysis (RaidsRewritten)"))
                 .Add<Condition.StatusEnfeeblement>();
 

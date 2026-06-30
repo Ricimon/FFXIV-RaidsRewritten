@@ -4,9 +4,7 @@ namespace RaidsRewritten.Scripts.Conditions;
 
 public class Blind
 {
-    public const int Id = 15;
-    private const int IconId = 215012;
-    private const int IconToReplace = 210258;
+    private const string IconId = "215012";
 
     public record struct Component(object _);
 
@@ -14,10 +12,10 @@ public class Blind
     {
         DelayedAction.Create(target.CsWorld(), (ref Iter it) =>
         {
-            var condition = Condition.ApplyToTarget(target, "Blind", duration, Id, extendDuration, overrideExistingDuration);
+            var condition = Condition.ApplyToTarget(target, "Blind", duration, ConditionTable.Id.Blind, extendDuration, overrideExistingDuration);
 
-            condition.Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
-                .Set(new Condition.Status(IconToReplace, "Blind", "Encroaching darkness is lowering visibility."))
+            condition.Set(new Condition.StatusIconReplacement(IconId, ConditionTable.IconToReplace.Blind))
+                .Set(new Condition.Status(ConditionTable.IconToReplace.Blind, "Blind", "Encroaching darkness is lowering visibility."))
                 .Set(new Condition.StatusTooltip("Blind (RaidsRewritten)"))
                 .Add<Condition.StatusEnfeeblement>();
 

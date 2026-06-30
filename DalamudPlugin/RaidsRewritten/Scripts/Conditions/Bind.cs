@@ -6,9 +6,7 @@ namespace RaidsRewritten.Scripts.Conditions;
 
 public class Bind
 {
-    public const int Id = 0xB19D;
-    private const int IconId = 215003;
-    private const int IconToReplace = 210257;
+    private const string IconId = "215003";
 
     public record struct Component(object _);
 
@@ -18,7 +16,7 @@ public class Bind
         bool extendDuration = false,
         bool overrideExistingDuration = false)
     {
-        ApplyToTarget(target, duration, Id, extendDuration, overrideExistingDuration);
+        ApplyToTarget(target, duration, ConditionTable.Id.Bind, extendDuration, overrideExistingDuration);
     }
 
     public static void ApplyToTarget(
@@ -37,8 +35,8 @@ public class Bind
 
             condition
                 .Set(new Condition.NetworkMessage(Network.Message.Condition.Bind))
-                .Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
-                .Set(new Condition.Status(IconToReplace, "Bind", "Unable to move."))
+                .Set(new Condition.StatusIconReplacement(IconId, ConditionTable.IconToReplace.Bind))
+                .Set(new Condition.Status(ConditionTable.IconToReplace.Bind, "Bind", "Unable to move."))
                 .Set(new Condition.StatusTooltip("Bind (RaidsRewritten)"))
                 .Add<Condition.StatusEnfeeblement>();
 

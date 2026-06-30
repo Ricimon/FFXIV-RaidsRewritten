@@ -6,9 +6,7 @@ namespace RaidsRewritten.Scripts.Conditions;
 
 public class Stun
 {
-    public const int Id = 0x5709;
-    private const int IconId = 215004;
-    private const int IconToReplace = 210305;
+    private const string IconId = "215004";
 
     public record struct Component(object _);
 
@@ -18,7 +16,7 @@ public class Stun
         bool extendDuration = false,
         bool overrideExistingDuration = false)
     {
-        ApplyToTarget(target, duration, Id, extendDuration, overrideExistingDuration);
+        ApplyToTarget(target, duration, ConditionTable.Id.Stun, extendDuration, overrideExistingDuration);
     }
 
     public static void ApplyToTarget(
@@ -37,8 +35,8 @@ public class Stun
 
             condition
                 .Set(new Condition.NetworkMessage(Network.Message.Condition.Stun))
-                .Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
-                .Set(new Condition.Status(IconToReplace, "Stun", "Unable to execute actions."))
+                .Set(new Condition.StatusIconReplacement(IconId, ConditionTable.IconToReplace.Stun))
+                .Set(new Condition.Status(ConditionTable.IconToReplace.Stun, "Stun", "Unable to execute actions."))
                 .Set(new Condition.StatusTooltip("Stun (RaidsRewritten)"))
                 .Add<Condition.StatusEnfeeblement>();
 

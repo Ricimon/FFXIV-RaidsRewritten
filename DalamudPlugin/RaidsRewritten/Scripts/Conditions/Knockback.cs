@@ -14,8 +14,7 @@ public sealed class Knockback : IDalamudHook
 {
     public record struct Component(Vector3 KnockbackDirection);
 
-    private const int IconId = 215723;
-    private const int IconToReplace = 210262;
+    private const string IconId = "215723";
     private static readonly List<uint> KnockbackNullificationStatuses = [
         160,    // Surecast
         1209,   // Arm's Length
@@ -86,8 +85,8 @@ public sealed class Knockback : IDalamudHook
 
             condition
                 .Set(new Condition.NetworkMessage(Network.Message.Condition.Knockback))
-                .Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
-                .Set(new Condition.Status(IconToReplace, "Knockback", "Forced movement to simulate a real knockback."))
+                .Set(new Condition.StatusIconReplacement(IconId, ConditionTable.IconToReplace.Knockback))
+                .Set(new Condition.Status(ConditionTable.IconToReplace.Knockback, "Knockback", "Forced movement to simulate a real knockback."))
                 .Set(new Condition.StatusTooltip("Knockback (RaidsRewritten)"))
                 .Add<Condition.StatusEnfeeblement>();
 

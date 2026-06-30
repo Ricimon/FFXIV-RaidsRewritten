@@ -168,14 +168,6 @@ public partial class MainWindow
                     Paralysis.ApplyToTarget(e, 5.0f, 3.0f, 1.0f);
                 });
             }
-            SameLineIfFits("Heavy");
-            if (ImGui.Button("Heavy"))
-            {
-                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
-                {
-                    Heavy.ApplyToTarget(e, 5.0f);
-                });
-            }
             SameLineIfFits("Pacify");
             if (ImGui.Button("Pacify"))
             {
@@ -200,6 +192,14 @@ public partial class MainWindow
                     Hysteria.ApplyToTarget(e, 8.0f, 3.0f);
                 });
             }
+            SameLineIfFits("Heavy");
+            if (ImGui.Button("Heavy"))
+            {
+                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+                {
+                    Heavy.ApplyToTarget(e, 5.0f);
+                });
+            }
             SameLineIfFits("Heavy (e)");
             if (ImGui.Button("Heavy (e)"))
             {
@@ -208,6 +208,23 @@ public partial class MainWindow
                     Heavy.ApplyToTarget(e, 5.0f, true);
                 });
             }
+            SameLineIfFits("Epic Hero");
+            if (ImGui.Button("Epic Hero"))
+            {
+                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+                {
+                    EpicHero.ApplyToTarget(e);
+                });
+            }
+            SameLineIfFits("Fated Hero");
+            if (ImGui.Button("Fated Hero"))
+            {
+                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+                {
+                    FatedHero.ApplyToTarget(e);
+                });
+            }
+
             if (ImGui.Button("Blind"))
             {
                 commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>

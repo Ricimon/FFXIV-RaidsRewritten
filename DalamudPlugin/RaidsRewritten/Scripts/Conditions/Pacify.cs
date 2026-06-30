@@ -6,9 +6,7 @@ namespace RaidsRewritten.Scripts.Conditions;
 
 public class Pacify
 {
-    public const int Id = 0x9AC1F1;
-    private const int IconId = 215017;
-    private const int IconToReplace = 210265;
+    private const string IconId = "215017";
 
     public record struct Component(object _);
 
@@ -18,7 +16,7 @@ public class Pacify
         bool extendDuration = false,
         bool overrideExistingDuration = false)
     {
-        ApplyToTarget(target, duration, Id, extendDuration, overrideExistingDuration);
+        ApplyToTarget(target, duration, ConditionTable.Id.Pacify, extendDuration, overrideExistingDuration);
     }
 
     public static void ApplyToTarget(
@@ -37,8 +35,8 @@ public class Pacify
 
             condition
                 .Set(new Condition.NetworkMessage(Network.Message.Condition.Pacify))
-                .Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
-                .Set(new Condition.Status(IconToReplace, "Pacification", "Unable to use attack-oriented abilities, spells, and weaponskills."))
+                .Set(new Condition.StatusIconReplacement(IconId, ConditionTable.IconToReplace.Pacify))
+                .Set(new Condition.Status(ConditionTable.IconToReplace.Pacify, "Pacification", "Unable to use attack-oriented abilities, spells, and weaponskills."))
                 .Set(new Condition.StatusTooltip("Pacification (RaidsRewritten)"))
                 .Add<Condition.StatusEnfeeblement>();
 

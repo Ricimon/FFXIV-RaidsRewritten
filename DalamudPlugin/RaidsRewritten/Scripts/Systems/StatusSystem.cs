@@ -94,9 +94,10 @@ public unsafe class StatusSystem(
                     {
                         // DefaultTextureScale 1 == low res, 2 == high res
                         var hr = IsUsingHighResTextures() ? "_hr1" : "";
-                        var replacementPath = Path.Combine("statuses", $"{r.CustomStatusIconId}{hr}.tex");
+                        var replacementPath = Path.Combine("statuses", $"{r.CustomIconName}{hr}.tex");
                         replacementPath = dalamud.PluginInterface.GetResourcePath(replacementPath);
-                        var folder = r.CustomStatusIconId - r.CustomStatusIconId % 1000;
+                        // The FileReplacement's original file path must be in a different folder than that of the icon to replace
+                        var folder = r.IconToReplace - r.IconToReplace % 1000 - 1000;
                         var fr = new FileReplacement($"ui/icon/{folder:D6}/{r.IconToReplace}{hr}.tex", replacementPath);
                         flytext.Set(fr);
                         statusEntity.Set(new FileReplacementReference(fr));

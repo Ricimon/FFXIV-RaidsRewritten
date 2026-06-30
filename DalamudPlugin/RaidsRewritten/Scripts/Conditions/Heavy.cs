@@ -6,9 +6,7 @@ namespace RaidsRewritten.Scripts.Conditions;
 
 public class Heavy
 {
-    public const int Id = 0x8EA11;
-    private const int IconId = 215002;
-    private const int IconToReplace = 210260;
+    private const string IconId = "215002";
 
     public record struct Component(object _);
 
@@ -18,7 +16,7 @@ public class Heavy
         bool extendDuration = false,
         bool overrideExistingDuration = false)
     {
-        ApplyToTarget(target, duration, Id, extendDuration, overrideExistingDuration);
+        ApplyToTarget(target, duration, ConditionTable.Id.Heavy, extendDuration, overrideExistingDuration);
     }
 
     public static void ApplyToTarget(
@@ -37,8 +35,8 @@ public class Heavy
 
             condition
                 .Set(new Condition.NetworkMessage(Network.Message.Condition.Heavy))
-                .Set(new Condition.StatusIconReplacement(IconId, IconToReplace))
-                .Set(new Condition.Status(IconToReplace, "Heavy", "Movement speed is reduced."))
+                .Set(new Condition.StatusIconReplacement(IconId, ConditionTable.IconToReplace.Heavy))
+                .Set(new Condition.Status(ConditionTable.IconToReplace.Heavy, "Heavy", "Movement speed is reduced."))
                 .Set(new Condition.StatusTooltip("Heavy (RaidsRewritten)"))
                 .Add<Condition.StatusEnfeeblement>();
 
