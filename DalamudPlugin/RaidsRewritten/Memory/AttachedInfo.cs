@@ -1,5 +1,5 @@
 ﻿// Adapted from https://github.com/PunishXIV/Splatoon/blob/main/Splatoon/Memory/AttachedInfo.cs
-// 62f2b72
+// 7d677e5
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -7,7 +7,9 @@ using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Hooking;
 using ECommons;
+using ECommons.DalamudServices;
 using ECommons.GameFunctions;
+using ECommons.GameFunctions.VirtualTableClassifier;
 using ECommons.GameHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using RaidsRewritten.Log;
@@ -91,18 +93,22 @@ public static unsafe class AttachedInfo
             };
             var obj = PluginInitializer.ObjectTable.CreateObjectReference(a2)!;
             OnVFXSpawnCallback?.Invoke(obj.EntityId, vfxPath);
-            //if (!Utils.BlacklistedVFX.Contains(vfxPath))
+            //if(!Utils.BlacklistedVFX.Contains(vfxPath))
             //{
-            //    if (obj is ICharacter c)
+            //    if(obj is ICharacter c)
             //    {
             //        var targetText = c.AddressEquals(BasePlayer) ? "me" : (c is IPlayerCharacter pc ? pc.GetJob().ToString() : c.DataId.ToString() ?? "Unknown");
             //        var text = $"VFX {vfxPath} spawned on {targetText} npc id={c.NameId}, model id={c.Struct()->ModelContainer.ModelCharaId}, name npc id={c.NameId}, position={c.Position}, name={c.Name}";
-            //        Logger?.Info(text);
+            //        P.ChatMessageQueue.Enqueue(text);
+            //        if(P.Config.Logging) Logger.Log(text);
+            //        if(c.IsBattleNpc()) P.LogWindow.Log(text);
             //    }
             //    else
             //    {
             //        var text = $"VFX {vfxPath} spawned on {obj.DataId} npc id={obj.Struct()->GetNameId()}, position={obj.Position}";
-            //        Logger?.Info(text);
+            //        P.ChatMessageQueue.Enqueue(text);
+            //        if(P.Config.Logging) Logger.Log(text);
+            //        if(obj.IsBattleNpc()) P.LogWindow.Log(text);
             //    }
             //}
         }
@@ -158,9 +164,9 @@ public static unsafe class AttachedInfo
     }
     private static void Tick(object _)
     {
-        foreach (var x in PluginInitializer.ObjectTable)
+        foreach (var x in Svc.Objects)
         {
-            if (x is IBattleChara b)
+            if (x.IsBattleChara(out var b))
             {
                 bool isCasting;
                 try
@@ -177,26 +183,26 @@ public static unsafe class AttachedInfo
                 {
                     if (!Casters.Contains(b.Address))
                     {
-                        CastInfos[b.Address] = new(b.CastActionId, Environment.TickCount64 - (long)(b.CurrentCastTime * 1000));
+                        CastInfos[b.Address] = new(b.CastInfo.ActionId, Environment.TickCount64 - (long)(b.CastInfo.CurrentCastTime * 1000));
                         Casters.Add(b.Address);
                         //string text;
                         //if (P.Config.LogPosition)
                         //if (true)
                         //{
-                        //    text = $"{b.Name} ({x.Position}) starts casting {b.CastActionId} ({b.NameId}>{b.CastActionId})";
+                        //    text = $"{b.Name} ({x.Position}) starts casting {b.CastInfo.ActionId} ({b.NameId}>{b.CastInfo.ActionId})";
                         //}
                         //else
                         //{
-                        //    text = $"{b.Name} starts casting {b.CastActionId} ({b.NameId}>{b.CastActionId})";
+                        //    text = $"{b.Name} starts casting {b.CastInfo.ActionId} ({b.NameId}>{b.CastInfo.ActionId})";
                         //}
-                        //ScriptingProcessor.OnStartingCast(b.EntityId, b.CastActionId);
-                        OnStartingCastCallback?.Invoke(b.EntityId, b.CastActionId);
+                        //ScriptingProcessor.OnStartingCast(b.EntityId, b.CastInfo.ActionId);
+                        OnStartingCastCallback?.Invoke(b.EntityId, b.CastInfo.ActionId);
                         //Logger?.Info(text);
                         //P.ChatMessageQueue.Enqueue(text);
                         //if (P.Config.Logging)
                         //{
                         //    Logger.Log(text);
-                        //    if (b is IBattleNpc) P.LogWindow.Log(text);
+                        //    if (b.IsBattleNpc()) P.LogWindow.Log(text);
                         //}
                     }
                 }

@@ -1,5 +1,5 @@
 ﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/GenericHelpers/ExcelHelpers.cs
-// 4b124ef
+// c9aa589
 using Dalamud.Game;
 using ECommons.DalamudServices;
 using ECommons.ExcelServices.Sheets;
@@ -11,9 +11,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace ECommons;
-
 public static unsafe partial class GenericHelpers
 {
     /// <summary>
@@ -100,8 +100,10 @@ public static unsafe partial class GenericHelpers
     /// <typeparam name="T"></typeparam>
     /// <param name="predicate"></param>
     /// <returns></returns>
-    public static T? FindRow<T>(Func<T, bool> predicate) where T : struct, IExcelRow<T>
-         => GetSheet<T>().FirstOrNull(predicate);
+    public static T? FindRow<T>(Func<T, bool> predicate, ClientLanguage? language = null) where T : struct, IExcelRow<T>
+    {
+        return GetSheet<T>(language).FirstOrNull(predicate);
+    }
 
     /// <summary>
     /// TODO: document
@@ -109,8 +111,8 @@ public static unsafe partial class GenericHelpers
     /// <typeparam name="T"></typeparam>
     /// <param name="predicate"></param>
     /// <returns></returns>
-    public static T[] FindRows<T>(Func<T, bool> predicate) where T : struct, IExcelRow<T>
-        => GetSheet<T>().Where(predicate).ToArray();
+    public static T[] FindRows<T>(Func<T, bool> predicate, ClientLanguage? language = null) where T : struct, IExcelRow<T>
+        => GetSheet<T>(language).Where(predicate).ToArray();
 
     /// <summary>
     /// TODO: document
@@ -230,8 +232,10 @@ public static unsafe partial class GenericHelpers
     /// <param name="predicate"></param>
     /// <param name="language"></param>
     /// <returns></returns>
-    public static T? FindRow<T>(Func<T, bool> predicate, ClientLanguage? language = null) where T : struct, IExcelSubrow<T>
-        => GetSubrowSheet<T>(language).SelectMany(m => m).Cast<T?>().FirstOrDefault(t => predicate(t.Value), null);
+    public static T? FindSubrow<T>(Func<T, bool> predicate, ClientLanguage? language = null) where T : struct, IExcelSubrow<T>
+    {
+        return GetSubrowSheet<T>(language).SelectMany(m => m).Cast<T?>().FirstOrDefault(t => predicate(t.Value), null);
+    }
     #endregion
 
     #region Rawrows
@@ -265,9 +269,9 @@ public static unsafe partial class GenericHelpers
     /// <returns></returns>
     public static IEnumerable<T> AllRows<T>(this SubrowExcelSheet<T> subrowSheet) where T : struct, IExcelSubrow<T>
     {
-        foreach (var x in subrowSheet)
+        foreach(var x in subrowSheet)
         {
-            foreach (var z in x)
+            foreach(var z in x)
             {
                 yield return z;
             }
@@ -283,7 +287,7 @@ public static unsafe partial class GenericHelpers
     /// <returns></returns>
     public static bool TryGetValue<T>(this RowRef<T> rowRef, out T value) where T : struct, IExcelRow<T>
     {
-        if (rowRef.ValueNullable != null)
+        if(rowRef.ValueNullable != null)
         {
             value = rowRef.Value;
             return true;
@@ -291,7 +295,7 @@ public static unsafe partial class GenericHelpers
         value = default;
         return false;
     }
-
+    
     /// <summary>
     /// TODO: document
     /// </summary>
@@ -310,9 +314,15 @@ public static unsafe partial class GenericHelpers
         /// <param name="id"></param>
         /// <param name="language"></param>
         /// <returns></returns>
+        [OverloadResolutionPriority(1)]
         public static RowRef<T> GetRef(uint id, Lumina.Data.Language? language = null)
         {
             return new(Svc.Data.Excel, id, language);
+        }
+
+        public static RowRef<T> GetRef(int id, Lumina.Data.Language? language = null)
+        {
+            return GetRef<T>((uint)id, language);
         }
 
         public static T Get(uint id, Dalamud.Game.ClientLanguage? language = null)

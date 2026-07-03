@@ -1,11 +1,14 @@
 ﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/MathHelpers/MathHelper.cs
-// 439dfae
+// 6d8ab09
+using Dalamud.Game.ClientState.Objects.Types;
 using ECommons.DalamudServices;
 using ECommons.Logging;
+using ECommons.ObjectLifeTracker;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace ECommons.MathHelpers;
 
@@ -70,7 +73,7 @@ public static class MathHelper
         List<Vector2> points = [];
         var distance = Vector2.Distance(centerPoint, initialPoint);
         //if(clampRadius != null) distance.ValidateRange(clampRadius.Value.Min, clampRadius.Value.Max);
-        for (var x = 0f; x < 360f; x += step)
+        for(var x = 0f; x < 360f; x += step)
         {
             var p = MathF.SinCos(x.DegToRad());
             points.Add(new Vector2(p.Sin * distance, p.Cos * distance) + centerPoint);
@@ -78,35 +81,35 @@ public static class MathHelper
         var closestPoints = points.OrderBy(x => Vector2.Distance(initialPoint, x)).Take(2).ToList();
         List<List<Vector2>> retCandidates = [];
         var finalPoints = points.OrderBy(x => Vector2.Distance(exitPoint, x)).Take(exitPointTolerance).ToArray();
-        if (finalPoints.Length > 1)
+        if(finalPoints.Length > 1)
         {
-            for (var i = 0; i < finalPoints.Length - 1; i++)
+            for(var i = 0; i < finalPoints.Length - 1; i++)
             {
-                if (IsPointPerpendicularToLineSegment(initialPoint, finalPoints[i], finalPoints[i + 1]) && Vector2.Distance(initialPoint, FindClosestPointOnLine(initialPoint, finalPoints[i], finalPoints[i + 1])) < distance / 2f)
+                if(IsPointPerpendicularToLineSegment(initialPoint, finalPoints[i], finalPoints[i + 1]) && Vector2.Distance(initialPoint, FindClosestPointOnLine(initialPoint, finalPoints[i], finalPoints[i + 1])) < distance / 2f)
                 {
                     candidates = retCandidates;
                     return [];
                 }
             }
         }
-        foreach (var finalPoint in finalPoints)
+        foreach(var finalPoint in finalPoints)
         {
-            foreach (var point in closestPoints)
+            foreach(var point in closestPoints)
             {
                 void Process(int mod)
                 {
                     var pointIndex = points.IndexOf(point);
-                    if (pointIndex == -1) throw new Exception($"Could not find {point} in \n{points.Print("\n")}");
+                    if(pointIndex == -1) throw new Exception($"Could not find {point} in \n{points.Print("\n")}");
                     var list = new List<Vector2>();
                     var iterations = 0;
                     do
                     {
                         iterations++;
-                        if (iterations > 1000) throw new Exception("Iteration limit exceeded");
+                        if(iterations > 1000) throw new Exception("Iteration limit exceeded");
                         list.Add(points.CircularSelect(pointIndex));
                         pointIndex += mod;
                     }
-                    while (list[^1] != finalPoint);
+                    while(list[^1] != finalPoint);
                     retCandidates.Add(list);
                 }
                 Process(1);
@@ -114,19 +117,19 @@ public static class MathHelper
             }
         }
         retCandidates = [.. retCandidates.OrderBy(CalculateDistance)];
-        if (clampRadius != null)
+        if(clampRadius != null)
         {
-            foreach (var list in retCandidates)
+            foreach(var list in retCandidates)
             {
-                for (var i = 0; i < list.Count; i++)
+                for(var i = 0; i < list.Count; i++)
                 {
-                    if (GetAngleBetweenLines(list[i], centerPoint, initialPoint, centerPoint).RadToDeg() > step / 10)
+                    if(GetAngleBetweenLines(list[i], centerPoint, initialPoint, centerPoint).RadToDeg() > step / 10)
                     {
-                        if (Vector2.Distance(list[i], centerPoint) > clampRadius.Value.Max)
+                        if(Vector2.Distance(list[i], centerPoint) > clampRadius.Value.Max)
                         {
                             list[i] = MovePoint(centerPoint, list[i], clampRadius.Value.Max);
                         }
-                        if (Vector2.Distance(list[i], centerPoint) < clampRadius.Value.Min)
+                        if(Vector2.Distance(list[i], centerPoint) < clampRadius.Value.Min)
                         {
                             list[i] = MovePoint(centerPoint, list[i], clampRadius.Value.Min);
                         }
@@ -201,9 +204,9 @@ public static class MathHelper
     public static double Mod(double dividend, double divisor)
     {
         var remainder = dividend % divisor;
-        if (remainder < 0)
+        if(remainder < 0)
         {
-            if (divisor < 0)
+            if(divisor < 0)
             {
                 return remainder - divisor;
             }
@@ -216,9 +219,9 @@ public static class MathHelper
     public static float Mod(float dividend, float divisor)
     {
         var remainder = dividend % divisor;
-        if (remainder < 0)
+        if(remainder < 0)
         {
-            if (divisor < 0)
+            if(divisor < 0)
             {
                 return remainder - divisor;
             }
@@ -231,9 +234,9 @@ public static class MathHelper
     public static int Mod(int dividend, int divisor)
     {
         var remainder = dividend % divisor;
-        if (remainder < 0)
+        if(remainder < 0)
         {
-            if (divisor < 0)
+            if(divisor < 0)
             {
                 return remainder - divisor;
             }
@@ -245,7 +248,7 @@ public static class MathHelper
     public static float CalculateDistance(IEnumerable<Vector2> vectors)
     {
         var distance = 0f;
-        for (var i = 0; i < vectors.Count() - 1; i++)
+        for(var i = 0; i < vectors.Count() - 1; i++)
         {
             distance += Vector2.Distance(vectors.ElementAt(i), vectors.ElementAt(i + 1));
         }
@@ -258,15 +261,16 @@ public static class MathHelper
     }
 
     /// <summary>
-    /// 
+    /// Rotates point around origin by certain amount of degrees
     /// </summary>
     /// <param name="origin"></param>
     /// <param name="angle">Radians</param>
     /// <param name="p"></param>
     /// <returns></returns>
+    [OverloadResolutionPriority(1)]
     public static Vector3 RotateWorldPoint(Vector3 origin, float angle, Vector3 p)
     {
-        if (angle == 0f) return p;
+        if(angle == 0f) return p;
         var s = (float)Math.Sin(angle);
         var c = (float)Math.Cos(angle);
 
@@ -281,6 +285,33 @@ public static class MathHelper
         // translate point back:
         p.X = xnew + origin.X;
         p.Z = ynew + origin.Z;
+        return p;
+    }
+
+    /// <summary>
+    /// Rotates point around origin by certain amount of degrees
+    /// </summary>
+    /// <param name="origin"></param>
+    /// <param name="angle">Radians</param>
+    /// <param name="p"></param>
+    /// <returns></returns>
+    public static Vector2 RotateWorldPoint(Vector2 origin, float angle, Vector2 p)
+    {
+        if(angle == 0f) return p;
+        var s = (float)Math.Sin(angle);
+        var c = (float)Math.Cos(angle);
+
+        // translate point back to origin:
+        p.X -= origin.X;
+        p.Y -= origin.Y;
+
+        // rotate point
+        var xnew = p.X * c - p.Y * s;
+        var ynew = p.X * s + p.Y * c;
+
+        // translate point back:
+        p.X = xnew + origin.X;
+        p.Y = ynew + origin.Y;
         return p;
     }
 
@@ -305,6 +336,11 @@ public static class MathHelper
     public static Vector3 ToVector3(this Vector2 vector2, float Y)
     {
         return new Vector3(vector2.X, Y, vector2.Y);
+    }
+
+    public static Vector3 SwapYZ(this Vector3 v)
+    {
+        return new(v.X, v.Z, v.Y);
     }
 
     public static Vector3 ToVector3(this (float X, float Y, float Z) t) => new(t.X, t.Y, t.Z);
@@ -365,9 +401,9 @@ public static class MathHelper
     /// <returns></returns>
     public static CardinalDirection GetCardinalDirection(float angle)
     {
-        if (angle.InRange(45, 135, false)) return CardinalDirection.East;
-        if (angle.InRange(135, 225, false)) return CardinalDirection.South;
-        if (angle.InRange(225, 315, false)) return CardinalDirection.West;
+        if(angle.InRange(45, 135, false)) return CardinalDirection.East;
+        if(angle.InRange(135, 225, false)) return CardinalDirection.South;
+        if(angle.InRange(225, 315, false)) return CardinalDirection.West;
         return CardinalDirection.North;
     }
 
@@ -419,5 +455,63 @@ public static class MathHelper
     public static bool InRange(this sbyte f, sbyte inclusiveStart, sbyte end, bool includeEnd = false)
     {
         return f >= inclusiveStart && (includeEnd ? f <= end : f < end);
+    }
+
+    [OverloadResolutionPriority(1)]
+    public static List<T> EnumerateObjectsClockwise<T>(IEnumerable<T> objects, Func<T, Vector2> getPosition, Vector2 centerPosition, Vector2 startingPosition)
+    {
+        var orderedList = objects.OrderBy(x =>
+        {
+            var relAngle = MathHelper.GetRelativeAngle(centerPosition, startingPosition);
+            var a = (MathHelper.GetRelativeAngle(centerPosition, getPosition(x)) - relAngle + 360) % 360;
+            return a;
+        }).ToList();
+        return orderedList;
+    }
+
+    [OverloadResolutionPriority(1)]
+    public static List<EnumerationResult<T>> EnumerateObjectsClockwiseEx<T>(IEnumerable<T> objects, Func<T, Vector2> getPosition, Vector2 centerPosition, Vector2 startingPosition)
+    {
+        var orderedList = objects.Select(x =>
+        {
+            var relAngle = MathHelper.GetRelativeAngle(centerPosition, startingPosition);
+            var a = (MathHelper.GetRelativeAngle(centerPosition, getPosition(x)) - relAngle + 360) % 360;
+            return new EnumerationResult<T>(x, a);
+        }).OrderBy(x => x.AngleDegrees).ToList();
+        return orderedList;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="objects"></param>
+    /// <param name="getPosition"></param>
+    /// <param name="centerPosition"></param>
+    /// <param name="startingAngle">Degrees from North. </param>
+    /// <returns></returns>
+    public static List<T> EnumerateObjectsClockwise<T>(IEnumerable<T> objects, Func<T, Vector2> getPosition, Vector2 centerPosition, float startingAngle)
+    {
+        return [.. EnumerateObjectsClockwiseEx(objects, getPosition, centerPosition, startingAngle).Select(x => x.Object)];
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="objects"></param>
+    /// <param name="getPosition"></param>
+    /// <param name="centerPosition"></param>
+    /// <param name="startingAngle">Degrees from North. </param>
+    /// <returns></returns>
+    public static List<EnumerationResult<T>> EnumerateObjectsClockwiseEx<T>(IEnumerable<T> objects, Func<T, Vector2> getPosition, Vector2 centerPosition, float startingAngle)
+    {
+        var orderedList = objects.Select(x => 
+        {
+            var relAngle = MathHelper.Mod(startingAngle, 360);
+            var a = (MathHelper.GetRelativeAngle(centerPosition, getPosition(x)) - relAngle + 360) % 360;
+            return new EnumerationResult<T>(x, a);
+        }).OrderBy(x => x.AngleDegrees).ToList();
+        return orderedList;
     }
 }

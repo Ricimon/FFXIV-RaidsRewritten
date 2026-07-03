@@ -25,6 +25,7 @@ public sealed class EncounterManager(
     MapEffectProcessor mapEffectProcessor,
     ObjectEffectProcessor objectEffectProcessor,
     ActorControlProcessor actorControlProcessor,
+    TetherProcessor tetherProcessor,
     StatusPartyListProcessor statusPartyListProcessor,
     MoodlesIPC moodlesIPC,
     Configuration configuration,
@@ -58,6 +59,7 @@ public sealed class EncounterManager(
         mapEffectProcessor.Init(OnMapEffect);
         objectEffectProcessor.Init(OnObjectEffect);
         actorControlProcessor.Init(OnActorControl);
+        tetherProcessor.Init(OnTetherCreate, OnTetherRemoval);
         AttachedInfo.Init(logger, OnStartingCast, OnVFXSpawn);
         DirectorUpdate.Init(OnDirectorUpdate);
         ObjectLife.Init();
@@ -137,7 +139,7 @@ public sealed class EncounterManager(
         var gameObject = dalamud.ObjectTable.SearchByEntityId(Target);
         if (gameObject == null) { return; }
 
-        var text = $"OBJECT_EFFECT: on {gameObject.Name.TextValue} 0x{Target:X}/0x{gameObject.GameObjectId:X} data {Param1}, {Param2}";
+        var text = $"OBJECT_EFFECT: on {gameObject.Name} 0x{Target:X}/0x{gameObject.GameObjectId:X} data {Param1}, {Param2}";
         logger.Trace(text);
 
         if (configuration.EverythingDisabled) { return; }
@@ -270,7 +272,7 @@ public sealed class EncounterManager(
 
             if (obj.Name.TextValue.Length > 0)
             {
-                text.Append($"{obj.Name.TextValue} ");
+                text.Append($"{obj.Name} ");
             }
             text.Append($"(0x{newObjectPointer:X}|{obj.Position})");
             text.Append($" Kind {obj.ObjectKind}");
@@ -334,12 +336,51 @@ public sealed class EncounterManager(
             return;
         }
 
-        var text = new StringBuilder($"ACTOR_CONTROL: source {source.Name} (0x{sourceId})");
+        var text = new StringBuilder($"ACTOR_CONTROL: source {source.Name} (0x{sourceId:X})");
         text.Append($", command {command}, {p1}, {p2}, {p3}, {p4}, {p5}, {p6}, {p7}, {p8}");
         text.Append($", targetId 0x{targetId:X}, replaying {replaying}");
         logger.Trace(text.ToString());
 
         if (configuration.EverythingDisabled) { return; }
+    }
+
+    private void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
+    {
+        var sourceObject = dalamud.ObjectTable.SearchByEntityId(source);
+        var targetObject = dalamud.ObjectTable.SearchByEntityId(target);
+        if (sourceObject == null || targetObject == null) { return; }
+
+        var text = new StringBuilder($"TETHER_CREATE: source {sourceObject.Name} (0x{source:X}), target {targetObject.Name} (0x{target:X}), {data2}, {data3}, {data5}");
+        logger.Trace(text.ToString());
+
+        if (configuration.EverythingDisabled) { return; }
+
+        if (ActiveEncounter != null)
+        {
+            foreach(var mechanic in ActiveEncounter.GetMechanics())
+            {
+                mechanic.OnTetherCreate(source, target, data2, data3, data5);
+            }
+        }
+    }
+
+    private void OnTetherRemoval(uint source, uint data2, uint data3, uint data5)
+    {
+        var sourceObject = dalamud.ObjectTable.SearchByEntityId(source);
+        if (sourceObject == null) { return; }
+
+        var text = new StringBuilder($"TETHER_REMOVE: source {sourceObject.Name} (0x{source:X}), {data2}, {data3}, {data5}");
+        logger.Trace(text.ToString());
+
+        if (configuration.EverythingDisabled) { return; }
+
+        if (ActiveEncounter != null)
+        {
+            foreach(var mechanic in ActiveEncounter.GetMechanics())
+            {
+                mechanic.OnTetherRemoval(source, data2, data3, data5);
+            }
+        }
     }
 
     private void OnFrameworkUpdate(IFramework framework)

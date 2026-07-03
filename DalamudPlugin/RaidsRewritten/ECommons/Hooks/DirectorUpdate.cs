@@ -1,5 +1,5 @@
-﻿// Adapted from https://github.com/NightmareXIV/ECommons/blob/master/ECommons/Hooks/DirectorUpdate.cs
-// 391c409
+﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/Hooks/DirectorUpdate.cs
+// 37ce07b
 using Dalamud.Hooking;
 using ECommons.DalamudServices;
 using ECommons.EzHookManager;

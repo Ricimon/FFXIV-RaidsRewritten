@@ -34,6 +34,7 @@ public class PluginModule : NinjectModule
         Bind<MapEffectProcessor>().ToSelf().InSingletonScope();
         Bind<ObjectEffectProcessor>().ToSelf().InSingletonScope();
         Bind<ActorControlProcessor>().ToSelf().InSingletonScope();
+        Bind<TetherProcessor>().ToSelf().InSingletonScope();
         Bind<ResourceLoader>().ToSelf().InSingletonScope();
         Bind<VfxSpawn>().ToSelf().InSingletonScope();
         Bind<IDalamudHook, StatusCommonProcessor>().To<StatusCommonProcessor>().InSingletonScope();

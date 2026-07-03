@@ -1,6 +1,7 @@
 ﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/Reflection/ReflectionHelper/ReflectionHelper.cs
-// f83b1f1
+// 7f7b741
 using ECommons.Logging;
+using System;
 using System.Linq;
 using System.Reflection;
 
@@ -21,6 +22,7 @@ public static partial class ReflectionHelper
     /// <returns>Value of a field/property</returns>
     public static object GetFoP(this object obj, string name)
     {
+        if(obj == null || name == null) return null;
         var type = obj.GetType();
         while(type != null)
         {
@@ -76,6 +78,15 @@ public static partial class ReflectionHelper
     {
         return obj.GetType().Assembly.GetType(type).GetField(name, StaticFlags)?.GetValue(null)
             ?? obj.GetType().Assembly.GetType(type).GetProperty(name, StaticFlags)?.GetValue(null);
+    }
+
+    /// <summary>
+    /// Subject for future refactoring and changes!
+    /// </summary>
+    public static object GetStaticFoP(this Type obj, string name)
+    {
+        return obj.GetField(name, StaticFlags)?.GetValue(null)
+            ?? obj.GetProperty(name, StaticFlags)?.GetValue(null);
     }
 
     /// <summary>
