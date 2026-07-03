@@ -6,6 +6,7 @@ using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
+using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Utility;
 using ZLinq;
@@ -17,12 +18,25 @@ public class PickyDolls : Mechanic
     public int RngSeed { get; set; }
 
     private record struct Target(Entity Entity, ulong ContentId);
+    private record struct Doll(Villain Villain, Entity Vfx);
+    private enum Villain
+    {
+        Epic,
+        Fated,
+    }
 
     private const uint FLUID_SWING_ACTION_ID = 18864;
+    private const uint JAGD_DOLL_BASE_ID = 0x2C4A;
+    private const uint REDUCIBLE_COMPLEXITY_ID = 18464;
+    private const string EPIC_VILLAIN = "vfx/common/eff/z6r1_b3_stlp01_c0t1.avfx";
+    private const string FATED_VILLAIN = "vfx/common/eff/z6r1_b3_stlp02_c0t1.avfx";
 
     private readonly List<Entity> attacks = [];
+    private readonly Dictionary<uint, Doll> dolls = [];
 
     private bool debuffsAssigned = false;
+    private int epicVillainsToAssign = 2;
+    private int fatedVillainsToAssign = 2;
 
     public override void Reset()
     {
@@ -31,7 +45,10 @@ public class PickyDolls : Mechanic
             attack.Destruct();
         }
         attacks.Clear();
+        dolls.Clear();
         debuffsAssigned = false;
+        epicVillainsToAssign = 2;
+        fatedVillainsToAssign = 2;
 
         World.DeleteWith<EpicHero.Component>();
         World.DeleteWith<FatedHero.Component>();
@@ -59,11 +76,53 @@ public class PickyDolls : Mechanic
         {
             AssignDebuffs(0.75f);
         }
+
+        if (set.Action.Value.RowId == REDUCIBLE_COMPLEXITY_ID &&
+            set.Source != null)
+        {
+            RemoveDollVfx(set.Source);
+        }
     }
 
     public override void OnObjectCreation(nint newObjectPointer, IGameObject? newObject)
     {
         if (newObject == null) { return; }
+        if (newObject.BaseId != JAGD_DOLL_BASE_ID) { return; }
+
+        var totalAssigns = epicVillainsToAssign + fatedVillainsToAssign;
+        if (totalAssigns <= 0) { return; }
+
+        // Assign Epic/Fated Villain to Jagd Dolls
+
+        var random = new Random(RngSeed + totalAssigns);
+
+        var r = random.Next(totalAssigns);
+
+        Villain villain;
+        string vfxPath;
+        if (r < epicVillainsToAssign)
+        {
+            villain = Villain.Epic;
+            vfxPath = EPIC_VILLAIN;
+            epicVillainsToAssign--;
+        }
+        else
+        {
+            villain = Villain.Fated;
+            vfxPath = FATED_VILLAIN;
+            fatedVillainsToAssign--;
+        }
+
+        var action = DelayedAction.Create(World, () =>
+        {
+            var vfx = World.Entity()
+                .Set(new ActorVfx(vfxPath))
+                .Set(new ActorVfxSource(newObject));
+            attacks.Add(vfx);
+
+            dolls[newObject.EntityId] = new(villain, vfx);
+        }, 1.0f);
+        attacks.Add(action);
     }
 
     public override void DebugSimulate()
@@ -76,7 +135,7 @@ public class PickyDolls : Mechanic
         if (debuffsAssigned) { return; }
         debuffsAssigned = true;
 
-        DelayedAction.Create(World, () =>
+        var action = DelayedAction.Create(World, () =>
         {
             var mainTargets = new List<Target>();
             var backupTargets = new List<Target>();
@@ -124,5 +183,14 @@ public class PickyDolls : Mechanic
             EnumerateTargets(mainTargets);
             EnumerateTargets(backupTargets);
         }, delay);
+        attacks.Add(action);
+    }
+
+    private void RemoveDollVfx(IGameObject dollGameObject)
+    {
+        if (dolls.Remove(dollGameObject.EntityId, out var doll))
+        {
+            doll.Vfx.Destruct();
+        }
     }
 }
