@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons.GameFunctions;
@@ -91,7 +92,7 @@ public class PickyDolls : Mechanic
 
         if (set.Action.Value.RowId == REDUCIBLE_COMPLEXITY_ID)
         {
-            RemoveDollVfx(set.Source);
+            RemoveDoll(set.Source.EntityId);
         }
     }
 
@@ -136,6 +137,25 @@ public class PickyDolls : Mechanic
         attacks.Add(action);
     }
 
+    public override void OnActorControl(IGameObject source, uint command, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, uint p7, uint p8, ulong targetId, byte replaying)
+    {
+        if (source.BaseId == LIVING_LIQUID_BASE_ID &&
+            command == 14 && // command 14 seems to be death animation
+            dolls.Count > 0)
+        {
+            foreach (var dollId in dolls.Keys.ToList())
+            {
+                // Need testing to see if doll entity still exists when Liquid dies
+                var doll = Dalamud.ObjectTable.SearchByEntityId(dollId);
+                if (doll != null)
+                {
+                    DollFeedFailure(doll);
+                }
+                RemoveDoll(dollId);
+            }
+        }
+    }
+
     public override void OnTetherCreate(IGameObject source, IGameObject target, uint data2, uint data3, uint data5)
     {
         if (dolls.TryGetValue(source.EntityId, out var doll) &&
@@ -146,16 +166,7 @@ public class PickyDolls : Mechanic
             {
                 var action = DelayedAction.Create(World, () =>
                 {
-                    var vfx = World.Entity()
-                        .Set(new ActorVfx(FEED_FAIL))
-                        .Set(new ActorVfxSource(source));
-                    attacks.Add(vfx);
-
-                    CommonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
-                    {
-                        Hysteria.ApplyToTarget(e, 10.0f, 5.0f);
-                        Pacify.ApplyToTarget(e, 30.0f);
-                    });
+                    DollFeedFailure(source);
                 }, 1.7f);
                 attacks.Add(action);
             }
@@ -261,11 +272,31 @@ public class PickyDolls : Mechanic
         }
     }
 
-    private void RemoveDollVfx(IGameObject dollGameObject)
+    private void RemoveDoll(uint dollEntityId)
     {
-        if (dolls.Remove(dollGameObject.EntityId, out var doll))
+        if (dolls.Remove(dollEntityId, out var doll))
         {
             doll.Vfx.Destruct();
         }
+
+        if (dolls.Count == 0)
+        {
+            World.DeleteWith<EpicHero.Component>();
+            World.DeleteWith<FatedHero.Component>();
+        }
+    }
+
+    private void DollFeedFailure(IGameObject doll)
+    {
+        var vfx = World.Entity()
+            .Set(new ActorVfx(FEED_FAIL))
+            .Set(new ActorVfxSource(doll));
+        attacks.Add(vfx);
+
+        CommonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+        {
+            Hysteria.ApplyToTarget(e, 10.0f, 5.0f);
+            Pacify.ApplyToTarget(e, 30.0f);
+        });
     }
 }

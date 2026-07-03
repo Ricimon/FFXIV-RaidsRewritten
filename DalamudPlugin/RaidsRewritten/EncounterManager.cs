@@ -342,6 +342,14 @@ public sealed class EncounterManager(
         logger.Trace(text.ToString());
 
         if (configuration.EverythingDisabled) { return; }
+
+        if (ActiveEncounter != null)
+        {
+            foreach(var mechanic in ActiveEncounter.GetMechanics())
+            {
+                mechanic.OnActorControl(source, command, p1, p2, p3, p4, p5, p6, p7, p8, targetId, replaying);
+            }
+        }
     }
 
     private void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)

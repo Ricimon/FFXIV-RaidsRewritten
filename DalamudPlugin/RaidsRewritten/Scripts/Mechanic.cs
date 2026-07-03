@@ -48,6 +48,8 @@ public abstract class Mechanic()
 
     public virtual void OnVFXSpawn(IGameObject? target, string vfxPath) { }
 
+    public virtual void OnActorControl(IGameObject source, uint command, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, uint p7, uint p8, ulong targetId, byte replaying) { }
+
     public virtual void OnTetherCreate(IGameObject source, IGameObject target, uint data2, uint data3, uint data5) { }
 
     public virtual void OnTetherRemoval(IGameObject source, uint data2, uint data3, uint data5) { }
