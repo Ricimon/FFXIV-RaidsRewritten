@@ -359,7 +359,7 @@ public sealed class EncounterManager(
         {
             foreach(var mechanic in ActiveEncounter.GetMechanics())
             {
-                mechanic.OnTetherCreate(source, target, data2, data3, data5);
+                mechanic.OnTetherCreate(sourceObject, targetObject, data2, data3, data5);
             }
         }
     }
@@ -378,7 +378,7 @@ public sealed class EncounterManager(
         {
             foreach(var mechanic in ActiveEncounter.GetMechanics())
             {
-                mechanic.OnTetherRemoval(source, data2, data3, data5);
+                mechanic.OnTetherRemoval(sourceObject, data2, data3, data5);
             }
         }
     }
