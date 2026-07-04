@@ -31,14 +31,14 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
         private const float StunDuration = 10f;
         private const float AttackDelay = 0f;
         private const string AttackVfx = "vfx/monster/m0935/eff/m0935_sp11_c0p.avfx";
-        private const float OmenDuration = 2f;
+        private const float OmenDuration = 2.05f;
 
         private static readonly Dictionary<Phase, float> phaseTimings = new()
         {
             { Phase.Omen, 0f },
-            { Phase.Animation, 1.65f },
-            { Phase.Snapshot, 1.65f },
-            { Phase.Vfx, 1.5f },
+            { Phase.Animation, 1.4f },
+            { Phase.Snapshot, 1.6f },
+            { Phase.Vfx, 2.25f },
             { Phase.Reset, 6f },
         };
 
@@ -69,13 +69,6 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
                             .Set(new Position(position.Value))
                             .Set(new OmenDuration(OmenDuration, false))
                             .ChildOf(e);
-                        donut.Phase = Phase.Vfx;
-                        break;
-                    case Phase.Vfx:
-                        if (ShouldReturn(donut)) { return; }
-
-                        AddActorVfx(e, AttackVfx);
-
                         donut.Phase = Phase.Animation;
                         break;
                     case Phase.Animation:
@@ -84,9 +77,11 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
                         donut.Phase = Phase.Snapshot;
                         break;
                     case Phase.Snapshot:
-                        if (ShouldReturn(donut)) { return; }
+                        if (ShouldReturn(donut)) {
+                            parent.Set(new TimelineBase(IdleAnimation));
+                            return;
+                        }
 
-                        parent.Set(new TimelineBase(IdleAnimation));
 
                         e.Children((Entity child) =>
                         {
@@ -112,6 +107,13 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
                             }
                             child.Destruct();
                         });
+
+                        donut.Phase = Phase.Vfx;
+                        break;
+                    case Phase.Vfx:
+                        if (ShouldReturn(donut)) { return; }
+
+                        AddActorVfx(e, AttackVfx);
 
                         donut.Phase = Phase.Reset;
                         break;
@@ -142,14 +144,14 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
         private const float StunDuration = 10f;
         private const float AttackDelay = 0f;
         private const float OmenDuration = 2f;
-        private const string AttackVfx = "vfx/monster/gimmick2/eff/z3oe_b3_g05c0i.avfx";
+        private const string AttackVfx = "vfx/monster/gimmick3/eff/n4g6_b_g10cok1.avfx";
 
         private static readonly Dictionary<Phase, float> phaseTimings = new()
         {
             { Phase.Omen, 0f },
             { Phase.Animation, 1.35f },
             { Phase.Snapshot, 1.35f },
-            { Phase.Vfx, 2.25f },
+            { Phase.Vfx, 2.05f },
             { Phase.Reset, 6f },
         };
 
@@ -176,7 +178,7 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
                 {
                     case Phase.Omen:
                         if (ShouldReturn(donut)) { return; }
-                        Fan15Omen.CreateEntity(world)
+                        Fan90Omen.CreateEntity(world)
                             .Set(new Position(position.Value))
                             .Set(new Rotation(rotation.Value))
                             .Set(new Scale(new Vector3(40)))
@@ -201,7 +203,7 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
                             var player = dalamud.ObjectTable.LocalPlayer;
                             if (player != null && !player.IsDead)
                             {
-                                if (Fan15Omen.IsInOmen(child, player.Position))
+                                if (Fan90Omen.IsInOmen(child, player.Position))
                                 {
                                     if (player.HasTranscendance())
                                     {
