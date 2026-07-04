@@ -99,6 +99,8 @@ public class PluginModule : NinjectModule
         Bind<IEntity>().To<LongStarOmen>();
         Bind<IEntity>().To<ExaflareOmen>();
         Bind<IEntity>().To<OneThirdDonutOmen>();
+        Bind<IEntity>().To<ConflagDonut>();
+
         // Attacks
         Bind<IEntity, ISystem>().To<TwisterObstacleCourse>();
         Bind<IEntity, ISystem>().To<Twister>();
@@ -121,6 +123,9 @@ public class PluginModule : NinjectModule
         Bind<IEntity, ISystem>().To<CircleBladeMelusine>();
         Bind<IEntity, ISystem>().To<NerveGasKaliya>();
         Bind<IEntity, ISystem>().To<VoidGate>();
+        Bind<IEntity, ISystem>().To<FireTornadoEntity>();
+        Bind<ISystem>().To<FireTornadoEntity.Donut>();
+        Bind<ISystem>().To<FireTornadoEntity.Cone>();
 
         // Systems
         Bind<ISystem>().To<Player>();

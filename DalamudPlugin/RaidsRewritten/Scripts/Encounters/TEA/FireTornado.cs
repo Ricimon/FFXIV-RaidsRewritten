@@ -4,6 +4,7 @@ using System.Numerics;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons.Hooks;
 using Flecs.NET.Core;
+using RaidsRewritten.Scripts.Attacks;
 using RaidsRewritten.Scripts.Components;
 
 namespace RaidsRewritten.Scripts.Encounters.TEA;
@@ -57,13 +58,8 @@ public class FireTornado : Mechanic
             var position = availableTornadoPositions.ElementAt(0);
             availableTornadoPositions.Clear();
 
-            var tornado = World.Entity()
-                .Set(new Model(1666))
-                .Set(new Position(position))
-                .Set(new Rotation())
-                .Set(new Scale())
-                .Set(new UniformScale(2.5f))
-                .Add<Attack>();
+            var tornado = FireTornadoEntity.CreateEntity(World)
+                .Set(new Position(position));
 
             attacks.Add(tornado);
         }

@@ -697,6 +697,37 @@ public partial class MainWindow
                     }
                 }
 
+                SameLineIfFits("Fire Tornado");
+                if (ImGui.Button("Fire Tornado"))
+                {
+                    var player = this.dalamud.ObjectTable.LocalPlayer;
+                    if (player != null)
+                    {
+                        if (this.entityManager.TryCreateEntity<FireTornadoEntity>(out var fireDonut))
+                        {
+                            fireDonut.Set(new Position(player.Position))
+                                     .Set(new Rotation(player.Rotation));
+
+                            DelayedAction.Create(fireDonut.CsWorld(), () =>
+                            {
+                                FireTornadoEntity.ProteanMech(fireDonut, player.Position);
+                            }, 1f).ChildOf(fireDonut);
+                            DelayedAction.Create(fireDonut.CsWorld(), () =>
+                            {
+                                FireTornadoEntity.ProteanMech(fireDonut, player.Position);
+                            }, 2f).ChildOf(fireDonut);
+                            DelayedAction.Create(fireDonut.CsWorld(), () =>
+                            {
+                                FireTornadoEntity.DonutMech(fireDonut);
+                            }, 3f).ChildOf(fireDonut);
+                            DelayedAction.Create(fireDonut.CsWorld(), () =>
+                            {
+                                fireDonut.Destruct();
+                            }, 7f);
+                        }
+                    }
+                }
+
                 ImGui.Text("Heat Stuff");
                 if (ImGui.Button("Add Temperature"))
                 {
