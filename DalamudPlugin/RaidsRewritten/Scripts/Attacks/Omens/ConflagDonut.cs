@@ -8,8 +8,8 @@ namespace RaidsRewritten.Scripts.Attacks.Omens;
 
 public class ConflagDonut : IEntity
 {
-    private const float OuterRadius = 40f;
-    private const float InnerRadius = 5f;
+    private const float OuterRadius = 72f;
+    private const float InnerRadius = 9f;
     public static bool IsInOmen(Entity omen, Vector3 position)
     {
         if (!omen.TryGet<Position>(out var p)) { return false; }

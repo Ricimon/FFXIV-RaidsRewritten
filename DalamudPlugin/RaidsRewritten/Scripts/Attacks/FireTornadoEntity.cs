@@ -28,10 +28,9 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
         }
         public record struct Component(float ElapsedTime, Phase Phase = Phase.Omen);
         private const ushort AttackAnimation = 7594;
-        private const float AttackScale = 20f;
         private const float StunDuration = 10f;
         private const float AttackDelay = 0f;
-        private const string AttackVfx = "vfx/monster/gimmick3/eff/n4g6_b_g07c0k1.avfx";
+        private const string AttackVfx = "vfx/monster/m0935/eff/m0935_sp11_c0p.avfx";
         private const float OmenDuration = 2f;
 
         private static readonly Dictionary<Phase, float> phaseTimings = new()
@@ -42,8 +41,6 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
             { Phase.Vfx, 1.5f },
             { Phase.Reset, 6f },
         };
-
-        private const float InnerRadius = 7f;
 
         public static Entity CreateEntity(World world)
         {
