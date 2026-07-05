@@ -27,6 +27,7 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
             Reset
         }
         public record struct Component(float ElapsedTime, Phase Phase = Phase.Omen);
+        public struct TornadoEntity;
         private const ushort AttackAnimation = 7594;
         private const float StunDuration = 10f;
         private const float AttackDelay = 0f;
@@ -44,7 +45,7 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
 
         public static Entity CreateEntity(World world)
         {
-            return world.Entity()
+            return FakeActor.Create(world)
                 .Set(new Position())
                 .Set(new Rotation())
                 .Set(new Scale())
@@ -58,8 +59,7 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
             {
                 var e = it.Entity(i);
                 donut.ElapsedTime += it.DeltaTime();
-                var parent = e.Parent();
-                if (!parent.IsValid()) { return; }
+                var tornado = Entity.Null();
 
                 switch(donut.Phase)
                 {
@@ -73,12 +73,24 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
                         break;
                     case Phase.Animation:
                         if (ShouldReturn(donut)) { return; }
-                        parent.Set(new TimelineBase(AttackAnimation));
+                        tornado = e.Target<TornadoEntity>();
+                        if (!tornado.IsValid()) {
+                            donut.Phase = Phase.Reset;
+                            return;
+                        }
+                        tornado.Set(new TimelineBase(AttackAnimation));
                         donut.Phase = Phase.Snapshot;
                         break;
                     case Phase.Snapshot:
-                        if (ShouldReturn(donut)) {
-                            parent.Set(new TimelineBase(IdleAnimation));
+                        if (ShouldReturn(donut))
+                        {
+                            tornado = e.Target<TornadoEntity>();
+                            if (!tornado.IsValid())
+                            {
+                                donut.Phase = Phase.Reset;
+                                return;
+                            }
+                            tornado.Set(new TimelineBase(IdleAnimation));
                             return;
                         }
 
@@ -110,7 +122,6 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
                         break;
                     case Phase.Vfx:
                         if (ShouldReturn(donut)) { return; }
-
                         AddActorVfx(e, AttackVfx);
 
                         donut.Phase = Phase.Reset;
@@ -276,13 +287,13 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
             .ChildOf(entity);
     }
 
-    public static void DonutMech(Entity entity)
+    public static Entity DonutMech(Entity entity)
     {
         var hasPosition = entity.TryGet<Position>(out var position);
-        if (!hasPosition) { return; }
-        Donut.CreateEntity(entity.CsWorld())
+        if (!hasPosition) { return Entity.Null(); }
+        return Donut.CreateEntity(entity.CsWorld())
             .Set(new Position(position.Value))
-            .ChildOf(entity);
+            .Add<Donut.TornadoEntity>(entity);
     }
 
     public static void ProteanMech(Entity entity, Vector3 targetPosition)

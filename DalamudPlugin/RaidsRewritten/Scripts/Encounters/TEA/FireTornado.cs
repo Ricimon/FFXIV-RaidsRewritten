@@ -105,11 +105,8 @@ public class FireTornado : Mechanic
                 }
                 break;
             case DRAINAGE_ACTION_ID:
-                DelayedAction.Create(World, () =>
-                {
-                    if (!tornado.IsValid()) { return; }
-                    tornado.Destruct();
-                }, 1f);
+                if (!tornado.IsValid()) { return; }
+                tornado.Destruct();
                 break;
         }
     }
