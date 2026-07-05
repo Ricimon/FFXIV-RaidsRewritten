@@ -18,15 +18,11 @@ public class FireTornado : Mechanic
     private const uint LIVING_LIQUID_BASE_ID = 0x2C47;
 
     private const float FirstDonutDelay = 5f;
+    private Vector3 ArenaCenter = new(100, 0, 100);
 
     private readonly List<Entity> attacks = [];
-    private readonly IReadOnlyList<Vector3> tornadoPositions =
-        [new(85, 0, 100),
-        new(115, 0, 100),
-        new(100, 0, 85),
-        new(100, 0, 115)];
 
-    private HashSet<Vector3> availableTornadoPositions = [];
+    private List<Vector3> activeTornadoPositions = [];
     private int numSplashes = 0;
 
     public override void Reset()
@@ -36,7 +32,7 @@ public class FireTornado : Mechanic
             attack.Destruct();
         }
         this.attacks.Clear();
-        availableTornadoPositions = [.. tornadoPositions];
+        activeTornadoPositions.Clear();
         numSplashes = 0;
     }
 
@@ -68,13 +64,10 @@ public class FireTornado : Mechanic
     {
         if (newObject == null) { return; }
         if (newObject.BaseId != LIQUID_RAGE_DATA_ID) { return; }
-
-        availableTornadoPositions.Remove(newObject.Position);
-
-        if (availableTornadoPositions.Count == 1)
+        activeTornadoPositions.Add(newObject.Position);
+        if (activeTornadoPositions.Count() == 3)
         {
-            var position = availableTornadoPositions.ElementAt(0);
-            availableTornadoPositions.Clear();
+            var position = ArenaCenter * 4 - activeTornadoPositions[0] - activeTornadoPositions[1] - activeTornadoPositions[2];
 
             var tornado = FireTornadoEntity.CreateEntity(World)
                 .Set(new Position(position));
