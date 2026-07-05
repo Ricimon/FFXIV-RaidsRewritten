@@ -31,15 +31,15 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
         private const float StunDuration = 10f;
         private const float AttackDelay = 0f;
         private const string AttackVfx = "vfx/monster/m0935/eff/m0935_sp11_c0p.avfx";
-        private const float OmenDuration = 2.05f;
+        private const float OmenDuration = 0.65f;
 
         private static readonly Dictionary<Phase, float> phaseTimings = new()
         {
             { Phase.Omen, 0f },
-            { Phase.Animation, 1.4f },
-            { Phase.Snapshot, 1.6f },
-            { Phase.Vfx, 2.25f },
-            { Phase.Reset, 6f },
+            { Phase.Animation, 0f },
+            { Phase.Snapshot, 0.65f },
+            { Phase.Vfx, 0.85f },
+            { Phase.Reset, 4f },
         };
 
         public static Entity CreateEntity(World world)
@@ -82,7 +82,6 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
                             return;
                         }
 
-
                         e.Children((Entity child) =>
                         {
                             if (!child.Has<Omen>()) { return; }
@@ -105,7 +104,6 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
                                     }
                                 }
                             }
-                            child.Destruct();
                         });
 
                         donut.Phase = Phase.Vfx;
