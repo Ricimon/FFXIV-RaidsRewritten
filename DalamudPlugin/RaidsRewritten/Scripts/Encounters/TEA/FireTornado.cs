@@ -18,6 +18,7 @@ public class FireTornado : Mechanic
     private const uint LIVING_LIQUID_BASE_ID = 0x2C47;
 
     private const float FirstDonutDelay = 5f;
+    private const float SecondDonutDelay = 0.5f;
     private Vector3 ArenaCenter = new(100, 0, 100);
 
     private readonly List<Entity> attacks = [];
@@ -94,9 +95,13 @@ public class FireTornado : Mechanic
         {
             case SPLASH_ACTION_ID:
                 numSplashes++;
-                if (numSplashes == 4)
+                if (numSplashes == 5)
                 {
-                    FireTornadoEntity.DonutMech(tornado);
+                    DelayedAction.Create(World, () =>
+                    {
+                        if (!tornado.IsValid()) { return; }
+                        FireTornadoEntity.DonutMech(tornado);
+                    }, SecondDonutDelay);
                 }
                 break;
             case DRAINAGE_ACTION_ID:
