@@ -21,11 +21,16 @@ public class FireTornado : Mechanic
     private const float SecondDonutDelay = 0.5f;
 
     private readonly List<Entity> attacks = [];
-    private readonly IReadOnlyList<Vector3> tornadoPositions =
+    private readonly IReadOnlyList<Vector3> tornadoPositions1 =
         [new(85, 0, 100),
         new(115, 0, 100),
         new(100, 0, 85),
         new(100, 0, 115)];
+    private readonly IReadOnlyList<Vector3> tornadoPositions2 =
+        [new(89.3934f, 0, 110.6066f),
+        new(110.6066f, 0, 110.6066f),
+        new(110.6066f, 0, 89.39339f),
+        new(89.39339f, 0, 89.3934f)];
 
     private HashSet<Vector3> availableTornadoPositions = [];
     private int numSplashes = 0;
@@ -37,8 +42,9 @@ public class FireTornado : Mechanic
             attack.Destruct();
         }
         this.attacks.Clear();
-        availableTornadoPositions = [.. tornadoPositions];
         numSplashes = 0;
+        attacks.Clear();
+        availableTornadoPositions.Clear();
     }
 
     public override void OnActorControl(IGameObject source, uint command, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, uint p7, uint p8, ulong targetId, byte replaying)
@@ -69,6 +75,18 @@ public class FireTornado : Mechanic
     {
         if (newObject == null) { return; }
         if (newObject.BaseId != LIQUID_RAGE_DATA_ID) { return; }
+
+        if (availableTornadoPositions.Count == 0)
+        {
+            if (tornadoPositions1.Contains(newObject.Position))
+            {
+                availableTornadoPositions = [.. tornadoPositions1];
+            }
+            else
+            {
+                availableTornadoPositions = [.. tornadoPositions2];
+            }
+        }
 
         availableTornadoPositions.Remove(newObject.Position);
 
