@@ -4,6 +4,7 @@ using AsyncAwaitBestPractices;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
+using ECommons;
 using ECommons.Hooks;
 using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
@@ -47,7 +48,7 @@ public partial class MainWindow
     {
         var style = ImGui.GetStyle();
         var displayLabel = nextLabel.Contains("##") ? nextLabel[..nextLabel.IndexOf("##")] : nextLabel;
-        var nextWidth =  ImGui.CalcTextSize(displayLabel).X + style.FramePadding.X * 2;
+        var nextWidth = ImGui.CalcTextSize(displayLabel).X + style.FramePadding.X * 2;
         var maxWidth = ImGui.GetWindowPos().X + ImGui.GetWindowContentRegionMax().X;
         var scrollbarVisible = ImGui.GetScrollMaxY() > 0.0f;
         if (!scrollbarVisible)
@@ -700,7 +701,6 @@ public partial class MainWindow
                     }
                 }
 
-                ImGui.Text("Heat Stuff");
                 if (ImGui.Button("Add Temperature"))
                 {
                     commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
@@ -724,6 +724,7 @@ public partial class MainWindow
                         Temperature.HeatChangedEvent(e, -50);
                     });
                 }
+                SameLineIfFits("Spawn Liquid Heaven");
                 if (ImGui.Button("Spawn Liquid Heaven"))
                 {
                     var player = this.dalamud.ObjectTable.LocalPlayer;
@@ -733,6 +734,21 @@ public partial class MainWindow
                         {
                             LiquidHeaven.Set(new Position(player.Position))
                                         .Set(new Rotation(player.Rotation));
+                        }
+                    }
+                }
+
+                if (ImGui.Button("ArticulatedBit"))
+                {
+                    var player = this.dalamud.ObjectTable.LocalPlayer;
+                    if (player != null)
+                    {
+                        if (this.entityManager.TryCreateEntity<ArticulatedBit>(out var bit))
+                        {
+                            bit
+                                .Set(new Position(player.Position))
+                                .Set(new Rotation(player.Rotation))
+                                .Set(new ArticulatedBit.Component(ArticulatedBit.ModelType.LeftHand, [player]));
                         }
                     }
                 }
@@ -833,7 +849,7 @@ public partial class MainWindow
                 {
                     ImGui.Text(FontAwesomeIcon.ExclamationTriangle.ToIconString());
                 }
-                if (ImGui.IsItemHovered()) 
+                if (ImGui.IsItemHovered())
                 {
                     ImGui.BeginTooltip();
                     ImGui.PushTextWrapPos(ImGui.GetFontSize() * 35.0f);

@@ -56,6 +56,11 @@ public static class FlecsExtensions
         if (query.IsValid()) { query.Dispose(); }
     }
 
+    public static void SafeDestruct(this Entity entity)
+    {
+        if (entity.IsValid()) { entity.Destruct(); }
+    }
+
     public static bool HasChildren(this Entity entity)
     {
         var childCount = 0;
