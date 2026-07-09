@@ -31,7 +31,7 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
         private const ushort AttackAnimation = 7594;
         private const float StunDuration = 10f;
         private const float AttackDelay = 0f;
-        private const string AttackVfx = "vfx/monster/m0935/eff/m0935_sp11_c0p.avfx";
+        private const string AttackVfx = "vfx/monster/m0905/eff/m0905sp_002c0e1.avfx";
         private const float OmenDuration = 0.65f;
 
         private static readonly Dictionary<Phase, float> phaseTimings = new()
