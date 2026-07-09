@@ -32,6 +32,12 @@ Raktapaska Hands of Flame Ground AOE: vfx/monster/gimmick3/eff/n4g6_b_g06c0k1.av
 E11S
 Lightning cleave: vfx/monster/m0683/eff/m0683_sp002_c0a1.avfx (actor)
 
+Diamond Weapon EX
+Articulated bit model: 3256 (right hand), 3257 (left hand)
+Articulated bit spawn: vfx/monster/m0729/eff/m729show_sp01c0t1.avfx (actor)
+Diamond shot shot: vfx/monster/m0729/eff/m0729_sp01c0t2.avfx (actor, source & target)
+Diamond shot hit: vfx/monster/m0729/eff/m0729_sp01t0t2.avfx (actor)
+
 Barbariccia EX
 Enumeration omen: vfx/lockon/eff/2tagup_6m_8s_0v.avfx (actor), 3y radius 8s duration
 Enumeration attack: vfx/monster/gimmick4/eff/z5fa_boss_g05_c0v.avfx (actor)
@@ -85,6 +91,11 @@ Poison trap effect: vfx/common/eff/dk05ht_poi0s.avfx (actor)
 Place pet reticle: vfx/common/eff/gt_sommon0f.avfx (static)
 Place attack reticle: vfx/common/eff/gl_target1.avfx (static)
 Place attack reticle (unavailable): vfx/common/eff/gl_target2.avfx (static)
+
+Tethers
+Purple tether: vfx/channeling/eff/chn_dark001f.avfx (actor, source & target)
+White tether: vfx/channeling/eff/chn_light01f.avfx (actor, source & target)
+Arrowed tether: vfx/channeling/eff/chn_arrow01f.avfx (actor, source & target)
 
 Animations
 Minion normal/idle_inactive1: 4
