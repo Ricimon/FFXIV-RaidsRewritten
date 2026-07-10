@@ -9,7 +9,6 @@ namespace RaidsRewritten.Scripts.Attacks.Omens;
 public class ConflagDonut : IEntity
 {
     private const float OuterRadius = 80f;
-    private const float InnerRadius = 10f;
     public static bool IsInOmen(Entity omen, Vector3 position)
     {
         if (!omen.TryGet<Position>(out var p)) { return false; }
@@ -19,7 +18,7 @@ public class ConflagDonut : IEntity
         var positionV2 = position.ToVector2();
         var distance = Vector2.Distance(centerV2, positionV2);
 
-        return InnerRadius <= distance;
+        return s.Value.X * 5 / 40 <= distance;
     }
 
     public static Entity CreateEntity(World world)
