@@ -64,4 +64,11 @@ public static class MathUtilities
         if (targetPos.X < sourcePos.X ) { return -angle; }
         return angle;
     }
+
+    public static float Vector2Distance(Vector3 value1, Vector3 value2)
+    {
+        var v1 = value1.ToVector2();
+        var v2 = value2.ToVector2();
+        return Vector2.Distance(v1, v2);
+    }
 }

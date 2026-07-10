@@ -15,6 +15,7 @@ public class TeaRewritten : IEncounter
     private string RngSeedKey => $"{Name}.RngSeed";
     private string FireTornadoKey => $"{Name}.FireTornado";
     private string PickyDollsKey => $"{Name}.PickyDolls";
+    private string SurfsUpKey => $"{Name}.SurfsUp";
 
     private readonly Mechanic.Factory mechanicFactory;
     private readonly DalamudServices dalamud;
@@ -34,6 +35,7 @@ public class TeaRewritten : IEncounter
         {
             { FireTornadoKey, true },
             { PickyDollsKey, true },
+            { SurfsUpKey, true },
         };
 
         this.defaultIntSettings = new()
@@ -62,6 +64,11 @@ public class TeaRewritten : IEncounter
             var pickyDolls = mechanicFactory.Create<PickyDolls>();
             pickyDolls.RngSeed = rngSeed;
             mechanics.Add(pickyDolls);
+        }
+        if (configuration.GetEncounterSetting(SurfsUpKey, defaultBoolSettings[SurfsUpKey]))
+        {
+            var surfsUp = mechanicFactory.Create<SurfsUp>();
+            mechanics.Add(surfsUp);
         }
     }
 
@@ -121,6 +128,15 @@ public class TeaRewritten : IEncounter
         {
             configuration.EncounterSettings[PickyDollsKey] =
                 pickyDolls ? bool.TrueString : bool.FalseString;
+            configuration.Save();
+            RefreshMechanics();
+        }
+
+        bool surfsUp = configuration.GetEncounterSetting(SurfsUpKey, defaultBoolSettings[SurfsUpKey]);
+        if (ImGui.Checkbox("Surfs Up!", ref surfsUp))
+        {
+            configuration.EncounterSettings[SurfsUpKey] =
+                surfsUp ? bool.TrueString : bool.FalseString;
             configuration.Save();
             RefreshMechanics();
         }

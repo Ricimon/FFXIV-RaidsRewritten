@@ -2,7 +2,9 @@
 using System.Numerics;
 using AsyncAwaitBestPractices;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
+using ECommons;
 using ECommons.Hooks;
 using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
@@ -24,6 +26,8 @@ public partial class MainWindow
 {
     private int debugModelCharaId = 292;
     private Entity debugSpawnedModel = default;
+    private string debugVfxPath = "vfx/lockon/eff/target_ae_s6k1.avfx";
+    private Entity debugSpawnedVfx = default;
 
     private void DebugSpawnModel()
     {
@@ -44,7 +48,7 @@ public partial class MainWindow
     {
         var style = ImGui.GetStyle();
         var displayLabel = nextLabel.Contains("##") ? nextLabel[..nextLabel.IndexOf("##")] : nextLabel;
-        var nextWidth =  ImGui.CalcTextSize(displayLabel).X + style.FramePadding.X * 2;
+        var nextWidth = ImGui.CalcTextSize(displayLabel).X + style.FramePadding.X * 2;
         var maxWidth = ImGui.GetWindowPos().X + ImGui.GetWindowContentRegionMax().X;
         var scrollbarVisible = ImGui.GetScrollMaxY() > 0.0f;
         if (!scrollbarVisible)
@@ -697,38 +701,6 @@ public partial class MainWindow
                     }
                 }
 
-                SameLineIfFits("Fire Tornado");
-                if (ImGui.Button("Fire Tornado"))
-                {
-                    var player = this.dalamud.ObjectTable.LocalPlayer;
-                    if (player != null)
-                    {
-                        if (this.entityManager.TryCreateEntity<FireTornadoEntity>(out var fireDonut))
-                        {
-                            fireDonut.Set(new Position(player.Position))
-                                     .Set(new Rotation(player.Rotation));
-
-                            DelayedAction.Create(fireDonut.CsWorld(), () =>
-                            {
-                                FireTornadoEntity.ProteanMech(fireDonut, player.Position);
-                            }, 1f).ChildOf(fireDonut);
-                            DelayedAction.Create(fireDonut.CsWorld(), () =>
-                            {
-                                FireTornadoEntity.ProteanMech(fireDonut, player.Position);
-                            }, 2f).ChildOf(fireDonut);
-                            DelayedAction.Create(fireDonut.CsWorld(), () =>
-                            {
-                                FireTornadoEntity.DonutMech(fireDonut);
-                            }, 3f).ChildOf(fireDonut);
-                            DelayedAction.Create(fireDonut.CsWorld(), () =>
-                            {
-                                fireDonut.Destruct();
-                            }, 7f);
-                        }
-                    }
-                }
-
-                ImGui.Text("Heat Stuff");
                 if (ImGui.Button("Add Temperature"))
                 {
                     commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
@@ -752,6 +724,7 @@ public partial class MainWindow
                         Temperature.HeatChangedEvent(e, -50);
                     });
                 }
+                SameLineIfFits("Spawn Liquid Heaven");
                 if (ImGui.Button("Spawn Liquid Heaven"))
                 {
                     var player = this.dalamud.ObjectTable.LocalPlayer;
@@ -761,6 +734,21 @@ public partial class MainWindow
                         {
                             LiquidHeaven.Set(new Position(player.Position))
                                         .Set(new Rotation(player.Rotation));
+                        }
+                    }
+                }
+
+                if (ImGui.Button("ArticulatedBit"))
+                {
+                    var player = this.dalamud.ObjectTable.LocalPlayer;
+                    if (player != null)
+                    {
+                        if (this.entityManager.TryCreateEntity<ArticulatedBit>(out var bit))
+                        {
+                            bit
+                                .Set(new Position(player.Position))
+                                .Set(new Rotation(player.Rotation))
+                                .Set(new ArticulatedBit.Component(ArticulatedBit.ModelType.LeftHand, [player]));
                         }
                     }
                 }
@@ -845,12 +833,59 @@ public partial class MainWindow
                 ImGui.SameLine();
                 if (ImGui.ArrowButton("##mcharaInc", ImGuiDir.Right)) { debugModelCharaId++; DebugSpawnModel(); }
                 ImGui.SameLine();
-                if (ImGui.Button("Spawn Model")) DebugSpawnModel();
-                ImGui.SameLine();
-                if (ImGui.Button("Despawn") && debugSpawnedModel.IsValid())
+                if (!debugSpawnedModel.IsValid() && ImGui.Button("Spawn Model")) DebugSpawnModel();
+                if (debugSpawnedModel.IsValid() && ImGui.Button("Despawn"))
                 {
                     debugSpawnedModel.Destruct();
                     debugSpawnedModel = default;
+                }
+            }
+
+            if (ImGui.CollapsingHeader("VFX"))
+            {
+                ImGui.InputText("VFX Path", ref debugVfxPath);
+                ImGui.SameLine();
+                using (var iconFont = ImRaii.PushFont(UiBuilder.IconFont))
+                {
+                    ImGui.Text(FontAwesomeIcon.ExclamationTriangle.ToIconString());
+                }
+                if (ImGui.IsItemHovered())
+                {
+                    ImGui.BeginTooltip();
+                    ImGui.PushTextWrapPos(ImGui.GetFontSize() * 35.0f);
+                    ImGui.TextUnformatted("Spawning an invalid VFX path will crash the game!");
+                    ImGui.PopTextWrapPos();
+                    ImGui.EndTooltip();
+                }
+                if (!debugSpawnedVfx.IsValid() && ImGui.Button("Spawn VFX"))
+                {
+                    var localPlayer = dalamud.ObjectTable.LocalPlayer;
+                    if (localPlayer != null && !string.IsNullOrEmpty(debugVfxPath))
+                    {
+                        var target = localPlayer.TargetObject;
+                        debugSpawnedVfx = World.Entity();
+
+                        World.Entity()
+                            .Set(new StaticVfx(debugVfxPath))
+                            .Set(new Position(localPlayer.Position))
+                            .Set(new Rotation())
+                            .Set(new Scale())
+                            .ChildOf(debugSpawnedVfx);
+
+                        var actor = World.Entity()
+                            .Set(new ActorVfx(debugVfxPath))
+                            .Set(new ActorVfxSource(dalamud.ObjectTable.LocalPlayer))
+                            .ChildOf(debugSpawnedVfx);
+
+                        if (localPlayer.TargetObject != null)
+                        {
+                            actor.Set(new ActorVfxTarget(localPlayer.TargetObject));
+                        }
+                    }
+                }
+                if (debugSpawnedVfx.IsValid() && ImGui.Button("Despawn"))
+                {
+                    debugSpawnedVfx.Destruct();
                 }
             }
 

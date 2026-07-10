@@ -123,6 +123,7 @@ public class PluginModule : NinjectModule
         Bind<IEntity, ISystem>().To<CircleBladeMelusine>();
         Bind<IEntity, ISystem>().To<NerveGasKaliya>();
         Bind<IEntity, ISystem>().To<VoidGate>();
+        Bind<IEntity, ISystem>().To<ArticulatedBit>();
         Bind<IEntity, ISystem>().To<FireTornadoEntity>();
         Bind<ISystem>().To<FireTornadoEntity.Donut>();
         Bind<ISystem>().To<FireTornadoEntity.Cone>();
