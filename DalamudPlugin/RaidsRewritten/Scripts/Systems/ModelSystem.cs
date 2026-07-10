@@ -171,6 +171,28 @@ public unsafe sealed class ModelSystem(DalamudServices dalamud, EcsContainer ecs
                 }
             });
 
+        world.System<Model, TimelineBlend>()
+            .Each((Iter it, int i, ref Model model, ref TimelineBlend timelineBlend) =>
+            {
+                var clientObjectManager = ClientObjectManager.Instance();
+                if (clientObjectManager == null) { return; }
+
+                var obj = clientObjectManager->GetObjectByIndex((ushort)model.GameObjectIndex);
+                var chara = (Character*)obj;
+                if (chara == null) { return; }
+
+                // doesn't work if it's timelineBlend.Slot, maybe this is dependent on the type of blend animation? (e.g animations specific to upper torso and lower torso)
+                // likewise, setting timelineBlend.Slot to 0 doesn't actually play the animation either, so 1+ is needed
+                if (chara->Timeline.TimelineSequencer.GetSlotTimeline(0) == timelineBlend.Value)
+                {
+                    it.Entity(i).Remove<TimelineBlend>();
+                } else
+                {
+                    chara->Timeline.TimelineSequencer.SetSlotTimeline(timelineBlend.Slot, timelineBlend.Value);
+                }
+
+            });
+
         world.Observer<Model>()
             .Event(Ecs.OnRemove)
             .Each((Entity e, ref Model _) =>
