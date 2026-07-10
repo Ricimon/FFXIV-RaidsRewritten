@@ -4,6 +4,14 @@ use socketioxide::{SocketIo, socket::Sid};
 use std::collections::HashMap;
 use tracing::info;
 
+// Math Utils
+
+pub fn vector_to_rotation(x: f32, y: f32) -> f32 {
+    x.atan2(y)
+}
+
+// Other Utils
+
 pub fn convert_to_transform(
     x: Option<f32>,
     y: Option<f32>,

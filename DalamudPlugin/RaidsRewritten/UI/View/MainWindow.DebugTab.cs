@@ -738,6 +738,32 @@ public partial class MainWindow
                     }
                 }
 
+                if (ImGui.Button("Fire Tornado"))
+                {
+                    var player = this.dalamud.ObjectTable.LocalPlayer;
+                    if (player != null)
+                    {
+                        if (this.entityManager.TryCreateEntity<FireTornadoEntity>(out var fireDonut))
+                        {
+                            fireDonut.Set(new Position(player.Position))
+                                     .Set(new Rotation(player.Rotation));
+
+                            DelayedAction.Create(fireDonut.CsWorld(), () =>
+                            {
+                                FireTornadoEntity.DonutMech(fireDonut);
+                                DelayedAction.Create(fireDonut.CsWorld(), () =>
+                                {
+                                    FireTornadoEntity.NetworkedAttack1(fireDonut, Guid.NewGuid().ToString());
+                                }, FireTornadoEntity.Donut.OmenDuration).ChildOf(fireDonut);
+                            }, 3f).ChildOf(fireDonut);
+                            DelayedAction.Create(fireDonut.CsWorld(), () =>
+                            {
+                                fireDonut.Destruct();
+                            }, 7f);
+                        }
+                    }
+                }
+                SameLineIfFits("ArticulatedBit");
                 if (ImGui.Button("ArticulatedBit"))
                 {
                     var player = this.dalamud.ObjectTable.LocalPlayer;
@@ -776,7 +802,7 @@ public partial class MainWindow
                         startMechanic = new Message.StartMechanicPayload
                         {
                             requestId = Guid.NewGuid().ToString(),
-                            mechanicId = 1,
+                            mechanicId = (uint)NetworkMechanic.Spread,
                         }
                     }).SafeFireAndForget();
                 }
@@ -789,7 +815,7 @@ public partial class MainWindow
                         startMechanic = new Message.StartMechanicPayload
                         {
                             requestId = Guid.NewGuid().ToString(),
-                            mechanicId = 10,
+                            mechanicId = (uint)NetworkMechanic.Enumeration,
                         }
                     }).SafeFireAndForget();
                 }
@@ -802,7 +828,7 @@ public partial class MainWindow
                         .Set(new Message.StartMechanicPayload
                         {
                             requestId = Guid.NewGuid().ToString(),
-                            mechanicId = 20,
+                            mechanicId = (uint)NetworkMechanic.ExplosiveTrap,
                         })
                         .ChildOf(placeEntity);
                 }

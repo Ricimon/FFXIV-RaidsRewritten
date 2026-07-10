@@ -1,7 +1,9 @@
-﻿using ECommons.MathHelpers;
+﻿using AsyncAwaitBestPractices;
+using ECommons.MathHelpers;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
+using RaidsRewritten.Network;
 using RaidsRewritten.Scripts.Attacks.Omens;
 using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
@@ -14,7 +16,7 @@ using System.Text;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, CommonQueries commonQueries) : IEntity, ISystem
+public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, CommonQueries commonQueries, NetworkClient networkClient) : IEntity, ISystem
 {
     public class Donut (DalamudServices dalamud, VfxSpawn vfxSpawn, CommonQueries commonQueries) : ISystem
     {
@@ -28,18 +30,18 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
         }
         public record struct Component(float ElapsedTime, Phase Phase = Phase.Omen);
         public struct TornadoEntity;
+        public const float OmenDuration = 0.75f;
         private const ushort AttackAnimation = 7594;
         private const float StunDuration = 10f;
         private const float AttackDelay = 0f;
         private const string AttackVfx = "vfx/monster/m0905/eff/m0905sp_002c0e1.avfx";
-        private const float OmenDuration = 0.65f;
 
         private static readonly Dictionary<Phase, float> phaseTimings = new()
         {
             { Phase.Omen, 0f },
             { Phase.Animation, 0f },
-            { Phase.Snapshot, 0.65f },
-            { Phase.Vfx, 0.85f },
+            { Phase.Snapshot, OmenDuration },
+            { Phase.Vfx, 0f },
             { Phase.Reset, 4f },
         };
 
@@ -255,6 +257,7 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
         private static bool ShouldReturn(Component component) => component.ElapsedTime < phaseTimings[component.Phase] + AttackDelay;
     }
     public record struct Component(float TimeElapsed = 0f);
+    public record struct NetworkedAttack1Trigger(string RequestId);
 
     private const ushort IdleAnimation = 8;
     private const float Tick = 1.5f;
@@ -307,6 +310,11 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
             .ChildOf(entity);
     }
 
+    public static void NetworkedAttack1(Entity entity, string requestId)
+    {
+        entity.Set(new NetworkedAttack1Trigger(requestId));
+    }
+
     public void Register(World world)
     {
         world.System<Component, Position>().Each((Iter it, int i, ref Component component, ref Position position) =>
@@ -338,6 +346,27 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
                     });
                 }
             }
+        });
+
+        world.System<Component, Position, Rotation, NetworkedAttack1Trigger>()
+            .Each((Iter it, int i, ref Component _, ref Position p, ref Rotation r, ref NetworkedAttack1Trigger t) =>
+            {
+                var entity = it.Entity(i);
+                entity.Remove<NetworkedAttack1Trigger>();
+
+                networkClient.SendAsync(new Message
+                {
+                    action = Message.Action.StartMechanic,
+                    startMechanic = new Message.StartMechanicPayload
+                    {
+                        requestId = t.RequestId,
+                        mechanicId = (uint)NetworkMechanic.TeaFireTornado1,
+                        worldPositionX = p.Value.X,
+                        worldPositionY = p.Value.Y,
+                        worldPositionZ = p.Value.Z,
+                        rotation = r.Value,
+                    }
+                }).SafeFireAndForget();
             });
     }
 }
