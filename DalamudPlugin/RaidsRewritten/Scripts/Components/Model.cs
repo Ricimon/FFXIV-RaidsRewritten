@@ -18,6 +18,7 @@ public record struct OneTimeModelTimeline(ushort Id, bool Played = false);
 public record struct ModelTimelineSpeed(float Value);
 
 public record struct TimelineBase(ushort Value, bool Interrupt = false);
+public record struct TimelineBlend(uint Slot, ushort Value);
 
 // this only applies on model creation. will do more research if we ever need to update after model has already spawned
 public record struct AnimationState(byte Value1, byte Value2 = 0);

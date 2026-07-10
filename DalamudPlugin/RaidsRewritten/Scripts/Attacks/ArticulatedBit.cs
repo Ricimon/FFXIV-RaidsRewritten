@@ -84,7 +84,7 @@ public class ArticulatedBit(CommonQueries commonQueries) : IEntity, ISystem
                                 .Set(new Position(position.Value))
                                 .Set(new Rotation(rotation.Value))
                                 .Set(new UniformScale(1.0f))
-                                //.Set(new TimelineBase(0))
+                                .Set(new TimelineBlend(1, 4561))
                                 .ChildOf(entity);
 
                             it.World().Entity()
