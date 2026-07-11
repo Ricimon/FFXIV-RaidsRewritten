@@ -31,6 +31,7 @@ Raktapaska Hands of Flame Ground AOE: vfx/monster/gimmick3/eff/n4g6_b_g06c0k1.av
 
 E11S
 Lightning cleave: vfx/monster/m0683/eff/m0683_sp002_c0a1.avfx (actor)
+Elemental break fire stack: vfx/monster/gimmick3/eff/n4gb_b_g04c0a1.avfx (actor)
 
 Diamond Weapon EX
 Articulated bit model: 3256 (right hand), 3257 (left hand)
@@ -52,8 +53,9 @@ Gale Sphere enumeration attack: vfx/monster/gimmick4/eff/z5fb_b_g10c0x.avfx (act
 The Puppet's Bunker
 Life's Last Song tell: vfx/monster/gimmick3/eff/n4r2_b1_g4c0w.avfx (actor)
 
-P4N
+P4N/P4S
 Poison spread omen: vfx/lockon/eff/loc05sp_05af.avfx (actor), no sound effect
+Lava Mekhane: vfx/monster/gimmick4/eff/n5r4_b0_g02c0c.avfx (actor), 6y radius
 
 DSR
 Tower family (DarkdragonDive variants, 5y radius, scale 2x for ~10y, static Omen component):

@@ -32,7 +32,7 @@ pub struct Party {
 #[derive(Component)]
 pub struct PartyContainer;
 
-#[derive(Component, Debug)]
+#[derive(Component, Clone, Copy, Debug)]
 pub struct Position {
     pub x: f32,
     pub y: f32,
