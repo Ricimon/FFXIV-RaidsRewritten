@@ -1,7 +1,10 @@
-use crate::{game::{components::*, utils::*, condition::Condition::Stun}, webserver::message::{PlayActorVfxOnPositionPayload, PlayActorVfxOnTargetPayload}};
-use distances::{number::Float, vectors::euclidean_sq};
-use std::collections::HashSet;
+use crate::{
+    game::{components::*, condition::{self, Condition::Stun}, utils::*},
+    webserver::message::{PlayActorVfxOnPositionPayload, PlayActorVfxOnTargetPayload},
+};
+use distances::vectors::euclidean_sq;
 use flecs_ecs::prelude::*;
+use std::collections::HashSet;
 use tracing::info;
 
 #[derive(Component, Debug)]
@@ -16,7 +19,7 @@ struct Target {
     content_id: u64,
     position: Position,
     distance: f32,
-    hit_count: u32,
+    // hit_count: u32,
 }
 
 pub fn create_mechanic(entity: EntityView<'_>) -> EntityView<'_> {
@@ -32,7 +35,7 @@ pub fn create_systems(world: &World) {
         .each_iter(|it, index, (mechanic, fire_tornado, position, party)| {
             let entity = it.entity(index);
 
-            let world= it.world();
+            let world = it.world();
 
             if let Some(pc) = find_party_container(&world, &party.id) {
                 let mut targets: Vec<Target> = Vec::new();
@@ -51,7 +54,7 @@ pub fn create_systems(world: &World) {
                             content_id: pl.content_id,
                             position: *p,
                             distance: distance_sq,
-                            hit_count: 0,
+                            // hit_count: 0,
                         });
                     });
                 });
@@ -72,18 +75,21 @@ pub fn create_systems(world: &World) {
                     }
                 }
 
-                let stack_target_ids: Vec<u64> = stack_targets.iter().map(|t| t.content_id).collect();
+                let stack_target_ids: Vec<u64> =
+                    stack_targets.iter().map(|t| t.content_id).collect();
 
                 let mut stacks: Vec<Vec<Target>> = Vec::new();
 
                 for stack_target in &stack_targets {
                     let mut stack: Vec<Target> = Vec::new();
-                    
+
                     for player in &targets {
                         let p1 = [stack_target.position.x, stack_target.position.z];
                         let p2 = [player.position.x, player.position.z];
-                        let distance : f64 = euclidean_sq(&p1, &p2);
-                        if distance.sqrt() > 6.0 { continue; }
+                        let distance: f64 = euclidean_sq(&p1, &p2);
+                        if distance.sqrt() > 6.0 {
+                            continue;
+                        }
                         stack.push(*player);
                     }
                     stacks.push(stack);
@@ -94,7 +100,9 @@ pub fn create_systems(world: &World) {
                 if stacks.len() > 1 {
                     intersects = stacks[0]
                         .iter()
-                        .filter(|player| stacks[1].iter().any(|p| p.content_id == player.content_id))
+                        .filter(|player| {
+                            stacks[1].iter().any(|p| p.content_id == player.content_id)
+                        })
                         .copied()
                         .collect();
                 }
@@ -103,17 +111,21 @@ pub fn create_systems(world: &World) {
                 pc.each_child(|c| {
                     c.try_get::<&Socket>(|s| {
                         for t in &cone_targets {
-                            let r = vector_to_rotation(t.position.x - position.x, t.position.z - position.z);
+                            let r = vector_to_rotation(
+                                t.position.x - position.x,
+                                t.position.z - position.z,
+                            );
                             send_play_actor_vfx_on_position(
                                 io.clone(),
                                 s.id,
-                                PlayActorVfxOnPositionPayload{
+                                PlayActorVfxOnPositionPayload {
                                     vfx_path: fire_tornado.cone_vfx.clone(),
                                     world_position_x: position.x,
                                     world_position_y: position.y,
                                     world_position_z: position.z,
                                     rotation: r,
-                                });
+                                },
+                            );
                         }
 
                         send_play_actor_vfx_on_target(
@@ -127,7 +139,7 @@ pub fn create_systems(world: &World) {
                         );
                     });
                 });
-                
+
                 let mut failed_stacks: Vec<Target> = Vec::new();
                 for stack in stacks {
                     if stack.len() < 3 {
@@ -139,11 +151,16 @@ pub fn create_systems(world: &World) {
 
                 let mut cone_hits: Vec<Target> = Vec::new();
                 for cone_target in &cone_targets {
-                    let rotation = vector_to_rotation(cone_target.position.x - position.x, cone_target.position.z - position.z);
+                    let rotation = vector_to_rotation(
+                        cone_target.position.x - position.x,
+                        cone_target.position.z - position.z,
+                    );
                     let rotation_angle = [position.x + rotation.sin(), position.z + rotation.cos()];
 
                     for player in &targets {
-                        if player.content_id == cone_target.content_id { continue; }
+                        if player.content_id == cone_target.content_id {
+                            continue;
+                        }
                         let angle = get_angle_between_lines(
                             [position.x, position.z],
                             [player.position.x, player.position.z],
@@ -159,8 +176,13 @@ pub fn create_systems(world: &World) {
                 let mut punished_ids: HashSet<u64> = HashSet::new();
                 for t in failed_stacks.into_iter().chain(intersects).chain(cone_hits) {
                     if punished_ids.insert(t.content_id) {
-                        world.entity()
-                            .set(Condition{id: 0, condition: Stun, time_remaining: 10f32})
+                        world
+                            .entity()
+                            .set(Condition {
+                                id: condition::Condition::Stun as u128,
+                                condition: Stun,
+                                time_remaining: 10f32,
+                            })
                             .child_of(t.entity.entity_view(world));
                     }
                 }
@@ -168,13 +190,12 @@ pub fn create_systems(world: &World) {
                 if !punished_ids.is_empty() {
                     pc.add(BroadcastConditions);
                 }
-
             }
 
             info!(
                 mechanic.request_id,
                 mechanic.mechanic_id, party.id, "Completing Mechanic"
             );
-            entity.destruct();
+            entity.remove(TeaFireTornado1::id());
         });
 }

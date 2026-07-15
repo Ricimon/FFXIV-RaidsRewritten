@@ -184,12 +184,12 @@ fn process_messages(world: &World, queries: &CommonQueries, rx_from_ws: &Receive
                     return;
                 };
                 e.try_get::<&Party>(|party| {
+                    info!(
+                        socket_str = socket_id.as_str(),
+                        party.id, "Clearing Mechanics"
+                    );
                     queries.query_mechanic.each_entity(|e, (_, p)| {
                         if p.id == party.id {
-                            info!(
-                                socket_str = socket_id.as_str(),
-                                party.id, "Clearing Mechanics"
-                            );
                             e.destruct();
                         }
                     });

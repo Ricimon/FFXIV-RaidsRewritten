@@ -15,15 +15,21 @@ public class NetworkClientUi(NetworkClient client, Configuration configuration)
         debug = true;
 #endif
 
+        var padding = ImGui.GetFontSize() * 4.25f;
+
         if (debug)
         {
-            string serverUrl = client.GetServerUrl();
-            if (ImGui.InputText("Server URL", ref serverUrl))
+            var labelWidth1 = ImGui.CalcTextSize("Server URL").X + padding;
+            using (ImRaii.ItemWidth(ImGui.GetWindowWidth() - labelWidth1))
             {
-                if (!client.IsConnected && !client.IsConnecting)
+                string serverUrl = client.GetServerUrl();
+                if (ImGui.InputText("Server URL", ref serverUrl))
                 {
-                    configuration.ServerUrl = serverUrl;
-                    configuration.Save();
+                    if (!client.IsConnected && !client.IsConnecting)
+                    {
+                        configuration.ServerUrl = serverUrl;
+                        configuration.Save();
+                    }
                 }
             }
             ImGui.SameLine();
@@ -46,9 +52,9 @@ public class NetworkClientUi(NetworkClient client, Configuration configuration)
             }
         }
 
-        var labelSize = ImGui.CalcTextSize("Custom Party ID");
+        var labelWidth2 = ImGui.CalcTextSize("Custom Party ID").X + padding;
         using (ImRaii.Disabled(!configuration.UseCustomPartyId))
-        using (ImRaii.ItemWidth(ImGui.GetWindowWidth() * 52.8f / labelSize.X))
+        using (ImRaii.ItemWidth(ImGui.GetWindowWidth()  - labelWidth2))
         {
             string customPartyId = configuration.CustomPartyId;
             if (ImGui.InputText("Custom Party ID", ref customPartyId))

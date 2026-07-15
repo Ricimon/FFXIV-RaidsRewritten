@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Dalamud.Bindings.ImGui;
+using RaidsRewritten.Network;
 using RaidsRewritten.UI.Util;
 using RaidsRewritten.Utility;
 
@@ -20,16 +21,18 @@ public class TeaRewritten : IEncounter
     private readonly Mechanic.Factory mechanicFactory;
     private readonly DalamudServices dalamud;
     private readonly Configuration configuration;
+    private readonly NetworkClientUi networkClientUi;
 
     private readonly List<Mechanic> mechanics = [];
     private readonly Dictionary<string, bool> defaultBoolSettings;
     private readonly Dictionary<string, int> defaultIntSettings;
 
-    public TeaRewritten(Mechanic.Factory mechanicFactory, DalamudServices dalamud, Configuration configuration)
+    public TeaRewritten(Mechanic.Factory mechanicFactory, DalamudServices dalamud, Configuration configuration, NetworkClientUi networkClientUi)
     {
         this.mechanicFactory = mechanicFactory;
         this.dalamud = dalamud;
         this.configuration = configuration;
+        this.networkClientUi = networkClientUi;
 
         this.defaultBoolSettings = new()
         {
@@ -93,6 +96,8 @@ public class TeaRewritten : IEncounter
 
     public void DrawConfig()
     {
+        networkClientUi.DrawConfig();
+
         if (ImGui.Button("Apply Intended Difficulty"))
         {
             ApplyIntendedFightSettings();

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using AsyncAwaitBestPractices;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
@@ -14,6 +15,7 @@ using ECommons.ObjectLifeTracker;
 using RaidsRewritten.IPC;
 using RaidsRewritten.Log;
 using RaidsRewritten.Memory;
+using RaidsRewritten.Network;
 using RaidsRewritten.Scripts.Encounters;
 using RaidsRewritten.Utility;
 using ZLinq;
@@ -29,6 +31,7 @@ public sealed class EncounterManager(
     StatusPartyListProcessor statusPartyListProcessor,
     MoodlesIPC moodlesIPC,
     Configuration configuration,
+    NetworkClient networkClient,
     IEncounter[] encounters,
     ILogger logger) : IDalamudHook
 {
@@ -239,6 +242,7 @@ public sealed class EncounterManager(
             {
                 ActiveEncounter.IncrementRngSeed();
                 moodlesIPC.CheckMoodles();
+                ClearNetworkedMechanics();
             }
             foreach (var mechanic in ActiveEncounter.GetMechanics())
             {
@@ -345,7 +349,7 @@ public sealed class EncounterManager(
 
         if (ActiveEncounter != null)
         {
-            foreach(var mechanic in ActiveEncounter.GetMechanics())
+            foreach (var mechanic in ActiveEncounter.GetMechanics())
             {
                 mechanic.OnActorControl(source, command, p1, p2, p3, p4, p5, p6, p7, p8, targetId, replaying);
             }
@@ -365,7 +369,7 @@ public sealed class EncounterManager(
 
         if (ActiveEncounter != null)
         {
-            foreach(var mechanic in ActiveEncounter.GetMechanics())
+            foreach (var mechanic in ActiveEncounter.GetMechanics())
             {
                 mechanic.OnTetherCreate(sourceObject, targetObject, data2, data3, data5);
             }
@@ -384,7 +388,7 @@ public sealed class EncounterManager(
 
         if (ActiveEncounter != null)
         {
-            foreach(var mechanic in ActiveEncounter.GetMechanics())
+            foreach (var mechanic in ActiveEncounter.GetMechanics())
             {
                 mechanic.OnTetherRemoval(sourceObject, data2, data3, data5);
             }
@@ -395,7 +399,7 @@ public sealed class EncounterManager(
     {
         if (!configuration.EverythingDisabled && ActiveEncounter != null)
         {
-            foreach(var mechanic in ActiveEncounter.GetMechanics())
+            foreach (var mechanic in ActiveEncounter.GetMechanics())
             {
                 mechanic.OnFrameworkUpdate(framework);
             }
@@ -445,13 +449,16 @@ public sealed class EncounterManager(
                     }
                 }
             }
-        } else
+        }
+        else
         {
             if (this.inCombat.Value)
             {
                 this.inCombat = false;
                 logger.Trace("COMBAT ENDED");
                 if (configuration.EverythingDisabled) { return; }
+
+                ClearNetworkedMechanics();
 
                 if (ActiveEncounter != null)
                 {
@@ -487,5 +494,13 @@ public sealed class EncounterManager(
                 }
             }
         }
+    }
+
+    private void ClearNetworkedMechanics()
+    {
+        networkClient.SendAsync(new Message
+        {
+            action = Message.Action.ClearMechanics,
+        }).SafeFireAndForget();
     }
 }

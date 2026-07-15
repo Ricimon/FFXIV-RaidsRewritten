@@ -33,17 +33,18 @@ public class FireTornado : Mechanic
         new(89.39339f, 0, 89.3934f)];
 
     private HashSet<Vector3> availableTornadoPositions = [];
+    private int tornadosSpawned = 0;
     private int numSplashes = 0;
 
     public override void Reset()
     {
-        foreach (var attack in this.attacks)
+        foreach (var attack in attacks)
         {
             attack.Destruct();
         }
-        this.attacks.Clear();
-        numSplashes = 0;
         attacks.Clear();
+        tornadosSpawned = 0;
+        numSplashes = 0;
         availableTornadoPositions.Clear();
     }
 
@@ -75,6 +76,7 @@ public class FireTornado : Mechanic
     {
         if (newObject == null) { return; }
         if (newObject.BaseId != LIQUID_RAGE_DATA_ID) { return; }
+        if (tornadosSpawned > 0) { return; }
 
         if (availableTornadoPositions.Count == 0)
         {
@@ -95,15 +97,25 @@ public class FireTornado : Mechanic
             var position = availableTornadoPositions.ElementAt(0);
             availableTornadoPositions.Clear();
 
+            tornadosSpawned++;
             if (!EntityManager.TryCreateEntity<FireTornadoEntity>(out var tornado)) { return; }
             tornado.Set(new Position(position));
             attacks.Add(tornado);
 
-            DelayedAction.Create(World, () =>
+            var action1 = DelayedAction.Create(World, () =>
             {
                 if (!tornado.IsValid()) { return; }
-                FireTornadoEntity.DonutMech(tornado);
+                var donut = FireTornadoEntity.DonutMech(tornado);
+                attacks.Add(donut);
+
+                var action2 = DelayedAction.Create(World, () =>
+                {
+                    if (!tornado.IsValid()) { return; }
+                    FireTornadoEntity.NetworkedAttack1(tornado, typeof(FireTornadoEntity.NetworkedAttack1Trigger).FullName!);
+                }, FireTornadoEntity.Donut.OmenDuration).ChildOf(tornado);
+                attacks.Add(action2);
             }, FirstDonutDelay);
+            attacks.Add(action1);
         }
     }
 
@@ -121,11 +133,13 @@ public class FireTornado : Mechanic
                 numSplashes++;
                 if (numSplashes == 5)
                 {
-                    DelayedAction.Create(World, () =>
+                    var action1 = DelayedAction.Create(World, () =>
                     {
                         if (!tornado.IsValid()) { return; }
-                        FireTornadoEntity.DonutMech(tornado);
+                        var donut = FireTornadoEntity.DonutMech(tornado);
+                        attacks.Add(donut);
                     }, SecondDonutDelay);
+                    attacks.Add(action1);
                 }
                 break;
             case DRAINAGE_ACTION_ID:

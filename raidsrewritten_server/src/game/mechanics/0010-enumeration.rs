@@ -199,6 +199,6 @@ pub fn create_systems(world: &World) {
                 mechanic.request_id,
                 mechanic.mechanic_id, party.id, "Completing Mechanic"
             );
-            entity.destruct();
+            entity.remove(Enumeration::id());
         });
 }

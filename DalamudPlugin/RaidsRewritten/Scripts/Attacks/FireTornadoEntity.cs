@@ -76,23 +76,19 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
                     case Phase.Animation:
                         if (ShouldReturn(donut)) { return; }
                         tornado = e.Target<TornadoEntity>();
-                        if (!tornado.IsValid()) {
-                            donut.Phase = Phase.Reset;
-                            return;
+                        if (tornado.IsValid()) {
+                            tornado.Set(new TimelineBase(AttackAnimation));
                         }
-                        tornado.Set(new TimelineBase(AttackAnimation));
                         donut.Phase = Phase.Snapshot;
                         break;
                     case Phase.Snapshot:
                         if (ShouldReturn(donut))
                         {
                             tornado = e.Target<TornadoEntity>();
-                            if (!tornado.IsValid())
+                            if (tornado.IsValid())
                             {
-                                donut.Phase = Phase.Reset;
-                                return;
+                                tornado.Set(new TimelineBase(IdleAnimation));
                             }
-                            tornado.Set(new TimelineBase(IdleAnimation));
                             return;
                         }
 
