@@ -10,6 +10,13 @@ pub fn vector_to_rotation(x: f32, y: f32) -> f32 {
     x.atan2(y)
 }
 
+pub fn get_angle_between_lines(a1: [f32; 2], a2: [f32; 2], b1: [f32; 2], b2: [f32; 2]) -> f32 {
+    let cos_val = ((a2[0] - a1[0]) * (b2[0] - b1[0]) + (a2[1] - a1[1]) * (b2[1] - b1[1]))
+        / (((a2[0] - a1[0]).powi(2) + (a2[1] - a1[1]).powi(2)).sqrt()
+            * ((b2[0] - b1[0]).powi(2) + (b2[1] - b1[1]).powi(2)).sqrt());
+    ((cos_val * 10000.0).round() / 10000.0).acos()
+}
+
 // Other Utils
 
 pub fn convert_to_transform(

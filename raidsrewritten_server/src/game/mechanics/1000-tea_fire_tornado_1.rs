@@ -135,8 +135,29 @@ pub fn create_systems(world: &World) {
                     }
                 }
 
+                let half_cone = (90.0f32 / 2.0).to_radians();
+
+                let mut cone_hits: Vec<Target> = Vec::new();
+                for cone_target in &cone_targets {
+                    let rotation = vector_to_rotation(cone_target.position.x - position.x, cone_target.position.z - position.z);
+                    let rotation_angle = [position.x + rotation.sin(), position.z + rotation.cos()];
+
+                    for player in &targets {
+                        if player.content_id == cone_target.content_id { continue; }
+                        let angle = get_angle_between_lines(
+                            [position.x, position.z],
+                            [player.position.x, player.position.z],
+                            [position.x, position.z],
+                            rotation_angle,
+                        );
+                        if angle <= half_cone || angle.is_nan() {
+                            cone_hits.push(*player);
+                        }
+                    }
+                }
+
                 let mut punished_ids: HashSet<u64> = HashSet::new();
-                for t in failed_stacks.into_iter().chain(intersects) {
+                for t in failed_stacks.into_iter().chain(intersects).chain(cone_hits) {
                     if punished_ids.insert(t.content_id) {
                         world.entity()
                             .set(Condition{id: 0, condition: Stun, time_remaining: 10f32})
