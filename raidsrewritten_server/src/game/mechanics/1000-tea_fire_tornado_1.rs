@@ -1,5 +1,6 @@
-use crate::{game::{components::*, utils::*}, webserver::message::{PlayActorVfxOnPositionPayload, PlayActorVfxOnTargetPayload}};
-use distances::vectors::euclidean_sq;
+use crate::{game::{components::*, utils::*, condition::Condition::Stun}, webserver::message::{PlayActorVfxOnPositionPayload, PlayActorVfxOnTargetPayload}};
+use distances::{number::Float, vectors::euclidean_sq};
+use std::collections::HashSet;
 use flecs_ecs::prelude::*;
 use tracing::info;
 
@@ -31,7 +32,9 @@ pub fn create_systems(world: &World) {
         .each_iter(|it, index, (mechanic, fire_tornado, position, party)| {
             let entity = it.entity(index);
 
-            if let Some(pc) = find_party_container(&it.world(), &party.id) {
+            let world= it.world();
+
+            if let Some(pc) = find_party_container(&world, &party.id) {
                 let mut targets: Vec<Target> = Vec::new();
                 pc.each_child(|c| {
                     c.try_get::<(&Player, &Position, &State)>(|(pl, p, s)| {
@@ -71,6 +74,31 @@ pub fn create_systems(world: &World) {
 
                 let stack_target_ids: Vec<u64> = stack_targets.iter().map(|t| t.content_id).collect();
 
+                let mut stacks: Vec<Vec<Target>> = Vec::new();
+
+                for stack_target in &stack_targets {
+                    let mut stack: Vec<Target> = Vec::new();
+                    
+                    for player in &targets {
+                        let p1 = [stack_target.position.x, stack_target.position.z];
+                        let p2 = [player.position.x, player.position.z];
+                        let distance : f64 = euclidean_sq(&p1, &p2);
+                        if distance.sqrt() > 6.0 { continue; }
+                        stack.push(*player);
+                    }
+                    stacks.push(stack);
+                }
+
+                let mut intersects: Vec<Target> = Vec::new();
+
+                if stacks.len() > 1 {
+                    intersects = stacks[0]
+                        .iter()
+                        .filter(|player| stacks[1].iter().any(|p| p.content_id == player.content_id))
+                        .copied()
+                        .collect();
+                }
+
                 let io = get_socket_io(&it.world());
                 pc.each_child(|c| {
                     c.try_get::<&Socket>(|s| {
@@ -99,6 +127,27 @@ pub fn create_systems(world: &World) {
                         );
                     });
                 });
+                
+                let mut failed_stacks: Vec<Target> = Vec::new();
+                for stack in stacks {
+                    if stack.len() < 3 {
+                        failed_stacks.extend(stack);
+                    }
+                }
+
+                let mut punished_ids: HashSet<u64> = HashSet::new();
+                for t in failed_stacks.into_iter().chain(intersects) {
+                    if punished_ids.insert(t.content_id) {
+                        world.entity()
+                            .set(Condition{id: 0, condition: Stun, time_remaining: 10f32})
+                            .child_of(t.entity.entity_view(world));
+                    }
+                }
+
+                if !punished_ids.is_empty() {
+                    pc.add(BroadcastConditions);
+                }
+
             }
 
             info!(
