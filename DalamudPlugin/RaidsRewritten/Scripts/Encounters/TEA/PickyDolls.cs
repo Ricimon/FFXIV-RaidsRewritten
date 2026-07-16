@@ -251,13 +251,13 @@ public class PickyDolls : Mechanic
                 {
                     case Villain.Epic:
                         {
-                            using var q = World.QueryBuilder<EpicHero>().With(Ecs.ChildOf, e).Build();
+                            using var q = World.QueryBuilder<EpicHero.Component>().With(Ecs.ChildOf, e).Build();
                             applyPunishment = !q.IsTrue();
                         }
                         break;
                     case Villain.Fated:
                         {
-                            using var q = World.QueryBuilder<FatedHero>().With(Ecs.ChildOf, e).Build();
+                            using var q = World.QueryBuilder<FatedHero.Component>().With(Ecs.ChildOf, e).Build();
                             applyPunishment = !q.IsTrue();
                         }
                         break;
