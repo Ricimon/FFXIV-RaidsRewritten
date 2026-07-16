@@ -39,11 +39,9 @@ public class PickyDolls : Mechanic
     private const string FEED_FAIL = "vfx/monster/gimmick3/eff/n4g7_b3_g21c0x.avfx";
 
     private readonly List<Entity> attacks = [];
-    private readonly Dictionary<uint, Doll> dolls = [];
+    private readonly Dictionary<uint, Doll?> dolls = [];
 
     private bool debuffsAssigned = false;
-    private int epicVillainsToAssign = 2;
-    private int fatedVillainsToAssign = 2;
 
     public override void Reset()
     {
@@ -54,8 +52,6 @@ public class PickyDolls : Mechanic
         attacks.Clear();
         dolls.Clear();
         debuffsAssigned = false;
-        epicVillainsToAssign = 2;
-        fatedVillainsToAssign = 2;
 
         World.DeleteWith<EpicHero.Component>();
         World.DeleteWith<FatedHero.Component>();
@@ -101,40 +97,56 @@ public class PickyDolls : Mechanic
         if (newObject == null) { return; }
         if (newObject.BaseId != JAGD_DOLL_BASE_ID) { return; }
 
-        var totalAssigns = epicVillainsToAssign + fatedVillainsToAssign;
-        if (totalAssigns <= 0) { return; }
+        if (dolls.ContainsKey(newObject.EntityId)) { return; }
+        dolls.Add(newObject.EntityId, null);
 
-        // Assign Epic/Fated Villain to Jagd Dolls
-
-        var random = new Random(RngSeed + totalAssigns);
-
-        var r = random.Next(totalAssigns);
-
-        Villain villain;
-        string vfxPath;
-        if (r < epicVillainsToAssign)
+        if (dolls.Count == 4)
         {
-            villain = Villain.Epic;
-            vfxPath = EPIC_VILLAIN;
-            epicVillainsToAssign--;
+            var epicVillainsToAssign = 2;
+            var fatedVillainsToAssign = 2;
+            var random = new Random(RngSeed + 53254);
+
+            var sortedDolls = dolls.Keys.AsValueEnumerable().OrderBy(id =>
+            {
+                var position = Dalamud.ObjectTable.SearchByEntityId(id)?.Position ?? default;
+                return position.X * 1000 + position.Z;
+            }).ToList();
+            foreach(var dollId in sortedDolls)
+            {
+                // Assign Epic/Fated Villain to Jagd Dolls
+                var totalAssigns = epicVillainsToAssign + fatedVillainsToAssign;
+                if (totalAssigns <= 0) { return; }
+
+                var r = random.Next(totalAssigns);
+
+                Villain villain;
+                string vfxPath;
+                if (r < epicVillainsToAssign)
+                {
+                    villain = Villain.Epic;
+                    vfxPath = EPIC_VILLAIN;
+                    epicVillainsToAssign--;
+                }
+                else
+                {
+                    villain = Villain.Fated;
+                    vfxPath = FATED_VILLAIN;
+                    fatedVillainsToAssign--;
+                }
+
+                var action = DelayedAction.Create(World, () =>
+                {
+                    var dollObject = Dalamud.ObjectTable.SearchByEntityId(dollId);
+                    var vfx = World.Entity()
+                        .Set(new ActorVfx(vfxPath))
+                        .Set(new ActorVfxSource(dollObject));
+                    attacks.Add(vfx);
+
+                    dolls[dollId] = new(villain, vfx);
+                }, 1.0f);
+                attacks.Add(action);
+            }
         }
-        else
-        {
-            villain = Villain.Fated;
-            vfxPath = FATED_VILLAIN;
-            fatedVillainsToAssign--;
-        }
-
-        var action = DelayedAction.Create(World, () =>
-        {
-            var vfx = World.Entity()
-                .Set(new ActorVfx(vfxPath))
-                .Set(new ActorVfxSource(newObject));
-            attacks.Add(vfx);
-
-            dolls[newObject.EntityId] = new(villain, vfx);
-        }, 1.0f);
-        attacks.Add(action);
     }
 
     public override void OnActorControl(IGameObject source, uint command, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, uint p7, uint p8, ulong targetId, byte replaying)
@@ -159,9 +171,10 @@ public class PickyDolls : Mechanic
     public override void OnTetherCreate(IGameObject source, IGameObject target, uint data2, uint data3, uint data5)
     {
         if (dolls.TryGetValue(source.EntityId, out var doll) &&
+            doll.HasValue &&
             target.ObjectKind != ObjectKind.Pc)
         {
-            var feedTarget = doll.Villain == Villain.Epic ? LIVING_LIQUID_BASE_ID : LIQUID_HAND_BASE_ID;
+            var feedTarget = doll.Value.Villain == Villain.Epic ? LIVING_LIQUID_BASE_ID : LIQUID_HAND_BASE_ID;
             if (target.BaseId != feedTarget)
             {
                 var action = DelayedAction.Create(World, () =>
@@ -237,7 +250,7 @@ public class PickyDolls : Mechanic
     private void JagdDollAutoAttack(ActionEffectSet set)
     {
         if (set.Target == null) { return; }
-        if (dolls.TryGetValue(set.Source!.EntityId, out var doll))
+        if (dolls.TryGetValue(set.Source!.EntityId, out var doll) && doll.HasValue)
         {
             CommonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
             {
@@ -247,7 +260,7 @@ public class PickyDolls : Mechanic
                 }
 
                 var applyPunishment = false;
-                switch (doll.Villain)
+                switch (doll.Value.Villain)
                 {
                     case Villain.Epic:
                         {
@@ -276,7 +289,7 @@ public class PickyDolls : Mechanic
     {
         if (dolls.Remove(dollEntityId, out var doll))
         {
-            doll.Vfx.Destruct();
+            doll?.Vfx.Destruct();
         }
 
         if (dolls.Count == 0)
