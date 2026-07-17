@@ -111,7 +111,7 @@ public class FireTornado : Mechanic
                 var action2 = DelayedAction.Create(World, () =>
                 {
                     if (!tornado.IsValid()) { return; }
-                    FireTornadoEntity.NetworkedAttack1(tornado, typeof(FireTornadoEntity.NetworkedAttack1Trigger).FullName!);
+                    FireTornadoEntity.NetworkedAttack1(tornado, typeof(FireTornadoEntity.NetworkedAttack1Trigger).FullName! + "_1");
                 }, FireTornadoEntity.Donut.OmenDuration).ChildOf(tornado);
                 attacks.Add(action2);
             }, FirstDonutDelay);
@@ -138,6 +138,13 @@ public class FireTornado : Mechanic
                         if (!tornado.IsValid()) { return; }
                         var donut = FireTornadoEntity.DonutMech(tornado);
                         attacks.Add(donut);
+
+                        var action2 = DelayedAction.Create(World, () =>
+                        {
+                            if (!tornado.IsValid()) { return; }
+                            FireTornadoEntity.NetworkedAttack1(tornado, typeof(FireTornadoEntity.NetworkedAttack1Trigger).FullName! + "_2");
+                        }, FireTornadoEntity.Donut.OmenDuration).ChildOf(tornado);
+                        attacks.Add(action2);
                     }, SecondDonutDelay);
                     attacks.Add(action1);
                 }
