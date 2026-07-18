@@ -143,15 +143,20 @@ public class FireTornado : Mechanic
                         {
                             if (!tornado.IsValid()) { return; }
                             FireTornadoEntity.NetworkedAttack1(tornado, typeof(FireTornadoEntity.NetworkedAttack1Trigger).FullName! + "_2");
+
+                            var action3 = DelayedAction.Create(World, () =>
+                            {
+                                if (!tornado.IsValid()) { return; }
+                                tornado.Destruct();
+                            }, 0.1f);
+                            attacks.Add(action3);
+
                         }, FireTornadoEntity.Donut.OmenDuration).ChildOf(tornado);
                         attacks.Add(action2);
+
                     }, SecondDonutDelay);
                     attacks.Add(action1);
                 }
-                break;
-            case DRAINAGE_ACTION_ID:
-                if (!tornado.IsValid()) { return; }
-                tornado.Destruct();
                 break;
         }
     }

@@ -32,7 +32,7 @@ public class ArticulatedBit(CommonQueries commonQueries) : IEntity, ISystem
     public record struct Component(
         ModelType ModelType = ModelType.LeftHand,
         List<IGameObject>? Targets = null,
-        float DistanceThreshold = 10.0f);
+        float DistanceThreshold = 17.5f);
 
     private class TargetData
     {
@@ -50,7 +50,7 @@ public class ArticulatedBit(CommonQueries commonQueries) : IEntity, ISystem
     private readonly Dictionary<Phase, float> phaseTimings = new()
     {
         { Phase.Start, 0.5f },
-        { Phase.Omen, 2.0f },
+        { Phase.Omen, 1.25f },
         { Phase.Snapshot, 0.3f },
         { Phase.ProjectileShoot, 0.35f },
         { Phase.ProjectileHit, 0.8f },
@@ -207,7 +207,7 @@ public class ArticulatedBit(CommonQueries commonQueries) : IEntity, ISystem
                                     {
                                         if (player.PlayerCharacter?.GameObjectId == target.GameObjectId)
                                         {
-                                            Stun.ApplyToTarget(e, 10.0f);
+                                            Stun.ApplyToTarget(e, 15.0f);
                                         }
                                     });
                                 }

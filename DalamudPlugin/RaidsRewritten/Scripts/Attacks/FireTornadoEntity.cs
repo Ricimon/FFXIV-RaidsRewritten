@@ -16,7 +16,7 @@ using System.Text;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, CommonQueries commonQueries, NetworkClient networkClient) : IEntity, ISystem
+public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, CommonQueries commonQueries, NetworkClient networkClient, ILogger logger) : IEntity, ISystem
 {
     public class Donut (DalamudServices dalamud, VfxSpawn vfxSpawn, CommonQueries commonQueries) : ISystem
     {
@@ -32,7 +32,7 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
         public struct TornadoEntity;
         public const float OmenDuration = 0.75f;
         private const ushort AttackAnimation = 7594;
-        private const float StunDuration = 10f;
+        private const float PacifyDuration = 30f;
         private const float AttackDelay = 0f;
         private const string AttackVfx = "vfx/monster/m0905/eff/m0905sp_002c0e1.avfx";
 
@@ -109,7 +109,7 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
                                     {
                                         commonQueries.LocalPlayerQuery.Each((Entity player, ref Player.Component _) =>
                                         {
-                                            DelayedAction.Create(world, () => Stun.ApplyToTarget(player, StunDuration), 0.2f).ChildOf(player);
+                                            DelayedAction.Create(world, () => Pacify.ApplyToTarget(player, PacifyDuration), 0.2f).ChildOf(player);
                                         });
                                     }
                                 }

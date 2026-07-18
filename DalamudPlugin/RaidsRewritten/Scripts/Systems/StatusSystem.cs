@@ -43,6 +43,25 @@ public unsafe class StatusSystem(
             .Event(Ecs.OnSet)
             .Each((e, ref status) => HandleApplyStatus(e, status));
 
+        // Avoid multiple flytext entities on a single status entity
+        world.System<Condition.Status>()
+            .Each((Entity e, ref Condition.Status _) =>
+            {
+                var flytextFound = false;
+                e.Children(Ecs.DependsOn, child =>
+                {
+                    // FlyTextReady needs to be consumed first before entity destruction
+                    if (child.Has<FlyText>() && !child.Has<FlyTextReady>())
+                    {
+                        if (flytextFound)
+                        {
+                            child.Destruct();
+                        }
+                        flytextFound = true;
+                    }
+                });
+            });
+
         world.System<FlyText>()
             .Each((Entity e, ref FlyText flytext) =>
             {

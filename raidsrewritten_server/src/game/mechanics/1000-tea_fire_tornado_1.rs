@@ -1,5 +1,9 @@
 use crate::{
-    game::{components::*, condition::{self, Condition::Stun}, utils::*},
+    game::{
+        components::*,
+        condition::{self, Condition::Stun},
+        utils::*,
+    },
     webserver::message::{PlayActorVfxOnPositionPayload, PlayActorVfxOnTargetPayload},
 };
 use distances::vectors::euclidean_sq;
@@ -181,7 +185,7 @@ pub fn create_systems(world: &World) {
                             .set(Condition {
                                 id: condition::Condition::Stun as u128,
                                 condition: Stun,
-                                time_remaining: 10f32,
+                                time_remaining: 15f32,
                             })
                             .child_of(t.entity.entity_view(world));
                     }
