@@ -321,7 +321,7 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
             component.TimeElapsed = 0;
 
             var p = dalamud.ObjectTable.LocalPlayer;
-            if (p == null || !p.IsValid()) { return; }
+            if (p == null || !p.IsValid() || p.IsDead || p.HasTranscendance()) { return; }
 
             var centerV2 = p.Position.ToVector2();
             var positionV2 = position.Value.ToVector2();
@@ -329,18 +329,11 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
 
             if (distance < PuddleRadius)
             {
-                if (p.HasTranscendance())
+                commonQueries.LocalPlayerQuery.Each((Entity player, ref Player.Component _) =>
                 {
-                    DelayedAction.Create(world, () => vfxSpawn.PlayInvulnerabilityEffect(p), 0.2f).ChildOf(it.Entity(i));
-                }
-                else
-                {
-                    commonQueries.LocalPlayerQuery.Each((Entity player, ref Player.Component _) =>
-                    {
-                        // maybe this should be a pacify instead?
-                        DelayedAction.Create(world, () => Stun.ApplyToTarget(player, PunishmentDuration, overrideExistingDuration: true), 0.2f).ChildOf(player);
-                    });
-                }
+                    // maybe this should be a pacify instead?
+                    DelayedAction.Create(world, () => Stun.ApplyToTarget(player, PunishmentDuration, overrideExistingDuration: true), 0.2f).ChildOf(player);
+                });
             }
         });
 

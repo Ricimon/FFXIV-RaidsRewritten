@@ -76,6 +76,7 @@ file class Hero
                 .Set(new Condition.StatusIconReplacement(iconName, iconToReplace))
                 .Set(new Condition.Status(iconToReplace, statusName, statusDescription))
                 .Set(new Condition.StatusTooltip(statusTooltipName))
+                .Add<Condition.IgnoreOnDeath>()
                 .Add<Condition.StatusEnfeeblement>();
 
             actionOnEntity.Invoke(condition);

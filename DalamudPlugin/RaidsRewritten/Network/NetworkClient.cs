@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using AsyncAwaitBestPractices;
 using JsonConverters;
@@ -28,10 +29,13 @@ public sealed class NetworkClient : IDisposable
         ContractResolver = new LongNameContractResolver(),
         Converters = [new StringEnumConverter()],
     };
+    private readonly Lock clientLock = new();
+
     private readonly NetworkClientMessageHandler messageHandler;
     private readonly DalamudServices dalamud;
     private readonly Configuration configuration;
     private readonly ILogger logger;
+
     private SocketIOClient.SocketIO? client;
 
     public NetworkClient(
@@ -79,9 +83,12 @@ public sealed class NetworkClient : IDisposable
 
     public bool Connect()
     {
-        if (client != null || configuration.EverythingDisabled)
+        lock (clientLock)
         {
-            return false;
+            if (client != null || configuration.EverythingDisabled)
+            {
+                return false;
+            }
         }
 
         try
@@ -89,6 +96,7 @@ public sealed class NetworkClient : IDisposable
             var socketOptions = new SocketIOOptions()
             {
                 Transport = SocketIOClient.Transport.TransportProtocol.WebSocket,
+                Reconnection = true,
                 ReconnectionAttempts = 3,
             };
 
@@ -101,14 +109,17 @@ public sealed class NetworkClient : IDisposable
                 socketOptions.Path = pathMatch.Groups[2].Value;
             }
 
-            client = new SocketIOClient.SocketIO(serverUrl, socketOptions)
+            lock (clientLock)
             {
-                Serializer = new NewtonsoftJsonSerializer(new JsonSerializerSettings
+                client = new SocketIOClient.SocketIO(serverUrl, socketOptions)
                 {
-                    NullValueHandling = NullValueHandling.Ignore,
-                    Converters = [new BooleanJsonConverter()],
-                })
-            };
+                    Serializer = new NewtonsoftJsonSerializer(new JsonSerializerSettings
+                    {
+                        NullValueHandling = NullValueHandling.Ignore,
+                        Converters = [new BooleanJsonConverter()],
+                    })
+                };
+            }
         }
         catch(Exception e)
         {
@@ -143,9 +154,12 @@ public sealed class NetworkClient : IDisposable
 
     public async Task SendAsync(Message message)
     {
-        if (client == null)
+        lock (clientLock)
         {
-            return;
+            if (client == null)
+            {
+                return;
+            }
         }
 
         logger.Info($"Sending {Serialize(message)}");
@@ -154,9 +168,12 @@ public sealed class NetworkClient : IDisposable
 
     public async Task DisconnectAsync()
     {
-        if (client == null)
+        lock (clientLock)
         {
-            return;
+            if (client == null)
+            {
+                return;
+            }
         }
 
         logger.Info($"Disconnecting client.");
@@ -176,7 +193,10 @@ public sealed class NetworkClient : IDisposable
             client.OnReconnectAttempt -= OnReconnectAttempt;
             client.Off("message");
         }
-        client = null;
+        lock (clientLock)
+        {
+            client = null;
+        }
         IsConnecting = IsConnected = false;
         ConnectedPlayersInParty = 0;
     }
@@ -185,7 +205,10 @@ public sealed class NetworkClient : IDisposable
 
     private void OnConnected(object? sender, EventArgs e)
     {
-        if (client == null) { return; }
+        lock (clientLock)
+        {
+            if (client == null) { return; }
+        }
 
         logger.Info($"Client connected to {GetServerUrl()}");
         IsConnecting = false;
@@ -201,8 +224,9 @@ public sealed class NetworkClient : IDisposable
 
     private void OnDisconnected(object? sender, string e)
     {
-        logger.Info($"Client disconnected: {e}");
+        logger.Warn($"Client disconnected: {e}, reconnecting...");
         Dispose();
+        Connect();
     }
 
     private void OnError(object? sender, string e)

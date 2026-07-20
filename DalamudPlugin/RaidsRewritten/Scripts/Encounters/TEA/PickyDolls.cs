@@ -10,6 +10,7 @@ using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
+using RaidsRewritten.Spawn;
 using RaidsRewritten.Utility;
 using ZLinq;
 
@@ -111,7 +112,7 @@ public class PickyDolls : Mechanic
                 var position = Dalamud.ObjectTable.SearchByEntityId(id)?.Position ?? default;
                 return position.X * 1000 + position.Z;
             }).ToList();
-            foreach(var dollId in sortedDolls)
+            foreach (var dollId in sortedDolls)
             {
                 // Assign Epic/Fated Villain to Jagd Dolls
                 var totalAssigns = epicVillainsToAssign + fatedVillainsToAssign;
@@ -278,8 +279,19 @@ public class PickyDolls : Mechanic
 
                 if (applyPunishment)
                 {
-                    Stun.ApplyToTarget(e, 10.0f);
-                    Pacify.ApplyToTarget(e, 30.0f);
+                    var player = Dalamud.ObjectTable.LocalPlayer;
+                    if (player != null && !player.IsDead && !player.HasTranscendance())
+                    {
+                        var action = DelayedAction.Create(World, () =>
+                        {
+                            if (player != null && !player.IsDead && e.IsValid())
+                            {
+                                Stun.ApplyToTarget(e, 15.0f);
+                                Pacify.ApplyToTarget(e, 30.0f);
+                            }
+                        }, 0.42f);
+                        attacks.Add(action);
+                    }
                 }
             });
         }
@@ -306,10 +318,14 @@ public class PickyDolls : Mechanic
             .Set(new ActorVfxSource(doll));
         attacks.Add(vfx);
 
-        CommonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+        var player = Dalamud.ObjectTable.LocalPlayer;
+        if (player != null && !player.IsDead)
         {
-            Hysteria.ApplyToTarget(e, 10.0f, 5.0f);
-            Pacify.ApplyToTarget(e, 30.0f);
-        });
+            CommonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+            {
+                Hysteria.ApplyToTarget(e, 10.0f, 5.0f);
+                Pacify.ApplyToTarget(e, 30.0f);
+            });
+        }
     }
 }
