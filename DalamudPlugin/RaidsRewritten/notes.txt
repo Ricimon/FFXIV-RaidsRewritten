@@ -69,6 +69,9 @@ P8N
 Hemitheos's Flare omen: vfx/lockon/eff/target_ae_s5f.avfx (actor)
 Hemitheos's Flare: vfx/monster/gimmick4/eff/n5r8_b_g15_t0k1.avfx (actor)
 
+P11N
+Dismissal Ruling omen: vfx/omen/eff/m0295_nockback_omen01i.avfx (static)
+
 M4S
 Half room cleave: vfx/monster/m0888/eff/m0888sp_015c0t1.avfx (actor)
 Electrical Condenser (2x2): vfx/monster/gimmick5/eff/x6r4_b_g015_c0t1.avfx (actor)

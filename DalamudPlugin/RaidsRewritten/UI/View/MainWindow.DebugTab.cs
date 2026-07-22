@@ -323,6 +323,20 @@ public partial class MainWindow
                     }
                 }
             }
+            SameLineIfFits("Knockback Omen");
+            if (ImGui.Button("Knockback Omen"))
+            {
+                var player = this.dalamud.ObjectTable.LocalPlayer;
+                if (player != null)
+                {
+                    if (this.entityManager.TryCreateEntity<KnockbackOmen>(out var kb))
+                    {
+                        kb.Set(new Position(player.Position));
+                        kb.Set(new Rotation(player.Rotation));
+                        kb.Set(new Scale(Vector3.One));
+                    }
+                }
+            }
 
             if (ImGui.Button("Place Trap"))
             {

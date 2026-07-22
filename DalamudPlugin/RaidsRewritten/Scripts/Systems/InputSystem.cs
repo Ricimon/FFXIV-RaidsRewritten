@@ -135,6 +135,7 @@ public class InputSystem : ISystem
                     ref readonly var mouseLeft = ref it.World().Get<MouseLeftState>();
                     if (mouseLeft.IsPressedThisTick)
                     {
+                        logger.Debug("Mouse clicked at world position {0}", worldPos);
                         entity.Children(c =>
                         {
                             if (c.Has<PlacementReticle>()) { return; }

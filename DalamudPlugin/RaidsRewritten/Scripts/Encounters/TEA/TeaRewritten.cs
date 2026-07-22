@@ -17,6 +17,7 @@ public class TeaRewritten : IEncounter
     private string FireTornadoKey => $"{Name}.FireTornado";
     private string PickyDollsKey => $"{Name}.PickyDolls";
     private string SurfsUpKey => $"{Name}.SurfsUp";
+    private string KKickKey => $"{Name}.KKick";
 
     private readonly Mechanic.Factory mechanicFactory;
     private readonly DalamudServices dalamud;
@@ -39,6 +40,7 @@ public class TeaRewritten : IEncounter
             { FireTornadoKey, true },
             { PickyDollsKey, true },
             { SurfsUpKey, true },
+            { KKickKey, true },
         };
 
         this.defaultIntSettings = new()
@@ -72,6 +74,11 @@ public class TeaRewritten : IEncounter
         {
             var surfsUp = mechanicFactory.Create<SurfsUp>();
             mechanics.Add(surfsUp);
+        }
+        if (configuration.GetEncounterSetting(KKickKey, defaultBoolSettings[KKickKey]))
+        {
+            var kkick = mechanicFactory.Create<KKick>();
+            mechanics.Add(kkick);
         }
     }
 
@@ -142,6 +149,15 @@ public class TeaRewritten : IEncounter
         {
             configuration.EncounterSettings[SurfsUpKey] =
                 surfsUp ? bool.TrueString : bool.FalseString;
+            configuration.Save();
+            RefreshMechanics();
+        }
+
+        bool kkick = configuration.GetEncounterSetting(KKickKey, defaultBoolSettings[KKickKey]);
+        if (ImGui.Checkbox("K-Kick", ref kkick))
+        {
+            configuration.EncounterSettings[KKickKey] =
+                kkick ? bool.TrueString : bool.FalseString;
             configuration.Save();
             RefreshMechanics();
         }
