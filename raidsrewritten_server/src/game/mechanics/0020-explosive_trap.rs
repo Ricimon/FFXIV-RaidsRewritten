@@ -83,6 +83,7 @@ pub fn create_systems(world: &World) {
                                         world_position_y: position.y,
                                         world_position_z: position.z,
                                         rotation: rotation.value,
+                                        ..Default::default()
                                     },
                                 );
                             });

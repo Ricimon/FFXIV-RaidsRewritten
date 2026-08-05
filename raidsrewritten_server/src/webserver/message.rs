@@ -139,7 +139,7 @@ pub struct UpdatePartyStatusPayload {
     pub connected_players_in_party: u8,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Default, Debug)]
 pub struct PlayStaticVfxPayload {
     pub id: u128,
     #[serde(rename = "v")]
@@ -154,6 +154,12 @@ pub struct PlayStaticVfxPayload {
     pub world_position_z: f32,
     #[serde(rename = "r")]
     pub rotation: f32,
+    #[serde(rename = "sx")]
+    pub scale_x: Option<f32>,
+    #[serde(rename = "sy")]
+    pub scale_y: Option<f32>,
+    #[serde(rename = "sz")]
+    pub scale_z: Option<f32>,
 }
 
 #[derive(Serialize, Deserialize, Default, Debug)]

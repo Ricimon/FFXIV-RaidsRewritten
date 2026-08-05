@@ -833,7 +833,7 @@ public partial class MainWindow
                         }
                     }).SafeFireAndForget();
                 }
-
+                SameLineIfFits("Place Trap");
                 if (ImGui.Button("Place Trap"))
                 {
                     var placeEntity = World.Entity()
@@ -845,6 +845,28 @@ public partial class MainWindow
                             mechanicId = (uint)NetworkMechanic.ExplosiveTrap,
                         })
                         .ChildOf(placeEntity);
+                }
+
+                ImGui.Text("TEA");
+                if (ImGui.Button("LC Tower"))
+                {
+                    var player = this.dalamud.ObjectTable.LocalPlayer;
+                    if (player != null)
+                    {
+                        this.networkClient.SendAsync(new Message
+                        {
+                            action = Message.Action.StartMechanic,
+                            startMechanic = new Message.StartMechanicPayload
+                            {
+                                requestId = Guid.NewGuid().ToString(),
+                                mechanicId = (uint)NetworkMechanic.TeaHawkBlasterTower,
+                                worldPositionX = player.Position.X,
+                                worldPositionY = player.Position.Y,
+                                worldPositionZ = player.Position.Z,
+                                rotation = player.Rotation,
+                            }
+                        }).SafeFireAndForget();
+                    }
                 }
             }
         }

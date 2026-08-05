@@ -6,6 +6,8 @@ pub mod m0010_enumeration;
 pub mod m0020_explosive_trap;
 #[path = "mechanics/1000-tea_fire_tornado_1.rs"]
 pub mod m1000_tea_fire_tornado_1;
+#[path = "mechanics/1010-tea_hawk_blaster_tower.rs"]
+pub mod m1010_tea_hawk_blaster_tower;
 
 use crate::{
     game::{components::*, utils::*},
@@ -27,6 +29,7 @@ pub fn create_mechanic(
         20 => Some(m0020_explosive_trap::create_mechanic),
         // TEA
         1000 => Some(m1000_tea_fire_tornado_1::create_mechanic),
+        1010 => Some(m1010_tea_hawk_blaster_tower::create_mechanic),
         _ => None,
     };
     if let Some(f) = mechanic_fn {
@@ -64,6 +67,7 @@ pub fn create_systems(world: &World) {
     m0020_explosive_trap::create_systems(world);
     // TEA
     m1000_tea_fire_tornado_1::create_systems(world);
+    m1010_tea_hawk_blaster_tower::create_systems(world);
 }
 
 pub fn create_observers(world: &World) {

@@ -153,6 +153,12 @@ public struct Message
         public float worldPositionZ;
         [JsonProperty(PropertyName = "r")]
         public float rotation;
+        [JsonProperty(PropertyName = "sx")]
+        public float? scaleX;
+        [JsonProperty(PropertyName = "sy")]
+        public float? scaleY;
+        [JsonProperty(PropertyName = "sz")]
+        public float? scaleZ;
     }
     [JsonProperty(PropertyName = "psv")]
     public PlayStaticVfxPayload? playStaticVfx;

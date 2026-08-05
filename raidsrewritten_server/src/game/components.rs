@@ -82,7 +82,7 @@ pub struct Transform {
 
 // Conditions ===============
 
-// Meant to be set to the Player entity, indicating a conditions update should occur
+// Meant to be set to the PartyContainer entity, indicating a conditions update should occur
 #[derive(Component)]
 pub struct BroadcastConditions;
 
@@ -113,5 +113,10 @@ pub mod conditions {
     pub struct Paralysis {
         pub stun_interval: f32,
         pub stun_duration: f32,
+    }
+
+    #[derive(Component, Debug)]
+    pub struct Hysteria {
+        pub redirection_interval: f32,
     }
 }

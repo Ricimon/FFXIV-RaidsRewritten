@@ -1,3 +1,6 @@
+Hall of the Novice
+Tower attack: vfx/monster/gimmick2/eff/g3d1_b2_g03c1v.avfx (actor)
+
 Thornmarch (Hard)
 Arrow rain spread omen: vfx/lockon/eff/target_ae_s6k1.avfx (actor)
 
@@ -9,6 +12,9 @@ Chain Lightning: vfx/monster/gimmick/eff/crystal2_chein_kakusan_c0c.avfx (actor)
 
 T13
 Earthshaker puddle: BaseId 0x1E9663 bgcommon/world/common/vfx_for_btl/b0282/eff/b0282_yuka_o.avfx (static)
+
+A12S
+Blazing Scourge attack: vfx/monster/gimmick2/eff/d2ac2_b4_g01c0c.avfx (actor)
 
 O10S
 Ground Ice Effect: bgcommon/world/common/vfx_for_btl/b0195/eff/b0195_yuka_c.avfx, 5y radius
@@ -76,6 +82,7 @@ M4S
 Half room cleave: vfx/monster/m0888/eff/m0888sp_015c0t1.avfx (actor)
 Electrical Condenser (2x2): vfx/monster/gimmick5/eff/x6r4_b_g015_c0t1.avfx (actor)
 Electrical Condenser (3x3): vfx/monster/gimmick5/eff/x6r4_b_g016_c0t1.avfx (actor)
+Sunrise Sabbath tower (2-person): vfx/omen/eff/general_trap_o2x.avfx (static)
 
 FRU
 Diamond Dust Star Omen: vfx/omen/eff/m063mist_omen_o0v.avfx (static)

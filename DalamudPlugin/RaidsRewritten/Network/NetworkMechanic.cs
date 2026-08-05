@@ -8,4 +8,5 @@ public enum NetworkMechanic : uint
     ExplosiveTrap = 20,
     // TEA
     TeaFireTornado1 = 1000,
+    TeaHawkBlasterTower = 1010,
 }

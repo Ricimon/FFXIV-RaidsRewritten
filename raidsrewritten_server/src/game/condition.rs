@@ -6,7 +6,7 @@ use tracing::info;
 
 use crate::{
     game::{
-        components::{self, BroadcastConditions, BroadcastedCondition, ClientCondition, Party, PartyContainer, Player, Socket},
+        components::{self, *},
         utils::*,
     },
     webserver::message::{
@@ -34,13 +34,13 @@ pub enum Condition {
 
 pub fn create_systems(world: &World) {
     world
-        .system::<&mut components::Condition>()
-        .with(PartyContainer)
-        .parent()
-        .each_iter(|it, i, condition| {
+        .system::<(&mut components::Condition, &State)>()
+        .term_at(1).up()
+        .with(PartyContainer).up()
+        .each_iter(|it, i, (condition, state)| {
             condition.time_remaining = f32::max(condition.time_remaining - it.delta_time(), 0.0);
 
-            if condition.time_remaining <= 0.0 {
+            if condition.time_remaining <= 0.0 || !state.is_alive {
                 let e = it.entity(i);
                 // Traverse up 2 parents to get to the PartyContainer
                 if let Some(p) = e.parent()
@@ -49,6 +49,20 @@ pub fn create_systems(world: &World) {
                     p.add(BroadcastConditions);
                 }
                 e.destruct();
+            }
+        });
+
+    world
+        .system::<&components::Condition>()
+        .without(BroadcastedCondition)
+        .with(PartyContainer).up()
+        .each_iter(|it, i, _| {
+            let e = it.entity(i);
+            // Traverse up 2 parents to get to the PartyContainer
+            if let Some(p) = e.parent()
+                && let Some(p) = p.parent()
+            {
+                p.add(BroadcastConditions);
             }
         });
 
@@ -119,6 +133,10 @@ fn build_condition_details(
     entity.try_get::<&components::conditions::Paralysis>(|p| {
         uccd.paralysis_stun_interval = Some(p.stun_interval);
         uccd.paralysis_stun_duration = Some(p.stun_duration);
+    });
+
+    entity.try_get::<&components::conditions::Hysteria>(|h| {
+        uccd.hysteria_redirection_interval = Some(h.redirection_interval);
     });
 
     uccd

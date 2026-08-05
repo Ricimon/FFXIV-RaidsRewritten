@@ -120,7 +120,7 @@ public sealed class NetworkClientMessageHandler(
                 .Set(new VfxId(payload.id))
                 .Set(new Position(new(payload.worldPositionX, payload.worldPositionY, payload.worldPositionZ)))
                 .Set(new Rotation(payload.rotation))
-                .Set(new Scale())
+                .Set(new Scale(new(payload.scaleX ?? 0, payload.scaleY ?? 0, payload.scaleZ ?? 0)))
                 .Add<Attack>();
 
             if (payload.isOmen)
