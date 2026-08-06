@@ -273,12 +273,12 @@ fn process_messages(world: &World, queries: &CommonQueries, rx_from_ws: &Receive
                     return;
                 };
                 let mut removed_any = false;
-                party_container.each_child(|child| {
-                    if child.has(Player::id()) {
-                        e.each_child(|child| {
-                            if child.has(Condition::id()) {
+                party_container.each_child(|pc_child| {
+                    if pc_child.has(Player::id()) {
+                        pc_child.each_child(|player_child| {
+                            if player_child.has(Condition::id()) {
                                 removed_any = true;
-                                child.destruct();
+                                player_child.destruct();
                             }
                         });
                     }
