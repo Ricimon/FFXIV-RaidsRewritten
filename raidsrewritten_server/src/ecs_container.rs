@@ -264,6 +264,18 @@ fn process_messages(world: &World, queries: &CommonQueries, rx_from_ws: &Receive
                     p.add(BroadcastConditions);
                 }
             }
+
+            MessageToEcs::ClearConditions { socket_id } => {
+                let Some(e) = find_socket(&queries.query_socket, socket_id) else {
+                    return;
+                };
+                e.each_child(|condition| {
+                    condition.destruct();
+                });
+                if let Some(p) = e.parent() {
+                    p.add(BroadcastConditions);
+                }
+            }
         }
     }
 }

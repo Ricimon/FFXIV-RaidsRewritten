@@ -15,6 +15,7 @@ public struct Message
         StartMechanic = 3,
         ClearMechanics = 4,
         SyncConditionsOnSelf = 5,
+        ClearConditions = 6,
 
         // To client
         // Deprecated: 51, 55

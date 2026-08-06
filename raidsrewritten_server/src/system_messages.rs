@@ -31,6 +31,9 @@ pub enum MessageToEcs {
     ClearMechanics {
         socket_id: Sid,
     },
+    ClearConditions {
+        socket_id: Sid,
+    },
     SyncConditionsOnSelf {
         socket_id: Sid,
         conditions: Vec<ConditionDetails>,
