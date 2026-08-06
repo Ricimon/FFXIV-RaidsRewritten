@@ -1,7 +1,7 @@
 use crate::{
     game::{
         components::*,
-        condition::{self, Condition::Stun},
+        condition::{self, apply_condition},
         utils::*,
     },
     webserver::message::{PlayActorVfxOnPositionPayload, PlayActorVfxOnTargetPayload},
@@ -180,14 +180,14 @@ pub fn create_systems(world: &World) {
                 let mut punished_ids: HashSet<u64> = HashSet::new();
                 for t in failed_stacks.into_iter().chain(intersects).chain(cone_hits) {
                     if punished_ids.insert(t.content_id) {
-                        world
-                            .entity()
-                            .set(Condition {
-                                id: condition::Condition::Stun as u128,
-                                condition: Stun,
-                                time_remaining: 15f32,
-                            })
-                            .child_of(t.entity.entity_view(world));
+                        let player = t.entity.entity_view(world);
+                        apply_condition(
+                            &player,
+                            condition::Condition::Stun as u128,
+                            condition::Condition::Stun,
+                            15.0,
+                            false,
+                        );
                     }
                 }
 

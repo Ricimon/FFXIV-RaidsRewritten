@@ -9,4 +9,6 @@ public enum NetworkMechanic : uint
     // TEA
     TeaFireTornado1 = 1000,
     TeaHawkBlasterTower = 1010,
+    TeaBlasstyChargeHit = 1011,
+    TeaLimitCutEnd = 1012,
 }

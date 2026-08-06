@@ -274,6 +274,9 @@ public sealed class NetworkClientMessageHandler(
                                     case Message.Condition.Knockback:
                                         Knockback.ApplyToTarget(playerEntity, new(c.knockbackDirectionX, 0, c.knockbackDirectionZ), c.timeRemaining, false);
                                         break;
+                                    case Message.Condition.FireResistanceDown:
+                                        FireResistanceDown.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: false);
+                                        break;
                                 }
                             }
                         }

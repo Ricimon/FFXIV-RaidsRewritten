@@ -97,7 +97,9 @@ async fn on_message_impl(
         }
         message::Action::SyncConditionsOnSelf => {
             if let Some(sync_conditions_on_self) = message.sync_conditions_on_self {
-                let conditions = sync_conditions_on_self.conditions.iter()
+                let conditions = sync_conditions_on_self
+                    .conditions
+                    .iter()
                     .map(|c| ConditionDetails {
                         id: c.id,
                         condition: c.condition,
@@ -164,7 +166,10 @@ pub async fn run_webserver(
     let t_app = tokio::task::spawn(async move { axum::serve(listener, app).await.unwrap() });
 
     let listener_metrics = tokio::net::TcpListener::bind("0.0.0.0:3001").await.unwrap();
-    let t_metrics = tokio::task::spawn(async move { axum::serve(listener_metrics, metrics_app).await.unwrap() });
+    let t_metrics =
+        tokio::task::spawn(
+            async move { axum::serve(listener_metrics, metrics_app).await.unwrap() },
+        );
 
     let _ = tokio::join!(t_app, t_metrics);
 

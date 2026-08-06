@@ -75,6 +75,10 @@ P8N
 Hemitheos's Flare omen: vfx/lockon/eff/target_ae_s5f.avfx (actor)
 Hemitheos's Flare: vfx/monster/gimmick4/eff/n5r8_b_g15_t0k1.avfx (actor)
 
+P9S
+Limit cut tower attack: vfx/monster/d1025/eff/round_bunsanshouhani_t0s.avfx (actor)
+Limit cut tower failure: vfx/monster/d1025/eff/d1025_sp12_bunsan_zentai_t0s.avfx (actor)
+
 P11N
 Dismissal Ruling omen: vfx/omen/eff/m0295_nockback_omen01i.avfx (static)
 

@@ -16,6 +16,7 @@ public class ConditionTable
         public const int Stun = 0x5709; // 22281
         public const int EpicHero = 4192;
         public const int FatedHero = 4194;
+        public const int FireResistanceDown = 1137;
     }
     
     public class IconToReplace
@@ -33,5 +34,6 @@ public class ConditionTable
         public const int Stun = 210305;
         public const int EpicHero = 216301;
         public const int FatedHero = 216302;
+        public const int FireResistanceDown = 216576;
     }
 }

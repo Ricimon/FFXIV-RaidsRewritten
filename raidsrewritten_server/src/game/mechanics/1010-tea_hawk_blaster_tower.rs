@@ -1,7 +1,7 @@
 use crate::{
     game::{
         components::*,
-        condition,
+        condition::{self, apply_condition},
         utils::*,
     },
     webserver::message::*,
@@ -38,21 +38,27 @@ enum Phase {
 pub fn create_mechanic(entity: EntityView<'_>) -> EntityView<'_> {
     entity.set(HawkBlasterTower {
         time_to_snapshot: 3.0,
-        attack_delay: 0.25,
+        attack_delay: 0.2,
         effect_delay: 0.2,
         failure_attack_delay: 1.0,
         failure_effect_delay: 0.1,
         radius: 3.0,
         tower_vfx: "vfx/omen/eff/general_trap_o2x.avfx".to_string(),
         attack_vfx: "vfx/monster/gimmick2/eff/d2ac2_b4_g01c0c.avfx".to_string(),
-        failure_attack_vfx: "vfx/monster/gimmick3/eff/n4g7_b3_g21c0x.avfx".to_string(),
+        failure_attack_vfx: "vfx/monster/d1025/eff/d1025_sp12_bunsan_zentai_t0s.avfx".to_string(),
         phase: Phase::Omen,
     })
 }
 
 pub fn create_systems(world: &World) {
     world
-        .system::<(&Mechanic, &mut HawkBlasterTower, &Position, &Rotation, &Party)>()
+        .system::<(
+            &Mechanic,
+            &mut HawkBlasterTower,
+            &Position,
+            &Rotation,
+            &Party,
+        )>()
         .each_iter(|it, index, (mechanic, tower, position, rotation, party)| {
             let entity = it.entity(index);
             let world = &it.world();
@@ -100,8 +106,8 @@ pub fn create_systems(world: &World) {
                     let mut affects: HashMap<Entity, u8> = HashMap::new();
 
                     if let Some(pc) = find_party_container(world, &party.id) {
-                        pc.each_child(|c| {
-                            c.try_get::<(&Player, &Position, &State)>(|(_, p, s)| {
+                        pc.each_child(|c1| {
+                            c1.try_get::<(&Player, &Position, &State)>(|(_, p, s)| {
                                 if !s.is_alive {
                                     return;
                                 }
@@ -111,8 +117,17 @@ pub fn create_systems(world: &World) {
                                 let distance: f32 = euclidean(&p1, &p2);
 
                                 if distance <= tower.radius {
-                                    // TODO: check vuln
-                                    add_affect(&mut affects, &c, 1);
+                                    let mut has_vuln = false;
+                                    c1.each_child(|c2| {
+                                        c2.try_get::<&Condition>(|condition| {
+                                            if condition.condition
+                                                == condition::Condition::FireResistanceDown
+                                            {
+                                                has_vuln = true;
+                                            }
+                                        });
+                                    });
+                                    add_affect(&mut affects, &c1, if has_vuln { 2 } else { 1 });
                                 }
                             });
                         });
@@ -165,19 +180,31 @@ pub fn create_systems(world: &World) {
                     let mut affect_count = 0;
                     entity.try_get::<&Affects>(|a| {
                         affect_count = a.player_entities.len();
-                        for e in a.player_entities.keys() {
-                            world
-                                .entity()
-                                .set(Condition {
-                                    id: condition::Condition::Stun as u128,
-                                    condition: condition::Condition::Stun,
-                                    time_remaining: 1.0,
-                                })
-                                .child_of(e.entity_view(world));
-                        }
-
-                        if affect_count > 0 {
-                            
+                        for (e, &count) in &a.player_entities {
+                            let player = e.entity_view(world);
+                            apply_condition(
+                                &player,
+                                condition::Condition::FireResistanceDown as u128,
+                                condition::Condition::FireResistanceDown,
+                                15.0,
+                                false,
+                            );
+                            if count > 1 {
+                                apply_condition(
+                                    &player,
+                                    condition::Condition::Stun as u128,
+                                    condition::Condition::Stun,
+                                    15.0,
+                                    false,
+                                );
+                                apply_condition(
+                                    &player,
+                                    condition::Condition::Pacify as u128,
+                                    condition::Condition::Pacify,
+                                    30.0,
+                                    false,
+                                );
+                            }
                         }
                     });
 
@@ -229,17 +256,25 @@ pub fn create_systems(world: &World) {
                                 if !s.is_alive {
                                     return;
                                 }
-                                world
-                                    .entity()
-                                    .set(Condition {
-                                        id: condition::Condition::Hysteria as u128,
-                                        condition: condition::Condition::Hysteria,
-                                        time_remaining: 15.0,
-                                    })
-                                    .set(conditions::Hysteria {
-                                        redirection_interval: 5.0,
-                                    })
-                                    .child_of(c);
+                                let player = c.entity_view(world);
+                                apply_condition(
+                                    &player,
+                                    condition::Condition::Hysteria as u128,
+                                    condition::Condition::Hysteria,
+                                    15.0,
+                                    false,
+                                )
+                                .entity_view(world)
+                                .set(conditions::Hysteria {
+                                    redirection_interval: 5.0,
+                                });
+                                apply_condition(
+                                    &player,
+                                    condition::Condition::Pacify as u128,
+                                    condition::Condition::Pacify,
+                                    30.0,
+                                    false,
+                                );
                             });
                         });
                     }

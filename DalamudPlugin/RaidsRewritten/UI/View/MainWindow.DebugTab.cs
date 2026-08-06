@@ -847,25 +847,28 @@ public partial class MainWindow
                         .ChildOf(placeEntity);
                 }
 
-                ImGui.Text("TEA");
-                if (ImGui.Button("LC Tower"))
+                if (debug)
                 {
-                    var player = this.dalamud.ObjectTable.LocalPlayer;
-                    if (player != null)
+                    ImGui.Text("TEA");
+                    if (ImGui.Button("LC Tower"))
                     {
-                        this.networkClient.SendAsync(new Message
+                        var player = this.dalamud.ObjectTable.LocalPlayer;
+                        if (player != null)
                         {
-                            action = Message.Action.StartMechanic,
-                            startMechanic = new Message.StartMechanicPayload
+                            this.networkClient.SendAsync(new Message
                             {
-                                requestId = Guid.NewGuid().ToString(),
-                                mechanicId = (uint)NetworkMechanic.TeaHawkBlasterTower,
-                                worldPositionX = player.Position.X,
-                                worldPositionY = player.Position.Y,
-                                worldPositionZ = player.Position.Z,
-                                rotation = player.Rotation,
-                            }
-                        }).SafeFireAndForget();
+                                action = Message.Action.StartMechanic,
+                                startMechanic = new Message.StartMechanicPayload
+                                {
+                                    requestId = Guid.NewGuid().ToString(),
+                                    mechanicId = (uint)NetworkMechanic.TeaHawkBlasterTower,
+                                    worldPositionX = player.Position.X,
+                                    worldPositionY = player.Position.Y,
+                                    worldPositionZ = player.Position.Z,
+                                    rotation = player.Rotation,
+                                }
+                            }).SafeFireAndForget();
+                        }
                     }
                 }
             }

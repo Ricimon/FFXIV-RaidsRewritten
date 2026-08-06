@@ -30,13 +30,16 @@ pub enum Condition {
     Pacify = 6,
     Sleep = 7,
     Knockback = 8,
+    FireResistanceDown = 9,
 }
 
 pub fn create_systems(world: &World) {
     world
         .system::<(&mut components::Condition, &State)>()
-        .term_at(1).up()
-        .with(PartyContainer).up()
+        .term_at(1)
+        .up()
+        .with(PartyContainer)
+        .up()
         .each_iter(|it, i, (condition, state)| {
             condition.time_remaining = f32::max(condition.time_remaining - it.delta_time(), 0.0);
 
@@ -55,7 +58,8 @@ pub fn create_systems(world: &World) {
     world
         .system::<&components::Condition>()
         .without(BroadcastedCondition)
-        .with(PartyContainer).up()
+        .with(PartyContainer)
+        .up()
         .each_iter(|it, i, _| {
             let e = it.entity(i);
             // Traverse up 2 parents to get to the PartyContainer
@@ -110,6 +114,44 @@ pub fn create_systems(world: &World) {
 
             pc.remove(BroadcastConditions);
         });
+}
+
+pub fn apply_condition(
+    target: &EntityView<'_>,
+    id: u128,
+    condition: Condition,
+    duration: f32,
+    override_existing_duration: bool,
+) -> Entity {
+    let world = target.world();
+    let mut existing_condition: Entity = Entity::null();
+    let q = world
+        .query::<&mut components::Condition>()
+        .with((flecs::ChildOf, *target))
+        .build();
+    q.each_entity(|entity, condition| {
+        if condition.id != id {
+            return;
+        }
+        existing_condition = *entity;
+        if duration > condition.time_remaining || override_existing_duration {
+            condition.time_remaining = duration;
+            entity.remove(BroadcastedCondition);
+        }
+    });
+
+    if existing_condition.is_valid() {
+        existing_condition
+    } else {
+        *world
+            .entity()
+            .set(components::Condition {
+                id,
+                condition,
+                time_remaining: duration,
+            })
+            .child_of(target.entity_view(world))
+    }
 }
 
 fn build_condition_details(
