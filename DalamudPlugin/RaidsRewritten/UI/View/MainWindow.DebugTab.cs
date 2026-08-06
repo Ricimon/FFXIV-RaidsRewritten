@@ -808,6 +808,7 @@ public partial class MainWindow
                     }).SafeFireAndForget();
                 }
 
+                SameLineIfFits("Clear Networked Conditions");
                 if (ImGui.Button("Clear Networked Conditions"))
                 {
                     this.networkClient.SendAsync(new Message
