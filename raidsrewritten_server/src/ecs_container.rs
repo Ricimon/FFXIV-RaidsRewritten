@@ -269,8 +269,10 @@ fn process_messages(world: &World, queries: &CommonQueries, rx_from_ws: &Receive
                 let Some(e) = find_socket(&queries.query_socket, socket_id) else {
                     return;
                 };
-                e.each_child(|condition| {
-                    condition.destruct();
+                e.each_child(|child| {
+                    if child.has(Condition::id()) {
+                        child.destruct();
+                    }
                 });
                 if let Some(p) = e.parent() {
                     p.add(BroadcastConditions);
