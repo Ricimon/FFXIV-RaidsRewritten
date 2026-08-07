@@ -266,6 +266,30 @@ fn process_messages(world: &World, queries: &CommonQueries, rx_from_ws: &Receive
                     p.add(BroadcastConditions);
                 }
             }
+
+            MessageToEcs::ClearConditions { socket_id } => {
+                let Some(e) = find_socket(&queries.query_socket, socket_id) else {
+                    return;
+                };
+                let Some(party_container) = e.parent() else {
+                    return;
+                };
+                let mut removed_any = false;
+                party_container.each_child(|pc_child| {
+                    if pc_child.has(Player::id()) {
+                        pc_child.each_child(|player_child| {
+                            if player_child.has(Condition::id()) {
+                                removed_any = true;
+                                player_child.destruct();
+                            }
+                        });
+                    }
+                });
+
+                if removed_any {
+                    party_container.add(BroadcastConditions);
+                }
+            }
         }
     }
 }

@@ -115,6 +115,12 @@ async fn on_message_impl(
                 .unwrap();
             }
         }
+        message::Action::ClearConditions => {
+            tx.send(MessageToEcs::ClearConditions {
+                socket_id: socket.id,
+            })
+            .unwrap();
+        }
         _ => {}
     }
 }

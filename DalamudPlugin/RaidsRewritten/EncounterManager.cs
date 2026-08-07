@@ -243,6 +243,7 @@ public sealed class EncounterManager(
                 ActiveEncounter.IncrementRngSeed();
                 moodlesIPC.CheckMoodles();
                 ClearNetworkedMechanics();
+                ClearNetworkedConditions();
             }
             foreach (var mechanic in ActiveEncounter.GetMechanics())
             {
@@ -459,6 +460,7 @@ public sealed class EncounterManager(
                 if (configuration.EverythingDisabled) { return; }
 
                 ClearNetworkedMechanics();
+                ClearNetworkedConditions();
 
                 if (ActiveEncounter != null)
                 {
@@ -501,6 +503,14 @@ public sealed class EncounterManager(
         networkClient.SendAsync(new Message
         {
             action = Message.Action.ClearMechanics,
+        }).SafeFireAndForget();
+    }
+
+    private void ClearNetworkedConditions()
+    {
+        networkClient.SendAsync(new Message
+        {
+            action = Message.Action.ClearConditions,
         }).SafeFireAndForget();
     }
 }
