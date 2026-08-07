@@ -85,6 +85,7 @@ async fn on_message_impl(
                     world_position_y: start_mechanic.world_position_y,
                     world_position_z: start_mechanic.world_position_z,
                     rotation: start_mechanic.rotation,
+                    extra_data: start_mechanic.extra_data,
                 })
                 .unwrap();
             }

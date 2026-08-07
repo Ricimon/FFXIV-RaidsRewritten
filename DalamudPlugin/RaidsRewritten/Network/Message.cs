@@ -92,6 +92,8 @@ public struct Message
         public float? worldPositionZ;
         [JsonProperty(PropertyName = "r")]
         public float? rotation;
+        [JsonProperty(PropertyName = "ed")]
+        public string? extraData;
     }
     [JsonProperty(PropertyName = "sm")]
     public StartMechanicPayload? startMechanic;

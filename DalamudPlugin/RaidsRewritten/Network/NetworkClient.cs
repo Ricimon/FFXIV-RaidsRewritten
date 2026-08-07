@@ -224,9 +224,17 @@ public sealed class NetworkClient : IDisposable
 
     private void OnDisconnected(object? sender, string e)
     {
-        logger.Warn($"Client disconnected: {e}, reconnecting...");
-        Dispose();
-        Connect();
+        if (e == "io client disconnect")
+        {
+            logger.Info($"Client disconnected: {e}");
+            Dispose();
+        }
+        else
+        {
+            logger.Warn($"Client disconnected: {e}, reconnecting...");
+            Dispose();
+            Connect();
+        }
     }
 
     private void OnError(object? sender, string e)

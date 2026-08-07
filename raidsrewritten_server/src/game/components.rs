@@ -63,6 +63,11 @@ pub struct Mechanic {
 }
 
 #[derive(Component, Debug)]
+pub struct ExtraMechanicData {
+    pub value: String,
+}
+
+#[derive(Component, Debug)]
 pub struct Targets {
     pub player_entities: Vec<Entity>,
 }

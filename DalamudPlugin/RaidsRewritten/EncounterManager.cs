@@ -340,7 +340,7 @@ public sealed class EncounterManager(
             return;
         }
 
-        var text = new StringBuilder($"ACTOR_CONTROL: source {source.Name} (0x{sourceId:X})");
+        var text = new StringBuilder($"ACTOR_CONTROL: source {source.Name} (0x{source.BaseId:X}|0x{sourceId:X})");
         text.Append($", command {command}, {p1}, {p2}, {p3}, {p4}, {p5}, {p6}, {p7}, {p8}");
         text.Append($", targetId 0x{targetId:X}, replaying {replaying}");
         logger.Trace(text.ToString());

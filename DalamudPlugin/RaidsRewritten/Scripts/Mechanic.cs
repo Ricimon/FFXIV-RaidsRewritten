@@ -5,6 +5,7 @@ using ECommons.Hooks.ActionEffectTypes;
 using Lumina.Excel.Sheets;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
+using RaidsRewritten.Network;
 using RaidsRewritten.Spawn;
 
 namespace RaidsRewritten.Scripts;
@@ -17,6 +18,7 @@ public abstract class Mechanic()
     protected CommonQueries CommonQueries { get; private set; }
     protected EntityManager EntityManager { get; private set; }
     protected VfxSpawn VfxSpawn { get; private set; }
+    protected NetworkClient NetworkClient { get; private set; }
     protected ILogger Logger { get; private set; }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
@@ -26,6 +28,7 @@ public abstract class Mechanic()
         CommonQueries commonQueries,
         EntityManager entityManager,
         VfxSpawn vfxSpawn,
+        NetworkClient networkClient,
         ILogger logger)
     {
         this.Dalamud = dalamud;
@@ -33,6 +36,7 @@ public abstract class Mechanic()
         this.CommonQueries = commonQueries;
         this.EntityManager = entityManager;
         this.VfxSpawn = vfxSpawn;
+        this.NetworkClient = networkClient;
         this.Logger = logger;
     }
 
@@ -73,12 +77,13 @@ public abstract class Mechanic()
         CommonQueries commonQueries,
         EntityManager entityManager,
         VfxSpawn vfxSpawn,
+        NetworkClient networkClient,
         ILogger logger)
     {
         public T Create<T>() where T : Mechanic, new()
         {
             var mechanic = new T();
-            mechanic.Init(dalamud, ecsContainer, commonQueries, entityManager, vfxSpawn, logger);
+            mechanic.Init(dalamud, ecsContainer, commonQueries, entityManager, vfxSpawn, networkClient, logger);
             return mechanic;
         }
     }

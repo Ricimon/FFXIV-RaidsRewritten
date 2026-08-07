@@ -145,6 +145,7 @@ fn process_messages(world: &World, queries: &CommonQueries, rx_from_ws: &Receive
                 world_position_y,
                 world_position_z,
                 rotation,
+                extra_data,
             } => {
                 let Some(e) = find_socket(&queries.query_socket, socket_id) else {
                     return;
@@ -171,6 +172,7 @@ fn process_messages(world: &World, queries: &CommonQueries, rx_from_ws: &Receive
                             mechanic_id,
                             party.id.clone(),
                             transform,
+                            extra_data,
                         );
                         MECHANICS_STARTED
                             .with_label_values(&[mechanic_id.to_string()])

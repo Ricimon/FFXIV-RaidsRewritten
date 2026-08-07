@@ -99,6 +99,8 @@ pub struct StartMechanicPayload {
     pub world_position_z: Option<f32>,
     #[serde(rename = "r")]
     pub rotation: Option<f32>,
+    #[serde(rename = "ed")]
+    pub extra_data: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

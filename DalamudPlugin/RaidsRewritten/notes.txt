@@ -116,16 +116,3 @@ Arrowed tether: vfx/channeling/eff/chn_arrow01f.avfx (actor, source & target)
 
 Animations
 Minion normal/idle_inactive1: 4
-
-Vanilla icons replaced by custom status icons
-210257
-210258
-210259
-210260
-210261
-210262
-210264
-210265
-210301
-210303
-210305

@@ -37,12 +37,12 @@ enum Phase {
 
 pub fn create_mechanic(entity: EntityView<'_>) -> EntityView<'_> {
     entity.set(HawkBlasterTower {
-        time_to_snapshot: 3.0,
+        time_to_snapshot: 2.0,
         attack_delay: 0.2,
         effect_delay: 0.2,
         failure_attack_delay: 1.0,
         failure_effect_delay: 0.1,
-        radius: 3.0,
+        radius: 4.0,
         tower_vfx: "vfx/omen/eff/general_trap_o2x.avfx".to_string(),
         attack_vfx: "vfx/monster/gimmick2/eff/d2ac2_b4_g01c0c.avfx".to_string(),
         failure_attack_vfx: "vfx/monster/d1025/eff/d1025_sp12_bunsan_zentai_t0s.avfx".to_string(),

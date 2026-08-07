@@ -17,6 +17,7 @@ public class TeaRewritten : IEncounter
     private string FireTornadoKey => $"{Name}.FireTornado";
     private string PickyDollsKey => $"{Name}.PickyDolls";
     private string SurfsUpKey => $"{Name}.SurfsUp";
+    private string HawkTowerKey => $"{Name}.HawkTower";
     private string KKickKey => $"{Name}.KKick";
 
     private readonly Mechanic.Factory mechanicFactory;
@@ -40,6 +41,7 @@ public class TeaRewritten : IEncounter
             { FireTornadoKey, true },
             { PickyDollsKey, true },
             { SurfsUpKey, true },
+            { HawkTowerKey, true },
             { KKickKey, true },
         };
 
@@ -74,6 +76,11 @@ public class TeaRewritten : IEncounter
         {
             var surfsUp = mechanicFactory.Create<SurfsUp>();
             mechanics.Add(surfsUp);
+        }
+        if (configuration.GetEncounterSetting(HawkTowerKey, defaultBoolSettings[HawkTowerKey]))
+        {
+            var hawkTower = mechanicFactory.Create<HawkTower>();
+            mechanics.Add(hawkTower);
         }
         if (configuration.GetEncounterSetting(KKickKey, defaultBoolSettings[KKickKey]))
         {
@@ -149,6 +156,15 @@ public class TeaRewritten : IEncounter
         {
             configuration.EncounterSettings[SurfsUpKey] =
                 surfsUp ? bool.TrueString : bool.FalseString;
+            configuration.Save();
+            RefreshMechanics();
+        }
+
+        bool hawkTower = configuration.GetEncounterSetting(HawkTowerKey, defaultBoolSettings[HawkTowerKey]);
+        if (ImGui.Checkbox("Hawk Tower", ref hawkTower))
+        {
+            configuration.EncounterSettings[HawkTowerKey] =
+                hawkTower ? bool.TrueString : bool.FalseString;
             configuration.Save();
             RefreshMechanics();
         }

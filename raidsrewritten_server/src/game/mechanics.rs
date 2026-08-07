@@ -8,6 +8,10 @@ pub mod m0020_explosive_trap;
 pub mod m1000_tea_fire_tornado_1;
 #[path = "mechanics/1010-tea_hawk_blaster_tower.rs"]
 pub mod m1010_tea_hawk_blaster_tower;
+#[path = "mechanics/1011-tea_blassty_charge_hit.rs"]
+pub mod m1011_tea_blassty_charge_hit;
+#[path = "mechanics/1012-tea_limit_cut_end.rs"]
+pub mod m1012_tea_limit_cut_end;
 
 use crate::{
     game::{components::*, utils::*},
@@ -22,6 +26,7 @@ pub fn create_mechanic(
     mechanic_id: u32,
     party: String,
     transform: Option<Transform>,
+    extra_data: Option<String>,
 ) -> Option<EntityView<'_>> {
     let mechanic_fn: Option<fn(EntityView<'_>) -> EntityView<'_>> = match mechanic_id {
         1 => Some(m0001_spread::create_mechanic),
@@ -30,6 +35,8 @@ pub fn create_mechanic(
         // TEA
         1000 => Some(m1000_tea_fire_tornado_1::create_mechanic),
         1010 => Some(m1010_tea_hawk_blaster_tower::create_mechanic),
+        1011 => Some(m1011_tea_blassty_charge_hit::create_mechanic),
+        1012 => Some(m1012_tea_limit_cut_end::create_mechanic),
         _ => None,
     };
     if let Some(f) = mechanic_fn {
@@ -50,6 +57,10 @@ pub fn create_mechanic(
             .set(Rotation { value: t.rotation });
         }
 
+        if let Some(ed) = extra_data {
+            e.set(ExtraMechanicData { value: ed });
+        }
+
         if let Some(pc) = find_party_container(world, &party) {
             e.child_of(pc);
         }
@@ -68,6 +79,8 @@ pub fn create_systems(world: &World) {
     // TEA
     m1000_tea_fire_tornado_1::create_systems(world);
     m1010_tea_hawk_blaster_tower::create_systems(world);
+    m1011_tea_blassty_charge_hit::create_systems(world);
+    m1012_tea_limit_cut_end::create_systems(world);
 }
 
 pub fn create_observers(world: &World) {
