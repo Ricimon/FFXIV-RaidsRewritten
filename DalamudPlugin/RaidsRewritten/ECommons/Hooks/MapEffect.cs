@@ -1,7 +1,6 @@
 ﻿// Adapted from https://github.com/NightmareXIV/ECommons/blob/master/ECommons/Hooks/MapEffect.cs
-// 8c7688a
+// efa957f
 using System;
-using Dalamud.Game;
 using Dalamud.Hooking;
 using Dalamud.Plugin.Services;
 using ECommons.EzHookManager;
@@ -14,13 +13,11 @@ namespace ECommons.Hooks;
 
 public static unsafe class MapEffect
 {
-    public const string Sig = "48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 8B FA 41 0F B7 E8";
     public const string ExsMultisig = "40 55 41 57 48 83 EC ?? 48 83 B9";
 
-    public delegate long ProcessMapEffect(long a1, uint a2, ushort a3, ushort a4);
-    internal static Hook<ProcessMapEffect> ProcessMapEffectHook = null;
+    internal static Hook<ContentDirector.Delegates.ApplyMapEffect> ProcessMapEffectHook = null;
     private static Action<long, uint, ushort, ushort> Callback = null;
-    private static ProcessMapEffect OriginalDelegate;
+    private static ContentDirector.Delegates.ApplyMapEffect OriginalDelegate;
 
     private static class Ex
     {
@@ -93,7 +90,7 @@ public static unsafe class MapEffect
         }
     }
 
-    public static ProcessMapEffect Delegate
+    public static ContentDirector.Delegates.ApplyMapEffect Delegate
     {
         get
         {
@@ -103,7 +100,7 @@ public static unsafe class MapEffect
             }
             else
             {
-                OriginalDelegate ??= EzDelegate.Get<ProcessMapEffect>(Sig);
+                OriginalDelegate ??= EzDelegate.Get<ContentDirector.Delegates.ApplyMapEffect>(ContentDirector.Addresses.ApplyMapEffect.Value);
                 return OriginalDelegate;
             }
         }
@@ -111,17 +108,17 @@ public static unsafe class MapEffect
 
     private static ILogger Logger;
 
-    internal static long ProcessMapEffectDetour(long a1, uint a2, ushort a3, ushort a4)
+    internal static void ProcessMapEffectDetour(ContentDirector* a1, uint a2, ushort a3, ushort a4)
     {
         try
         {
-            Callback(a1, a2, a3, a4);
+            Callback((long)a1, a2, a3, a4);
         }
         catch(Exception e)
         {
             Logger?.Error(e.ToStringFull());
         }
-        return ProcessMapEffectHook.Original(a1, a2, a3, a4);
+        ProcessMapEffectHook.Original(a1, a2, a3, a4);
     }
 
     public static void Init(ISigScanner sigScanner, IGameInteropProvider hook, ILogger logger,
@@ -132,18 +129,11 @@ public static unsafe class MapEffect
             throw new Exception("MapEffect is already initialized!");
         }
         Logger = logger;
-        if(sigScanner.TryScanText(Sig, out var ptr))
-        {
-            Callback = fullParamsCallback;
-            ProcessMapEffectHook = hook.HookFromAddress<ProcessMapEffect>(ptr, ProcessMapEffectDetour);
-            Enable();
-            Logger.Info("Requested MapEffect hook and successfully initialized");
-            Ex.Initialize(sigScanner, logger);
-        }
-        else
-        {
-            Logger.Error("Could not find MapEffect signature");
-        }
+        Callback = fullParamsCallback;
+        ProcessMapEffectHook = hook.HookFromAddress<ContentDirector.Delegates.ApplyMapEffect>(ContentDirector.Addresses.ApplyMapEffect.Value, ProcessMapEffectDetour);
+        Enable();
+        Logger.Info("Requested MapEffect hook and successfully initialized");
+        Ex.Initialize(sigScanner, logger);
     }
 
     public static void Enable()
