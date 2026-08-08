@@ -19,6 +19,7 @@ public class TeaRewritten : IEncounter
     private string SurfsUpKey => $"{Name}.SurfsUp";
     private string HawkTowerKey => $"{Name}.HawkTower";
     private string KKickKey => $"{Name}.KKick";
+    private string ShanoaParkKey => $"{Name}.ShanoaPark";
 
     private readonly Mechanic.Factory mechanicFactory;
     private readonly DalamudServices dalamud;
@@ -43,6 +44,7 @@ public class TeaRewritten : IEncounter
             { SurfsUpKey, true },
             { HawkTowerKey, true },
             { KKickKey, true },
+            { ShanoaParkKey, true },
         };
 
         this.defaultIntSettings = new()
@@ -86,6 +88,11 @@ public class TeaRewritten : IEncounter
         {
             var kkick = mechanicFactory.Create<KKick>();
             mechanics.Add(kkick);
+        }
+        if (configuration.GetEncounterSetting(ShanoaParkKey, defaultBoolSettings[ShanoaParkKey]))
+        {
+            var shanoaPark = mechanicFactory.Create<ShanoaPark>();
+            mechanics.Add(shanoaPark);
         }
     }
 
@@ -174,6 +181,15 @@ public class TeaRewritten : IEncounter
         {
             configuration.EncounterSettings[KKickKey] =
                 kkick ? bool.TrueString : bool.FalseString;
+            configuration.Save();
+            RefreshMechanics();
+        }
+
+        bool shanoaPark = configuration.GetEncounterSetting(ShanoaParkKey, defaultBoolSettings[ShanoaParkKey]);
+        if (ImGui.Checkbox("Shanoa Park", ref shanoaPark))
+        {
+            configuration.EncounterSettings[ShanoaParkKey] =
+                shanoaPark ? bool.TrueString : bool.FalseString;
             configuration.Save();
             RefreshMechanics();
         }

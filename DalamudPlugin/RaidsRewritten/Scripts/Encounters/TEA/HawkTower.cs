@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using AsyncAwaitBestPractices;
 using Dalamud.Game.ClientState.Objects.Types;
+using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
@@ -31,6 +32,20 @@ public class HawkTower : Mechanic
         blasstyChargeCount = 0;
         hawkBlasterCount = 0;
         ccCommandCount = 0;
+    }
+
+    public override void OnDirectorUpdate(DirectorUpdateCategory a3)
+    {
+        if (a3 == DirectorUpdateCategory.Wipe ||
+            a3 == DirectorUpdateCategory.Recommence)
+        {
+            Reset();
+        }
+    }
+
+    public override void OnCombatEnd()
+    {
+        Reset();
     }
 
     public override void OnActionEffectEvent(ActionEffectSet set)

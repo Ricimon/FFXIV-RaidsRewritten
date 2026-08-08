@@ -28,11 +28,16 @@ public class KKick : Mechanic
 
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
     {
-        // Transition to BJ/CC
-        if ((uint)a3 == 2147483649)
+        if (a3 == DirectorUpdateCategory.Wipe ||
+            a3 == DirectorUpdateCategory.Recommence)
         {
-
+            Reset();
         }
+    }
+
+    public override void OnCombatEnd()
+    {
+        Reset();
     }
 
     public override void OnActionEffectEvent(ActionEffectSet set)

@@ -186,35 +186,23 @@ public sealed class EncounterManager(
         var text = new StringBuilder($"VFX: {vfxPath}");
 
         var obj = dalamud.ObjectTable.SearchByEntityId(target);
-        if (obj == null)
+        if (obj != null)
         {
-            logger.Trace(text.ToString());
-
-            if (configuration.EverythingDisabled) { return; }
-            if (ActiveEncounter != null)
+            if (obj is ICharacter c)
             {
-                foreach (var mechanic in ActiveEncounter.GetMechanics())
+                if (c is IPlayerCharacter && BlacklistedPcVfx.Contains(vfxPath)) { return; }
+                var targetText = c.AddressEquals(dalamud.ObjectTable.LocalPlayer) ? "me" : (c is IPlayerCharacter pc ? pc.GetJob().ToString() : c.BaseId.ToString() ?? "Unknown");
+                unsafe
                 {
-                    mechanic.OnVFXSpawn(obj, vfxPath);
+                    text.Append($" spawned on {targetText}, npc id={c.NameId}, model id={c.Struct()->ModelContainer.ModelCharaId}, name npc id={c.NameId}, position={c.Position}, name={c.Name}");
                 }
             }
-            return;
-        }
-
-        if (obj is ICharacter c)
-        {
-            if (c is IPlayerCharacter && BlacklistedPcVfx.Contains(vfxPath)) { return; }
-            var targetText = c.AddressEquals(dalamud.ObjectTable.LocalPlayer) ? "me" : (c is IPlayerCharacter pc ? pc.GetJob().ToString() : c.BaseId.ToString() ?? "Unknown");
-            unsafe
+            else
             {
-                text.Append($" spawned on {targetText}, npc id={c.NameId}, model id={c.Struct()->ModelContainer.ModelCharaId}, name npc id={c.NameId}, position={c.Position}, name={c.Name}");
-            }
-        }
-        else
-        {
-            unsafe
-            {
-                text.Append($" spawned on {obj.BaseId}, npc id={obj.Struct()->GetNameId()}, position={obj.Position}");
+                unsafe
+                {
+                    text.Append($" spawned on {obj.BaseId}, npc id={obj.Struct()->GetNameId()}, position={obj.Position}");
+                }
             }
         }
         logger.Trace(text.ToString());

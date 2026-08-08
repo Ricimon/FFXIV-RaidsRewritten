@@ -22,3 +22,5 @@ public record struct TimelineBlend(uint Slot, ushort Value);
 
 // this only applies on model creation. will do more research if we ever need to update after model has already spawned
 public record struct AnimationState(byte Value1, byte Value2 = 0);
+
+public record struct ChatBubble(string Text, float PlayDuration = 3);

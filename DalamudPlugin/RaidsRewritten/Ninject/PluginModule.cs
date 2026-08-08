@@ -37,6 +37,7 @@ public class PluginModule : NinjectModule
         Bind<TetherProcessor>().ToSelf().InSingletonScope();
         Bind<ResourceLoader>().ToSelf().InSingletonScope();
         Bind<VfxSpawn>().ToSelf().InSingletonScope();
+        Bind<ChatBubbleService>().ToSelf();
         Bind<IDalamudHook, StatusCommonProcessor>().To<StatusCommonProcessor>().InSingletonScope();
         Bind<IDalamudHook, StatusProcessor>().To<StatusProcessor>().InSingletonScope();
         Bind<IDalamudHook, StatusCustomProcessor>().To<StatusCustomProcessor>().InSingletonScope();
@@ -90,6 +91,7 @@ public class PluginModule : NinjectModule
         // Entities
         // Models
         Bind<IEntity>().To<Chefbingus>();
+        Bind<IEntity>().To<Shanoa>();
         // Omens
         Bind<IEntity>().To<CircleOmen>();
         Bind<IEntity>().To<Fan90Omen>();

@@ -899,6 +899,19 @@ public partial class MainWindow
                         }
                     }
                 }
+                SameLineIfFits("Shanoa");
+                if (ImGui.Button("Shanoa"))
+                {
+                    var player = this.dalamud.ObjectTable.LocalPlayer;
+                    if (player != null)
+                    {
+                        if (this.entityManager.TryCreateEntity<Shanoa>(out var shanoa))
+                        {
+                            shanoa.Set(new Position(player.Position))
+                                .Set(new Rotation(player.Rotation));
+                        }
+                    }
+                }
 
                 ImGui.SetNextItemWidth(120);
                 ImGui.InputInt("ModelCharaId", ref debugModelCharaId);

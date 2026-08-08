@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.Types;
+using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using Flecs.NET.Core;
 using RaidsRewritten.Scripts.Attacks;
@@ -23,6 +24,20 @@ public class SurfsUp : Mechanic
         }
         attacks.Clear();
         bitsSpawned = 0;
+    }
+
+    public override void OnDirectorUpdate(DirectorUpdateCategory a3)
+    {
+        if (a3 == DirectorUpdateCategory.Wipe ||
+            a3 == DirectorUpdateCategory.Recommence)
+        {
+            Reset();
+        }
+    }
+
+    public override void OnCombatEnd()
+    {
+        Reset();
     }
 
     public override void OnActionEffectEvent(ActionEffectSet set)

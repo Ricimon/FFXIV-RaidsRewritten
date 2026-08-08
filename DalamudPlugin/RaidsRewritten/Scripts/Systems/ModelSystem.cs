@@ -4,13 +4,18 @@ using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Flecs.NET.Core;
 using Lumina.Excel.Sheets;
 using RaidsRewritten.Game;
+using RaidsRewritten.Interop;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Systems;
 
-public unsafe sealed class ModelSystem(DalamudServices dalamud, EcsContainer ecsContainer, ILogger logger) : ISystem, IDalamudHook
+public unsafe sealed class ModelSystem(
+    DalamudServices dalamud,
+    EcsContainer ecsContainer,
+    ChatBubbleService chatBubbleService,
+    ILogger logger) : ISystem, IDalamudHook
 {
     private const string CalculateAndApplyOverallSpeedSig = "E8 ?? ?? ?? ?? 48 8D 8B ?? ?? ?? ?? 48 8B 01 FF 50 ?? 48 8D 8B ?? ?? ?? ?? 48 8B 01 FF 50 ?? F6 83";
     private delegate bool CalculateAndApplyOverallSpeedDelegate(TimelineContainer* a1);
@@ -190,7 +195,21 @@ public unsafe sealed class ModelSystem(DalamudServices dalamud, EcsContainer ecs
                 {
                     chara->Timeline.TimelineSequencer.SetSlotTimeline(timelineBlend.Slot, timelineBlend.Value);
                 }
+            });
 
+        world.System<Model, ChatBubble>()
+            .Each((Iter it, int i, ref Model model, ref ChatBubble chatBubble) =>
+            {
+                if (model.GameObject != null && model.DrawEnabled)
+                {
+                    var obj = ClientObjectManager.Instance()->GetObjectByIndex((ushort)model.GameObjectIndex);
+                    var chara = (Character*)obj;
+                    if (chara != null)
+                    {
+                        chatBubbleService.Talk(chara, chatBubble.Text, chatBubble.PlayDuration);
+                    }
+                    it.Entity(i).Remove<ChatBubble>();
+                }
             });
 
         world.Observer<Model>()
