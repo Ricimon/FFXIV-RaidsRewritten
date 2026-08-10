@@ -100,6 +100,7 @@ public class TeaRewritten : IEncounter
         if (configuration.GetEncounterSetting(ChakBallKey, defaultBoolSettings[ChakBallKey]))
         {
             var chakBall = mechanicFactory.Create<ChakBall>();
+            chakBall.RngSeed = rngSeed;
             mechanics.Add(chakBall);
         }
     }
