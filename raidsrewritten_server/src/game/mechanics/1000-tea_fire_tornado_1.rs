@@ -65,37 +65,35 @@ pub fn create_systems(world: &World) {
 
                 targets.sort_unstable_by(|a, b| a.distance.total_cmp(&b.distance));
 
-                let mut cone_targets: Vec<Target> = Vec::new();
+                let mut cone_origins: Vec<Target> = Vec::new();
                 for t in &targets {
-                    if cone_targets.len() < 2 {
-                        cone_targets.push(*t);
+                    if cone_origins.len() < 2 {
+                        cone_origins.push(*t);
                     }
                 }
 
-                let mut stack_targets: Vec<Target> = Vec::new();
+                let mut stack_origins: Vec<Target> = Vec::new();
                 for t in targets.iter().rev() {
-                    if stack_targets.len() < 2 {
-                        stack_targets.push(*t);
+                    if stack_origins.len() < 2 {
+                        stack_origins.push(*t);
                     }
                 }
 
-                let stack_target_ids: Vec<u64> =
-                    stack_targets.iter().map(|t| t.content_id).collect();
-
+                // find people within stack range
                 let mut stacks: Vec<Vec<Target>> = Vec::new();
-
                 let mut stack_hit_ids: HashSet<u64> = HashSet::new();
-                for stack_target in &stack_targets {
+                for stack_origin in &stack_origins {
                     let mut stack: Vec<Target> = Vec::new();
 
                     for player in &targets {
-                        let p1 = [stack_target.position.x, stack_target.position.z];
+                        let p1 = [stack_origin.position.x, stack_origin.position.z];
                         let p2 = [player.position.x, player.position.z];
                         let distance: f64 = euclidean_sq(&p1, &p2);
                         if distance.sqrt() > 6.0 {
                             continue;
                         }
                         stack.push(*player);
+
                         if !stack_hit_ids.contains(&player.content_id) {
                             stack_hit_ids.insert(player.content_id);
                         }
@@ -103,9 +101,11 @@ pub fn create_systems(world: &World) {
                     stacks.push(stack);
                 }
 
-                let mut intersects: Vec<Target> = Vec::new();
+                // find people within both stacks
+                let mut stack_intersects: Vec<Target> = Vec::new();
+                let mut stack_hit_ids: HashSet<u64> = HashSet::new();
                 if stacks.len() > 1 {
-                    intersects = stacks[0]
+                    stack_intersects = stacks[0]
                         .iter()
                         .filter(|player| {
                             stacks[1].iter().any(|p| p.content_id == player.content_id)
@@ -123,7 +123,7 @@ pub fn create_systems(world: &World) {
                 let io = get_socket_io(&it.world());
                 pc.each_child(|c| {
                     c.try_get::<&Socket>(|s| {
-                        for t in &cone_targets {
+                        for t in &cone_origins {
                             let r = vector_to_rotation(
                                 t.position.x - position.x,
                                 t.position.z - position.z,
@@ -141,12 +141,15 @@ pub fn create_systems(world: &World) {
                             );
                         }
 
+                        let stack_origin_ids: Vec<u64> =
+                            stack_origins.iter().map(|t| t.content_id).collect();
+
                         send_play_actor_vfx_on_target(
                             io.clone(),
                             s.id,
                             PlayActorVfxOnTargetPayload {
                                 vfx_path: fire_tornado.stack_vfx.clone(),
-                                content_id_targets: stack_target_ids.clone(),
+                                content_id_targets: stack_origin_ids.clone(),
                                 ..Default::default()
                             },
                         );
@@ -162,11 +165,12 @@ pub fn create_systems(world: &World) {
 
                 let half_cone = (90.0f32 / 2.0).to_radians();
 
+                // find people who are in both cones and stacks
                 let mut cone_and_stack_hits: Vec<Target> = Vec::new();
-                for cone_target in &cone_targets {
+                for cone_origin in &cone_origins {
                     let rotation = vector_to_rotation(
-                        cone_target.position.x - position.x,
-                        cone_target.position.z - position.z,
+                        cone_origin.position.x - position.x,
+                        cone_origin.position.z - position.z,
                     );
                     let rotation_angle = [position.x + rotation.sin(), position.z + rotation.cos()];
 
@@ -187,7 +191,7 @@ pub fn create_systems(world: &World) {
                 }
 
                 let mut punished_ids: HashSet<u64> = HashSet::new();
-                for t in failed_stacks.into_iter().chain(intersects).chain(cone_and_stack_hits) {
+                for t in failed_stacks.into_iter().chain(stack_intersects).chain(cone_and_stack_hits) {
                     if punished_ids.insert(t.content_id) {
                         let player = t.entity.entity_view(world);
                         apply_condition(
