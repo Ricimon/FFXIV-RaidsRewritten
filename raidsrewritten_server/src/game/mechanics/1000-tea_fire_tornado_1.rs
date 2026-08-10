@@ -84,6 +84,7 @@ pub fn create_systems(world: &World) {
 
                 let mut stacks: Vec<Vec<Target>> = Vec::new();
 
+                let mut stack_hit_ids: HashSet<u64> = HashSet::new();
                 for stack_target in &stack_targets {
                     let mut stack: Vec<Target> = Vec::new();
 
@@ -95,12 +96,14 @@ pub fn create_systems(world: &World) {
                             continue;
                         }
                         stack.push(*player);
+                        if !stack_hit_ids.contains(&player.content_id) {
+                            stack_hit_ids.insert(player.content_id);
+                        }
                     }
                     stacks.push(stack);
                 }
 
                 let mut intersects: Vec<Target> = Vec::new();
-
                 if stacks.len() > 1 {
                     intersects = stacks[0]
                         .iter()
@@ -109,6 +112,12 @@ pub fn create_systems(world: &World) {
                         })
                         .copied()
                         .collect();
+
+                    for stack in &stacks {
+                        for player in stack {
+                            stack_hit_ids.insert(player.content_id);
+                        }
+                    }
                 }
 
                 let io = get_socket_io(&it.world());
@@ -153,7 +162,7 @@ pub fn create_systems(world: &World) {
 
                 let half_cone = (90.0f32 / 2.0).to_radians();
 
-                let mut cone_hits: Vec<Target> = Vec::new();
+                let mut cone_and_stack_hits: Vec<Target> = Vec::new();
                 for cone_target in &cone_targets {
                     let rotation = vector_to_rotation(
                         cone_target.position.x - position.x,
@@ -162,7 +171,7 @@ pub fn create_systems(world: &World) {
                     let rotation_angle = [position.x + rotation.sin(), position.z + rotation.cos()];
 
                     for player in &targets {
-                        if player.content_id == cone_target.content_id {
+                        if !stack_hit_ids.contains(&player.content_id) {
                             continue;
                         }
                         let angle = get_angle_between_lines(
@@ -172,13 +181,13 @@ pub fn create_systems(world: &World) {
                             rotation_angle,
                         );
                         if angle <= half_cone || angle.is_nan() {
-                            cone_hits.push(*player);
+                            cone_and_stack_hits.push(*player);
                         }
                     }
                 }
 
                 let mut punished_ids: HashSet<u64> = HashSet::new();
-                for t in failed_stacks.into_iter().chain(intersects).chain(cone_hits) {
+                for t in failed_stacks.into_iter().chain(intersects).chain(cone_and_stack_hits) {
                     if punished_ids.insert(t.content_id) {
                         let player = t.entity.entity_view(world);
                         apply_condition(
