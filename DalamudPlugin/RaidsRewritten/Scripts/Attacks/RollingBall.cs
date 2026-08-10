@@ -22,7 +22,8 @@ public unsafe sealed class RollingBall(DalamudServices dalamud, CommonQueries co
     public record struct CircleArena(Vector2 Center, float Radius);
     public record struct SquareArena(Vector2 Center, float Width);
     public record struct ShowOmen(Entity Omen);
-
+    public record struct WallBounces(int MaxBounces, int Bounces = 0);
+    
     private const float MaxSpeed = 8.75f;
     private const float AnimationSpeed = 1.75f;
     private const float HitboxRadius = 4.0f;
@@ -30,7 +31,6 @@ public unsafe sealed class RollingBall(DalamudServices dalamud, CommonQueries co
     private const float KnockbackDuration = 1.0f;
     private const float ReflectAngleVariance = 25.0f; // degrees
     private const double FixedDeltaTime = 0.01f;
-
     public Entity Create(World world)
     {
         return world.Entity()
@@ -244,6 +244,20 @@ public unsafe sealed class RollingBall(DalamudServices dalamud, CommonQueries co
                 Vector2.Dot(movement.Direction, reflectionNormal.Value) < 0)
             {
                 // Ball outside arena, reflect it back in
+                if (entity.Has<WallBounces>())
+                {
+                    var wallBounces = entity.Get<WallBounces>();
+                    if (wallBounces.Bounces >= wallBounces.MaxBounces)
+                    {
+                        // force destruct after bounce max
+                        entity.Destruct();
+                    }
+                    else
+                    {
+                        wallBounces.Bounces++;
+                    }
+                }
+
                 Random rand = entity.Has<SeededRandom>() ? entity.Get<SeededRandom>().Random : random;
                 var newDirection = Vector2.Reflect(movement.Direction, reflectionNormal.Value);
                 var angleVariance = rand.NextSingle() * float.DegreesToRadians(ReflectAngleVariance / 2f);
