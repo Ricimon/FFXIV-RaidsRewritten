@@ -103,7 +103,6 @@ pub fn create_systems(world: &World) {
 
                 // find people within both stacks
                 let mut stack_intersects: Vec<Target> = Vec::new();
-                let mut stack_hit_ids: HashSet<u64> = HashSet::new();
                 if stacks.len() > 1 {
                     stack_intersects = stacks[0]
                         .iter()
@@ -112,12 +111,6 @@ pub fn create_systems(world: &World) {
                         })
                         .copied()
                         .collect();
-
-                    for stack in &stacks {
-                        for player in stack {
-                            stack_hit_ids.insert(player.content_id);
-                        }
-                    }
                 }
 
                 let io = get_socket_io(&it.world());
