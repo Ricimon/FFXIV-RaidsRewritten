@@ -125,7 +125,7 @@ public class ChakramBalls : Mechanic
         int anchor = chakramPositions.FindIndex(e => e.Y == chakramPos.Y);
         if (anchor == -1) { return; }
 
-        var random = new Random(RngSeed);
+        var random = new Random(RngSeed + 84115);
         playerList = [.. playerList.AsValueEnumerable().OrderBy(o => random.Next())];
         var ball1Position = ballPositions[(anchor + random.Next(1, 4)) % 8];
         var ball2Position = ballPositions[(anchor + random.Next(5, 8)) % 8];
