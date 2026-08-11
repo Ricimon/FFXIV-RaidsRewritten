@@ -23,6 +23,7 @@ public unsafe sealed class RollingBall(DalamudServices dalamud, CommonQueries co
     public record struct SquareArena(Vector2 Center, float Width);
     public record struct ShowOmen(Entity Omen);
     public record struct WallBounces(int MaxBounces, int Bounces = 0);
+    public struct NotResistible;
     
     private const float MaxSpeed = 8.75f;
     private const float AnimationSpeed = 1.75f;
@@ -158,9 +159,10 @@ public unsafe sealed class RollingBall(DalamudServices dalamud, CommonQueries co
                             knockbackDirection = new Vector3(MathF.Cos(randomAngle), 0, MathF.Sin(randomAngle));
                         }
 
+                        var canResist = !entity.Has<NotResistible>();
                         commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
                         {
-                            Knockback.ApplyToTarget(e, knockbackDirection, KnockbackDuration, true);
+                            Knockback.ApplyToTarget(e, knockbackDirection, KnockbackDuration, canResist);
                         });
                     }
                 }
