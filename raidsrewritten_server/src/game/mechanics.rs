@@ -12,6 +12,8 @@ pub mod m1010_tea_hawk_blaster_tower;
 pub mod m1011_tea_blassty_charge_hit;
 #[path = "mechanics/1012-tea_limit_cut_end.rs"]
 pub mod m1012_tea_limit_cut_end;
+#[path = "mechanics/1020-tea_spawn_shanoa.rs"]
+pub mod m1020_tea_spawn_shanoa;
 
 use crate::{
     game::{components::*, utils::*},
