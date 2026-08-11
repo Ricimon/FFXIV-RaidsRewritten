@@ -20,7 +20,7 @@ public class TeaRewritten : IEncounter
     private string HawkTowerKey => $"{Name}.HawkTower";
     private string KKickKey => $"{Name}.KKick";
     private string ShanoaParkKey => $"{Name}.ShanoaPark";
-    private string ChakBallKey => $"{Name}.ChakBall";
+    private string ChakramBallsKey => $"{Name}.ChakramBalls";
 
     private readonly Mechanic.Factory mechanicFactory;
     private readonly DalamudServices dalamud;
@@ -46,7 +46,7 @@ public class TeaRewritten : IEncounter
             { HawkTowerKey, true },
             { KKickKey, true },
             { ShanoaParkKey, true },
-            { ChakBallKey, true },
+            { ChakramBallsKey, true },
         };
 
         this.defaultIntSettings = new()
@@ -97,11 +97,11 @@ public class TeaRewritten : IEncounter
             mechanics.Add(shanoaPark);
         }
 
-        if (configuration.GetEncounterSetting(ChakBallKey, defaultBoolSettings[ChakBallKey]))
+        if (configuration.GetEncounterSetting(ChakramBallsKey, defaultBoolSettings[ChakramBallsKey]))
         {
-            var chakBall = mechanicFactory.Create<ChakBall>();
-            chakBall.RngSeed = rngSeed;
-            mechanics.Add(chakBall);
+            var chakramBalls = mechanicFactory.Create<ChakramBalls>();
+            chakramBalls.RngSeed = rngSeed;
+            mechanics.Add(chakramBalls);
         }
     }
 
@@ -203,11 +203,11 @@ public class TeaRewritten : IEncounter
             RefreshMechanics();
         }
         
-        bool chakBall = configuration.GetEncounterSetting(ChakBallKey, defaultBoolSettings[ChakBallKey]);
-        if (ImGui.Checkbox("Ball", ref chakBall))
+        bool chakramBalls = configuration.GetEncounterSetting(ChakramBallsKey, defaultBoolSettings[ChakramBallsKey]);
+        if (ImGui.Checkbox("Rolling Balls", ref chakramBalls))
         {
-            configuration.EncounterSettings[ChakBallKey] =
-                chakBall ? bool.TrueString : bool.FalseString;
+            configuration.EncounterSettings[ChakramBallsKey] =
+                chakramBalls ? bool.TrueString : bool.FalseString;
             configuration.Save();
             RefreshMechanics();
         }
