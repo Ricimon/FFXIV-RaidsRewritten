@@ -204,7 +204,7 @@ public class TeaRewritten : IEncounter
         }
         
         bool chakBall = configuration.GetEncounterSetting(ChakBallKey, defaultBoolSettings[ChakBallKey]);
-        if (ImGui.Checkbox("Ball ;)", ref chakBall))
+        if (ImGui.Checkbox("Ball", ref chakBall))
         {
             configuration.EncounterSettings[ChakBallKey] =
                 chakBall ? bool.TrueString : bool.FalseString;

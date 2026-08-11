@@ -8,9 +8,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using Flecs.NET.Core;
 using RaidsRewritten.Scripts.Attacks;
 using RaidsRewritten.Scripts.Components;
-using RaidsRewritten.Scripts.Systems;
 using RaidsRewritten.Utility;
-using TerraFX.Interop.Windows;
 using ZLinq;
 
 namespace RaidsRewritten.Scripts.Encounters.TEA;
@@ -20,6 +18,7 @@ public class ChakBall : Mechanic
     private const uint STEAM_CHAKRAM_BASE_ID = 0x2C4D;
     private const float rollingDelay = 5f;
     private const float arenaRadius = 20f;
+    private const int maxBalls = 2;
     public int RngSeed { get; set; }
     
     private Vector3 arenaCenter = new Vector3(100, 0, 100);
@@ -56,7 +55,7 @@ public class ChakBall : Mechanic
     {
         if (newObject == null) { return; }
         if (newObject.BaseId != STEAM_CHAKRAM_BASE_ID) { return; }
-        if (ballsSpawned > 0) { return; }
+        if (ballsSpawned > maxBalls) { return; }
         
         //Comparing to make sure every client's math is based off the same Chakram
         if (chakramsSpawned < 1)
