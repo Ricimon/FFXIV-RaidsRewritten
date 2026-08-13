@@ -26,6 +26,7 @@ public struct Message
         PlayActorVfxOnPosition = 57,
         StopVfx = 58,
         UpdateConditions = 59,
+        RunMechanicCommand = 60,
     }
     [JsonProperty(PropertyName = "a")]
     public Action action;
@@ -241,4 +242,22 @@ public struct Message
     }
     [JsonProperty(PropertyName = "uc")]
     public UpdateConditionsPayload? updateConditions;
+
+    public struct RunMechanicCommandPayload
+    {
+        [JsonProperty(PropertyName = "i")]
+        public int mechanicCommandId;
+        [JsonProperty(PropertyName = "x")]
+        public float? worldPositionX;
+        [JsonProperty(PropertyName = "y")]
+        public float? worldPositionY;
+        [JsonProperty(PropertyName = "z")]
+        public float? worldPositionZ;
+        [JsonProperty(PropertyName = "r")]
+        public float? rotation;
+        [JsonProperty(PropertyName = "ed")]
+        public string? extraData;
+    }
+    [JsonProperty(PropertyName = "rmc")]
+    public RunMechanicCommandPayload? runMechanicCommand;
 }

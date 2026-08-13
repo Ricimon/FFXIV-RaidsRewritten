@@ -1,5 +1,6 @@
 ﻿namespace RaidsRewritten.Network;
 
+// To server
 public enum NetworkMechanic : uint
 {
     None = 0,
@@ -12,5 +13,11 @@ public enum NetworkMechanic : uint
     TeaBlasstyChargeHit = 1011,
     TeaLimitCutEnd = 1012,
     TeaSpawnShanoa = 1020,
-    // TEA - to client
+}
+
+// To client
+public enum NetworkMechanicCommand : int
+{
+    // TEA
+    TeaShowShanoa = -1020,
 }

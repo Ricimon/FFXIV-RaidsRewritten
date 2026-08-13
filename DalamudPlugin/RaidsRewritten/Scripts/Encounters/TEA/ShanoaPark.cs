@@ -1,14 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using AsyncAwaitBestPractices;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
-using ECommons.MathHelpers;
 using Flecs.NET.Core;
+using RaidsRewritten.Network;
 using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Models;
-using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Encounters.TEA;
 
@@ -87,26 +87,43 @@ public class ShanoaPark : Mechanic
         if (set.Action.Value.RowId == FluidSwingActionId)
         {
             fluidSwingsPerformed++;
-            if (fluidSwingsPerformed == 3 &&
-                availableTornadoPositions.Count == 1 &&
-                EntityManager.TryCreateEntity<Shanoa>(out var shanoa))
+            if (fluidSwingsPerformed == 3 && availableTornadoPositions.Count == 1)
             {
                 var openTornadoPosition = availableTornadoPositions.Single();
-                var towardsMiddle = Vector3.Normalize(arenaMiddle - openTornadoPosition);
-                var distanceTowardsMiddle = 6.0f;
-                var shanoaPosition = openTornadoPosition + distanceTowardsMiddle * towardsMiddle;
-                var shanoaRotation = MathUtilities.VectorToRotation(towardsMiddle.ToVector2());
-                shanoa
-                    .Set(new Position(shanoaPosition))
-                    .Set(new Rotation(shanoaRotation))
-                    .Set(new ChatBubble("Meow!♪"));
-                attacks.Add(shanoa);
+                NetworkClient.SendAsync(new Message
+                {
+                    action = Message.Action.StartMechanic,
+                    startMechanic = new Message.StartMechanicPayload
+                    {
+                        requestId = NetworkMechanic.TeaSpawnShanoa.ToString(),
+                        mechanicId = (int)NetworkMechanic.TeaSpawnShanoa,
+                        worldPositionX = openTornadoPosition.X,
+                        worldPositionY = openTornadoPosition.Y,
+                        worldPositionZ = openTornadoPosition.Z,
+                        rotation = default(float),
+                    }
+                }).SafeFireAndForget();
             }
         }
 
         else if (set.Action.Value.RowId == AetherCompassActionId)
         {
 
+        }
+    }
+
+    public override void OnNetworkMechanicCommand(Message.RunMechanicCommandPayload payload)
+    {
+        if (payload.mechanicCommandId == (int)NetworkMechanicCommand.TeaShowShanoa)
+        {
+            if (EntityManager.TryCreateEntity<Shanoa>(out var shanoa))
+            {
+                shanoa
+                    .Set(new Position(new(payload.worldPositionX ?? default, payload.worldPositionY ?? default, payload.worldPositionZ ?? default)))
+                    .Set(new Rotation(payload.rotation ?? default))
+                    .Set(new ChatBubble("Meow!♪"));
+                attacks.Add(shanoa);
+            }
         }
     }
 }

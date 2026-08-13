@@ -66,6 +66,8 @@ public abstract class Mechanic()
 
     public virtual void OnWeatherChange(byte weather) { }
 
+    public virtual void OnNetworkMechanicCommand(Message.RunMechanicCommandPayload payload) { }
+
     /// <summary>
     /// Simulates the mechanic's core behavior with fake data for testing outside the instance.
     /// </summary>
