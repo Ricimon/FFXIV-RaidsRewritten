@@ -5,10 +5,16 @@ using AsyncAwaitBestPractices;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
+using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using Flecs.NET.Core;
+using Lumina.Excel.Sheets;
 using RaidsRewritten.Network;
+using RaidsRewritten.Scripts.Attacks;
 using RaidsRewritten.Scripts.Components;
+using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Scripts.Models;
+using RaidsRewritten.Spawn;
+using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Encounters.TEA;
 
@@ -16,7 +22,12 @@ public class ShanoaPark : Mechanic
 {
     private const uint LiquidRageDataId = 0x2C49;
     private const uint FluidSwingActionId = 18864;
+    private const uint LivingLiquidProteanWaveActionId = 18468;
     private const uint AetherCompassActionId = 26988;
+
+    private const string MarkerAttackVfxPath = "vfx/monster/d1024/eff/arthur_thunderstorm_t0s.avfx";
+    private const string AetherCompassLocationVfxPath = "bg/ex2/05_zon_z3/common/vfx/eff/b1526bari1_u.avfx";
+    private const string AetherCompassLocationArrowsVfxPath = "bgcommon/world/common/vfx_for_bg/eff/b1490tagt1_o.avfx";
 
     private readonly List<Entity> attacks = [];
     private readonly IReadOnlyList<Vector3> tornadoPositions1 =
@@ -33,6 +44,7 @@ public class ShanoaPark : Mechanic
 
     private HashSet<Vector3> availableTornadoPositions = [];
     private int fluidSwingsPerformed = 0;
+    private bool protean1Casted = false;
 
     public override void Reset()
     {
@@ -80,6 +92,15 @@ public class ShanoaPark : Mechanic
         availableTornadoPositions.Remove(newObject.Position);
     }
 
+    public override void OnStartingCast(Action action, IBattleChara source)
+    {
+        if (!protean1Casted && action.RowId == LivingLiquidProteanWaveActionId)
+        {
+            protean1Casted = true;
+            AttackMarkers();
+        }
+    }
+
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
         if (set.Action == null || set.Source == null) { return; }
@@ -123,6 +144,58 @@ public class ShanoaPark : Mechanic
                     .Set(new Rotation(payload.rotation ?? default))
                     .Set(new ChatBubble("Meow!♪"));
                 attacks.Add(shanoa);
+            }
+        }
+    }
+
+    public override void DebugSimulate()
+    {
+        AttackMarkers();
+    }
+
+    private unsafe void AttackMarkers()
+    {
+        foreach (var marker in MarkingController.Instance()->FieldMarkers)
+        {
+            if (marker.Active)
+            {
+                var circleAttack = Circle.CreateEntity(World)
+                    .Set(new Position(marker.Position))
+                    .Set(new Scale(5.0f * Vector3.One))
+                    .Set(new Circle.Component(2.8f, 0.3f, MarkerAttackVfxPath, 0.3f, (e) =>
+                    {
+                        var player = Dalamud.ObjectTable.LocalPlayer;
+                        if (player == null || player.IsDead) { return; }
+                        if (player.HasTranscendance())
+                        {
+                            VfxSpawn.PlayInvulnerabilityEffect(player);
+                        }
+                        else
+                        {
+                            Stun.ApplyToTarget(e, 10.0f);
+                        }
+                    }));
+                attacks.Add(circleAttack);
+
+                var action = DelayedAction.Create(World, () =>
+                {
+                    var ring = World.Entity()
+                        .Set(new StaticVfx(AetherCompassLocationVfxPath))
+                        .Set(new Position(marker.Position))
+                        .Set(new Rotation())
+                        .Set(new Scale(0.14f * Vector3.One))
+                        .Add<Components.Omen>();
+                    attacks.Add(ring);
+
+                    var arrows = World.Entity()
+                        .Set(new StaticVfx(AetherCompassLocationArrowsVfxPath))
+                        .Set(new Position(marker.Position))
+                        .Set(new Rotation())
+                        .Set(new Scale(0.75f * Vector3.One))
+                        .Add<Components.Omen>();
+                    attacks.Add(arrows);
+                }, 3.75f);
+                attacks.Add(action);
             }
         }
     }
