@@ -19,6 +19,10 @@ Blazing Scourge attack: vfx/monster/gimmick2/eff/d2ac2_b4_g01c0c.avfx (actor)
 O10S
 Ground Ice Effect: bgcommon/world/common/vfx_for_btl/b0195/eff/b0195_yuka_c.avfx, 5y radius
 
+O11N
+Pointing arrows: bgcommon/world/common/vfx_for_bg/eff/b1490tagt1_o.avfx (static)
+Electric circle: bg/ex2/05_zon_z3/common/vfx/eff/b1526bari1_u.avfx (static)
+
 The Dancing Plague
 Star Omen: bg/ex3/01_nvt_n4/common/vfx/eff/b1588rod01_u.avfx (static)
 Star Attack VFX: bg/ex3/01_nvt_n4/common/vfx/eff/b1588yuka1_u.avfx (static)
@@ -29,6 +33,10 @@ Vice of Apathy: BaseId 0x1EAE20
 TEA
 Liquid Rage: BaseId 0x2C49
 Liquid Rage Puddle: BaseId 0x1E9998
+
+E5N
+Thunderstorm small AOE: vfx/monster/m0234/eff/ryu_no_su_tatumaki_pc_rakurai_c0s.avfx (actor), 3y radius
+Thunderstorm large AOE: vfx/monster/d1024/eff/arthur_thunderstorm_t0s.avfx (actor), 5y radius
 
 E6S
 Enumeration omen: vfx/lockon/eff/m0618trg_a0k1.avfx (actor), 4y radius 5.5s duration
