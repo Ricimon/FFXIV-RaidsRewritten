@@ -115,7 +115,6 @@ public unsafe class StatusSystem(
         world.Observer<Flattened.Component>()
             .With<Player.Component>().Up()
             .Event(Ecs.OnRemove)
-            .Event(Ecs.OnDelete)
             .Each((e, ref status) => {
                 var playerEntity = e.Parent();
                 if (!playerEntity.TryGet<Player.Component>(out var player)) { return; }
