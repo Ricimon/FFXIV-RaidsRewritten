@@ -25,6 +25,7 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
     private Query<Condition.Component, Hysteria.Component> hysteriaQuery;
     private Query<Condition.Component> overheatQuery;
     private Query<Condition.Component> deepfreezeQuery;
+    private Query<Condition.Component> flattenedQuery;
 
     public static Entity Create(World world, bool isLocalPlayer, IPlayerCharacter? playerCharacter = null, ulong? contentId = null)
     {
@@ -52,6 +53,7 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
         this.hysteriaQuery.SafeDispose();
         this.overheatQuery.SafeDispose();
         this.deepfreezeQuery.SafeDispose();
+        this.flattenedQuery.SafeDispose();
     }
 
     public void Register(World world)
@@ -77,6 +79,9 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
             .With<LocalPlayer>().Up().Cached().Build();
         this.deepfreezeQuery = world.QueryBuilder<Condition.Component>()
             .With<Deepfreeze.Component>()
+            .With<LocalPlayer>().Up().Cached().Build();
+        this.flattenedQuery = world.QueryBuilder<Condition.Component>()
+            .With<Flattened.Component>()
             .With<LocalPlayer>().Up().Cached().Build();
 
         world.System<Component>().With<LocalPlayer>()
@@ -139,6 +144,9 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
 
                 Entity deepfreezeEntity = this.deepfreezeQuery.First();
                 stun |= deepfreezeEntity.IsValid();
+
+                Entity flattenedQuery = this.flattenedQuery.First();
+                stun |= flattenedQuery.IsValid();
 
                 Entity hysteriaEntity = this.hysteriaQuery.First();
                 disableAllActions |= hysteriaEntity.IsValid();

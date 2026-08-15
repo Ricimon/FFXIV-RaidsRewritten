@@ -229,6 +229,15 @@ public partial class MainWindow
                 });
             }
 
+            SameLineIfFits("Flattened");
+            if (ImGui.Button("Flattened"))
+            {
+                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+                {
+                    Flattened.ApplyToTarget(e, 3.0f);
+                });
+            }
+
             if (ImGui.Button("Blind"))
             {
                 commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>

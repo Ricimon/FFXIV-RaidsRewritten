@@ -1,5 +1,7 @@
 ﻿using FFXIVClientStructs.FFXIV.Client.Game.Character;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.UI;
+using FFXIVClientStructs.FFXIV.Common.Math;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
@@ -19,6 +21,7 @@ public unsafe class StatusSystem(
     StatusCommonProcessor statusCommonProcessor,
     ILogger logger) : ISystem
 {
+    private const float zScale = 0.1f;
     private readonly CommonQueries commonQueries = commonQueries;
     private readonly Configuration configuration = configuration;
     private readonly DalamudServices dalamud = dalamud;
@@ -78,6 +81,75 @@ public unsafe class StatusSystem(
                 }
                 if (e.Has<FlyTextReady>()) { return; }
                 e.Set(new FlyTextReady(new(flytext.Status, false)));
+            });
+
+        world.System<Flattened.Component>()
+            .With<Player.Component>().Up()
+            .Each((e, ref status) =>
+            {
+                var playerEntity = e.Parent();
+                if (!playerEntity.TryGet<Player.Component>(out var player)) { return; }
+                if (player.PlayerCharacter == null) { return; }
+                var pPlayerGameObject = (GameObject*)player.PlayerCharacter.Address;
+                if (pPlayerGameObject == null) { return; }
+                var pPlayerDrawObject = pPlayerGameObject->DrawObject;
+                if (pPlayerDrawObject == null) { return; }
+                 
+                if (pPlayerDrawObject->Scale.Z != zScale)
+                {
+                    status.OriginalZ = pPlayerDrawObject->Scale.Z;
+                    pPlayerDrawObject->Scale.Z = zScale;
+                }
+
+                // check if player model is facing up, make it if not
+                var playerModelFacing = Vector3.Transform(new Vector3(0, 0, 1), pPlayerDrawObject->Rotation);
+                float alignment = Vector3.Dot(playerModelFacing, new Vector3(0, 1, 0));
+                if (alignment < 0.99f) {
+                    status.OriginalQuaternion = pPlayerDrawObject->Rotation;
+                    var maths = Quaternion.CreateFromAxisAngle(new Vector3(-1, 0, 0), MathF.PI / 2);
+                    pPlayerDrawObject->Rotation = Quaternion.Normalize(pPlayerDrawObject->Rotation * maths);
+                }
+                
+            });
+
+        world.Observer<Flattened.Component>()
+            .With<Player.Component>().Up()
+            .Event(Ecs.OnRemove)
+            .Event(Ecs.OnDelete)
+            .Each((e, ref status) => {
+                var playerEntity = e.Parent();
+                if (!playerEntity.TryGet<Player.Component>(out var player)) { return; }
+                if (player.PlayerCharacter == null) { return; }
+                var pPlayerGameObject = (GameObject*)player.PlayerCharacter.Address;
+                if (pPlayerGameObject == null) { return; }
+                var pPlayerDrawObject = pPlayerGameObject->DrawObject;
+                if (pPlayerDrawObject == null) { return; }
+                //pPlayerDrawObject->Scale.Z = status.OriginalZ;
+                //pPlayerDrawObject->Rotation = status.OriginalQuaternion;
+                playerEntity.Set(new Flattened.FallingOff(status.OriginalZ, status.OriginalQuaternion));
+                world.Entity()
+                    .Set(new ActorVfx("vfx/common/eff/toad_smk0f.avfx"))
+                    .Set(new Scale(new System.Numerics.Vector3(1.5f)))
+                    .ChildOf(playerEntity);
+
+            });
+
+        world.System<Flattened.FallingOff, Player.Component>()
+            .Each((Iter it, int i, ref Flattened.FallingOff component, ref Player.Component player) =>
+            {
+                component.ElapsedTime -= it.DeltaTime();
+
+                if (component.ElapsedTime > 0) { return; }
+
+                if (player.PlayerCharacter == null) { return; }
+                var pPlayerGameObject = (GameObject*)player.PlayerCharacter.Address;
+                if (pPlayerGameObject == null) { return; }
+                var pPlayerDrawObject = pPlayerGameObject->DrawObject;
+                if (pPlayerDrawObject == null) { return; }
+                pPlayerDrawObject->Scale.Z = component.OriginalZ;
+                pPlayerDrawObject->Rotation = component.OriginalQuaternion;
+
+                it.Entity(i).Remove<Flattened.FallingOff>();
             });
     }
 
