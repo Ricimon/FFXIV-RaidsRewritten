@@ -88,7 +88,7 @@ pub fn create_systems(world: &World) {
                 shanoa_entity
                     .set(TeaShanoa {
                         visible: true,
-                        available_markers: HashSet::from([1, 2, 3, 4, 5, 6, 7, 8]),
+                        available_markers: HashSet::from([0, 1, 2, 3, 4, 5, 6, 7]),
                         fire_tornado: *entity,
                     })
                     .set(Position {

@@ -13,6 +13,8 @@ public enum NetworkMechanic : uint
     TeaBlasstyChargeHit = 1011,
     TeaLimitCutEnd = 1012,
     TeaSpawnShanoa = 1020,
+    TeaShowShanoaGuidanceMarkers = 1021,
+    TeaMoveShanoa = 1022,
 }
 
 // To client
@@ -20,4 +22,6 @@ public enum NetworkMechanicCommand : int
 {
     // TEA
     TeaShowShanoa = -1020,
+    TeaShowShanoaGuidanceMarkers = -1021,
+    TeaMoveShanoa = -1022,
 }
