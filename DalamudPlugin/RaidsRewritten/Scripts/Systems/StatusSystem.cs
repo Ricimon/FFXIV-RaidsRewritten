@@ -140,16 +140,25 @@ public unsafe class StatusSystem(
                 component.ElapsedTime -= it.DeltaTime();
 
                 if (component.ElapsedTime > 0) { return; }
-
-                if (player.PlayerCharacter == null) { return; }
+                var e = it.Entity(i);
+                if (player.PlayerCharacter == null) {
+                    e.Remove<Flattened.FallingOff>();
+                    return;
+                }
                 var pPlayerGameObject = (GameObject*)player.PlayerCharacter.Address;
-                if (pPlayerGameObject == null) { return; }
+                if (pPlayerGameObject == null) {
+                    e.Remove<Flattened.FallingOff>();
+                    return;
+                }
                 var pPlayerDrawObject = pPlayerGameObject->DrawObject;
-                if (pPlayerDrawObject == null) { return; }
+                if (pPlayerDrawObject == null) {
+                    e.Remove<Flattened.FallingOff>();
+                    return;
+                }
                 pPlayerDrawObject->Scale.Z = component.OriginalZ;
                 pPlayerDrawObject->Rotation = component.OriginalQuaternion;
 
-                it.Entity(i).Remove<Flattened.FallingOff>();
+                e.Remove<Flattened.FallingOff>();
             });
     }
 
