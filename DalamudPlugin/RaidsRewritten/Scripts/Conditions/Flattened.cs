@@ -7,8 +7,8 @@ public class Flattened
 {
     private const string IconId = "215381";
 
-    public record struct Component(float OriginalZ = 1.0f, FFXIVClientStructs.FFXIV.Common.Math.Quaternion OriginalQuaternion = default);
-    public record struct FallingOff(float OriginalZ = 1.0f, FFXIVClientStructs.FFXIV.Common.Math.Quaternion OriginalQuaternion = default, float ElapsedTime = 0.15f);
+    public record struct Component(bool OriginalSet = false, float OriginalZ = 1.0f, FFXIVClientStructs.FFXIV.Common.Math.Quaternion OriginalRotation = default);
+    public record struct FallingOff(float OriginalZ = 1.0f, FFXIVClientStructs.FFXIV.Common.Math.Quaternion OriginalRotation = default, float ElapsedTime = 0.15f);
     public static void ApplyToTarget(
         Entity target,
         float duration,

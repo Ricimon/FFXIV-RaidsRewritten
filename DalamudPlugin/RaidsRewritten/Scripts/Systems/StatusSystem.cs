@@ -94,9 +94,20 @@ public unsafe class StatusSystem(
                 if (pPlayerGameObject == null) { return; }
                 var pPlayerDrawObject = pPlayerGameObject->DrawObject;
                 if (pPlayerDrawObject == null) { return; }
-                 
+
+                if (configuration.EverythingDisabled)
+                {
+                    if (status.OriginalSet)
+                    {
+                        pPlayerDrawObject->Scale.Z = status.OriginalZ;
+                        pPlayerDrawObject->Rotation = status.OriginalRotation;
+                    }
+                    return;
+                }
+
                 if (pPlayerDrawObject->Scale.Z != zScale)
                 {
+                    status.OriginalSet = true;
                     status.OriginalZ = pPlayerDrawObject->Scale.Z;
                     pPlayerDrawObject->Scale.Z = zScale;
                 }
@@ -104,18 +115,21 @@ public unsafe class StatusSystem(
                 // check if player model is facing up, make it if not
                 var playerModelFacing = Vector3.Transform(new Vector3(0, 0, 1), pPlayerDrawObject->Rotation);
                 float alignment = Vector3.Dot(playerModelFacing, new Vector3(0, 1, 0));
-                if (alignment < 0.99f) {
-                    status.OriginalQuaternion = pPlayerDrawObject->Rotation;
+                if (alignment < 0.99f)
+                {
+                    status.OriginalSet = true;
+                    status.OriginalRotation = pPlayerDrawObject->Rotation;
                     var maths = Quaternion.CreateFromAxisAngle(new Vector3(-1, 0, 0), MathF.PI / 2);
                     pPlayerDrawObject->Rotation = Quaternion.Normalize(pPlayerDrawObject->Rotation * maths);
                 }
-                
+
             });
 
         world.Observer<Flattened.Component>()
             .With<Player.Component>().Up()
             .Event(Ecs.OnRemove)
-            .Each((e, ref status) => {
+            .Each((e, ref status) =>
+            {
                 var playerEntity = e.Parent();
                 if (!playerEntity.TryGet<Player.Component>(out var player)) { return; }
                 if (player.PlayerCharacter == null) { return; }
@@ -123,9 +137,18 @@ public unsafe class StatusSystem(
                 if (pPlayerGameObject == null) { return; }
                 var pPlayerDrawObject = pPlayerGameObject->DrawObject;
                 if (pPlayerDrawObject == null) { return; }
-                //pPlayerDrawObject->Scale.Z = status.OriginalZ;
-                //pPlayerDrawObject->Rotation = status.OriginalQuaternion;
-                playerEntity.Set(new Flattened.FallingOff(status.OriginalZ, status.OriginalQuaternion));
+
+                if (configuration.EverythingDisabled)
+                {
+                    if (status.OriginalSet)
+                    {
+                        pPlayerDrawObject->Scale.Z = status.OriginalZ;
+                        pPlayerDrawObject->Rotation = status.OriginalRotation;
+                    }
+                    return;
+                }
+
+                playerEntity.Set(new Flattened.FallingOff(status.OriginalZ, status.OriginalRotation));
                 world.Entity()
                     .Set(new ActorVfx("vfx/common/eff/toad_smk0f.avfx"))
                     .Set(new Scale(new System.Numerics.Vector3(1.5f)))
@@ -138,24 +161,28 @@ public unsafe class StatusSystem(
             {
                 component.ElapsedTime -= it.DeltaTime();
 
-                if (component.ElapsedTime > 0) { return; }
+                if (component.ElapsedTime > 0 && !configuration.EverythingDisabled) { return; }
                 var e = it.Entity(i);
-                if (player.PlayerCharacter == null) {
+                if (player.PlayerCharacter == null)
+                {
                     e.Remove<Flattened.FallingOff>();
                     return;
                 }
                 var pPlayerGameObject = (GameObject*)player.PlayerCharacter.Address;
-                if (pPlayerGameObject == null) {
+                if (pPlayerGameObject == null)
+                {
                     e.Remove<Flattened.FallingOff>();
                     return;
                 }
                 var pPlayerDrawObject = pPlayerGameObject->DrawObject;
-                if (pPlayerDrawObject == null) {
+                if (pPlayerDrawObject == null)
+                {
                     e.Remove<Flattened.FallingOff>();
                     return;
                 }
+                
                 pPlayerDrawObject->Scale.Z = component.OriginalZ;
-                pPlayerDrawObject->Rotation = component.OriginalQuaternion;
+                pPlayerDrawObject->Rotation = component.OriginalRotation;
 
                 e.Remove<Flattened.FallingOff>();
             });
