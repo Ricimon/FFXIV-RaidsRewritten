@@ -22,3 +22,4 @@ uuid = { version = "1.20.0", features = ["v4"] }
 string-builder = "0.2.0"
 prometheus = { version = "0.14.0", features = ["process"] }
 lazy_static = "1.5.0"
+nalgebra = "0.35.0"

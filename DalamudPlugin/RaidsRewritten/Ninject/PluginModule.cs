@@ -1,5 +1,6 @@
 ﻿using System;
 using Dalamud.Interface.Windowing;
+using Ninject;
 using Ninject.Activation;
 using Ninject.Modules;
 using RaidsRewritten.Game;
@@ -55,6 +56,7 @@ public class PluginModule : NinjectModule
         Bind<IDalamudHook>().To<PluginUIContainer>().InSingletonScope();
         Bind<IDalamudHook>().To<CommandDispatcher>().InSingletonScope();
         Bind<IDalamudHook, EncounterManager>().To<EncounterManager>().InSingletonScope();
+        Bind<Lazy<EncounterManager>>().ToMethod(c => new Lazy<EncounterManager>(() => c.Kernel.Get<EncounterManager>()));
         Bind<IDalamudHook, EntityManager>().To<EntityManager>().InSingletonScope();
         Bind<Mechanic.Factory>().ToSelf();
         Bind<InputEventSource>().ToSelf().InSingletonScope();
@@ -91,7 +93,7 @@ public class PluginModule : NinjectModule
         // Entities
         // Models
         Bind<IEntity>().To<Chefbingus>();
-        Bind<IEntity>().To<Shanoa>();
+        Bind<IEntity, ISystem>().To<Shanoa>();
         // Omens
         Bind<IEntity>().To<CircleOmen>();
         Bind<IEntity>().To<Fan90Omen>();

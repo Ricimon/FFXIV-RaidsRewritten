@@ -26,6 +26,7 @@ pub enum Action {
     PlayActorVfxOnPosition = 57,
     StopVfx = 58,
     UpdateConditions = 59,
+    RunMechanicCommand = 60,
 }
 
 #[serde_with::skip_serializing_none]
@@ -59,6 +60,8 @@ pub struct Message {
     pub stop_vfx: Option<StopVfxPayload>,
     #[serde(rename = "uc")]
     pub update_conditions: Option<UpdateConditionsPayload>,
+    #[serde(rename = "rmc")]
+    pub run_mechanic_command: Option<RunMechanicCommandPayload>,
 }
 
 // To server ===============
@@ -230,4 +233,20 @@ pub struct UpdateConditionsConditionDetails {
 
     #[serde(rename = "hri")]
     pub hysteria_redirection_interval: Option<f32>,
+}
+
+#[derive(Serialize, Deserialize, Default, Debug)]
+pub struct RunMechanicCommandPayload {
+    #[serde(rename = "i")]
+    pub mechanic_command_id: i32,
+    #[serde(rename = "x")]
+    pub world_position_x: Option<f32>,
+    #[serde(rename = "y")]
+    pub world_position_y: Option<f32>,
+    #[serde(rename = "z")]
+    pub world_position_z: Option<f32>,
+    #[serde(rename = "r")]
+    pub rotation: Option<f32>,
+    #[serde(rename = "ed")]
+    pub extra_data: Option<String>,
 }

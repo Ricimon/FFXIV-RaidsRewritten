@@ -792,6 +792,35 @@ public partial class MainWindow
                         }
                     }
                 }
+
+                if (ImGui.Button("Shanoa"))
+                {
+                    var player = this.dalamud.ObjectTable.LocalPlayer;
+                    if (player != null)
+                    {
+                        var shanoa = World.Query<Shanoa.Component>().First();
+                        if (shanoa.IsValid())
+                        {
+                            shanoa.Set(new Shanoa.TargetPosition(player.Position));
+                            if (shanoa.TryGet(out Position position))
+                            {
+                                var toPlayer = player.Position - position.Value;
+                                shanoa.Set(new Shanoa.TargetRotation(
+                                    MathUtilities.VectorToRotation(toPlayer.ToVector2())));
+                            }
+                            shanoa.Set(new ChatBubble("Meow! Purrrrrr...♪"));
+                        }
+                        else if (entityManager.TryCreateEntity<Shanoa>(out shanoa))
+                        {
+                            shanoa
+                                .Set(new Position(player.Position))
+                                .Set(new Rotation(player.Rotation))
+                                .Set(new Shanoa.Component(6.0f, 7.0f))
+                                .Set(new ChatBubble("Meow!♪"));
+                        }
+
+                    }
+                }
             }
         }
 

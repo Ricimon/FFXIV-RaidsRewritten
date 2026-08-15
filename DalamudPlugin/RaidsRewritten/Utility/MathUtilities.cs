@@ -71,4 +71,12 @@ public static class MathUtilities
         var v2 = value2.ToVector2();
         return Vector2.Distance(v1, v2);
     }
+
+    /// <summary>
+    /// rotation input is in FFXIV units
+    /// </summary>
+    public static float GetShortestRotationDirection(float from, float to)
+    {
+        return ClampRadians((to - from + MathF.PI) % (2 * MathF.PI) - MathF.PI);
+    }
 }

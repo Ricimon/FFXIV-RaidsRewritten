@@ -12,6 +12,8 @@ pub mod m1010_tea_hawk_blaster_tower;
 pub mod m1011_tea_blassty_charge_hit;
 #[path = "mechanics/1012-tea_limit_cut_end.rs"]
 pub mod m1012_tea_limit_cut_end;
+#[path = "mechanics/1020-tea_spawn_shanoa.rs"]
+pub mod m1020_tea_spawn_shanoa;
 
 use crate::{
     game::{components::*, utils::*},
@@ -37,16 +39,11 @@ pub fn create_mechanic(
         1010 => Some(m1010_tea_hawk_blaster_tower::create_mechanic),
         1011 => Some(m1011_tea_blassty_charge_hit::create_mechanic),
         1012 => Some(m1012_tea_limit_cut_end::create_mechanic),
+        1020 => Some(m1020_tea_spawn_shanoa::create_mechanic),
         _ => None,
     };
     if let Some(f) = mechanic_fn {
-        let e = world
-            .entity()
-            .set(Mechanic {
-                request_id,
-                mechanic_id,
-            })
-            .set(Party { id: party.clone() });
+        let e = create_generic_mechanic(world, request_id, mechanic_id, party);
 
         if let Some(t) = transform {
             e.set(Position {
@@ -61,15 +58,32 @@ pub fn create_mechanic(
             e.set(ExtraMechanicData { value: ed });
         }
 
-        if let Some(pc) = find_party_container(world, &party) {
-            e.child_of(pc);
-        }
-
         Some(f(e))
     } else {
         info!(mechanic_id, "Unsupported mechanic_id");
         None
     }
+}
+
+pub fn create_generic_mechanic(
+    world: &World,
+    request_id: String,
+    mechanic_id: u32,
+    party: String,
+) -> EntityView<'_> {
+    let e = world
+        .entity()
+        .set(Mechanic {
+            request_id,
+            mechanic_id,
+        })
+        .set(Party { id: party.clone() });
+
+    if let Some(pc) = find_party_container(world, &party) {
+        e.child_of(pc);
+    }
+
+    e
 }
 
 pub fn create_systems(world: &World) {
@@ -81,6 +95,7 @@ pub fn create_systems(world: &World) {
     m1010_tea_hawk_blaster_tower::create_systems(world);
     m1011_tea_blassty_charge_hit::create_systems(world);
     m1012_tea_limit_cut_end::create_systems(world);
+    m1020_tea_spawn_shanoa::create_systems(world);
 }
 
 pub fn create_observers(world: &World) {

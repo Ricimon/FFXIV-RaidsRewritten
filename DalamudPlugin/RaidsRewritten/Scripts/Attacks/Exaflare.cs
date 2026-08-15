@@ -122,7 +122,7 @@ public class Exaflare(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogger logger
                             .Set(new Position(newPos))
                             .Set(new Rotation(rotation.Value))
                             .Set(new Scale(new Vector3(ExaflareSize)))
-                            .Set(new Circle.Component(OnHit))
+                            .Set(new Circle.Component(0, 0, null, 0, OnHit))
                             .ChildOf(entity);
 
                         break;

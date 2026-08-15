@@ -1,5 +1,6 @@
 pub mod message;
 pub mod metrics;
+pub mod network_mechanic;
 
 use crate::system_messages::{ConditionDetails, MessageToEcs};
 use crate::{game::components::*, webserver::metrics::*};

@@ -20,6 +20,7 @@ public sealed class NetworkClientMessageHandler(
     VfxSpawn vfxSpawn,
     EcsContainer ecsContainer,
     CommonQueries commonQueries,
+    Lazy<EncounterManager> encounterManager,
     Configuration configuration,
     ILogger logger)
 {
@@ -72,6 +73,9 @@ public sealed class NetworkClientMessageHandler(
                 break;
             case Message.Action.UpdateConditions:
                 if (message.updateConditions != null) { UpdateConditions(message.updateConditions.Value); }
+                break;
+            case Message.Action.RunMechanicCommand:
+                if (message.runMechanicCommand != null) { RunMechanicCommand(message.runMechanicCommand.Value); }
                 break;
         }
     }
@@ -284,5 +288,16 @@ public sealed class NetworkClientMessageHandler(
                 }
             });
         }).SafeFireAndForget();
+    }
+
+    private void RunMechanicCommand(Message.RunMechanicCommandPayload payload)
+    {
+        if (encounterManager.Value.ActiveEncounter != null)
+        {
+            foreach (var mechanic in encounterManager.Value.ActiveEncounter.GetMechanics())
+            {
+                mechanic.OnNetworkMechanicCommand(payload);
+            }
+        }
     }
 }

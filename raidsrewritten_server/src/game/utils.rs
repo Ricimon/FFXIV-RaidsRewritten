@@ -169,6 +169,22 @@ pub fn send_stop_vfx(io: SocketIo, socket_id: Sid, payload: StopVfxPayload) {
     );
 }
 
+pub fn send_run_mechanic_command(io: SocketIo, socket_id: Sid, payload: RunMechanicCommandPayload) {
+    info!(
+        socket_str = socket_id.as_str(),
+        payload.mechanic_command_id, "Sending run_mechanic_command"
+    );
+    send_message(
+        io,
+        socket_id,
+        Message {
+            action: Action::RunMechanicCommand,
+            run_mechanic_command: Some(payload),
+            ..Default::default()
+        },
+    );
+}
+
 pub fn send_message(io: SocketIo, socket_id: Sid, message: Message) {
     tokio::spawn(async move {
         io.to(socket_id).emit("message", &message).await.unwrap();
