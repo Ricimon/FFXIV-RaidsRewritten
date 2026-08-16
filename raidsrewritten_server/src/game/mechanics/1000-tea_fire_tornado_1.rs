@@ -8,7 +8,6 @@ use crate::{
 };
 use distances::vectors::euclidean_sq;
 use flecs_ecs::prelude::*;
-use std::collections::HashSet;
 use tracing::info;
 
 #[derive(Component, Debug)]
@@ -23,7 +22,12 @@ struct Target {
     content_id: u64,
     position: Position,
     distance: f32,
-    // hit_count: u32,
+    hit_count: u32,
+}
+
+struct MechanicResults {
+    stack_origins: Vec<u64>,
+    cone_origins: Vec<Target>,
 }
 
 pub fn create_mechanic(entity: EntityView<'_>) -> EntityView<'_> {
@@ -31,6 +35,80 @@ pub fn create_mechanic(entity: EntityView<'_>) -> EntityView<'_> {
         cone_vfx: "vfx/monster/gimmick3/eff/n4g6_b_g10cok1.avfx".to_string(),
         stack_vfx: "vfx/monster/gimmick4/eff/n5r4_b0_g02c0c.avfx".to_string(),
     })
+}
+
+fn handle_stacks(targets: &mut Vec<Target>) -> Vec<Target> {
+    let mut origins: Vec<Target> = Vec::new();
+    for t in targets.iter().rev() {
+        if origins.len() < 2 {
+            origins.push(*t);
+        }
+    }
+
+    // find people within stack range
+    for stack_origin in &origins {
+        let mut stack: Vec<&mut Target> = Vec::new();
+        for player in targets.iter_mut() {
+            let p1 = [stack_origin.position.x, stack_origin.position.z];
+            let p2 = [player.position.x, player.position.z];
+            let distance: f64 = euclidean_sq(&p1, &p2);
+            if distance.sqrt() > 6.0 {
+                continue;
+            }
+            stack.push(player);
+        }
+
+        let to_add = if stack.len() > 2 {1} else {2};
+        for player in stack {
+            player.hit_count += to_add;
+        }
+    }
+
+    origins
+}
+
+fn handle_cones(targets: &mut Vec<Target>, position: &Position) -> Vec<Target> {
+    let mut origins: Vec<Target> = Vec::new();
+    for t in targets.iter() {
+        if origins.len() < 2 {
+            origins.push(*t);
+        }
+    }
+    
+    let half_cone = (90.0f32 / 2.0).to_radians();
+
+    // find people who are hit by cones
+    for cone_origin in &origins {
+        let rotation = vector_to_rotation(
+            cone_origin.position.x - position.x,
+            cone_origin.position.z - position.z,
+        );
+        let rotation_angle = [position.x + rotation.sin(), position.z + rotation.cos()];
+
+        for player in targets.iter_mut() {
+            let angle = get_angle_between_lines(
+                [position.x, position.z],
+                [player.position.x, player.position.z],
+                [position.x, position.z],
+                rotation_angle,
+            );
+            if angle <= half_cone || angle.is_nan() {
+                player.hit_count += 1;
+            }
+        }
+    }
+
+    origins
+}
+
+fn handle_mechanics(targets: &mut Vec<Target>, position: &Position) -> MechanicResults {
+    let stack_result = handle_stacks(targets);
+    let cone_result  = handle_cones(targets, position);
+
+    MechanicResults {
+        stack_origins: stack_result.iter().map(|t| t.content_id).collect(),
+        cone_origins: cone_result
+    }
 }
 
 pub fn create_systems(world: &World) {
@@ -58,63 +136,19 @@ pub fn create_systems(world: &World) {
                             content_id: pl.content_id,
                             position: *p,
                             distance: distance_sq,
-                            // hit_count: 0,
+                            hit_count: 0,
                         });
                     });
                 });
 
                 targets.sort_unstable_by(|a, b| a.distance.total_cmp(&b.distance));
 
-                let mut cone_targets: Vec<Target> = Vec::new();
-                for t in &targets {
-                    if cone_targets.len() < 2 {
-                        cone_targets.push(*t);
-                    }
-                }
-
-                let mut stack_targets: Vec<Target> = Vec::new();
-                for t in targets.iter().rev() {
-                    if stack_targets.len() < 2 {
-                        stack_targets.push(*t);
-                    }
-                }
-
-                let stack_target_ids: Vec<u64> =
-                    stack_targets.iter().map(|t| t.content_id).collect();
-
-                let mut stacks: Vec<Vec<Target>> = Vec::new();
-
-                for stack_target in &stack_targets {
-                    let mut stack: Vec<Target> = Vec::new();
-
-                    for player in &targets {
-                        let p1 = [stack_target.position.x, stack_target.position.z];
-                        let p2 = [player.position.x, player.position.z];
-                        let distance: f64 = euclidean_sq(&p1, &p2);
-                        if distance.sqrt() > 6.0 {
-                            continue;
-                        }
-                        stack.push(*player);
-                    }
-                    stacks.push(stack);
-                }
-
-                let mut intersects: Vec<Target> = Vec::new();
-
-                if stacks.len() > 1 {
-                    intersects = stacks[0]
-                        .iter()
-                        .filter(|player| {
-                            stacks[1].iter().any(|p| p.content_id == player.content_id)
-                        })
-                        .copied()
-                        .collect();
-                }
+                let mechanic_results = handle_mechanics(&mut targets, &position);
 
                 let io = get_socket_io(&it.world());
                 pc.each_child(|c| {
                     c.try_get::<&Socket>(|s| {
-                        for t in &cone_targets {
+                        for t in &mechanic_results.cone_origins {
                             let r = vector_to_rotation(
                                 t.position.x - position.x,
                                 t.position.z - position.z,
@@ -137,61 +171,28 @@ pub fn create_systems(world: &World) {
                             s.id,
                             PlayActorVfxOnTargetPayload {
                                 vfx_path: fire_tornado.stack_vfx.clone(),
-                                content_id_targets: stack_target_ids.clone(),
+                                content_id_targets: mechanic_results.stack_origins.clone(),
                                 ..Default::default()
                             },
                         );
                     });
                 });
 
-                let mut failed_stacks: Vec<Target> = Vec::new();
-                for stack in stacks {
-                    if stack.len() < 3 {
-                        failed_stacks.extend(stack);
-                    }
-                }
-
-                let half_cone = (90.0f32 / 2.0).to_radians();
-
-                let mut cone_hits: Vec<Target> = Vec::new();
-                for cone_target in &cone_targets {
-                    let rotation = vector_to_rotation(
-                        cone_target.position.x - position.x,
-                        cone_target.position.z - position.z,
+                let mut to_punish: bool = false;
+                for t in targets {
+                    if t.hit_count < 2 { continue; }
+                    to_punish = true;
+                    let player = t.entity.entity_view(world);
+                    apply_condition(
+                        &player,
+                        condition::Condition::Stun as u128,
+                        condition::Condition::Stun,
+                        15.0,
+                        false,
                     );
-                    let rotation_angle = [position.x + rotation.sin(), position.z + rotation.cos()];
-
-                    for player in &targets {
-                        if player.content_id == cone_target.content_id {
-                            continue;
-                        }
-                        let angle = get_angle_between_lines(
-                            [position.x, position.z],
-                            [player.position.x, player.position.z],
-                            [position.x, position.z],
-                            rotation_angle,
-                        );
-                        if angle <= half_cone || angle.is_nan() {
-                            cone_hits.push(*player);
-                        }
-                    }
                 }
 
-                let mut punished_ids: HashSet<u64> = HashSet::new();
-                for t in failed_stacks.into_iter().chain(intersects).chain(cone_hits) {
-                    if punished_ids.insert(t.content_id) {
-                        let player = t.entity.entity_view(world);
-                        apply_condition(
-                            &player,
-                            condition::Condition::Stun as u128,
-                            condition::Condition::Stun,
-                            15.0,
-                            false,
-                        );
-                    }
-                }
-
-                if !punished_ids.is_empty() {
+                if to_punish {
                     pc.add(BroadcastConditions);
                 }
             }
