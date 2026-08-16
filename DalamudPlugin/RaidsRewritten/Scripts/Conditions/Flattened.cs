@@ -5,7 +5,7 @@ namespace RaidsRewritten.Scripts.Conditions;
 
 public class Flattened
 {
-    private const string IconId = "215381";
+    private const string IconId = "flattened";
 
     public record struct Component(bool OriginalSet = false, float OriginalZ = 1.0f, FFXIVClientStructs.FFXIV.Common.Math.Quaternion OriginalRotation = default);
     public record struct FallingOff(float OriginalZ = 1.0f, FFXIVClientStructs.FFXIV.Common.Math.Quaternion OriginalRotation = default, float ElapsedTime = 0.15f);
@@ -37,7 +37,7 @@ public class Flattened
                 condition.Set(new Component());
 
                 condition
-                    //.Set(new Condition.StatusIconReplacement(IconId, ConditionTable.IconToReplace.Flattened))
+                    .Set(new Condition.StatusIconReplacement(IconId, ConditionTable.IconToReplace.Flattened))
                     .Set(new Condition.NetworkMessage(Network.Message.Condition.Flattened))
                     .Set(new Condition.Status(ConditionTable.IconToReplace.Flattened, "Flattened", "Flat as a pancake. Unable to execute actions."))
                     .Set(new Condition.StatusTooltip("Flattened (RaidsRewritten)"))
