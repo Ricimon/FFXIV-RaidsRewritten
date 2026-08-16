@@ -151,18 +151,19 @@ public unsafe sealed class RollingBall(DalamudServices dalamud, CommonQueries co
                     {
                         component.Cooldown = HitCooldown;
 
-                        var knockbackDirection = player.Position - position.Value;
-                        knockbackDirection.Y = 0;
-                        if (knockbackDirection.LengthSquared() == 0)
-                        {
-                            var randomAngle = (float)(random.NextDouble() * 2 * Math.PI);
-                            knockbackDirection = new Vector3(MathF.Cos(randomAngle), 0, MathF.Sin(randomAngle));
-                        }
+                        //var knockbackDirection = player.Position - position.Value;
+                        //knockbackDirection.Y = 0;
+                        //if (knockbackDirection.LengthSquared() == 0)
+                        //{
+                        //    var randomAngle = (float)(random.NextDouble() * 2 * Math.PI);
+                        //    knockbackDirection = new Vector3(MathF.Cos(randomAngle), 0, MathF.Sin(randomAngle));
+                        //}
 
-                        var canResist = !entity.Has<NotResistible>();
+                        //var canResist = !entity.Has<NotResistible>();
                         commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
                         {
-                            Knockback.ApplyToTarget(e, knockbackDirection, KnockbackDuration, canResist);
+                            //Knockback.ApplyToTarget(e, knockbackDirection, KnockbackDuration, canResist);
+                            Flattened.ApplyToTarget(e, 5, false, true);
                         });
                     }
                 }

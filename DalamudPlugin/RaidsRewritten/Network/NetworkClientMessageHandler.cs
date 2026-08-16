@@ -281,6 +281,9 @@ public sealed class NetworkClientMessageHandler(
                                     case Message.Condition.FireResistanceDown:
                                         FireResistanceDown.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: false);
                                         break;
+                                    case Message.Condition.Flattened:
+                                        Flattened.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: false);
+                                        break;
                                 }
                             }
                         }
