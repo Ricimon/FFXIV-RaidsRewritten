@@ -38,6 +38,7 @@ public class Flattened
 
                 condition
                     //.Set(new Condition.StatusIconReplacement(IconId, ConditionTable.IconToReplace.Flattened))
+                    .Set(new Condition.NetworkMessage(Network.Message.Condition.Flattened))
                     .Set(new Condition.Status(ConditionTable.IconToReplace.Flattened, "Flattened", "Flat as a pancake. Unable to execute actions."))
                     .Set(new Condition.StatusTooltip("Flattened (RaidsRewritten)"))
                     .Add<Condition.StatusEnfeeblement>();

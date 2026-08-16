@@ -104,6 +104,12 @@ public sealed class NetworkClientMessageHandler(
                         Stun.ApplyToTarget(e, payload.duration);
                     });
                     break;
+                case Message.Condition.Flattened:
+                    commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+                    {
+                        Flattened.ApplyToTarget(e, payload.duration, false, true);
+                    });
+                    break;
             }
         }).SafeFireAndForget();
     }
@@ -280,6 +286,9 @@ public sealed class NetworkClientMessageHandler(
                                         break;
                                     case Message.Condition.FireResistanceDown:
                                         FireResistanceDown.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: false);
+                                        break;
+                                    case Message.Condition.Flattened:
+                                        Flattened.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: true);
                                         break;
                                 }
                             }

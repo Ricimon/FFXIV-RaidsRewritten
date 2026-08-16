@@ -45,6 +45,7 @@ public struct Message
         Sleep = 7,
         Knockback = 8,
         FireResistanceDown = 9,
+        Flattened = 10,
     }
 
     // To server ============

@@ -31,6 +31,7 @@ pub enum Condition {
     Sleep = 7,
     Knockback = 8,
     FireResistanceDown = 9,
+    Flattened = 10,
 }
 
 pub fn create_systems(world: &World) {
