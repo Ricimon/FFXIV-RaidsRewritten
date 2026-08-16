@@ -46,6 +46,7 @@ public class Flattened
                 // Application VFX
                 world.Entity()
                     .Set(new ActorVfx("vfx/common/eff/toad_smk0f.avfx"))
+                    .Set(new Scale(new Vector3(1.5f)))
                     .ChildOf(condition);
             }
         }, 0, true).ChildOf(target);
