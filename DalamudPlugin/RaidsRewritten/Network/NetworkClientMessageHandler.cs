@@ -104,12 +104,6 @@ public sealed class NetworkClientMessageHandler(
                         Stun.ApplyToTarget(e, payload.duration);
                     });
                     break;
-                case Message.Condition.Flattened:
-                    commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
-                    {
-                        Flattened.ApplyToTarget(e, payload.duration, false, true);
-                    });
-                    break;
             }
         }).SafeFireAndForget();
     }
