@@ -55,7 +55,6 @@ fn handle_stacks(targets: &Vec<Target>) -> MechanicResults{
 
     // find people within stack range
     let mut stacks: Vec<Vec<Target>> = Vec::new();
-    let mut stack_hit_ids: HashSet<u64> = HashSet::new();
     for stack_origin in &origins {
         let mut stack: Vec<Target> = Vec::new();
 
@@ -67,10 +66,6 @@ fn handle_stacks(targets: &Vec<Target>) -> MechanicResults{
                 continue;
             }
             stack.push(*player);
-
-            if !stack_hit_ids.contains(&player.content_id) {
-                stack_hit_ids.insert(player.content_id);
-            }
         }
         stacks.push(stack);
     }
