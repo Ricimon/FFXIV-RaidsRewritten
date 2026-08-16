@@ -14,6 +14,8 @@ pub mod m1011_tea_blassty_charge_hit;
 pub mod m1012_tea_limit_cut_end;
 #[path = "mechanics/1020-tea_spawn_shanoa.rs"]
 pub mod m1020_tea_spawn_shanoa;
+#[path = "mechanics/1021-tea_show_shanoa_guidance_markers.rs"]
+pub mod m1021_tea_show_shanoa_guidance_markers;
 
 use crate::{
     game::{components::*, utils::*},
@@ -40,6 +42,7 @@ pub fn create_mechanic(
         1011 => Some(m1011_tea_blassty_charge_hit::create_mechanic),
         1012 => Some(m1012_tea_limit_cut_end::create_mechanic),
         1020 => Some(m1020_tea_spawn_shanoa::create_mechanic),
+        1021 => Some(m1021_tea_show_shanoa_guidance_markers::create_mechanic),
         _ => None,
     };
     if let Some(f) = mechanic_fn {
@@ -96,6 +99,7 @@ pub fn create_systems(world: &World) {
     m1011_tea_blassty_charge_hit::create_systems(world);
     m1012_tea_limit_cut_end::create_systems(world);
     m1020_tea_spawn_shanoa::create_systems(world);
+    m1021_tea_show_shanoa_guidance_markers::create_systems(world);
 }
 
 pub fn create_observers(world: &World) {

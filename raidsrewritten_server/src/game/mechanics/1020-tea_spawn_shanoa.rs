@@ -9,9 +9,9 @@ use tracing::warn;
 
 #[derive(Component, Debug)]
 pub struct TeaShanoa {
-    visible: bool,
-    available_markers: HashSet<u8>,
-    fire_tornado: Entity,
+    pub visible: bool,
+    pub available_markers: HashSet<u8>,
+    pub fire_tornado: Entity,
 }
 
 #[derive(Component, Debug)]
