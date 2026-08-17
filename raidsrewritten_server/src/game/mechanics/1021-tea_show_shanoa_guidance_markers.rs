@@ -28,7 +28,7 @@ pub fn create_systems(world: &World) {
                     .build()
                     .each(|(shanoa, p)| {
                         if p.id == party.id {
-                            for i in &shanoa.available_markers {
+                            for i in &shanoa.navigation_markers {
                                 available_markers_flags |= 1 << i;
                             }
                         }

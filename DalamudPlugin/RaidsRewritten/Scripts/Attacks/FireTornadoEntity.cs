@@ -252,6 +252,7 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
 
         private static bool ShouldReturn(Component component) => component.ElapsedTime < phaseTimings[component.Phase] + AttackDelay;
     }
+
     public record struct Component(float TimeElapsed = 0f);
     public record struct NetworkedAttack1Trigger(string RequestId);
 

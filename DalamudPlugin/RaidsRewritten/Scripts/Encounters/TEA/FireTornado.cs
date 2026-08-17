@@ -43,9 +43,9 @@ public class FireTornado : Mechanic
             attack.Destruct();
         }
         attacks.Clear();
+        availableTornadoPositions.Clear();
         tornadosSpawned = 0;
         numSplashes = 0;
-        availableTornadoPositions.Clear();
     }
 
     public override void OnActorControl(IGameObject source, uint command, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, uint p7, uint p8, ulong targetId, byte replaying)

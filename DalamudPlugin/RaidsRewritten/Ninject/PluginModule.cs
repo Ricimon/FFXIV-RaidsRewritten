@@ -105,6 +105,7 @@ public class PluginModule : NinjectModule
         Bind<IEntity>().To<OneThirdDonutOmen>();
         Bind<IEntity>().To<ConflagDonut>();
         Bind<IEntity>().To<KnockbackOmen>();
+        Bind<ISystem>().To<TetherOmen>();
 
         // Attacks
         Bind<IEntity, ISystem>().To<TwisterObstacleCourse>();

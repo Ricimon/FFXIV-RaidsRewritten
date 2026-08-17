@@ -10,8 +10,16 @@ use tracing::warn;
 #[derive(Component, Debug)]
 pub struct TeaShanoa {
     pub visible: bool,
-    pub available_markers: HashSet<u8>,
+    pub navigation_markers: HashSet<u8>,
+    pub absorbed_markers: HashSet<u8>,
     pub fire_tornado: Entity,
+    pub movement_speed: f32,
+    pub rotation_speed: f32,
+}
+
+#[derive(Component, Debug)]
+pub struct TeaShanoaTargetPosition {
+    pub value: Vector3<f32>,
 }
 
 #[derive(Component, Debug)]
@@ -39,6 +47,24 @@ pub fn create_systems(world: &World) {
         .each_iter(|it, index, (mechanic, shanoa, position, rotation, party)| {
             let entity = it.entity(index);
             let world = &it.world();
+
+            entity.try_get::<(&mut Position, &TeaShanoaTargetPosition)>(|(p, tp)| {
+                let mut sp = Vector3::new(p.x, p.y, p.z);
+                let distance = tp.value.metric_distance(&sp);
+                let can_move_distance = shanoa.movement_speed * it.delta_time();
+                if distance <= can_move_distance {
+                    p.x = tp.value.x;
+                    p.y = tp.value.y;
+                    p.z = tp.value.z;
+                    entity.remove(TeaShanoaTargetPosition::id());
+                } else {
+                    let to_target = Vector3::normalize(&(tp.value - sp));
+                    sp += can_move_distance * to_target;
+                    p.x = sp.x;
+                    p.y = sp.y;
+                    p.z = sp.z;
+                }
+            });
 
             // info!(
             //     mechanic.request_id,
@@ -88,8 +114,11 @@ pub fn create_systems(world: &World) {
                 shanoa_entity
                     .set(TeaShanoa {
                         visible: true,
-                        available_markers: HashSet::from([0, 1, 2, 3, 4, 5, 6, 7]),
+                        navigation_markers: HashSet::from([0, 1, 2, 3, 4, 5, 6, 7]),
+                        absorbed_markers: HashSet::default(),
                         fire_tornado: *entity,
+                        movement_speed: 6.0,
+                        rotation_speed: 7.0,
                     })
                     .set(Position {
                         x: shanoa_position.x,

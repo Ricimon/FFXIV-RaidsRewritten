@@ -3,6 +3,7 @@ using System.Linq;
 using System.Numerics;
 using AsyncAwaitBestPractices;
 using Dalamud.Game.ClientState.Objects.Types;
+using ECommons;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.MathHelpers;
@@ -12,6 +13,7 @@ using Flecs.NET.Core;
 using Lumina.Excel.Sheets;
 using RaidsRewritten.Network;
 using RaidsRewritten.Scripts.Attacks;
+using RaidsRewritten.Scripts.Attacks.Omens;
 using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Scripts.Models;
@@ -46,7 +48,7 @@ public class ShanoaPark : Mechanic
         new(89.39339f, 0, 89.3934f)];
     private readonly Vector3 arenaMiddle = new(100, 0, 100);
     private readonly List<Entity> guidanceEntities = [];
-    private HashSet<int> availableGuidanceMarkers = [];
+    private readonly HashSet<int> availableGuidanceMarkers = [];
 
     private HashSet<Vector3> availableTornadoPositions = [];
     private Entity Shanoa;
@@ -64,6 +66,7 @@ public class ShanoaPark : Mechanic
         availableTornadoPositions.Clear();
         availableGuidanceMarkers.Clear();
         fluidSwingsPerformed = 0;
+        protean1Casted = false;
     }
 
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
@@ -107,6 +110,31 @@ public class ShanoaPark : Mechanic
         {
             protean1Casted = true;
             AttackMarkers();
+
+            World.Query<FireTornadoEntity.Component, Position>()
+                .Run(it =>
+                {
+                    if (it.Next())
+                    {
+                        var position = it.Field<Position>(1);
+                        if (it.TryGetFirst(out var i))
+                        {
+                            NetworkClient.SendAsync(new Message
+                            {
+                                action = Message.Action.StartMechanic,
+                                startMechanic = new Message.StartMechanicPayload
+                                {
+                                    requestId = NetworkMechanic.TeaFireTornadoAttackShanoa.ToString(),
+                                    mechanicId = (uint)NetworkMechanic.TeaFireTornadoAttackShanoa,
+                                    worldPositionX = position[i].Value.X,
+                                    worldPositionY = position[i].Value.Y,
+                                    worldPositionZ = position[i].Value.Z,
+                                    rotation = default(float),
+                                }
+                            }).SafeFireAndForget();
+                        }
+                    }
+                });
         }
     }
 
@@ -126,7 +154,7 @@ public class ShanoaPark : Mechanic
                     startMechanic = new Message.StartMechanicPayload
                     {
                         requestId = NetworkMechanic.TeaSpawnShanoa.ToString(),
-                        mechanicId = (int)NetworkMechanic.TeaSpawnShanoa,
+                        mechanicId = (uint)NetworkMechanic.TeaSpawnShanoa,
                         worldPositionX = openTornadoPosition.X,
                         worldPositionY = openTornadoPosition.Y,
                         worldPositionZ = openTornadoPosition.Z,
@@ -140,11 +168,12 @@ public class ShanoaPark : Mechanic
             availableGuidanceMarkers.Count > 0 &&
             set.Source.GameObjectId == Dalamud.ObjectTable.LocalPlayer?.GameObjectId)
         {
+            int closestMarker = -1;
+            float closestMarkerDistance = float.PositiveInfinity;
+            Vector3 markerPosition = default;
             unsafe
             {
                 var markers = MarkingController.Instance()->FieldMarkers;
-                int closestMarker = -1;
-                float closestMarkerDistance = float.PositiveInfinity;
                 for (var i = 0; i < markers.Length; i++)
                 {
                     var marker = markers[i];
@@ -155,23 +184,36 @@ public class ShanoaPark : Mechanic
                         {
                             closestMarker = i;
                             closestMarkerDistance = distance;
+                            markerPosition = marker.Position;
+                            markerPosition.Y = arenaMiddle.Y; // in case markers are illegally placed
                         }
                     }
                 }
+            }
 
-                if (closestMarker >= 0)
+            if (closestMarker >= 0)
+            {
+                // calculate target rotation
+                float rotation = 0;
+                if (Shanoa.IsValid() && Shanoa.TryGet(out Position shanoaPosition))
                 {
-                    NetworkClient.SendAsync(new Message
-                    {
-                        action = Message.Action.StartMechanic,
-                        startMechanic = new Message.StartMechanicPayload
-                        {
-                            requestId = System.Guid.NewGuid().ToString(),
-                            mechanicId = (uint)NetworkMechanic.TeaMoveShanoa,
-                            extraData = closestMarker.ToString(),
-                        }
-                    }).SafeFireAndForget();
+                    rotation = MathUtilities.VectorToRotation((markerPosition - shanoaPosition.Value).ToVector2());
                 }
+
+                NetworkClient.SendAsync(new Message
+                {
+                    action = Message.Action.StartMechanic,
+                    startMechanic = new Message.StartMechanicPayload
+                    {
+                        requestId = System.Guid.NewGuid().ToString(),
+                        mechanicId = (uint)NetworkMechanic.TeaMoveShanoa,
+                        worldPositionX = markerPosition.X,
+                        worldPositionY = markerPosition.Y,
+                        worldPositionZ = markerPosition.Z,
+                        rotation = rotation,
+                        extraData = closestMarker.ToString(),
+                    }
+                }).SafeFireAndForget();
             }
         }
     }
@@ -225,6 +267,52 @@ public class ShanoaPark : Mechanic
                     }
                 }
                 break;
+
+            case (int)NetworkMechanicCommand.TeaFireTornadoAttackShanoa:
+                {
+                    if (string.IsNullOrEmpty(payload.extraData)) { return; }
+                    var arguments = payload.extraData.Split(',');
+                    if (arguments.Length < 2) { return; }
+                    if (!float.TryParse(arguments[0], out var omenDuration)) { return; }
+                    if (!float.TryParse(arguments[1], out var distanceThreshold)) { return; }
+                    if (!Shanoa.IsValid()) { return; }
+                    var fireTornado = World.Query<FireTornadoEntity.Component>().First();
+                    if (!fireTornado.IsValid()) { return; }
+
+                    if (Shanoa.TryGet(out Model shanoaModel) && fireTornado.TryGet(out Model fireTornadoModel))
+                    {
+                        var tether = World.Entity().Set(new TetherOmen.ProximityTether(
+                            DistanceThreshold: distanceThreshold,
+                            Source: fireTornadoModel.GameObject, Target: shanoaModel.GameObject))
+                            .ChildOf(fireTornado);
+                        attacks.Add(tether);
+
+                        var action1 = DelayedAction.Create(World, () =>
+                        {
+                            tether.SafeDestruct();
+                            if (fireTornado.IsValid())
+                            {
+                                World.Entity()
+                                    .Set(new ActorVfx("vfx/monster/m0729/eff/m0729_sp01c0t2.avfx")) // PLACEHOLDER
+                                    .Set(new ActorVfxTarget(shanoaModel.GameObject))
+                                    .ChildOf(fireTornado);
+
+                                var action2 = DelayedAction.Create(World, () =>
+                                {
+                                    if (Shanoa.IsValid())
+                                    {
+                                        World.Entity()
+                                            .Set(new ActorVfx("vfx/monster/m0729/eff/m0729_sp01t0t2.avfx")) // PLACEHOLDER
+                                            .ChildOf(Shanoa);
+                                    }
+                                }, 0.35f /*PLACEHOLDER*/);
+                                attacks.Add(action2);
+                            }
+                        }, omenDuration);
+                        attacks.Add(action1);
+                    }
+                }
+                break;
         }
     }
 
@@ -239,8 +327,11 @@ public class ShanoaPark : Mechanic
         {
             if (marker.Active)
             {
+                var position = marker.Position;
+                position.Y = arenaMiddle.Y; // in case markers are illegally placed
+
                 var circleAttack = Circle.CreateEntity(World)
-                    .Set(new Position(marker.Position))
+                    .Set(new Position(position))
                     .Set(new Scale(5.0f * Vector3.One))
                     .Set(new Circle.Component(2.8f, 0.3f, MarkerAttackVfxPath, 0.3f, (e) =>
                     {
@@ -287,9 +378,12 @@ public class ShanoaPark : Mechanic
 
             if ((availableMarkersFlags & (1 << i)) != 0)
             {
+                var position = marker.Position;
+                position.Y = arenaMiddle.Y; // in case markers are illegally placed
+
                 var ring = World.Entity()
                     .Set(new StaticVfx(AetherCompassLocationVfxPath))
-                    .Set(new Position(marker.Position))
+                    .Set(new Position(position))
                     .Set(new Rotation())
                     .Set(new Scale(GuidanceMarkerRadius * 0.1f * Vector3.One))
                     .Add<Components.Omen>();
@@ -298,7 +392,7 @@ public class ShanoaPark : Mechanic
 
                 var arrows = World.Entity()
                     .Set(new StaticVfx(AetherCompassLocationArrowsVfxPath))
-                    .Set(new Position(marker.Position))
+                    .Set(new Position(position))
                     .Set(new Rotation())
                     .Set(new Scale(0.75f * Vector3.One))
                     .Add<Components.Omen>();
