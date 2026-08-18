@@ -220,13 +220,14 @@ public class ShanoaPark : Mechanic
             case (int)NetworkMechanicCommand.TeaShowShanoa:
                 {
                     Shanoa.SafeDestruct();
-                    if (EntityManager.TryCreateEntity<Shanoa>(out Shanoa))
+                    if (EntityManager.TryCreateEntity<Shanoa>(out var shanoa))
                     {
-                        Shanoa
+                        shanoa
                             .Set(new Position(new(payload.worldPositionX ?? default, payload.worldPositionY ?? default, payload.worldPositionZ ?? default)))
                             .Set(new Rotation(payload.rotation ?? default))
                             .Set(new ChatBubble("Meow!♪"));
-                        attacks.Add(Shanoa);
+                        attacks.Add(shanoa);
+                        Shanoa = shanoa;
                     }
                 }
                 break;
