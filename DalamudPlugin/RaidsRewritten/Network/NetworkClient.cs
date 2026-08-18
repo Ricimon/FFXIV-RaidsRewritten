@@ -162,6 +162,7 @@ public sealed class NetworkClient : IDisposable
             }
         }
 
+        if (!IsConnected) { return; }
         logger.Info($"Sending {Serialize(message)}");
         await client.EmitAsync("message", message);
     }

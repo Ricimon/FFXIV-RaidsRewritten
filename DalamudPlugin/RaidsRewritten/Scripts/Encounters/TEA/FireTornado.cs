@@ -7,6 +7,7 @@ using ECommons.Hooks.ActionEffectTypes;
 using Flecs.NET.Core;
 using RaidsRewritten.Scripts.Attacks;
 using RaidsRewritten.Scripts.Components;
+using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Encounters.TEA;
 
@@ -33,6 +34,7 @@ public class FireTornado : Mechanic
         new(89.39339f, 0, 89.3934f)];
 
     private HashSet<Vector3> availableTornadoPositions = [];
+    private Entity tornado;
     private int tornadosSpawned = 0;
     private int numSplashes = 0;
 
@@ -40,7 +42,7 @@ public class FireTornado : Mechanic
     {
         foreach (var attack in attacks)
         {
-            attack.Destruct();
+            attack.SafeDestruct();
         }
         attacks.Clear();
         availableTornadoPositions.Clear();
@@ -98,7 +100,7 @@ public class FireTornado : Mechanic
             availableTornadoPositions.Clear();
 
             tornadosSpawned++;
-            if (!EntityManager.TryCreateEntity<FireTornadoEntity>(out var tornado)) { return; }
+            if (!EntityManager.TryCreateEntity<FireTornadoEntity>(out tornado)) { return; }
             tornado.Set(new Position(position));
             attacks.Add(tornado);
 
@@ -122,9 +124,6 @@ public class FireTornado : Mechanic
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
         if (!set.Action.HasValue) { return; }
-        if (attacks.Count == 0) { return; }
-
-        var tornado = attacks[0];
         if (!tornado.IsValid()) { return; }
 
         switch (set.Action.Value.RowId)

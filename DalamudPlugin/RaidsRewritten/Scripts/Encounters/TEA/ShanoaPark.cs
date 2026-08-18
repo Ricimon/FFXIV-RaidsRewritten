@@ -64,7 +64,6 @@ public class ShanoaPark : Mechanic
         attacks.Clear();
         ClearGuidanceEntities();
         availableTornadoPositions.Clear();
-        availableGuidanceMarkers.Clear();
         fluidSwingsPerformed = 0;
         protean1Casted = false;
     }
@@ -111,30 +110,26 @@ public class ShanoaPark : Mechanic
             protean1Casted = true;
             AttackMarkers();
 
-            World.Query<FireTornadoEntity.Component, Position>()
-                .Run(it =>
+            using var q = World.Query<FireTornadoEntity.Component, Position>();
+            var ranOnce = false;
+            q.Each((ref FireTornadoEntity.Component _, ref Position position) =>
+            {
+                if (ranOnce) { return; }
+                ranOnce = true;
+                NetworkClient.SendAsync(new Message
                 {
-                    if (it.Next())
+                    action = Message.Action.StartMechanic,
+                    startMechanic = new Message.StartMechanicPayload
                     {
-                        var position = it.Field<Position>(1);
-                        if (it.TryGetFirst(out var i))
-                        {
-                            NetworkClient.SendAsync(new Message
-                            {
-                                action = Message.Action.StartMechanic,
-                                startMechanic = new Message.StartMechanicPayload
-                                {
-                                    requestId = NetworkMechanic.TeaFireTornadoAttackShanoa.ToString(),
-                                    mechanicId = (uint)NetworkMechanic.TeaFireTornadoAttackShanoa,
-                                    worldPositionX = position[i].Value.X,
-                                    worldPositionY = position[i].Value.Y,
-                                    worldPositionZ = position[i].Value.Z,
-                                    rotation = default(float),
-                                }
-                            }).SafeFireAndForget();
-                        }
+                        requestId = NetworkMechanic.TeaFireTornadoAttackShanoa.ToString(),
+                        mechanicId = (uint)NetworkMechanic.TeaFireTornadoAttackShanoa,
+                        worldPositionX = position.Value.X,
+                        worldPositionY = position.Value.Y,
+                        worldPositionZ = position.Value.Z,
+                        rotation = default(float),
                     }
-                });
+                }).SafeFireAndForget();
+            });
         }
     }
 
@@ -180,7 +175,7 @@ public class ShanoaPark : Mechanic
                     if (marker.Active && availableGuidanceMarkers.Contains(i))
                     {
                         var distance = Vector2.Distance(set.Source.Position.ToVector2(), marker.Position.ToVector2());
-                        if (distance < closestMarkerDistance)
+                        if (distance <= GuidanceMarkerRadius && distance < closestMarkerDistance)
                         {
                             closestMarker = i;
                             closestMarkerDistance = distance;
@@ -249,6 +244,7 @@ public class ShanoaPark : Mechanic
 
             case (int)NetworkMechanicCommand.TeaMoveShanoa:
                 {
+                    ClearGuidanceEntities();
                     if (!Shanoa.IsValid()) { return; }
                     Shanoa
                         .Set(new Shanoa.TargetPosition(new Vector3(
@@ -355,7 +351,7 @@ public class ShanoaPark : Mechanic
                         action = Message.Action.StartMechanic,
                         startMechanic = new Message.StartMechanicPayload
                         {
-                            requestId = NetworkMechanic.TeaShowShanoaGuidanceMarkers.ToString() + "protean1",
+                            requestId = NetworkMechanic.TeaShowShanoaGuidanceMarkers.ToString() + "_protean1",
                             mechanicId = (uint)NetworkMechanic.TeaShowShanoaGuidanceMarkers,
                         }
                     }).SafeFireAndForget();
