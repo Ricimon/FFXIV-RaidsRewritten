@@ -276,7 +276,7 @@ public sealed class NetworkClientMessageHandler(
                                         Sleep.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: false);
                                         break;
                                     case Message.Condition.Knockback:
-                                        Knockback.ApplyToTarget(playerEntity, new(c.knockbackDirectionX, 0, c.knockbackDirectionZ), c.timeRemaining, false);
+                                        Knockback.ApplyToTarget(playerEntity, new(c.knockbackDirectionX, 0, c.knockbackDirectionZ), c.timeRemaining, false, isClientControlled: false);
                                         break;
                                     case Message.Condition.FireResistanceDown:
                                         FireResistanceDown.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: false);

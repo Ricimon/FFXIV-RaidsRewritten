@@ -34,7 +34,12 @@ public sealed class Knockback : IDalamudHook
     private readonly CommonQueries commonQueries;
     private readonly ILogger logger;
 
-    public static void ApplyToTarget(Entity target, Vector3 knockbackDirection, float duration, bool canResist)
+    public static void ApplyToTarget(
+        Entity target,
+        Vector3 knockbackDirection,
+        float duration,
+        bool canResist,
+        bool isClientControlled = true)
     {
         DelayedAction.Create(target.CsWorld(), (ref Iter it) =>
         {
@@ -78,12 +83,10 @@ public sealed class Knockback : IDalamudHook
                 }
             });
 
-            var condition = it.World().Entity()
-                .Set(new Condition.Component("Knocked Back", duration, DateTime.UtcNow))
-                .Set(new Component(knockbackDirection))
-                .ChildOf(target);
+            var condition = Condition.ApplyToTarget(target, "Knocked Back", duration, ConditionTable.Id.Knockback, false, false, isClientControlled);
 
             condition
+                .Set(new Component(knockbackDirection))
                 .Set(new Condition.NetworkMessage(Network.Message.Condition.Knockback))
                 .Set(new Condition.StatusIconReplacement(IconId, ConditionTable.IconToReplace.Knockback))
                 .Set(new Condition.Status(ConditionTable.IconToReplace.Knockback, "Knockback", "Forced movement to simulate a real knockback."))
