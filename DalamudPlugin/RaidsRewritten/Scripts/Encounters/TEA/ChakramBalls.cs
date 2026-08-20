@@ -101,13 +101,10 @@ public class ChakramBalls : Mechanic
         List<IBattleChara> playerList = [];
         foreach (var player in this.Dalamud.ObjectTable.PlayerObjects)
         {
-            playerList.Add(player);
-
-        }
-        if (playerList.Count != 8)
-        {
-            this.Logger.Debug($"uh oh, unexpected number of players: {playerList.Count}");
-            return;
+            if (!player.IsDead)
+            {
+                playerList.Add(player);
+            }
         }
 
         // ensure same order before randomizing list
@@ -126,11 +123,19 @@ public class ChakramBalls : Mechanic
         if (anchor == -1) { return; }
 
         var random = new Random(RngSeed + 84115);
-        playerList = [.. playerList.AsValueEnumerable().OrderBy(o => random.Next())];
         var ball1Position = ballPositions[(anchor + random.Next(1, 4)) % 8];
         var ball2Position = ballPositions[(anchor + random.Next(5, 8)) % 8];
-        var player1Position = playerList[0].Position;
-        var player2Position = playerList[1].Position;
+        playerList = [.. playerList.AsValueEnumerable().OrderBy(o => random.Next())];
+        var player1Position = arenaCenter;
+        var player2Position = arenaCenter;
+        if (playerList.Count >= 1)
+        {
+            player1Position = player2Position = playerList[0].Position;
+        }
+        if (playerList.Count >= 2)
+        {
+            player2Position = playerList[1].Position;
+        }
         var ball1Direction = new Vector2(player1Position.X - ball1Position.X, player1Position.Z - ball1Position.Z);
         var ball2Direction = new Vector2(player2Position.X - ball2Position.X, player2Position.Z - ball2Position.Z);
 
