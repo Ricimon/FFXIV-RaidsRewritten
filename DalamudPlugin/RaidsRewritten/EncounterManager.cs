@@ -94,6 +94,7 @@ public sealed class EncounterManager(
         else
         {
             ActiveEncounter = null;
+            networkClient.DisconnectAsync().SafeFireAndForget();
         }
     }
 
@@ -126,6 +127,7 @@ public sealed class EncounterManager(
         else
         {
             ActiveEncounter = null;
+            networkClient.DisconnectAsync().SafeFireAndForget();
         }
     }
 

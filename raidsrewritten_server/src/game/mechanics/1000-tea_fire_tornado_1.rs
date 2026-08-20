@@ -58,7 +58,7 @@ fn handle_stacks(targets: &mut Vec<Target>) -> Vec<Target> {
             stack.push(player);
         }
 
-        let to_add = if stack.len() > 2 {1} else {2};
+        let to_add = if stack.len() > 2 { 1 } else { 2 };
         for player in stack {
             player.hit_count += to_add;
         }
@@ -74,7 +74,7 @@ fn handle_cones(targets: &mut Vec<Target>, position: &Position) -> Vec<Target> {
             origins.push(*t);
         }
     }
-    
+
     let half_cone = (90.0f32 / 2.0).to_radians();
 
     // find people who are hit by cones
@@ -103,11 +103,11 @@ fn handle_cones(targets: &mut Vec<Target>, position: &Position) -> Vec<Target> {
 
 fn handle_mechanics(targets: &mut Vec<Target>, position: &Position) -> MechanicResults {
     let stack_result = handle_stacks(targets);
-    let cone_result  = handle_cones(targets, position);
+    let cone_result = handle_cones(targets, position);
 
     MechanicResults {
         stack_origins: stack_result.iter().map(|t| t.content_id).collect(),
-        cone_origins: cone_result
+        cone_origins: cone_result,
     }
 }
 
@@ -180,7 +180,9 @@ pub fn create_systems(world: &World) {
 
                 let mut to_punish: bool = false;
                 for t in targets {
-                    if t.hit_count < 2 { continue; }
+                    if t.hit_count < 2 {
+                        continue;
+                    }
                     to_punish = true;
                     let player = t.entity.entity_view(world);
                     apply_condition(

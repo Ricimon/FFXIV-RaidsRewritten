@@ -17,43 +17,53 @@ public class EdenPrimeTest(
 
     // Config
     private string RngSeedKey => $"{Name}.RngSeed";
+    private string PermaTwisterKey => $"{Name}.PermaTwister";
     private string RollingBallKey => $"{Name}.RollingBall";
     private string DreadknightKey => $"{Name}.Dreadknight";
+    private string ShanoaParkKey => $"{Name}.ShanoaPark";
 
     private readonly List<Mechanic> mechanics = [];
 
     public IEnumerable<Mechanic> GetMechanics()
     {
-        return this.mechanics;
+        return mechanics;
     }
 
     public void RefreshMechanics()
     {
-        this.mechanics.Clear();
+        mechanics.Clear();
 
-        this.mechanics.Add(mechanicFactory.Create<PermanentViceOfApathyTest>());
+        if (configuration.GetEncounterSetting(PermaTwisterKey, true))
+        {
+            mechanics.Add(mechanicFactory.Create<PermanentViceOfApathyTest>());
+        }
 
         if (configuration.GetEncounterSetting(RollingBallKey, true))
         {
             var rollingBall = mechanicFactory.Create<RollingBallOnViceOfApathy>();
             var seed = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
             rollingBall.RngSeed = RandomUtilities.HashToRngSeed(seed);
-            this.mechanics.Add(rollingBall);
+            mechanics.Add(rollingBall);
         }
  
         if (configuration.GetEncounterSetting(DreadknightKey, true))
         {
-            this.mechanics.Add(mechanicFactory.Create<DreadknightTest>());
+            mechanics.Add(mechanicFactory.Create<DreadknightTest>());
+        }
+
+        if (configuration.GetEncounterSetting(ShanoaParkKey, true))
+        {
+            mechanics.Add(mechanicFactory.Create<ShanoaParkTest>());
         }
     }
 
     public void Unload()
     {
-        foreach(var mechanic in this.mechanics)
+        foreach(var mechanic in mechanics)
         {
             mechanic.Reset();
         }
-        this.mechanics.Clear();
+        mechanics.Clear();
     }
 
     public void IncrementRngSeed()
@@ -80,6 +90,15 @@ public class EdenPrimeTest(
         }
         ImGui.PopItemWidth();
 
+        bool permaTwister = configuration.GetEncounterSetting(PermaTwisterKey, true);
+        if (ImGui.Checkbox("Permanent Twister", ref permaTwister))
+        {
+            configuration.EncounterSettings[PermaTwisterKey] =
+                permaTwister ? bool.TrueString : bool.FalseString;
+            configuration.Save();
+            RefreshMechanics();
+        }
+
         bool rollingBall = configuration.GetEncounterSetting(RollingBallKey, true);
         if (ImGui.Checkbox("Rolling Ball", ref rollingBall))
         {
@@ -94,6 +113,15 @@ public class EdenPrimeTest(
         {
             configuration.EncounterSettings[DreadknightKey] =
                 dreadknight ? bool.TrueString : bool.FalseString;
+            configuration.Save();
+            RefreshMechanics();
+        }
+
+        bool shanoaPark = configuration.GetEncounterSetting(ShanoaParkKey, true);
+        if (ImGui.Checkbox("Shanoa Park", ref shanoaPark))
+        {
+            configuration.EncounterSettings[ShanoaParkKey] =
+                shanoaPark ? bool.TrueString : bool.FalseString;
             configuration.Save();
             RefreshMechanics();
         }

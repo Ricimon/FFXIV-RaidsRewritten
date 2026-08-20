@@ -48,29 +48,34 @@ pub fn create_systems(world: &World) {
             let entity = it.entity(index);
             let world = &it.world();
 
-            entity.try_get::<(&mut Position, &TeaShanoaTargetPosition)>(|(p, tp)| {
-                let mut sp = Vector3::new(p.x, p.y, p.z);
-                let distance = tp.value.metric_distance(&sp);
-                let can_move_distance = shanoa.movement_speed * it.delta_time();
-                if distance <= can_move_distance {
-                    p.x = tp.value.x;
-                    p.y = tp.value.y;
-                    p.z = tp.value.z;
-                    entity.remove(TeaShanoaTargetPosition::id());
-                } else {
-                    let to_target = Vector3::normalize(&(tp.value - sp));
-                    sp += can_move_distance * to_target;
-                    p.x = sp.x;
-                    p.y = sp.y;
-                    p.z = sp.z;
-                }
-            });
-
             // info!(
             //     mechanic.request_id,
             //     mechanic.mechanic_id, party.id, "Completing Mechanic"
             // );
             // entity.remove(TeaShanoa::id());
+        });
+
+    world
+        .system::<(&TeaShanoa, &mut Position, &mut TeaShanoaTargetPosition)>()
+        .each_iter(|it, index, (shanoa, position, target_position)| {
+            let entity = it.entity(index);
+
+            let mut shanoa_position = Vector3::new(position.x, position.y, position.z);
+            let target_position = target_position.value;
+            let distance = target_position.metric_distance(&shanoa_position);
+            let can_move_distance = shanoa.movement_speed * it.delta_time();
+            if distance <= can_move_distance {
+                position.x = target_position.x;
+                position.y = target_position.y;
+                position.z = target_position.z;
+                entity.remove(TeaShanoaTargetPosition::id());
+            } else {
+                let to_target = Vector3::normalize(&(target_position - shanoa_position));
+                shanoa_position += can_move_distance * to_target;
+                position.x = shanoa_position.x;
+                position.y = shanoa_position.y;
+                position.z = shanoa_position.z;
+            }
         });
 
     world

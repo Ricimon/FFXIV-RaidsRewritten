@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using AsyncAwaitBestPractices;
 using Dalamud.Game.ClientState.Objects.Types;
@@ -19,13 +18,11 @@ using RaidsRewritten.Scripts.Models;
 using RaidsRewritten.Spawn;
 using RaidsRewritten.Utility;
 
-namespace RaidsRewritten.Scripts.Encounters.TEA;
+namespace RaidsRewritten.Scripts.Encounters.E1S;
 
-public class ShanoaPark : Mechanic
+public class ShanoaParkTest : Mechanic
 {
-    private const uint LiquidRageDataId = 0x2C49;
-    private const uint FluidSwingActionId = 18864;
-    private const uint LivingLiquidProteanWaveActionId = 18468;
+    private const uint EdensGravityActionId = 15728;
     private const uint AetherCompassActionId = 26988;
 
     private const string MarkerAttackVfxPath = "vfx/monster/d1024/eff/arthur_thunderstorm_t0s.avfx";
@@ -35,24 +32,13 @@ public class ShanoaPark : Mechanic
     private const float GuidanceMarkerRadius = 1.4f;
 
     private readonly List<Entity> attacks = [];
-    private readonly IReadOnlyList<Vector3> tornadoPositions1 =
-        [new(85, 0, 100),
-        new(115, 0, 100),
-        new(100, 0, 85),
-        new(100, 0, 115)];
-    private readonly IReadOnlyList<Vector3> tornadoPositions2 =
-        [new(89.3934f, 0, 110.6066f),
-        new(110.6066f, 0, 110.6066f),
-        new(110.6066f, 0, 89.39339f),
-        new(89.39339f, 0, 89.3934f)];
     private readonly Vector3 arenaMiddle = new(100, 0, 100);
     private readonly List<Entity> guidanceEntities = [];
     private readonly HashSet<int> availableGuidanceMarkers = [];
 
-    private HashSet<Vector3> availableTornadoPositions = [];
     private Entity shanoa;
-    private int fluidSwingsPerformed = 0;
-    private bool protean1Casted = false;
+    private Entity fireTornado;
+    private bool edensGravityCasted = false;
 
     public override void Reset()
     {
@@ -62,9 +48,7 @@ public class ShanoaPark : Mechanic
         }
         attacks.Clear();
         ClearGuidanceEntities();
-        availableTornadoPositions.Clear();
-        fluidSwingsPerformed = 0;
-        protean1Casted = false;
+        edensGravityCasted = false;
     }
 
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
@@ -76,37 +60,54 @@ public class ShanoaPark : Mechanic
         }
     }
 
+    public override void OnCombatStart()
+    {
+        var fireTornadoPosition = new Vector3(87.0f, 0.0f, 113.0f);
+        NetworkClient.SendAsync(new Message
+        {
+            action = Message.Action.StartMechanic,
+            startMechanic = new Message.StartMechanicPayload
+            {
+                requestId = NetworkMechanic.TeaSpawnShanoa.ToString(),
+                mechanicId = (uint)NetworkMechanic.TeaSpawnShanoa,
+                worldPositionX = fireTornadoPosition.X,
+                worldPositionY = fireTornadoPosition.Y,
+                worldPositionZ = fireTornadoPosition.Z,
+                rotation = default(float),
+            }
+        }).SafeFireAndForget();
+
+        if (EntityManager.TryCreateEntity<FireTornadoEntity>(out var tornado))
+        {
+            tornado.Set(new Position(fireTornadoPosition));
+            attacks.Add(tornado);
+            fireTornado = tornado;
+        }
+    }
+
     public override void OnCombatEnd()
     {
         Reset();
     }
 
-    public override void OnObjectCreation(nint newObjectPointer, IGameObject? newObject)
-    {
-        if (newObject == null) { return; }
-        if (newObject.BaseId != LiquidRageDataId) { return; }
-        if (availableTornadoPositions.Count == 1) { return; }
-
-        if (availableTornadoPositions.Count == 0)
-        {
-            if (tornadoPositions1.Contains(newObject.Position))
-            {
-                availableTornadoPositions = [.. tornadoPositions1];
-            }
-            else
-            {
-                availableTornadoPositions = [.. tornadoPositions2];
-            }
-        }
-
-        availableTornadoPositions.Remove(newObject.Position);
-    }
-
     public override void OnStartingCast(Action action, IBattleChara source)
     {
-        if (!protean1Casted && action.RowId == LivingLiquidProteanWaveActionId)
+        if (!edensGravityCasted && action.RowId == EdensGravityActionId)
         {
-            protean1Casted = true;
+            edensGravityCasted = true;
+
+            //if (!shanoa.IsValid()) { return; }
+            //var fireTornado = World.Query<FireTornadoEntity.Component>().First();
+            //if (!fireTornado.IsValid()) { return; }
+            //if (shanoa.TryGet(out Model shanoaModel) && fireTornado.TryGet(out Model fireTornadoModel))
+            //{
+            //    var tether = World.Entity().Set(new TetherOmen.ProximityTether(
+            //        DistanceThreshold: 10.0f,
+            //        Source: fireTornadoModel.GameObject, Target: shanoaModel.GameObject))
+            //        .ChildOf(fireTornado);
+            //    attacks.Add(tether);
+            //}
+
             AttackMarkers();
 
             using var q = World.Query<FireTornadoEntity.Component, Position>();
@@ -136,29 +137,7 @@ public class ShanoaPark : Mechanic
     {
         if (set.Action == null || set.Source == null) { return; }
 
-        if (set.Action.Value.RowId == FluidSwingActionId)
-        {
-            fluidSwingsPerformed++;
-            if (fluidSwingsPerformed == 3 && availableTornadoPositions.Count == 1)
-            {
-                var openTornadoPosition = availableTornadoPositions.Single();
-                NetworkClient.SendAsync(new Message
-                {
-                    action = Message.Action.StartMechanic,
-                    startMechanic = new Message.StartMechanicPayload
-                    {
-                        requestId = NetworkMechanic.TeaSpawnShanoa.ToString(),
-                        mechanicId = (uint)NetworkMechanic.TeaSpawnShanoa,
-                        worldPositionX = openTornadoPosition.X,
-                        worldPositionY = openTornadoPosition.Y,
-                        worldPositionZ = openTornadoPosition.Z,
-                        rotation = default(float),
-                    }
-                }).SafeFireAndForget();
-            }
-        }
-
-        else if (set.Action.Value.RowId == AetherCompassActionId &&
+        if (set.Action.Value.RowId == AetherCompassActionId &&
             availableGuidanceMarkers.Count > 0 &&
             set.Source.GameObjectId == Dalamud.ObjectTable.LocalPlayer?.GameObjectId)
         {
@@ -368,11 +347,12 @@ public class ShanoaPark : Mechanic
         ClearGuidanceEntities();
 
         var markers = MarkingController.Instance()->FieldMarkers;
+        Logger.Info("availableMarkersFlags:{0}, markers.Length:{1}", availableMarkersFlags, markers.Length);
         for (var i = 0; i < 8; i++)
         {
-            if (i > markers.Length) { return; }
+            if (i > markers.Length) { continue; }
             var marker = markers[i];
-            if (!marker.Active) { return; }
+            if (!marker.Active) { continue; }
 
             if ((availableMarkersFlags & (1 << i)) != 0)
             {

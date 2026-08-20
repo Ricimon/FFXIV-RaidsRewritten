@@ -100,9 +100,10 @@ public class FireTornado : Mechanic
             availableTornadoPositions.Clear();
 
             tornadosSpawned++;
-            if (!EntityManager.TryCreateEntity<FireTornadoEntity>(out tornado)) { return; }
+            if (!EntityManager.TryCreateEntity<FireTornadoEntity>(out var tornado)) { return; }
             tornado.Set(new Position(position));
             attacks.Add(tornado);
+            this.tornado = tornado;
 
             var action1 = DelayedAction.Create(World, () =>
             {

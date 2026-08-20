@@ -107,7 +107,7 @@ public class TeaRewritten : IEncounter
 
     public void Unload()
     {
-        foreach(var mechanic in mechanics)
+        foreach (var mechanic in mechanics)
         {
             mechanic.Reset();
         }
@@ -202,7 +202,7 @@ public class TeaRewritten : IEncounter
             configuration.Save();
             RefreshMechanics();
         }
-        
+
         bool chakramBalls = configuration.GetEncounterSetting(ChakramBallsKey, defaultBoolSettings[ChakramBallsKey]);
         if (ImGui.Checkbox("Rolling Balls", ref chakramBalls))
         {
@@ -215,12 +215,12 @@ public class TeaRewritten : IEncounter
 
     private void ApplyIntendedFightSettings()
     {
-        foreach(var setting in defaultBoolSettings)
+        foreach (var setting in defaultBoolSettings)
         {
             configuration.EncounterSettings[setting.Key] = setting.Value.ToString();
         }
 
-        foreach(var setting in defaultIntSettings)
+        foreach (var setting in defaultIntSettings)
         {
             configuration.EncounterSettings[setting.Key] = setting.Value.ToString();
         }
@@ -231,7 +231,7 @@ public class TeaRewritten : IEncounter
 
     private void DisableEverything()
     {
-        foreach(var setting in defaultBoolSettings)
+        foreach (var setting in defaultBoolSettings)
         {
             configuration.EncounterSettings[setting.Key] = bool.FalseString;
         }
