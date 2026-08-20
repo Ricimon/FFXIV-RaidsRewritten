@@ -128,7 +128,7 @@ public class Circle(DalamudServices dalamud, CommonQueries commonQueries, ILogge
 
                 if (runtime.Snapshotted && runtime.AttackVfxPlayed && runtime.OnHitExecuted && !runtime.AttackVfx.IsValid())
                 {
-                    logger.Info("Circle destructed");
+                    //logger.Info("Circle destructed");
                     entity.Destruct();
                 }
             });
