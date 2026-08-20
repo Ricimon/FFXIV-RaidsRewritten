@@ -311,8 +311,10 @@ public class ShanoaParkTest : Mechanic
 
     private unsafe void AttackMarkers()
     {
-        foreach (var marker in MarkingController.Instance()->FieldMarkers)
+        var markers = MarkingController.Instance()->FieldMarkers;
+        for (var i = 0; i < markers.Length; i++)
         {
+            var marker = markers[i];
             if (marker.Active)
             {
                 var position = marker.Position;
@@ -335,22 +337,22 @@ public class ShanoaParkTest : Mechanic
                         }
                     }));
                 attacks.Add(circleAttack);
-
-                var action = DelayedAction.Create(World, () =>
-                {
-                    NetworkClient.SendAsync(new Message
-                    {
-                        action = Message.Action.StartMechanic,
-                        startMechanic = new Message.StartMechanicPayload
-                        {
-                            requestId = NetworkMechanic.TeaShowShanoaGuidanceMarkers.ToString() + "_protean1",
-                            mechanicId = (uint)NetworkMechanic.TeaShowShanoaGuidanceMarkers,
-                        }
-                    }).SafeFireAndForget();
-                }, 3.75f);
-                attacks.Add(action);
             }
         }
+
+        var action = DelayedAction.Create(World, () =>
+        {
+            NetworkClient.SendAsync(new Message
+            {
+                action = Message.Action.StartMechanic,
+                startMechanic = new Message.StartMechanicPayload
+                {
+                    requestId = NetworkMechanic.TeaShowShanoaGuidanceMarkers.ToString() + "_protean1",
+                    mechanicId = (uint)NetworkMechanic.TeaShowShanoaGuidanceMarkers,
+                }
+            }).SafeFireAndForget();
+        }, 3.75f);
+        attacks.Add(action);
     }
 
     private unsafe void ShowGuidanceMarkers(byte availableMarkersFlags, float duration)
