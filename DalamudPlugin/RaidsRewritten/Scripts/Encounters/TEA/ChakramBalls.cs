@@ -143,7 +143,7 @@ public class ChakramBalls : Mechanic
                 .Set(new RollingBall.Movement(ball1Direction))
                 .Set(new RollingBall.CircleArena(arenaCenter.ToVector2(), arenaRadius))
                 .Set(new RollingBall.WallBounces(0))
-                .Add<RollingBall.NotResistible>();
+                .Add<RollingBall.ApplyFlatten>();
             attacks.Add(ball1);
             ballsSpawned++;
         
@@ -154,7 +154,7 @@ public class ChakramBalls : Mechanic
                 .Set(new RollingBall.Movement(ball2Direction))
                 .Set(new RollingBall.CircleArena(arenaCenter.ToVector2(), arenaRadius))
                 .Set(new RollingBall.WallBounces(0))
-                .Add<RollingBall.NotResistible>();
+                .Add<RollingBall.ApplyFlatten>();
             attacks.Add(ball2);
             ballsSpawned++;
         }, BallDelay);
