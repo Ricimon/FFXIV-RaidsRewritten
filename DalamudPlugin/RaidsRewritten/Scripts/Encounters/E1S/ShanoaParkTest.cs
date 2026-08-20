@@ -23,6 +23,7 @@ namespace RaidsRewritten.Scripts.Encounters.E1S;
 public class ShanoaParkTest : Mechanic
 {
     private const uint EdensGravityActionId = 15728;
+    private const uint ViceAndVirtueActionId = 17647;
     private const uint AetherCompassActionId = 26988;
 
     private const string MarkerAttackVfxPath = "vfx/monster/d1024/eff/arthur_thunderstorm_t0s.avfx";
@@ -96,6 +97,11 @@ public class ShanoaParkTest : Mechanic
         {
             edensGravityCasted = true;
 
+            if (fireTornado.IsValid())
+            {
+                FireTornadoEntity.NetworkedAttack1(fireTornado, typeof(FireTornadoEntity.NetworkedAttack1Trigger).FullName! + "_1");
+            }
+
             //if (!shanoa.IsValid()) { return; }
             //var fireTornado = World.Query<FireTornadoEntity.Component>().First();
             //if (!fireTornado.IsValid()) { return; }
@@ -137,7 +143,12 @@ public class ShanoaParkTest : Mechanic
     {
         if (set.Action == null || set.Source == null) { return; }
 
-        if (set.Action.Value.RowId == AetherCompassActionId &&
+        if (set.Action.Value.RowId == ViceAndVirtueActionId)
+        {
+            fireTornado.SafeDestruct();
+        }
+
+        else if (set.Action.Value.RowId == AetherCompassActionId &&
             availableGuidanceMarkers.Count > 0 &&
             set.Source.GameObjectId == Dalamud.ObjectTable.LocalPlayer?.GameObjectId)
         {
