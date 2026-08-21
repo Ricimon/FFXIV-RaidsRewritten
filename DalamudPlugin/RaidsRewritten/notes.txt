@@ -1,5 +1,6 @@
 Hall of the Novice
 Tower attack: vfx/monster/gimmick2/eff/g3d1_b2_g03c1v.avfx (actor)
+Fireball projectile attack: vfx/monster/gimmick4/eff/w5d1_bb_g02c0c.avfx (actor, source & target)
 
 Thornmarch (Hard)
 Arrow rain spread omen: vfx/lockon/eff/target_ae_s6k1.avfx (actor)

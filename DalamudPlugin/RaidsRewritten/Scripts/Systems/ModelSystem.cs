@@ -49,10 +49,11 @@ public unsafe sealed class ModelSystem(
                         return;
                     }
 
-                    model.GameObjectIndex = idx;
+                    model.ObjectIndex = (ushort)idx;
+                    logger.Info(model.ObjectIndex.ToString());
                     model.Spawned = true;
 
-                    var obj = ClientObjectManager.Instance()->GetObjectByIndex((ushort)idx);
+                    var obj = ClientObjectManager.Instance()->GetObjectByIndex(model.ObjectIndex);
                     chara = (BattleChara*)obj;
 
                     chara->ObjectKind = ObjectKind.BattleNpc;
@@ -92,9 +93,9 @@ public unsafe sealed class ModelSystem(
                     // Needed to get Actor VFX to play on GameObject
                     obj->RenderFlags = 0;
 
-                    model.GameObject = dalamud.ObjectTable.CreateObjectReference((nint)obj);
+                    var go = dalamud.ObjectTable.CreateObjectReference((nint)obj);
 
-                    if (model.GameObject != null)
+                    if (go != null)
                     {
                         // This line is in Brio, and is needed to get animations working on a human model,
                         // but this does not play action VFX outside of gpose.
@@ -104,13 +105,13 @@ public unsafe sealed class ModelSystem(
                         //    chara->CharacterSetup.CopyFromCharacter(localPlayer.Character(), CharacterSetupContainer.CopyFlags.WeaponHiding);
                         //}
                         // This is needed to get idle/movement sounds working (must be called after model id is assigned)
-                        chara->CharacterSetup.CopyFromCharacter((Character*)model.GameObject.Address, CharacterSetupContainer.CopyFlags.None);
+                        chara->CharacterSetup.CopyFromCharacter((Character*)go.Address, CharacterSetupContainer.CopyFlags.None);
                     }
 
                     return; // Delay draw for next frame for any file replacements to run
                 }
 
-                chara = (BattleChara*)ClientObjectManager.Instance()->GetObjectByIndex((ushort)model.GameObjectIndex);
+                chara = (BattleChara*)ClientObjectManager.Instance()->GetObjectByIndex(model.ObjectIndex);
                 if (chara == null)
                 {
                     entity.Destruct();
@@ -138,7 +139,7 @@ public unsafe sealed class ModelSystem(
                 if (!it.Changed()) { return; }
                 if (model.Spawned)
                 {
-                    var obj = (BattleChara*)ClientObjectManager.Instance()->GetObjectByIndex((ushort)model.GameObjectIndex);
+                    var obj = (BattleChara*)ClientObjectManager.Instance()->GetObjectByIndex(model.ObjectIndex);
                     if (obj != null)
                     {
                         obj->Alpha = alpha.Value;
@@ -149,10 +150,9 @@ public unsafe sealed class ModelSystem(
         world.System<Model, OneTimeModelTimeline>()
             .Each((Iter it, int i, ref Model model, ref OneTimeModelTimeline timeline) =>
             {
-                if (model.GameObject != null && model.DrawEnabled)
+                if (model.DrawEnabled)
                 {
-                    var obj = ClientObjectManager.Instance()->GetObjectByIndex((ushort)model.GameObjectIndex);
-                    var chara = (Character*)obj;
+                    var chara = ClientObjectManager.Instance()->GetObjectByIndex(model.ObjectIndex);
                     if (chara != null)
                     {
                         if (!timeline.Played)
@@ -177,8 +177,7 @@ public unsafe sealed class ModelSystem(
                 var clientObjectManager = ClientObjectManager.Instance();
                 if (clientObjectManager == null) { return; }
 
-                var obj = clientObjectManager->GetObjectByIndex((ushort)model.GameObjectIndex);
-                var chara = (Character*)obj;
+                var chara = clientObjectManager->GetObjectByIndex(model.ObjectIndex);
                 if (chara == null) { return; }
 
                 chara->Timeline.BaseOverride = animationState.Value;
@@ -196,8 +195,7 @@ public unsafe sealed class ModelSystem(
                 var clientObjectManager = ClientObjectManager.Instance();
                 if (clientObjectManager == null) { return; }
 
-                var obj = clientObjectManager->GetObjectByIndex((ushort)model.GameObjectIndex);
-                var chara = (Character*)obj;
+                var chara = clientObjectManager->GetObjectByIndex(model.ObjectIndex);
                 if (chara == null) { return; }
 
                 // doesn't work if it's timelineBlend.Slot, maybe this is dependent on the type of blend animation? (e.g animations specific to upper torso and lower torso)
@@ -215,10 +213,9 @@ public unsafe sealed class ModelSystem(
         world.System<Model, ChatBubble>()
             .Each((Iter it, int i, ref Model model, ref ChatBubble chatBubble) =>
             {
-                if (model.GameObject != null && model.DrawEnabled)
+                if (model.DrawEnabled)
                 {
-                    var obj = ClientObjectManager.Instance()->GetObjectByIndex((ushort)model.GameObjectIndex);
-                    var chara = (Character*)obj;
+                    var chara = ClientObjectManager.Instance()->GetObjectByIndex(model.ObjectIndex);
                     if (chara != null)
                     {
                         chatBubbleService.Talk(chara, chatBubble.Text, chatBubble.PlayDuration);
@@ -231,7 +228,6 @@ public unsafe sealed class ModelSystem(
             .Event(Ecs.OnRemove)
             .Each((Entity e, ref Model _) =>
             {
-                if (e.Has<ModelFadeOut>()) { return; }
                 var model = e.Get<Model>();
                 if (model.Spawned)
                 {
@@ -241,13 +237,13 @@ public unsafe sealed class ModelSystem(
                         a = alpha.Value;
                         if (a == 0)
                         {
-                            DeleteModel(model.GameObjectIndex);
+                            DeleteModel(model.ObjectIndex);
                             return;
                         }
                     }
                     var duration = a / 1.0f;
                     e.CsWorld().Entity()
-                        .Set(new ModelFadeOut(model.GameObjectIndex, duration, duration, a));
+                        .Set(new ModelFadeOut(model.ObjectIndex, duration, duration, a));
                 }
             });
 
@@ -257,7 +253,7 @@ public unsafe sealed class ModelSystem(
                 modelFade.TimeRemaining -= it.DeltaTime();
                 if (modelFade.TimeRemaining > 0)
                 {
-                    var obj = (BattleChara*)ClientObjectManager.Instance()->GetObjectByIndex((ushort)modelFade.GameObjectIndex);
+                    var obj = (BattleChara*)ClientObjectManager.Instance()->GetObjectByIndex(modelFade.ObjectIndex);
                     if (obj == null)
                     {
                         it.Entity(i).Destruct();
@@ -269,7 +265,7 @@ public unsafe sealed class ModelSystem(
                 }
                 else
                 {
-                    DeleteModel(modelFade.GameObjectIndex);
+                    DeleteModel(modelFade.ObjectIndex);
                     it.Entity(i).Destruct();
                 }
             });
@@ -289,7 +285,7 @@ public unsafe sealed class ModelSystem(
                 {
                     if (model.Spawned)
                     {
-                        DeleteModel(model.GameObjectIndex);
+                        DeleteModel(model.ObjectIndex);
                     }
                 });
             }
@@ -298,7 +294,7 @@ public unsafe sealed class ModelSystem(
             {
                 q.Each((Iter it, int i, ref ModelFadeOut model) =>
                 {
-                    DeleteModel(model.GameObjectIndex);
+                    DeleteModel(model.ObjectIndex);
                 });
             }
         }
@@ -315,8 +311,9 @@ public unsafe sealed class ModelSystem(
         // Convert this to a dictionary lookup if needed
         modelTimelineSpeedQuery.Each((ref Model model, ref ModelTimelineSpeed speed) =>
         {
-            if (model.GameObject != null &&
-                model.GameObject.Address == (nint)a1->OwnerObject)
+            if (!model.Spawned) { return; }
+            var go = dalamud.ObjectTable.GetGameObjectByIndex(model.ObjectIndex);
+            if (go != null && go.Address == (nint)a1->OwnerObject)
             {
                 a1->OverallSpeed = speed.Value;
                 result |= true;
@@ -325,13 +322,36 @@ public unsafe sealed class ModelSystem(
         return result;
     }
 
-    private void DeleteModel(uint gameObjectId)
+    private void DeleteModel(ushort objectId)
     {
-        var obj = (BattleChara*)ClientObjectManager.Instance()->GetObjectByIndex((ushort)gameObjectId);
+        var obj = (BattleChara*)ClientObjectManager.Instance()->GetObjectByIndex(objectId);
         if (obj != null)
         {
+            var go = dalamud.ObjectTable.CreateObjectReference((nint)obj);
+            logger.Info("{0}, {1}, {2}, {3}", go, go?.IsValid(), go?.GameObjectId, go?.Address);
+            go = dalamud.ObjectTable.CreateObjectReference((nint)obj);
+            logger.Info("{0}, {1}, {2}, {3}", go, go?.IsValid(), go?.GameObjectId, go?.Address);
+            var i = ClientObjectManager.Instance()->GetIndexByObject(go.Native());
+            logger.Info("{0}", i);
+            var o = (BattleChara*)ClientObjectManager.Instance()->GetObjectByIndex((ushort)i);
+            logger.Info("{0}", o != null);
+            var a = dalamud.ObjectTable.GetObjectAddress(objectId);
+            logger.Info("{0}", a);
+            go = dalamud.ObjectTable.GetGameObjectByIndex(objectId);
+            logger.Info("{0}, {1}, {2}, {3}", go, go?.IsValid(), go?.GameObjectId, go?.Address);
+
             obj->DisableDraw();
-            ClientObjectManager.Instance()->DeleteObjectByIndex((ushort)gameObjectId, 0);
+            ClientObjectManager.Instance()->DeleteObjectByIndex(objectId, 0);
+
+            logger.Info("{0}, {1}, {2}, {3}", go, go?.IsValid(), go?.GameObjectId, go?.Address);
+            i = ClientObjectManager.Instance()->GetIndexByObject(go.Native());
+            logger.Info("{0}", i);
+            o = (BattleChara*)ClientObjectManager.Instance()->GetObjectByIndex((ushort)i);
+            logger.Info("{0}", o != null);
+            a = dalamud.ObjectTable.GetObjectAddress(objectId);
+            logger.Info("{0}", a);
+            go = dalamud.ObjectTable.GetGameObjectByIndex(objectId);
+            logger.Info("{0}, {1}, {2}, {3}", go, go?.IsValid(), go?.GameObjectId, go?.Address);
         }
     }
 

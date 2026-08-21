@@ -283,32 +283,23 @@ public class ShanoaPark : Mechanic
 
                     if (shanoa.TryGet(out Model shanoaModel) && fireTornado.TryGet(out Model fireTornadoModel))
                     {
+                        var fireTornadoGo = Dalamud.ObjectTable.GetGameObjectByIndex(fireTornadoModel.ObjectIndex);
+                        var shanoaGo = Dalamud.ObjectTable.GetGameObjectByIndex(shanoaModel.ObjectIndex);
                         var tether = World.Entity().Set(new TetherOmen.ProximityTether(
                             DistanceThreshold: distanceThreshold,
-                            Source: fireTornadoModel.GameObject, Target: shanoaModel.GameObject))
+                            Source: fireTornadoGo, Target: shanoaGo))
                             .ChildOf(fireTornado);
                         attacks.Add(tether);
 
                         var action1 = DelayedAction.Create(World, () =>
                         {
                             tether.SafeDestruct();
-                            if (fireTornado.IsValid())
+                            if (fireTornado.IsValid() && shanoa.IsValid())
                             {
                                 World.Entity()
-                                    .Set(new ActorVfx("vfx/monster/m0729/eff/m0729_sp01c0t2.avfx")) // PLACEHOLDER
-                                    .Set(new ActorVfxTarget(shanoaModel.GameObject))
+                                    .Set(new ActorVfx("vfx/monster/gimmick4/eff/w5d1_bb_g02c0c.avfx"))
+                                    .Set(new ActorVfxTarget(shanoaGo))
                                     .ChildOf(fireTornado);
-
-                                var action2 = DelayedAction.Create(World, () =>
-                                {
-                                    if (shanoa.IsValid())
-                                    {
-                                        World.Entity()
-                                            .Set(new ActorVfx("vfx/monster/m0729/eff/m0729_sp01t0t2.avfx")) // PLACEHOLDER
-                                            .ChildOf(shanoa);
-                                    }
-                                }, 0.35f /*PLACEHOLDER*/);
-                                attacks.Add(action2);
                             }
                         }, omenDuration);
                         attacks.Add(action1);
@@ -352,7 +343,7 @@ public class ShanoaPark : Mechanic
                             entity
                                 .Set(new Shanoa.TargetPosition(targetPosition))
                                 .Set(new Shanoa.Component(movementSpeed, rotationSpeed))
-                                .Set(new ModelFadeOut(model.GameObjectIndex, 1.0f, 1.0f));
+                                .Set(new ModelFadeOut(model.ObjectIndex, 1.0f, 1.0f));
                         });
 
                         if (shanoaFound)
@@ -425,7 +416,7 @@ public class ShanoaPark : Mechanic
         var markers = MarkingController.Instance()->FieldMarkers;
         for (var i = 0; i < 8; i++)
         {
-            if (i > markers.Length) { return; }
+            if (i >= markers.Length) { return; }
             var marker = markers[i];
             if (!marker.Active) { return; }
 

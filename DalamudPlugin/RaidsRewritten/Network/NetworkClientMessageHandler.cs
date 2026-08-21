@@ -105,7 +105,7 @@ public sealed class NetworkClientMessageHandler(
                     });
                     break;
             }
-        }).SafeFireAndForget();
+        });
     }
 
     private void UpdatePartyStatus(Message.UpdatePartyStatusPayload payload)
@@ -131,7 +131,7 @@ public sealed class NetworkClientMessageHandler(
             {
                 e.Add<Omen>();
             }
-        }).SafeFireAndForget();
+        });
     }
 
     private void PlayActorVfxOnTarget(Message.PlayActorVfxOnTargetPayload payload)
@@ -159,7 +159,7 @@ public sealed class NetworkClientMessageHandler(
             }
 
             // TODO: Use customIdTargets
-        }).SafeFireAndForget();
+        });
     }
 
     private void PlayActorVfxOnPosition(Message.PlayActorVfxOnPositionPayload payload)
@@ -172,7 +172,7 @@ public sealed class NetworkClientMessageHandler(
                 .Set(new ActorVfx(payload.vfxPath))
                 .Set(new Position(new(payload.worldPositionX, payload.worldPositionY, payload.worldPositionZ)))
                 .Set(new Rotation(payload.rotation));
-        }).SafeFireAndForget();
+        });
     }
 
     private void StopVfx(Message.StopVfxPayload payload)
@@ -190,7 +190,7 @@ public sealed class NetworkClientMessageHandler(
                     }
                 });
             });
-        }).SafeFireAndForget();
+        });
     }
 
     private void UpdateConditions(Message.UpdateConditionsPayload payload)
@@ -199,7 +199,7 @@ public sealed class NetworkClientMessageHandler(
         {
             World.Defer(() =>
             {
-                foreach(var p in payload.players)
+                foreach (var p in payload.players)
                 {
                     using var pq = World.Query<Player.ContentId>();
                     var playerEntity = pq.Find((ref id) => id.Value == p.contentId);
@@ -224,7 +224,7 @@ public sealed class NetworkClientMessageHandler(
                             }
                         });
 
-                        foreach(var c in p.conditions)
+                        foreach (var c in p.conditions)
                         {
                             if (c.isClientControlled && isLocalPlayer)
                             {
@@ -252,7 +252,7 @@ public sealed class NetworkClientMessageHandler(
                             // Create new condition
                             if (!foundExistingCondition)
                             {
-                                switch(c.condition)
+                                switch (c.condition)
                                 {
                                     case Message.Condition.Stun:
                                         Stun.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: false);
@@ -290,17 +290,21 @@ public sealed class NetworkClientMessageHandler(
                     }
                 }
             });
-        }).SafeFireAndForget();
+        });
     }
 
     private void RunMechanicCommand(Message.RunMechanicCommandPayload payload)
     {
-        if (encounterManager.Value.ActiveEncounter != null)
+        // This makes it easier to enable the use of many main-thread only operations on Dalamud
+        dalamud.Framework.Run(() =>
         {
-            foreach (var mechanic in encounterManager.Value.ActiveEncounter.GetMechanics())
+            if (encounterManager.Value.ActiveEncounter != null)
             {
-                mechanic.OnNetworkMechanicCommand(payload);
+                foreach (var mechanic in encounterManager.Value.ActiveEncounter.GetMechanics())
+                {
+                    mechanic.OnNetworkMechanicCommand(payload);
+                }
             }
-        }
+        });
     }
 }

@@ -102,7 +102,7 @@ public partial class MainWindow
             var player = this.dalamud.ObjectTable.LocalPlayer;
             if (player != null)
             {
-                this.logger.Info($"Player position:{player.Position}, address:0x{player.Address:X}, entityId:0x{player.EntityId:X}, gameObjectId:0x{player.GameObjectId:X}, contentId:{dalamud.PlayerState.ContentId}");
+                this.logger.Info($"Player position:{player.Position}, rotation:{player.Rotation}, address:0x{player.Address:X}, entityId:0x{player.EntityId:X}, gameObjectId:0x{player.GameObjectId:X}, contentId:{dalamud.PlayerState.ContentId}");
             }
         }
         SameLineIfFits("Print Target Data");
@@ -112,7 +112,7 @@ public partial class MainWindow
             if (player != null && player.TargetObject != null)
             {
                 var target = player.TargetObject;
-                this.logger.Info($"Target position:{target.Position}, address:0x{target.Address:X}, entityId:0x{target.EntityId:X}, gameObjectId:0x{target.GameObjectId:X}, baseId:0x{target.BaseId:X}");
+                this.logger.Info($"Target position:{target.Position}, rotation:{target.Rotation}, address:0x{target.Address:X}, entityId:0x{target.EntityId:X}, gameObjectId:0x{target.GameObjectId:X}, baseId:0x{target.BaseId:X}");
             }
         }
         SameLineIfFits("Print Map Data");

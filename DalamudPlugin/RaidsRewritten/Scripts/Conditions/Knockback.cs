@@ -6,6 +6,7 @@ using ECommons.Hooks.ActionEffectTypes;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
+using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Conditions;
@@ -28,6 +29,7 @@ public sealed class Knockback : IDalamudHook
         ];
 
     private static ILogger? Logger;
+    private static bool IdBool;
 
     private readonly DalamudServices dalamud;
     private readonly World world;
@@ -78,12 +80,21 @@ public sealed class Knockback : IDalamudHook
                 if (child.Has<Component>())
                 {
                     child.CsWorld().DeferResume();
+                    // Avoid the knockback falloff flytext when it's getting replaced with another knockback
+                    child.Children(Ecs.DependsOn, child2 =>
+                    {
+                        child2.Remove<FlyText>();
+                    });
                     child.Destruct();
                     child.CsWorld().DeferSuspend();
                 }
             });
 
-            var condition = Condition.ApplyToTarget(target, "Knocked Back", duration, ConditionTable.Id.Knockback, false, false, isClientControlled);
+            // 2 knockback ids are needed as due to entity destruction deferral, trying to create a new knockback
+            // condition entity with the same id will just end up updating the about-to-be-destructed entity
+            IdBool = !IdBool;
+            var id = IdBool ? ConditionTable.Id.Knockback1 : ConditionTable.Id.Knockback2;
+            var condition = Condition.ApplyToTarget(target, "Knocked Back", duration, id, false, false, isClientControlled);
 
             condition
                 .Set(new Component(knockbackDirection))

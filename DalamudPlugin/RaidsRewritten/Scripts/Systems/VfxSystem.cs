@@ -109,7 +109,8 @@ public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogge
             .TermAt(0).Self().Up()
             .Each((Iter it, int i, ref Model model, ref ActorVfx vfx) =>
             {
-                ProcessActorVfx(it.Entity(i), model.GameObject, ref vfx);
+                if (!model.Spawned) { return; }
+                ProcessActorVfx(it.Entity(i), dalamud.ObjectTable.GetGameObjectByIndex(model.ObjectIndex), ref vfx);
             });
 
         world.System<ActorVfxSource, ActorVfx>()
@@ -189,7 +190,7 @@ public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogge
 
         if (e.TryGet<ActorVfxTarget>(out var target))
         {
-            if (target.Target != null && !target.Target.IsValid())
+            if (target.Target == null || !target.Target.IsCompletelyValid())
             {
                 return true;
             }
@@ -202,12 +203,12 @@ public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogge
     {
         // UpdateScale doesn't seem to work for actor vfxes from a quick test. Should be looked into
         // Position/Rotation should be based on source actor
-        if (vfx.VfxPtr == null && source != null)
+        if (vfx.VfxPtr == null && source != null && source.IsCompletelyValid())
         {
             if (entity.TryGet<ActorVfxTarget>(out var targetComponent))
             {
                 var target = targetComponent.Target;
-                if (target != null && target.IsValid())
+                if (target != null && target.IsCompletelyValid())
                 {
                     vfx.VfxPtr = vfxSpawn.SpawnActorVfx(vfx.Path, source, target);
                 } else

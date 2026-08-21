@@ -76,9 +76,10 @@ public unsafe sealed class RollingBall(DalamudServices dalamud, CommonQueries co
                         {
                             p.Y = component.TargetYPosition;
 
-                            if (model.GameObject != null)
+                            var go = dalamud.ObjectTable.GetGameObjectByIndex(model.ObjectIndex);
+                            if (go != null)
                             {
-                                vfxSpawn.SpawnActorVfx("vfx/pop/m0318/eff/m0318_pop01h.avfx", model.GameObject, model.GameObject);
+                                vfxSpawn.SpawnActorVfx("vfx/pop/m0318/eff/m0318_pop01h.avfx", go, go);
                             }
                         }
                         position.Value = p;
@@ -93,7 +94,7 @@ public unsafe sealed class RollingBall(DalamudServices dalamud, CommonQueries co
                     // The rolling animation takes a little time to startup
                     if (component.TimeUntilRolling < 0.07f)
                     {
-                        var obj = ClientObjectManager.Instance()->GetObjectByIndex((ushort)model.GameObjectIndex);
+                        var obj = ClientObjectManager.Instance()->GetObjectByIndex((ushort)model.ObjectIndex);
                         var chara = (Character*)obj;
                         if (chara != null)
                         {

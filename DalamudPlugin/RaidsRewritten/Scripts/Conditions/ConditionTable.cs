@@ -9,7 +9,8 @@ public class ConditionTable
         public const int Deepfreeze = 0xF2EE2E; // 15920686
         public const int Heavy = 0x8EA11; // 584209
         public const int Hysteria = 0x5CA6E; // 379502
-        public const int Knockback = 8;
+        public const int Knockback1 = 8;
+        public const int Knockback2 = 9;
         public const int Overheat = 0x807; // 2055
         public const int Pacify = 0x9AC1F1; // 10142193
         public const int Paralysis = 0x91FA; // 37370

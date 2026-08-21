@@ -43,12 +43,12 @@ public class TetherOmen : ISystem
             .Each((Iter it, int index, ref ProximityTether pt) =>
             {
                 var entity = it.Entity(index);
-                if (pt.Source == null || !pt.Source.IsValid())
+                if (pt.Source == null || !pt.Source.IsCompletelyValid())
                 {
                     entity.Destruct();
                     return;
                 }
-                if (pt.Target == null || !pt.Target.IsValid())
+                if (pt.Target == null || !pt.Target.IsCompletelyValid())
                 {
                     entity.Destruct();
                     return;

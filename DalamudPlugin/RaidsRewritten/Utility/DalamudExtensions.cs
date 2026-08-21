@@ -6,6 +6,8 @@ using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Text;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
+using FFXIVClientStructs.FFXIV.Client.Game.Character;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using ZLinq;
 
 namespace RaidsRewritten.Utility;
@@ -52,5 +54,40 @@ public static class DalamudExtensions
             Message = message,
             Type = XivChatType.SystemMessage,
         });
+    }
+
+    public unsafe static GameObject* Native(this IGameObject go)
+    {
+        return (GameObject*)go.Address;
+    }
+
+    public unsafe static IGameObject? GetGameObjectByIndex(this IObjectTable objectTable, ushort index)
+    {
+        // ObjectTable.GetObjectAddress does not return the correct value for fake objects
+        var obj = (BattleChara*)ClientObjectManager.Instance()->GetObjectByIndex(index);
+        if (obj == null)
+        {
+            return null;
+        }
+        // ObjectTable.CreateObjectReference is an idempotent operation
+        return objectTable.CreateObjectReference((nint)obj);
+    }
+
+    /// <summary>
+    /// An extension of the IGameObject.IsValid() check but with additional checks against
+    /// the native ClientObjectManager that properly checks the validity of fake GameObjects
+    /// </summary>
+    public unsafe static bool IsCompletelyValid(this IGameObject gameObject)
+    {
+        // Fake GameObjects always appear as valid even if they are deleted
+        if (!gameObject.IsValid()) { return false; }
+        var index = ClientObjectManager.Instance()->GetIndexByObject(gameObject.Native());
+        if (index == 0xFFFFFFFF)
+        {
+            // Object is real
+            return true;
+        }
+        var chara = ClientObjectManager.Instance()->GetObjectByIndex((ushort)index);
+        return chara != null;
     }
 }
