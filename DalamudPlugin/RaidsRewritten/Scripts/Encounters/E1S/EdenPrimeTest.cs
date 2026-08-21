@@ -54,6 +54,7 @@ public class EdenPrimeTest(
         if (configuration.GetEncounterSetting(ShanoaParkKey, true))
         {
             mechanics.Add(mechanicFactory.Create<ShanoaParkTest>());
+            mechanics.Add(mechanicFactory.Create<ShanoaAndFireTornadoTest>());
         }
     }
 

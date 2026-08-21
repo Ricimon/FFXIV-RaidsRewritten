@@ -72,6 +72,7 @@ pub fn create_systems(world: &World) {
                     if shanoa_position.metric_distance(&fire_tornado_position)
                         <= attack.distance_threshold
                     {
+                        // Destruct Shanoa entity
                         e.destruct();
 
                         if let Some(pc) = find_party_container(world, &party.id) {

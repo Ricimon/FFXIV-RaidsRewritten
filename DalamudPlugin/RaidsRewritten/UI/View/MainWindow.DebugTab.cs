@@ -807,7 +807,8 @@ public partial class MainWindow
                     var player = this.dalamud.ObjectTable.LocalPlayer;
                     if (player != null)
                     {
-                        var shanoa = World.Query<Shanoa.Component>().First();
+                        using var q = World.Query<Shanoa.Component>();
+                        var shanoa = q.First();
                         if (shanoa.IsValid())
                         {
                             shanoa.Set(new Shanoa.TargetPosition(player.Position));
@@ -829,6 +830,35 @@ public partial class MainWindow
                         }
 
                     }
+                }
+                SameLineIfFits(":");
+                ImGui.Text(":");
+                SameLineIfFits("scratch self");
+                if (ImGui.Button("scratch self"))
+                {
+                    using var q = World.Query<Shanoa.Component>();
+                    q.Each((Entity e, ref Shanoa.Component _) =>
+                    {
+                        e.Set(new OneTimeModelTimeline(Shanoa.ScratchSelfAnimationId));
+                    });
+                }
+                SameLineIfFits("stretch");
+                if (ImGui.Button("stretch"))
+                {
+                    using var q = World.Query<Shanoa.Component>();
+                    q.Each((Entity e, ref Shanoa.Component _) =>
+                    {
+                        e.Set(new OneTimeModelTimeline(Shanoa.StretchAnimationId));
+                    });
+                }
+                SameLineIfFits("attack");
+                if (ImGui.Button("attack"))
+                {
+                    using var q = World.Query<Shanoa.Component>();
+                    q.Each((Entity e, ref Shanoa.Component _) =>
+                    {
+                        e.Set(new OneTimeModelTimeline(Shanoa.AttackAnimationId));
+                    });
                 }
             }
         }

@@ -10,7 +10,7 @@ use flecs_ecs::prelude::*;
 use nalgebra::Vector3;
 use tracing::info;
 
-#[derive(Component, Debug)]
+#[derive(Component)]
 struct MoveShanoa;
 
 pub fn create_mechanic(entity: EntityView<'_>) -> EntityView<'_> {
@@ -37,13 +37,13 @@ pub fn create_systems(world: &World) {
                             if p.id != party.id {
                                 return;
                             }
-                            if shanoa.navigation_markers.remove(&marker_id) {
+                            if shanoa.navigation_markers.contains(&marker_id) {
                                 can_move = true;
                                 e.set(TeaShanoaTargetPosition {
                                     value: Vector3::new(position.x, position.y, position.z),
+                                    marker_id,
                                 });
                                 r.value = rotation.value; // insta-set the rotation because this value doesn't really matter on the server
-                                shanoa.absorbed_markers.insert(marker_id);
                                 movement_speed = shanoa.movement_speed;
                                 rotation_speed = shanoa.rotation_speed;
                             }

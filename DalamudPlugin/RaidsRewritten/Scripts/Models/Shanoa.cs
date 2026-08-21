@@ -83,7 +83,6 @@ public class Shanoa(ILogger logger) : IEntity, ISystem
                     if (timeline.Value != RunAnimationId)
                     {
                         timeline.Value = RunAnimationId;
-                        timeline.Interrupt = true;
                     }
                 }
                 else

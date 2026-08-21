@@ -1,3 +1,6 @@
+Common
+Start weaponskill/boss attack: vfx/common/eff/cmma_shoot1c.avfx (actor)
+
 Hall of the Novice
 Tower attack: vfx/monster/gimmick2/eff/g3d1_b2_g03c1v.avfx (actor)
 Fireball projectile attack: vfx/monster/gimmick4/eff/w5d1_bb_g02c0c.avfx (actor, source & target)
@@ -104,6 +107,12 @@ Diamond Dust Star: vfx/monster/gimmick2/eff/e3d7_b3_g3_c0v.avfx
 M7S
 Tendrils of Terror Omen: vfx/omen/eff/m0935mist_omen_o0p.avfx (static)
 Tendrils of Terror: vfx/monster/gimmick5/eff/x6r7_b3_g08_c0p.avfx (actor)
+
+M10N
+HP equalization Deep Blue: vfx/monster/m0982/eff/m0982sp006c0c.avfx (actor, source & target)
+HP equalization Deep Blue: vfx/monster/m0982/eff/m0982sp006t0c.avfx (actor)
+HP equalization Red Hot: vfx/monster/m0982/eff/m0982sp005c0c.avfx (actor, source & target)
+HP equalization Red Hot: vfx/monster/m0982/eff/m0982sp005t0c.avfx (actor)
 
 Rectangle Omen: vfx/omen/eff/general02f.avfx (static)
 

@@ -170,6 +170,7 @@ public unsafe sealed class ModelSystem(
             });
 
         world.System<Model, TimelineBase>()
+            .Without<OneTimeModelTimeline>()
             .Each((Iter it, int i, ref Model model, ref TimelineBase animationState) =>
             {
                 // set animation

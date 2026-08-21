@@ -12,7 +12,6 @@ using Flecs.NET.Core;
 using Lumina.Excel.Sheets;
 using RaidsRewritten.Network;
 using RaidsRewritten.Scripts.Attacks;
-using RaidsRewritten.Scripts.Attacks.Omens;
 using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Scripts.Models;
@@ -27,13 +26,18 @@ public class ShanoaPark : Mechanic
     private const uint FluidSwingActionId = 18864;
     private const uint LivingLiquidProteanWaveActionId = 18468;
     private const uint AetherCompassActionId = 26988;
+    private const uint LivingLiquidBaseId = 0x2C47;
+    private const uint CascadeActionId = 18470;
 
     private const string MarkerAttackVfxPath = "vfx/monster/d1024/eff/arthur_thunderstorm_t0s.avfx";
     private const string AetherCompassLocationVfxPath = "bg/ex2/05_zon_z3/common/vfx/eff/b1526bari1_u.avfx";
     private const string AetherCompassLocationArrowsVfxPath = "bgcommon/world/common/vfx_for_bg/eff/b1490tagt1_o.avfx";
+    private const string AbsorbMarkerVfxPath1 = "vfx/monster/m0982/eff/m0982sp006c0c.avfx";
+    private const string AbsorbMarkerVfxPath2 = "vfx/monster/m0982/eff/m0982sp006t0c.avfx";
 
     private const string ShanoaAetherCompassMessage = "Shanoa responds to the Aether Compass!";
     private const string ShanoaRunsAwayMessage = "Shanoa runs off...";
+    private const string ShanoaAbsorbMarkerMessage = "Shanoa absorbs the waymark's essence.";
 
     private const float GuidanceMarkerRadius = 1.4f;
 
@@ -111,27 +115,6 @@ public class ShanoaPark : Mechanic
         {
             protean1Casted = true;
             AttackMarkers();
-
-            using var q = World.Query<FireTornadoEntity.Component, Position>();
-            var ranOnce = false;
-            q.Each((ref FireTornadoEntity.Component _, ref Position position) =>
-            {
-                if (ranOnce) { return; }
-                ranOnce = true;
-                NetworkClient.SendAsync(new Message
-                {
-                    action = Message.Action.StartMechanic,
-                    startMechanic = new Message.StartMechanicPayload
-                    {
-                        requestId = NetworkMechanic.TeaFireTornadoAttackShanoa.ToString(),
-                        mechanicId = (uint)NetworkMechanic.TeaFireTornadoAttackShanoa,
-                        worldPositionX = position.Value.X,
-                        worldPositionY = position.Value.Y,
-                        worldPositionZ = position.Value.Z,
-                        rotation = default(float),
-                    }
-                }).SafeFireAndForget();
-            });
         }
     }
 
@@ -159,6 +142,19 @@ public class ShanoaPark : Mechanic
                     }
                 }).SafeFireAndForget();
             }
+        }
+
+        else if (set.Action.Value.RowId == CascadeActionId)
+        {
+            if (shanoa.IsValid())
+            {
+                shanoa.Set(new OneTimeModelTimeline(Shanoa.StretchAnimationId));
+            }
+            var action = DelayedAction.Create(World, () =>
+            {
+                shanoa.SafeDestruct();
+            }, 1.0f);
+            attacks.Add(action);
         }
 
         else if (set.Action.Value.RowId == AetherCompassActionId &&
@@ -212,6 +208,15 @@ public class ShanoaPark : Mechanic
                     }
                 }).SafeFireAndForget();
             }
+        }
+    }
+
+    public override void OnActorControl(IGameObject source, uint command, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, uint p7, uint p8, ulong targetId, byte replaying)
+    {
+        if (source.BaseId == LivingLiquidBaseId &&
+            command == 14) // command 14 seems to be death animation
+        {
+            shanoa.SafeDestruct();
         }
     }
 
@@ -269,44 +274,6 @@ public class ShanoaPark : Mechanic
                 }
                 break;
 
-            case (int)NetworkMechanicCommand.TeaFireTornadoAttackShanoa:
-                {
-                    if (string.IsNullOrEmpty(payload.extraData)) { return; }
-                    var arguments = payload.extraData.Split(',');
-                    if (arguments.Length < 2) { return; }
-                    if (!float.TryParse(arguments[0], out var omenDuration)) { return; }
-                    if (!float.TryParse(arguments[1], out var distanceThreshold)) { return; }
-                    if (!shanoa.IsValid()) { return; }
-                    using var q = World.Query<FireTornadoEntity.Component>();
-                    var fireTornado = q.First();
-                    if (!fireTornado.IsValid()) { return; }
-
-                    if (shanoa.TryGet(out Model shanoaModel) && fireTornado.TryGet(out Model fireTornadoModel))
-                    {
-                        var fireTornadoGo = Dalamud.ObjectTable.GetGameObjectByIndex(fireTornadoModel.ObjectIndex);
-                        var shanoaGo = Dalamud.ObjectTable.GetGameObjectByIndex(shanoaModel.ObjectIndex);
-                        var tether = World.Entity().Set(new TetherOmen.ProximityTether(
-                            DistanceThreshold: distanceThreshold,
-                            Source: fireTornadoGo, Target: shanoaGo))
-                            .ChildOf(fireTornado);
-                        attacks.Add(tether);
-
-                        var action1 = DelayedAction.Create(World, () =>
-                        {
-                            tether.SafeDestruct();
-                            if (fireTornado.IsValid() && shanoa.IsValid())
-                            {
-                                World.Entity()
-                                    .Set(new ActorVfx("vfx/monster/gimmick4/eff/w5d1_bb_g02c0c.avfx"))
-                                    .Set(new ActorVfxTarget(shanoaGo))
-                                    .ChildOf(fireTornado);
-                            }
-                        }, omenDuration);
-                        attacks.Add(action1);
-                    }
-                }
-                break;
-
             case (int)NetworkMechanicCommand.TeaShanoaRunsAway:
                 {
                     var movementSpeed = 6.0f;
@@ -353,6 +320,35 @@ public class ShanoaPark : Mechanic
                         }
                     }, delay);
                     attacks.Add(action);
+                }
+                break;
+
+            case (int)NetworkMechanicCommand.TeaShanoaAbsorbsMarker:
+                {
+                    if (string.IsNullOrEmpty(payload.extraData)) { return; }
+                    if (!byte.TryParse(payload.extraData, out var markerId)) { return; }
+                    if (!TryGetMarkerPosition(markerId, out var markerPosition)) { return; }
+                    if (!shanoa.IsValid()) { return; }
+                    if (shanoa.TryGet(out Model shanoaModel))
+                    {
+                        var shanoaGo = Dalamud.ObjectTable.GetGameObjectByIndex(shanoaModel.ObjectIndex);
+                        FakeActor.Create(World)
+                            .Set(new Position(markerPosition))
+                            .Set(new ActorVfx(AbsorbMarkerVfxPath1))
+                            .Set(new ActorVfxTarget(shanoaGo));
+                        var action = DelayedAction.Create(World, () =>
+                        {
+                            if (shanoa.IsValid())
+                            {
+                                World.Entity().Set(new ActorVfx(AbsorbMarkerVfxPath2)).ChildOf(shanoa);
+                            }
+                        }, 0.4f);
+                        attacks.Add(action);
+                        shanoa.Set(new OneTimeModelTimeline(Shanoa.ScratchSelfAnimationId));
+
+                        Dalamud.ToastGui.ShowNormal(ShanoaAbsorbMarkerMessage);
+                        Dalamud.ChatGui.PrintSystemMessage(ShanoaAbsorbMarkerMessage);
+                    }
                 }
                 break;
         }
@@ -470,5 +466,23 @@ public class ShanoaPark : Mechanic
         }
         guidanceEntities.Clear();
         availableGuidanceMarkers.Clear();
+    }
+
+    private unsafe bool TryGetMarkerPosition(byte markerId, out Vector3 position)
+    {
+        position = default;
+        var markers = MarkingController.Instance()->FieldMarkers;
+        if (markerId >= markers.Length)
+        {
+            return false;
+        }
+        var marker = markers[markerId];
+        if (!marker.Active)
+        {
+            return false;
+        }
+        position = marker.Position;
+        position.Y = arenaMiddle.Y;
+        return true;
     }
 }

@@ -20,6 +20,7 @@ pub struct TeaShanoa {
 #[derive(Component, Debug)]
 pub struct TeaShanoaTargetPosition {
     pub value: Vector3<f32>,
+    pub marker_id: u8,
 }
 
 #[derive(Component, Debug)]
@@ -38,39 +39,47 @@ pub fn create_mechanic(entity: EntityView<'_>) -> EntityView<'_> {
 pub fn create_systems(world: &World) {
     world
         .system::<(
-            &Mechanic,
             &mut TeaShanoa,
             &mut Position,
-            &mut Rotation,
+            &mut TeaShanoaTargetPosition,
             &Party,
         )>()
-        .each_iter(|it, index, (mechanic, shanoa, position, rotation, party)| {
+        .each_iter(|it, index, (shanoa, position, target_position, party)| {
             let entity = it.entity(index);
             let world = &it.world();
 
-            // info!(
-            //     mechanic.request_id,
-            //     mechanic.mechanic_id, party.id, "Completing Mechanic"
-            // );
-            // entity.remove(TeaShanoa::id());
-        });
-
-    world
-        .system::<(&TeaShanoa, &mut Position, &mut TeaShanoaTargetPosition)>()
-        .each_iter(|it, index, (shanoa, position, target_position)| {
-            let entity = it.entity(index);
-
             let mut shanoa_position = Vector3::new(position.x, position.y, position.z);
-            let target_position = target_position.value;
-            let distance = target_position.metric_distance(&shanoa_position);
+            let distance = target_position.value.metric_distance(&shanoa_position);
             let can_move_distance = shanoa.movement_speed * it.delta_time();
             if distance <= can_move_distance {
-                position.x = target_position.x;
-                position.y = target_position.y;
-                position.z = target_position.z;
+                position.x = target_position.value.x;
+                position.y = target_position.value.y;
+                position.z = target_position.value.z;
+
+                shanoa.navigation_markers.remove(&target_position.marker_id);
+                shanoa.absorbed_markers.insert(target_position.marker_id);
+
+                if let Some(pc) = find_party_container(world, &party.id) {
+                    let io = get_socket_io(world);
+                    pc.each_child(|c| {
+                        c.try_get::<(&Socket, &Player)>(|(s, _)| {
+                            send_run_mechanic_command(
+                                io.clone(),
+                                s.id,
+                                RunMechanicCommandPayload {
+                                    mechanic_command_id:
+                                        NetworkMechanicCommand::TeaShanoaAbsorbsMarker as i32,
+                                    extra_data: Some(target_position.marker_id.to_string()),
+                                    ..Default::default()
+                                },
+                            );
+                        });
+                    });
+                }
+
                 entity.remove(TeaShanoaTargetPosition::id());
             } else {
-                let to_target = Vector3::normalize(&(target_position - shanoa_position));
+                let to_target = Vector3::normalize(&(target_position.value - shanoa_position));
                 shanoa_position += can_move_distance * to_target;
                 position.x = shanoa_position.x;
                 position.y = shanoa_position.y;
