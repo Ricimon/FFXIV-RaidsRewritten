@@ -50,7 +50,6 @@ public unsafe sealed class ModelSystem(
                     }
 
                     model.ObjectIndex = (ushort)idx;
-                    logger.Info(model.ObjectIndex.ToString());
                     model.Spawned = true;
 
                     var obj = ClientObjectManager.Instance()->GetObjectByIndex(model.ObjectIndex);
@@ -327,31 +326,8 @@ public unsafe sealed class ModelSystem(
         var obj = (BattleChara*)ClientObjectManager.Instance()->GetObjectByIndex(objectId);
         if (obj != null)
         {
-            var go = dalamud.ObjectTable.CreateObjectReference((nint)obj);
-            logger.Info("{0}, {1}, {2}, {3}", go, go?.IsValid(), go?.GameObjectId, go?.Address);
-            go = dalamud.ObjectTable.CreateObjectReference((nint)obj);
-            logger.Info("{0}, {1}, {2}, {3}", go, go?.IsValid(), go?.GameObjectId, go?.Address);
-            var i = ClientObjectManager.Instance()->GetIndexByObject(go.Native());
-            logger.Info("{0}", i);
-            var o = (BattleChara*)ClientObjectManager.Instance()->GetObjectByIndex((ushort)i);
-            logger.Info("{0}", o != null);
-            var a = dalamud.ObjectTable.GetObjectAddress(objectId);
-            logger.Info("{0}", a);
-            go = dalamud.ObjectTable.GetGameObjectByIndex(objectId);
-            logger.Info("{0}, {1}, {2}, {3}", go, go?.IsValid(), go?.GameObjectId, go?.Address);
-
             obj->DisableDraw();
             ClientObjectManager.Instance()->DeleteObjectByIndex(objectId, 0);
-
-            logger.Info("{0}, {1}, {2}, {3}", go, go?.IsValid(), go?.GameObjectId, go?.Address);
-            i = ClientObjectManager.Instance()->GetIndexByObject(go.Native());
-            logger.Info("{0}", i);
-            o = (BattleChara*)ClientObjectManager.Instance()->GetObjectByIndex((ushort)i);
-            logger.Info("{0}", o != null);
-            a = dalamud.ObjectTable.GetObjectAddress(objectId);
-            logger.Info("{0}", a);
-            go = dalamud.ObjectTable.GetGameObjectByIndex(objectId);
-            logger.Info("{0}, {1}, {2}, {3}", go, go?.IsValid(), go?.GameObjectId, go?.Address);
         }
     }
 
