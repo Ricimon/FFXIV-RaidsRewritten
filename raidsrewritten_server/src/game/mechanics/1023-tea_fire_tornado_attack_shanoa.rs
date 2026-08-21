@@ -3,7 +3,7 @@ use crate::{
     webserver::{message::RunMechanicCommandPayload, network_mechanic::NetworkMechanicCommand},
 };
 use flecs_ecs::prelude::*;
-use nalgebra::Vector3;
+use nalgebra::Vector2;
 use tracing::info;
 
 #[derive(Component, Debug)]
@@ -60,6 +60,42 @@ pub fn create_systems(world: &World) {
             }
 
             // Attack Shanoa
+            world
+                .query::<(&TeaShanoa, &Position, &Party)>()
+                .build()
+                .each_entity(|e, (shanoa, shanoa_position, p)| {
+                    if p.id != party.id {
+                        return;
+                    }
+                    let shanoa_position = Vector2::new(shanoa_position.x, shanoa_position.z);
+                    let fire_tornado_position = Vector2::new(position.x, position.z);
+                    if shanoa_position.metric_distance(&fire_tornado_position)
+                        <= attack.distance_threshold
+                    {
+                        e.destruct();
+
+                        if let Some(pc) = find_party_container(world, &party.id) {
+                            let io = get_socket_io(world);
+                            pc.each_child(|c| {
+                                c.try_get::<(&Socket, &Player)>(|(s, _)| {
+                                    send_run_mechanic_command(
+                                        io.clone(),
+                                        s.id,
+                                        RunMechanicCommandPayload {
+                                            mechanic_command_id:
+                                                NetworkMechanicCommand::TeaShanoaRunsAway as i32,
+                                            extra_data: Some(format!(
+                                                "{},{}",
+                                                shanoa.movement_speed, shanoa.rotation_speed
+                                            )),
+                                            ..Default::default()
+                                        },
+                                    );
+                                });
+                            });
+                        }
+                    }
+                });
 
             info!(
                 mechanic.request_id,

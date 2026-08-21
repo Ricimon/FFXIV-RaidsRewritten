@@ -30,6 +30,9 @@ public class ShanoaParkTest : Mechanic
     private const string AetherCompassLocationVfxPath = "bg/ex2/05_zon_z3/common/vfx/eff/b1526bari1_u.avfx";
     private const string AetherCompassLocationArrowsVfxPath = "bgcommon/world/common/vfx_for_bg/eff/b1490tagt1_o.avfx";
 
+    private const string ShanoaAetherCompassMessage = "Shanoa responds to the Aether Compass!";
+    private const string ShanoaRunsAwayMessage = "Shanoa runs off...";
+
     private const float GuidanceMarkerRadius = 1.4f;
 
     private readonly List<Entity> attacks = [];
@@ -246,7 +249,8 @@ public class ShanoaParkTest : Mechanic
                     if (!string.IsNullOrEmpty(payload.extraData))
                     {
                         var arguments = payload.extraData.Split(',');
-                        if (float.TryParse(arguments[0], out var movementSpeed) &&
+                        if (arguments.Length >= 2 &&
+                            float.TryParse(arguments[0], out var movementSpeed) &&
                             float.TryParse(arguments[1], out var rotationSpeed))
                         {
                             shanoa.Set(new Shanoa.Component(movementSpeed, rotationSpeed));
@@ -299,6 +303,55 @@ public class ShanoaParkTest : Mechanic
                         }, omenDuration);
                         attacks.Add(action1);
                     }
+                }
+                break;
+
+            case (int)NetworkMechanicCommand.TeaShanoaRunsAway:
+                {
+                    var movementSpeed = 6.0f;
+                    var rotationSpeed = 7.0f;
+                    if (!string.IsNullOrEmpty(payload.extraData))
+                    {
+                        var arguments = payload.extraData.Split(',');
+                        if (arguments.Length >= 2)
+                        {
+                            _ = float.TryParse(arguments[0], out movementSpeed);
+                            _ = float.TryParse(arguments[1], out rotationSpeed);
+                        }
+                    }
+
+                    var delay = 0.0f;
+                    using (var q = World.Query<FireTornadoEntity.Component>())
+                    {
+                        var fireTornado = q.First();
+                        if (fireTornado.IsValid())
+                        {
+                            // Assume the fire tornado attacked Shanoa; this needs a bit of delay on the animation
+                            delay = 0.9f;
+                        }
+                    }
+                    var action = DelayedAction.Create(World, () =>
+                    {
+                        var shanoaFound = false;
+                        using var q = World.Query<Shanoa.Component, Model, Position, Rotation>();
+                        q.Each((Entity entity, ref Shanoa.Component _, ref Model model, ref Position position, ref Rotation rotation) =>
+                        {
+                            shanoaFound = true;
+                            var forward = MathUtilities.RotationToUnitVector(rotation.Value);
+                            var targetPosition = position.Value + 1000.0f * forward.ToVector3(position.Value.Y);
+                            entity
+                                .Set(new Shanoa.TargetPosition(targetPosition))
+                                .Set(new Shanoa.Component(movementSpeed, rotationSpeed))
+                                .Set(new ModelFadeOut(model.GameObjectIndex, 1.0f, 1.0f));
+                        });
+
+                        if (shanoaFound)
+                        {
+                            Dalamud.ToastGui.ShowNormal(ShanoaRunsAwayMessage);
+                            Dalamud.ChatGui.PrintSystemMessage(ShanoaRunsAwayMessage);
+                        }
+                    }, delay);
+                    attacks.Add(action);
                 }
                 break;
         }
@@ -400,13 +453,12 @@ public class ShanoaParkTest : Mechanic
             attacks.Add(action);
             guidanceEntities.Add(action);
 
-            var hint = "Shanoa responds to the Aether Compass!";
             var raptureAtkModule = RaptureAtkModule.Instance();
             if (raptureAtkModule != null)
             {
-                raptureAtkModule->ShowTextGimmickHint(hint, RaptureAtkModule.TextGimmickHintStyle.Warning, 4 * 10);
+                raptureAtkModule->ShowTextGimmickHint(ShanoaAetherCompassMessage, RaptureAtkModule.TextGimmickHintStyle.Warning, 4 * 10);
             }
-            Dalamud.ChatGui.PrintSystemMessage(hint);
+            Dalamud.ChatGui.PrintSystemMessage(ShanoaAetherCompassMessage);
         }
     }
 

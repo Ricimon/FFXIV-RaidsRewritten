@@ -132,6 +132,20 @@ public unsafe sealed class ModelSystem(
                 }
             });
 
+        world.System<Model, Alpha>()
+            .Each((Iter it, int i, ref Model model, ref Alpha alpha) =>
+            {
+                if (!it.Changed()) { return; }
+                if (model.Spawned)
+                {
+                    var obj = (BattleChara*)ClientObjectManager.Instance()->GetObjectByIndex((ushort)model.GameObjectIndex);
+                    if (obj != null)
+                    {
+                        obj->Alpha = alpha.Value;
+                    }
+                }
+            });
+
         world.System<Model, OneTimeModelTimeline>()
             .Each((Iter it, int i, ref Model model, ref OneTimeModelTimeline timeline) =>
             {
@@ -191,7 +205,8 @@ public unsafe sealed class ModelSystem(
                 if (chara->Timeline.TimelineSequencer.GetSlotTimeline(0) == timelineBlend.Value)
                 {
                     it.Entity(i).Remove<TimelineBlend>();
-                } else
+                }
+                else
                 {
                     chara->Timeline.TimelineSequencer.SetSlotTimeline(timelineBlend.Slot, timelineBlend.Value);
                 }
@@ -216,11 +231,23 @@ public unsafe sealed class ModelSystem(
             .Event(Ecs.OnRemove)
             .Each((Entity e, ref Model _) =>
             {
+                if (e.Has<ModelFadeOut>()) { return; }
                 var model = e.Get<Model>();
                 if (model.Spawned)
                 {
+                    float a = 1.0f;
+                    if (e.TryGet(out Alpha alpha))
+                    {
+                        a = alpha.Value;
+                        if (a == 0)
+                        {
+                            DeleteModel(model.GameObjectIndex);
+                            return;
+                        }
+                    }
+                    var duration = a / 1.0f;
                     e.CsWorld().Entity()
-                        .Set(new ModelFadeOut(model.GameObjectIndex, 1.0f, 1.0f));
+                        .Set(new ModelFadeOut(model.GameObjectIndex, duration, duration, a));
                 }
             });
 
@@ -236,7 +263,9 @@ public unsafe sealed class ModelSystem(
                         it.Entity(i).Destruct();
                         return;
                     }
-                    obj->Alpha = modelFade.TimeRemaining / modelFade.Duration;
+                    var alpha = modelFade.TimeRemaining / modelFade.Duration;
+                    it.Entity(i).Set(new Alpha(alpha));
+                    obj->Alpha = alpha;
                 }
                 else
                 {
