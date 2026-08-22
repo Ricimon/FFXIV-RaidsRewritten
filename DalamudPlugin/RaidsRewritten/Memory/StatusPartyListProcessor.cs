@@ -431,7 +431,18 @@ public unsafe sealed class StatusPartyListProcessor(
             resourceLoader.LoadIconByID?.Invoke(container->GetAsAtkComponentNode()->Component, (int)status.IconId);
         }
 
-        //var dispelNode = container->GetAsAtkComponentNode()->Component->UldManager.NodeList[0];
+        // dispel
+        var dispelNode = container->GetAsAtkComponentNode()->Component->GetImageNodeById(4);
+        if (dispelNode != null)
+        {
+            if (status.CanDispel)
+            {
+                dispelNode->NodeFlags |= NodeFlags.Visible;
+            } else
+            {
+                dispelNode->NodeFlags &= ~NodeFlags.Visible;
+            }
+        }
 
         // timer
         var textNode = container->GetAsAtkComponentNode()->Component->UldManager.NodeList[2];
