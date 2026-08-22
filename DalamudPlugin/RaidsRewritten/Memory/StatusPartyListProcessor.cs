@@ -445,7 +445,7 @@ public unsafe sealed class StatusPartyListProcessor(
         }
 
         // timer
-        var textNode = container->GetAsAtkComponentNode()->Component->UldManager.NodeList[2];
+        var textNode = container->GetAsAtkComponentNode()->Component->GetTextNodeById(2);
         var timerText = "";
         if (!float.IsInfinity(status.TimeRemaining))
         {
