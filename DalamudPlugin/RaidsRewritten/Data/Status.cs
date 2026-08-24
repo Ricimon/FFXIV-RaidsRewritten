@@ -20,6 +20,7 @@ public struct Status
     public byte PartyListPriority;
     public byte CanIncreaseRewards;
     public byte ParamEffect;
+    public bool CanDispel;
 
     public float RemainingTime;
     public bool SourceIsSelf;
@@ -53,6 +54,7 @@ public struct Status
         PartyListPriority = byte.MaxValue;
         CanIncreaseRewards = 0;
         ParamEffect = 0;
+        CanDispel = false;
     }
 
     public Status(Lumina.Excel.Sheets.Status luminaStatus) => InitLumina(luminaStatus);
@@ -87,6 +89,7 @@ public struct Status
         PartyListPriority = luminaStatus.PartyListPriority;
         CanIncreaseRewards = luminaStatus.CanIncreaseRewards;
         ParamEffect = luminaStatus.ParamEffect;
+        CanDispel = luminaStatus.CanDispel;
     }
 }
 

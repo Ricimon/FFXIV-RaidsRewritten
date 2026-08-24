@@ -125,7 +125,15 @@ public sealed unsafe class StatusCommonProcessor : IDalamudHook
             container->GetAsAtkComponentNode()->Component->GetImageNodeById(3)->ToggleVisibility(true);
         }
 
-        //var dispelNode = container->GetAsAtkComponentNode()->Component->UldManager.NodeList[0];09:56:24.378 | DBG | [RaidsRewritten] 2A726060DF0
+        // dispel
+        var dispelNode = container->GetAsAtkComponentNode()->Component->GetImageNodeById(4);
+        if (dispelNode != null)
+        {
+            // this SetIcon does not handle any native statuses since we don't deal 
+            // with shifting statuses in the general case (party list's SetIcon does)
+            // since custom statuses aren't dispellable for now, this can always be false whenever a custom status is present
+            dispelNode->NodeFlags &= ~NodeFlags.Visible;
+        }
 
 
         // timer
