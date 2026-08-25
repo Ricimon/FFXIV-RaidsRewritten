@@ -6,4 +6,5 @@ pub enum NetworkMechanicCommand {
     TeaFireTornadoAttackShanoa = -1023,
     TeaShanoaRunsAway = -1024,
     TeaShanoaAbsorbsMarker = -1025,
+    TeaHideShanoa = -1027,
 }

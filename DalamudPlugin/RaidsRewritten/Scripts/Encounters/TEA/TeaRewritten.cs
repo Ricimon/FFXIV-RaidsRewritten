@@ -93,8 +93,8 @@ public class TeaRewritten : IEncounter
         }
         if (configuration.GetEncounterSetting(ShanoaParkKey, defaultBoolSettings[ShanoaParkKey]))
         {
-            var shanoaPark = mechanicFactory.Create<ShanoaPark>();
-            mechanics.Add(shanoaPark);
+            mechanics.Add(mechanicFactory.Create<ShanoaPark>());
+            mechanics.Add(mechanicFactory.Create<ShanoaAndNisi>());
         }
         if (configuration.GetEncounterSetting(ShanoaParkKey, defaultBoolSettings[ShanoaParkKey]) &&
             configuration.GetEncounterSetting(FireTornadoKey, defaultBoolSettings[FireTornadoKey]))

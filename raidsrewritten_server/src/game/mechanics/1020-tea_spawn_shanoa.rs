@@ -9,7 +9,7 @@ use tracing::warn;
 
 #[derive(Component, Debug)]
 pub struct TeaShanoa {
-    pub visible: bool,
+    pub active: bool,
     pub navigation_markers: HashSet<u8>,
     pub absorbed_markers: HashSet<u8>,
     pub fire_tornado: Entity,
@@ -127,7 +127,7 @@ pub fn create_systems(world: &World) {
                 );
                 shanoa_entity
                     .set(TeaShanoa {
-                        visible: true,
+                        active: true,
                         navigation_markers: HashSet::from([0, 1, 2, 3, 4, 5, 6, 7]),
                         absorbed_markers: HashSet::default(),
                         fire_tornado: *entity,

@@ -152,7 +152,15 @@ public class ShanoaPark : Mechanic
             }
             var action = DelayedAction.Create(World, () =>
             {
-                shanoa.SafeDestruct();
+                NetworkClient.SendAsync(new Message
+                {
+                    action = Message.Action.StartMechanic,
+                    startMechanic = new Message.StartMechanicPayload
+                    {
+                        mechanicId = (uint)NetworkMechanic.TeaHideShanoa,
+                        requestId = nameof(NetworkMechanic.TeaHideShanoa) + "_Cascade",
+                    }
+                }).SafeFireAndForget();
             }, 1.0f);
             attacks.Add(action);
         }
@@ -349,6 +357,12 @@ public class ShanoaPark : Mechanic
                         Dalamud.ToastGui.ShowNormal(ShanoaAbsorbMarkerMessage);
                         Dalamud.ChatGui.PrintSystemMessage(ShanoaAbsorbMarkerMessage);
                     }
+                }
+                break;
+
+            case (int)NetworkMechanicCommand.TeaHideShanoa:
+                {
+                    shanoa.SafeDestruct();
                 }
                 break;
         }
