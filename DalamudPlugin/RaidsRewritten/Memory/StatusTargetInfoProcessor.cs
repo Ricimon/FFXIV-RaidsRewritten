@@ -73,7 +73,7 @@ public unsafe sealed class StatusTargetInfoProcessor(Configuration configuration
                     var temp = (Interop.Structs.AtkComponentIconText*)c->GetAsAtkComponentNode()->Component;
                     var iconId = temp->IconId;
                     temp->IconId = 0;
-                    resourceLoader.LoadIconByID?.Invoke(c->GetAsAtkComponentNode()->Component, (int)iconId);
+                    resourceLoader.AtkComponentIconText_LoadIconByID?.Invoke(c->GetAsAtkComponentNode()->Component, (int)iconId);
                 }
             }
         }

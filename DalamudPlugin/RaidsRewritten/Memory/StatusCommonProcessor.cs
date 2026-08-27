@@ -70,7 +70,7 @@ public sealed unsafe class StatusCommonProcessor : IDalamudHook
     public void HookToDalamud()
     {
         dalamudServices.Framework.Update += Framework_Update;
-        resourceLoader.OnAtkComponentIconTextReceiveHoverEvent += OnAtkComponentIconTextReceiveHoverEvent;
+        resourceLoader.OnAtkComponentIconText_ReceiveHoverEvent += OnAtkComponentIconTextReceiveHoverEvent;
     }
 
     private void Framework_Update(Dalamud.Plugin.Services.IFramework framework)
@@ -84,7 +84,7 @@ public sealed unsafe class StatusCommonProcessor : IDalamudHook
     public void Dispose()
     {
         dalamudServices.Framework.Update -= Framework_Update;
-        resourceLoader.OnAtkComponentIconTextReceiveHoverEvent -= OnAtkComponentIconTextReceiveHoverEvent;
+        resourceLoader.OnAtkComponentIconText_ReceiveHoverEvent -= OnAtkComponentIconTextReceiveHoverEvent;
         Marshal.FreeHGlobal(TooltipMemory);
     }
 
@@ -116,7 +116,7 @@ public sealed unsafe class StatusCommonProcessor : IDalamudHook
 
         if (replacement == null)
         {
-            resourceLoader.LoadIconByID?.Invoke(container->GetAsAtkComponentNode()->Component, status.Icon);
+            resourceLoader.AtkComponentIconText_LoadIconByID?.Invoke(container->GetAsAtkComponentNode()->Component, status.Icon);
         } else
         {
             container->GetAsAtkComponentNode()->Component->GetImageNodeById(3)->LoadTexture(replacement.Value.OriginalPath);

@@ -8,5 +8,5 @@ public record struct ActorVfx(string Path, Interop.Structs.Vfx.ActorVfx? VfxPtr 
 public record struct ActorVfxSource(IGameObject? Source);
 public record struct ActorVfxTarget(IGameObject? Target);
 public record struct VfxId(BigInteger Value);
-public record struct VfxFadeOut(Interop.Structs.Vfx.StaticVfx VfxPtr, float Duration, float TimeRemaining);
+public record struct VfxFadeOut(Interop.Structs.Vfx.BaseVfx VfxPtr, float Duration, float TimeRemaining);
 public record struct VfxFadeOutDuration(float Value);

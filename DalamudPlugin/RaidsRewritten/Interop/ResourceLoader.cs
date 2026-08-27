@@ -1,35 +1,31 @@
 ﻿// Adapted from https://github.com/0ceal0t/Dalamud-VFXEditor/blob/main/VFXEditor/Interop/ResourceLoader.cs
-// 855ac66
+// 8be61a5
 // and https://github.com/0ceal0t/Dalamud-VFXEditor/blob/main/VFXEditor/Interop/Constants.cs
-// 908ddef
+// 8be61a5
 using System;
 using System.Runtime.InteropServices;
-using RaidsRewritten.Game;
+using ECommons.EzHookManager;
+using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
 using RaidsRewritten.Log;
-using RaidsRewritten.Memory;
-using RaidsRewritten.Spawn;
 
 namespace RaidsRewritten.Interop;
 
 public unsafe sealed partial class ResourceLoader : IDisposable
 {
-    public const string StaticVfxCreateSig = "E8 ?? ?? ?? ?? F3 0F 10 35 ?? ?? ?? ?? 48 89 43 08";
+    public const string ReadFileSig = "48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 41 54 41 55 41 56 41 57 48 81 EC ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 84 24 ?? ?? ?? ?? 48 63 42";
+    public const string ReadSqpackSig = "40 56 41 56 48 83 EC ?? 0F BE 02";
+    public const string GetResourceSyncSig = "E8 ?? ?? ?? ?? 48 8B C8 8B C3 F0 0F C0 81";
+    public const string GetResourceAsyncSig = "E8 ?? ?? ?? 00 48 8B D8 EB ?? F0 FF 83 ?? ?? 00 00";
+
     public const string StaticVfxRunSig = "E8 ?? ?? ?? ?? B0 02 EB 02";
     public const string StaticVfxRemoveSig = "40 53 48 83 EC 20 48 8B D9 48 8B 89 ?? ?? ?? ?? 48 85 C9 74 28 33 D2 E8 ?? ?? ?? ?? 48 8B 8B ?? ?? ?? ?? 48 85 C9";
 
     public const string ActorVfxCreateSig = "40 53 55 56 57 48 81 EC ?? ?? ?? ?? 0F 29 B4 24 ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 84 24 ?? ?? ?? ?? 0F B6 AC 24 ?? ?? ?? ?? 0F 28 F3 49 8B F8";
     public const string ActorVfxRemoveSig = "0F 11 48 10 48 8D 05"; // the weird one
 
-    public const string PlaySpecificSoundSig = "48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 33 F6 8B DA 48 8B F9 0F BA E2 0F";
-    public const string LoadSoundFileSig = "E8 ?? ?? ?? ?? 48 85 C0 75 12 B0 F6";
-    public const string ApricotListenerSoundPlaySig = "41 54 41 55 41 56 41 57 48 81 EC ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 4D 8B F9";
-    public const string ApricotListenerSoundPlayCallerSig = "4C 8B DC 56 48 81 EC ?? ?? ?? ?? F3 0F 10 89";
-    public const string PlaySoundSig = "E8 ?? ?? ?? ?? 83 FB 10 41 BF ?? ?? ?? ??";
+    public const string CallTriggerSig = "E8 ?? ?? ?? ?? 0F B7 43 56";
 
-    public const string ReadFileSig = "48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 41 54 41 55 41 56 41 57 48 81 EC ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 84 24 ?? ?? ?? ?? 48 63 42";
-    public const string GetResourceSyncSig = "E8 ?? ?? ?? ?? 48 8B C8 8B C3 F0 0F C0 81";
-    public const string GetResourceAsyncSig = "E8 ?? ?? ?? 00 48 8B D8 EB ?? F0 FF 83 ?? ?? 00 00";
-    public const string ReadSqpackSig = "40 56 41 56 48 83 EC ?? 0F BE 02";
+    // https://github.com/Ottermandias/Penumbra.GameData/blob/main/Signatures.cs
 
     public const string CheckFileStateSig = "E8 ?? ?? ?? ?? 48 85 C0 74 ?? 4C 8B C8 ";
 
@@ -43,10 +39,11 @@ public unsafe sealed partial class ResourceLoader : IDisposable
     public const string LoadScdLocalSig = "48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 30 8B 79 ?? 48 8B DA 8B D7";
     public const string SoundOnLoadSig = "40 56 57 41 54 48 81 EC 90 00 00 00 80 3A 0B 45 0F B6 E0 48 8B F2";
 
-    public const string LoadIconByIdSig = "E8 ?? ?? ?? ?? 41 8D 45 3E";
-    public const string AtkComponentIconTextReceiveEventSig = "44 0F B7 C2 4D 8B D1";
+    // https://github.com/lmcintyre/Dalamud.FindAnything/blob/a093b2f9e0c20e7d0479c091125ccca5ea09d683/Dalamud.FindAnything/Game/GameWindow.cs#L250
 
-    public const string BattleLog_AddToScreenLogWithScreenLogKindSig = "48 85 C9 0F 84 ?? ?? ?? ?? 56 41 56";
+    public const string PlaySoundSig = "E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? FE C2";
+
+    public const string InitSoundSig = "E8 ?? ?? ?? ?? 8B 5D 77";
 
     private DalamudServices dalamud;
     private readonly ILogger logger;
@@ -62,119 +59,59 @@ public unsafe sealed partial class ResourceLoader : IDisposable
         var hooks = dalamud.GameInteropProvider;
 
         hooks.InitializeFromAttributes(this);
+        EzSignatureHelper.Initialize(this);
 
-        // Replace
+        // VFX
 
-        ReadSqpackHook = hooks.HookFromSignature<ReadSqpackPrototype>(ReadSqpackSig, ReadSqpackDetour);
-        GetResourceSyncHook = hooks.HookFromSignature<GetResourceSyncPrototype>(GetResourceSyncSig, GetResourceSyncDetour);
-        GetResourceAsyncHook = hooks.HookFromSignature<GetResourceAsyncPrototype>(GetResourceAsyncSig, GetResourceAsyncDetour);
-        ReadFile = Marshal.GetDelegateForFunctionPointer<ReadFilePrototype>(sigScanner.ScanText(ReadFileSig));
+        var staticVfxCreateAddress = sigScanner.ScanText(VfxObject.Addresses.Create.String);
+        var actorVfxRemoveAddressTemp = sigScanner.ScanText(ActorVfxRemoveSig) + 7;
+        var actorVfxRemoveAddress = Marshal.ReadIntPtr(actorVfxRemoveAddressTemp + Marshal.ReadInt32(actorVfxRemoveAddressTemp) + 4);
+
+        ActorVfxRemove = Marshal.GetDelegateForFunctionPointer<ActorVfxRemoveDelegate>(actorVfxRemoveAddress);
+        StaticVfxCreate = Marshal.GetDelegateForFunctionPointer<VfxObject.Delegates.Create>(staticVfxCreateAddress);
+
+        StaticVfxCreateHook = hooks.HookFromAddress<VfxObject.Delegates.Create>(staticVfxCreateAddress, StaticVfxNewDetour);
+        ActorVfxRemoveHook = hooks.HookFromAddress<ActorVfxRemoveDelegate>(actorVfxRemoveAddress, ActorVfxRemoveDetour);
 
         ReadSqpackHook.Enable();
         GetResourceSyncHook.Enable();
         GetResourceAsyncHook.Enable();
-
-        // VFX
-
-        var staticVfxCreateAddress = sigScanner.ScanText(StaticVfxCreateSig);
-        var staticVfxRemoveAddress = sigScanner.ScanText(StaticVfxRemoveSig);
-        var actorVfxCreateAddress = sigScanner.ScanText(ActorVfxCreateSig);
-        var actorVfxRemoveAddressTemp = sigScanner.ScanText(ActorVfxRemoveSig) + 7;
-        var actorVfxRemoveAddress = Marshal.ReadIntPtr(actorVfxRemoveAddressTemp + Marshal.ReadInt32(actorVfxRemoveAddressTemp) + 4);
-
-        StaticVfxRemove = Marshal.GetDelegateForFunctionPointer<StaticVfxRemoveDelegate>(staticVfxRemoveAddress);
-        StaticVfxRun = Marshal.GetDelegateForFunctionPointer<StaticVfxRunDelegate>(sigScanner.ScanText(StaticVfxRunSig));
-        StaticVfxCreate = Marshal.GetDelegateForFunctionPointer<StaticVfxCreateDelegate>(staticVfxCreateAddress);
-        ActorVfxCreate = Marshal.GetDelegateForFunctionPointer<ActorVfxCreateDelegate>(actorVfxCreateAddress);
-        ActorVfxRemove = Marshal.GetDelegateForFunctionPointer<ActorVfxRemoveDelegate>(actorVfxRemoveAddress);
-
-        StaticVfxCreateHook = hooks.HookFromAddress<StaticVfxCreateDelegate>(staticVfxCreateAddress, StaticVfxNewDetour);
-        StaticVfxRemoveHook = hooks.HookFromAddress<StaticVfxRemoveDelegate>(staticVfxRemoveAddress, StaticVfxRemoveDetour);
-        ActorVfxCreateHook = hooks.HookFromAddress<ActorVfxCreateDelegate>(actorVfxCreateAddress, ActorVfxNewDetour);
-        ActorVfxRemoveHook = hooks.HookFromAddress<ActorVfxRemoveDelegate>(actorVfxRemoveAddress, ActorVfxRemoveDetour);
 
         StaticVfxCreateHook.Enable();
         StaticVfxRemoveHook.Enable();
         ActorVfxCreateHook.Enable();
         ActorVfxRemoveHook.Enable();
 
-        // Crc
-
-        CheckFileStateHook = hooks.HookFromSignature<CheckFileStatePrototype>(CheckFileStateSig, CheckFileStateDetour);
-        LoadTexFileLocal = Marshal.GetDelegateForFunctionPointer<LoadTexFileLocalDelegate>(sigScanner.ScanText(LoadTexFileLocalSig));
-        LoadMdlFileLocal = Marshal.GetDelegateForFunctionPointer<LoadMdlFileLocalDelegate>(sigScanner.ScanText(LoadMdlFileLocalSig));
-        LoadMdlFileExternHook = hooks.HookFromSignature<LoadMdlFileExternDelegate>(LoadMdlFileExternSig, LoadMdlFileExternDetour);
-
         CheckFileStateHook.Enable();
         LoadMdlFileExternHook.Enable();
         TextureOnLoadHook.Enable();
         SoundOnLoadHook.Enable();
 
+        VfxUseTriggerHook.Enable();
+        InitSoundHook.Enable();
+
         PathResolved += AddCrc;
-
-        // Sound
-
-        //var playSpecificSoundAddress = sigScanner.ScanText(PlaySpecificSoundSig);
-        //var loadSoundFileAddress = sigScanner.ScanText(LoadSoundFileSig);
-        //var apricotListenerSoundPlayAddress = sigScanner.ScanText(ApricotListenerSoundPlaySig);
-
-        //PlaySpecificSound = Marshal.GetDelegateForFunctionPointer<PlaySpecificSoundDelegate>(playSpecificSoundAddress);
-        //LoadSoundFile = Marshal.GetDelegateForFunctionPointer<LoadSoundFileDelegate>(loadSoundFileAddress);
-        //ApricotListenerSoundPlay = Marshal.GetDelegateForFunctionPointer<ApricotListenerSoundPlayDelegate>(apricotListenerSoundPlayAddress);
-
-        //PlaySpecificSoundHook = hooks.HookFromAddress<PlaySpecificSoundDelegate>(playSpecificSoundAddress, PlaySpecificSoundDetour);
-        //LoadSoundFileHook = hooks.HookFromAddress<LoadSoundFileDelegate>(loadSoundFileAddress, LoadSoundFileDetour);
-        //ApricotListenerSoundPlayHook = hooks.HookFromAddress<ApricotListenerSoundPlayDelegate>(apricotListenerSoundPlayAddress, ApricotListenerSoundPlayDetour);
-        //ApricotListenerSoundPlayCallerHook = hooks.HookFromSignature<ApricotListenerSoundPlayCallerDelegate>(ApricotListenerSoundPlayCallerSig, ApricotListenerSoundPlayCallerDetour);
-        //PlaySoundHook = hooks.HookFromSignature<PlaySoundDelegate>(PlaySoundSig, PlaySoundDetour);
-
-        //PlaySpecificSoundHook.Enable();
-        //LoadSoundFileHook.Enable();
-        //ApricotListenerSoundPlayHook.Enable();
-        //ApricotListenerSoundPlayCallerHook.Enable();
-        //PlaySoundHook.Enable();
-
-        // Textures
-
-        if (sigScanner.TryScanText(LoadIconByIdSig, out var loadIconByIdAddress))
-            LoadIconByID = Marshal.GetDelegateForFunctionPointer<LoadIconByIDDelegate>(loadIconByIdAddress);
-        else
-            logger.Error("Signature not found for {sig}; LoadIconByID functionality will be unavailable", nameof(LoadIconByIdSig));
-        AtkComponentIconTextReceiveEventHook = hooks.HookFromSignature<AtkComponentIconText_ReceiveEvent>(AtkComponentIconTextReceiveEventSig, AtkComponentIconText_ReceiveEventDetour);
-
-        AtkComponentIconTextReceiveEventHook.Enable();
-
-        // Misc
-
-        var addToScreenLogAddress = sigScanner.ScanText(BattleLog_AddToScreenLogWithScreenLogKindSig);
-        BattleLog_AddToScreenLogWithScreenLogKind = Marshal.GetDelegateForFunctionPointer<BattleLog_AddToScreenLogWithScreenLogKindDelegate>(addToScreenLogAddress);
-
     }
 
     public void Dispose()
     {
-        StaticVfxCreateHook.Dispose();
-        StaticVfxRemoveHook.Dispose();
-        ActorVfxCreateHook.Dispose();
-        ActorVfxRemoveHook.Dispose();
+        PathResolved -= AddCrc;
 
         ReadSqpackHook.Dispose();
         GetResourceSyncHook.Dispose();
         GetResourceAsyncHook.Dispose();
+
+        StaticVfxCreateHook.Dispose();
+        StaticVfxRemoveHook.Dispose();
+        ActorVfxCreateHook.Dispose();
+        ActorVfxRemoveHook.Dispose();
 
         CheckFileStateHook.Dispose();
         LoadMdlFileExternHook.Dispose();
         TextureOnLoadHook.Dispose();
         SoundOnLoadHook.Dispose();
 
-        PathResolved -= AddCrc;
-
-        //PlaySpecificSoundHook.Dispose();
-        //LoadSoundFileHook.Dispose();
-        //ApricotListenerSoundPlayHook.Dispose();
-        //ApricotListenerSoundPlayCallerHook.Dispose();
-        //PlaySoundHook.Dispose();
-
-        AtkComponentIconTextReceiveEventHook.Dispose();
+        VfxUseTriggerHook.Dispose();
+        InitSoundHook.Dispose();
     }
 }

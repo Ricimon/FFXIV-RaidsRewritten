@@ -1,10 +1,11 @@
 ﻿// Adapted from https://github.com/0ceal0t/Dalamud-VFXEditor/blob/main/VFXEditor/Interop/ResourceLoader.Crc.cs
-// 855ac66
+// 8be61a5
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using Dalamud.Hooking;
 using Dalamud.Utility.Signatures;
+using FFXIVClientStructs.FFXIV.Client.System.File;
 using Penumbra.String.Classes;
 using RaidsRewritten.Interop.Structs;
 
@@ -40,7 +41,8 @@ public unsafe partial class ResourceLoader
 
     public delegate IntPtr CheckFileStatePrototype(IntPtr unk1, ulong crc64);
 
-    public Hook<CheckFileStatePrototype> CheckFileStateHook { get; private set; }
+    [Signature(CheckFileStateSig, DetourName = nameof(CheckFileStateDetour))]
+    public readonly Hook<CheckFileStatePrototype> CheckFileStateHook = null;
 
     private nint CheckFileStateDetour(nint ptr, ulong crc64)
     {
@@ -63,16 +65,17 @@ public unsafe partial class ResourceLoader
 
     // ====== LOAD TEX ==========
 
-    public delegate byte LoadTexFileLocalDelegate(TextureResourceHandle* handle, int unk1, SeFileDescriptor* unk2, bool unk33);
+    public delegate byte LoadTexFileLocalDelegate(TextureResourceHandle* handle, int unk1, FileDescriptor* unk2, bool unk33);
 
-    public LoadTexFileLocalDelegate LoadTexFileLocal { get; private set; }
+    [Signature(LoadTexFileLocalSig)]
+    public readonly LoadTexFileLocalDelegate LoadTexFileLocal = null;
 
-    private delegate byte TexResourceHandleOnLoadPrototype(TextureResourceHandle* handle, SeFileDescriptor* descriptor, byte unk2);
+    public delegate byte TexResourceHandleOnLoadPrototype(TextureResourceHandle* handle, FileDescriptor* descriptor, byte unk2);
 
     [Signature(TexResourceHandleOnLoadSig, DetourName = nameof(TexOnLoadDetour))]
-    private readonly Hook<TexResourceHandleOnLoadPrototype> TextureOnLoadHook = null!;
+    public readonly Hook<TexResourceHandleOnLoadPrototype> TextureOnLoadHook = null!;
 
-    private byte TexOnLoadDetour(TextureResourceHandle* handle, SeFileDescriptor* descriptor, byte unk2)
+    private byte TexOnLoadDetour(TextureResourceHandle* handle, FileDescriptor* descriptor, byte unk2)
     {
         var ret = TextureOnLoadHook.Original(handle, descriptor, unk2);
         if (!TexReturnData.Value) return ret;
@@ -86,11 +89,13 @@ public unsafe partial class ResourceLoader
 
     public delegate byte LoadMdlFileLocalDelegate(ResourceHandle* handle, IntPtr unk1, bool unk2);
 
-    public LoadMdlFileLocalDelegate LoadMdlFileLocal { get; private set; }
+    [Signature(LoadMdlFileLocalSig)]
+    public readonly LoadMdlFileLocalDelegate LoadMdlFileLocal = null;
 
     public delegate byte LoadMdlFileExternDelegate(ResourceHandle* handle, IntPtr unk1, bool unk2, IntPtr unk3);
 
-    public Hook<LoadMdlFileExternDelegate> LoadMdlFileExternHook { get; private set; }
+    [Signature(LoadMdlFileExternSig, DetourName = nameof(LoadMdlFileExternDetour))]
+    public readonly Hook<LoadMdlFileExternDelegate> LoadMdlFileExternHook = null;
 
     private byte LoadMdlFileExternDetour(ResourceHandle* resourceHandle, IntPtr unk1, bool unk2, IntPtr ptr)
     => ptr.Equals(CustomFileFlag)
@@ -99,15 +104,15 @@ public unsafe partial class ResourceLoader
 
     // ======= LOAD SCD =============
 
-    private delegate byte SoundOnLoadDelegate(ResourceHandle* handle, SeFileDescriptor* descriptor, byte unk);
+    public delegate byte SoundOnLoadDelegate(ResourceHandle* handle, FileDescriptor* descriptor, byte unk);
 
     [Signature(LoadScdLocalSig)]
-    private readonly delegate* unmanaged<ResourceHandle*, SeFileDescriptor*, byte, byte> LoadScdFileLocal = null!;
+    public readonly delegate* unmanaged<ResourceHandle*, FileDescriptor*, byte, byte> LoadScdFileLocal = null!;
 
     [Signature(SoundOnLoadSig, DetourName = nameof(OnScdLoadDetour))]
-    private readonly Hook<SoundOnLoadDelegate> SoundOnLoadHook = null!;
+    public readonly Hook<SoundOnLoadDelegate> SoundOnLoadHook = null!;
 
-    private byte OnScdLoadDetour(ResourceHandle* handle, SeFileDescriptor* descriptor, byte unk)
+    private byte OnScdLoadDetour(ResourceHandle* handle, FileDescriptor* descriptor, byte unk)
     {
         var ret = SoundOnLoadHook.Original(handle, descriptor, unk);
         if (!ScdReturnData.Value) return ret;

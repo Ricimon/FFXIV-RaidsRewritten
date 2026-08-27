@@ -100,7 +100,7 @@ public unsafe sealed class StatusFlyPopupTextProcessor(
                 }
                 if (statusCommonProcessor.StatusData.TryGetValue((uint)data.Status.Icon, out var statusData))
                 {
-                    resourceLoader.BattleLog_AddToScreenLogWithScreenLogKind((nint)target, (nint)target, kind, 5, 0, 0, (int)statusData.StatusId, (int)statusData.StackCount, 0);
+                    resourceLoader.BattleLog_AddToScreenLogWithScreenLogKindHook.Original((nint)target, (nint)target, kind, 5, 0, 0, (int)statusData.StatusId, (int)statusData.StackCount, 0);
                 }
                 else
                 {

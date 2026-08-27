@@ -428,7 +428,7 @@ public unsafe sealed class StatusPartyListProcessor(
             temp->IconId = 0;
         } else
         {
-            resourceLoader.LoadIconByID?.Invoke(container->GetAsAtkComponentNode()->Component, (int)status.IconId);
+            resourceLoader.AtkComponentIconText_LoadIconByID?.Invoke(container->GetAsAtkComponentNode()->Component, (int)status.IconId);
         }
 
         // dispel

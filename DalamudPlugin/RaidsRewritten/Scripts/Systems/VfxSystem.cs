@@ -43,7 +43,7 @@ public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogge
                 if (it.Changed())
                 {
                     vfx.VfxPtr.UpdatePosition(position.Value);
-                    vfx.VfxPtr.UpdateRotation(new Vector3(0, 0, rotation.Value));
+                    vfx.VfxPtr.UpdateRotation(rotation.Value);
                     vfx.VfxPtr.UpdateScale(scale.Value);
                     vfx.VfxPtr.Update();
                 }
