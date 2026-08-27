@@ -16,6 +16,7 @@ using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Scripts.Models;
 using RaidsRewritten.Spawn;
 using RaidsRewritten.Utility;
+using static RaidsRewritten.Scripts.Encounters.TEA.ShanoaAndNisi;
 
 namespace RaidsRewritten.Scripts.Encounters.E1S;
 
@@ -30,6 +31,8 @@ public class ShanoaParkTest : Mechanic
     private const string AetherCompassLocationArrowsVfxPath = "bgcommon/world/common/vfx_for_bg/eff/b1490tagt1_o.avfx";
     private const string AbsorbMarkerVfxPath1 = "vfx/monster/m0982/eff/m0982sp006c0c.avfx";
     private const string AbsorbMarkerVfxPath2 = "vfx/monster/m0982/eff/m0982sp006t0c.avfx";
+    private const string FinalSentenceVfxPath = "vfx/monster/gimmick/eff/alexfour_hitogata_shinpan_c0c.avfx";
+    private const string FinalSentenceSfxPath = "sound/vfx/monster3/SE_Vfx_Monster_QuadrupedMachine_Judgement_c.scd";
 
     private const string ShanoaAetherCompassMessage = "Shanoa responds to the Aether Compass!";
     private const string ShanoaRunsAwayMessage = "Shanoa runs off...";
@@ -231,12 +234,28 @@ public class ShanoaParkTest : Mechanic
                     var delay = 0.0f;
                     using (var q = World.Query<FireTornadoEntity.Component>())
                     {
-                        var fireTornado = q.First();
-                        if (fireTornado.IsValid())
+                        if (q.IsTrue())
                         {
                             // Assume the fire tornado attacked Shanoa; this needs a bit of delay on the animation
                             delay = 0.9f;
                         }
+                    }
+                    if (delay == 0.0f)
+                    {
+                        using var q = World.QueryBuilder<Shanoa.Component>().With<NisiVfx>().TermAt(0).Up().Build();
+                        q.Each((Entity e, ref Shanoa.Component _) =>
+                        {
+                            delay = 0.75f;
+                            var shanoaEntity = e.Parent();
+                            World.Entity()
+                                .Set(new ActorVfx(FinalSentenceVfxPath))
+                                .ChildOf(shanoaEntity);
+                            ResourceLoader.PlaySound(FinalSentenceSfxPath, 0);
+                            DelayedAction.Create(World, () =>
+                            {
+                                e.SafeDestruct();
+                            }, 0.75f);
+                        });
                     }
                     var action = DelayedAction.Create(World, () =>
                     {
@@ -250,7 +269,8 @@ public class ShanoaParkTest : Mechanic
                             entity
                                 .Set(new Shanoa.TargetPosition(targetPosition))
                                 .Set(new Shanoa.Component(movementSpeed, rotationSpeed))
-                                .Set(new ModelFadeOut(model.ObjectIndex, 1.0f, 1.0f));
+                                .Set(new ModelFadeOut(model.ObjectIndex, 1.5f, 1.5f))
+                                .Set(new ChatBubble("Mrow!!"));
                         });
 
                         if (shanoaFound)

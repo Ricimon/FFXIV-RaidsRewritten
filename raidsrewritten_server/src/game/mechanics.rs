@@ -24,18 +24,22 @@ pub mod m1023_tea_fire_tornado_attack_shanoa;
 pub mod m1026_tea_show_shanoa;
 #[path = "mechanics/1027-tea_hide_shanoa.rs"]
 pub mod m1027_tea_hide_shanoa;
+#[path = "mechanics/1028-tea_update_nisi_status.rs"]
+pub mod m1028_tea_update_nisi_status;
 
 use crate::{
     game::{components::*, utils::*},
     webserver::message::StopVfxPayload,
 };
 use flecs_ecs::prelude::*;
+use socketioxide::socket::Sid;
 use tracing::info;
 
 pub fn create_mechanic(
     world: &World,
     request_id: String,
     mechanic_id: u32,
+    requester_socket_id: Sid,
     party: String,
     transform: Option<Transform>,
     extra_data: Option<String>,
@@ -55,10 +59,11 @@ pub fn create_mechanic(
         1023 => Some(m1023_tea_fire_tornado_attack_shanoa::create_mechanic),
         1026 => Some(m1026_tea_show_shanoa::create_mechanic),
         1027 => Some(m1027_tea_hide_shanoa::create_mechanic),
+        1028 => Some(m1028_tea_update_nisi_status::create_mechanic),
         _ => None,
     };
     if let Some(f) = mechanic_fn {
-        let e = create_generic_mechanic(world, request_id, mechanic_id, party);
+        let e = create_generic_mechanic(world, request_id, mechanic_id, requester_socket_id, party);
 
         if let Some(t) = transform {
             e.set(Position {
@@ -84,6 +89,7 @@ pub fn create_generic_mechanic(
     world: &World,
     request_id: String,
     mechanic_id: u32,
+    requester_socket_id: Sid,
     party: String,
 ) -> EntityView<'_> {
     let e = world
@@ -91,6 +97,7 @@ pub fn create_generic_mechanic(
         .set(Mechanic {
             request_id,
             mechanic_id,
+            requester_socket_id,
         })
         .set(Party { id: party.clone() });
 
@@ -116,6 +123,7 @@ pub fn create_systems(world: &World) {
     m1023_tea_fire_tornado_attack_shanoa::create_systems(world);
     m1026_tea_show_shanoa::create_systems(world);
     m1027_tea_hide_shanoa::create_systems(world);
+    m1028_tea_update_nisi_status::create_systems(world);
 }
 
 pub fn create_observers(world: &World) {

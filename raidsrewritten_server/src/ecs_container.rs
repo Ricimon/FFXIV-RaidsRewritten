@@ -170,6 +170,7 @@ fn process_messages(world: &World, queries: &CommonQueries, rx_from_ws: &Receive
                             world,
                             request_id,
                             mechanic_id,
+                            socket_id,
                             party.id.clone(),
                             transform,
                             extra_data,

@@ -18,6 +18,7 @@ public enum NetworkMechanic : uint
     TeaFireTornadoAttackShanoa = 1023,
     TeaShowShanoa = 1026,
     TeaHideShanoa = 1027,
+    TeaUpdateNisiStatus = 1028,
 }
 
 // To client
@@ -31,4 +32,5 @@ public enum NetworkMechanicCommand : int
     TeaShanoaRunsAway = -1024,
     TeaShanoaAbsorbsMarker = -1025,
     TeaHideShanoa = -1027,
+    TeaUpdateShanoaNisiStatus = -1028,
 }

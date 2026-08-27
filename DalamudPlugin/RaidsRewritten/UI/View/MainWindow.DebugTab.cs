@@ -28,6 +28,8 @@ public partial class MainWindow
     private Entity debugSpawnedModel = default;
     private string debugVfxPath = "vfx/lockon/eff/target_ae_s6k1.avfx";
     private Entity debugSpawnedVfx = default;
+    private Vector3 debugVfxScale = Vector3.One;
+    private bool debugVfxScaleEqualized = true;
 
     private void DebugSpawnModel()
     {
@@ -947,6 +949,70 @@ public partial class MainWindow
                             }).SafeFireAndForget();
                         }
                     }
+                    
+                    if (ImGui.Button("Shanoa"))
+                    {
+                        var player = this.dalamud.ObjectTable.LocalPlayer;
+                        if (player != null)
+                        {
+                            this.networkClient.SendAsync(new Message
+                            {
+                                action = Message.Action.StartMechanic,
+                                startMechanic = new Message.StartMechanicPayload
+                                {
+                                    requestId = NetworkMechanic.TeaSpawnShanoa.ToString(),
+                                    mechanicId = (uint)NetworkMechanic.TeaSpawnShanoa,
+                                    worldPositionX = player.Position.X,
+                                    worldPositionY = player.Position.Y,
+                                    worldPositionZ = player.Position.Z,
+                                    rotation = player.Rotation,
+                                }
+                            }).SafeFireAndForget();
+                        }
+                    }
+                    ImGui.Text("Give self Nisi:");
+                    ImGui.SameLine();
+                    if (ImGui.Button("None##Nisi"))
+                    {
+                        this.networkClient.SendAsync(new Message
+                        {
+                            action = Message.Action.StartMechanic,
+                            startMechanic = new Message.StartMechanicPayload
+                            {
+                                requestId = Guid.NewGuid().ToString(),
+                                mechanicId = (uint)NetworkMechanic.TeaUpdateNisiStatus,
+                                extraData = "0",
+                            }
+                        }).SafeFireAndForget();
+                    }
+                    ImGui.SameLine();
+                    if (ImGui.Button("Alpha##Nisi"))
+                    {
+                        this.networkClient.SendAsync(new Message
+                        {
+                            action = Message.Action.StartMechanic,
+                            startMechanic = new Message.StartMechanicPayload
+                            {
+                                requestId = Guid.NewGuid().ToString(),
+                                mechanicId = (uint)NetworkMechanic.TeaUpdateNisiStatus,
+                                extraData = "1",
+                            }
+                        }).SafeFireAndForget();
+                    }
+                    ImGui.SameLine();
+                    if (ImGui.Button("Beta##Nisi"))
+                    {
+                        this.networkClient.SendAsync(new Message
+                        {
+                            action = Message.Action.StartMechanic,
+                            startMechanic = new Message.StartMechanicPayload
+                            {
+                                requestId = Guid.NewGuid().ToString(),
+                                mechanicId = (uint)NetworkMechanic.TeaUpdateNisiStatus,
+                                extraData = "2",
+                            }
+                        }).SafeFireAndForget();
+                    }
                 }
             }
         }
@@ -1012,6 +1078,41 @@ public partial class MainWindow
                     ImGui.PopTextWrapPos();
                     ImGui.EndTooltip();
                 }
+
+                var scale = debugVfxScale;
+                if (ImGui.InputFloat3("Scale", ref scale))
+                {
+                    if (debugVfxScaleEqualized)
+                    {
+                        if (scale.X != debugVfxScale.X)
+                        {
+                            debugVfxScale = scale.X * Vector3.One;
+                        }
+                        else if (scale.Y != debugVfxScale.Y)
+                        {
+                            debugVfxScale = scale.Y * Vector3.One;
+                        }
+                        else if (scale.Z != debugVfxScale.Z)
+                        {
+                            debugVfxScale = scale.Z * Vector3.One;
+                        }
+                    }
+                    else
+                    {
+                        debugVfxScale = scale;
+                    }
+                }
+                ImGui.SameLine();
+                ImGui.Checkbox("##DebugVfxScaleEqualized", ref debugVfxScaleEqualized);
+                if (ImGui.IsItemHovered())
+                {
+                    ImGui.BeginTooltip();
+                    ImGui.PushTextWrapPos(ImGui.GetFontSize() * 35.0f);
+                    ImGui.TextUnformatted("Keep all scale component values equal");
+                    ImGui.PopTextWrapPos();
+                    ImGui.EndTooltip();
+                }
+
                 if (!debugSpawnedVfx.IsValid() && ImGui.Button("Spawn VFX"))
                 {
                     var localPlayer = dalamud.ObjectTable.LocalPlayer;
@@ -1024,12 +1125,13 @@ public partial class MainWindow
                             .Set(new StaticVfx(debugVfxPath))
                             .Set(new Position(localPlayer.Position))
                             .Set(new Rotation())
-                            .Set(new Scale())
+                            .Set(new Scale(debugVfxScale))
                             .ChildOf(debugSpawnedVfx);
 
                         var actor = World.Entity()
                             .Set(new ActorVfx(debugVfxPath))
                             .Set(new ActorVfxSource(dalamud.ObjectTable.LocalPlayer))
+                            .Set(new Scale(debugVfxScale))
                             .ChildOf(debugSpawnedVfx);
 
                         if (localPlayer.TargetObject != null)
@@ -1041,6 +1143,14 @@ public partial class MainWindow
                 if (debugSpawnedVfx.IsValid() && ImGui.Button("Despawn"))
                 {
                     debugSpawnedVfx.Destruct();
+                }
+            }
+
+            if (ImGui.CollapsingHeader("Sound"))
+            {
+                if (ImGui.Button("Final Sentence"))
+                {
+                    resourceLoader.PlaySound("sound/vfx/monster3/SE_Vfx_Monster_QuadrupedMachine_Judgement_c.scd", 0);
                 }
             }
 

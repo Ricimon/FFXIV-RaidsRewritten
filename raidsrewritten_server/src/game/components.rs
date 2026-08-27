@@ -60,6 +60,7 @@ pub struct Vfx {
 pub struct Mechanic {
     pub request_id: String,
     pub mechanic_id: u32,
+    pub requester_socket_id: Sid,
 }
 
 #[derive(Component, Debug)]

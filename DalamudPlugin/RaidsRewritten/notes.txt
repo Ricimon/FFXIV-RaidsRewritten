@@ -20,6 +20,9 @@ Earthshaker puddle: BaseId 0x1E9663 bgcommon/world/common/vfx_for_btl/b0282/eff/
 A12S
 Blazing Scourge attack: vfx/monster/gimmick2/eff/d2ac2_b4_g01c0c.avfx (actor)
 
+Susano
+Rock arrow: vfx/lockon/eff/m0372trg_t2j.avfx (actor)
+
 O10S
 Ground Ice Effect: bgcommon/world/common/vfx_for_btl/b0195/eff/b0195_yuka_c.avfx, 5y radius
 
@@ -37,6 +40,12 @@ Vice of Apathy: BaseId 0x1EAE20
 TEA
 Liquid Rage: BaseId 0x2C49
 Liquid Rage Puddle: BaseId 0x1E9998
+Nisi Alpha: vfx/common/eff/m0598_stlp6c0c.avfx (actor)
+Nisi Beta: vfx/common/eff/m0598_stlp7c0c.avfx (actor)
+Nisi Gamma: vfx/common/eff/m0598_stlp8c0c.avfx (actor)
+Nisi Delta: vfx/common/eff/m0598_stlp9c0c.avfx (actor)
+Final Sentence: vfx/monster/gimmick/eff/alexfour_hitogata_shinpan_c0c.avfx (actor)
+Final Sentence: sound/vfx/monster3/SE_Vfx_Monster_QuadrupedMachine_Judgement_c.scd, 0
 
 E5N
 Thunderstorm small AOE: vfx/monster/m0234/eff/ryu_no_su_tatumaki_pc_rakurai_c0s.avfx (actor), 3y radius
@@ -103,6 +112,7 @@ Sunrise Sabbath tower (2-person): vfx/omen/eff/general_trap_o2x.avfx (static)
 FRU
 Diamond Dust Star Omen: vfx/omen/eff/m063mist_omen_o0v.avfx (static)
 Diamond Dust Star: vfx/monster/gimmick2/eff/e3d7_b3_g3_c0v.avfx
+Dragonhead puddle: bgcommon/world/common/vfx_for_btl/b3566/eff/b3566_rset_y1.avfx (static)
 
 M7S
 Tendrils of Terror Omen: vfx/omen/eff/m0935mist_omen_o0p.avfx (static)

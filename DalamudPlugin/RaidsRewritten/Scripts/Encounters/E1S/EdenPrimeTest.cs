@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Dalamud.Bindings.ImGui;
 using RaidsRewritten.Network;
+using RaidsRewritten.Scripts.Encounters.TEA;
 using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Encounters.E1S;
@@ -55,6 +56,7 @@ public class EdenPrimeTest(
         {
             mechanics.Add(mechanicFactory.Create<ShanoaParkTest>());
             mechanics.Add(mechanicFactory.Create<ShanoaAndFireTornadoTest>());
+            mechanics.Add(mechanicFactory.Create<ShanoaAndNisi>());
         }
     }
 

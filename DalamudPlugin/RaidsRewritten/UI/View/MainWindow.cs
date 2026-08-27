@@ -11,6 +11,7 @@ using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
+using RaidsRewritten.Interop;
 using RaidsRewritten.IPC;
 using RaidsRewritten.Log;
 using RaidsRewritten.Network;
@@ -39,6 +40,7 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
     private readonly HelpWindow helpWindow;
     private readonly ChangelogWindow changelogWindow;
     private readonly DalamudServices dalamud;
+    private readonly ResourceLoader resourceLoader;
     private readonly EncounterManager encounterManager;
     private readonly EntityManager entityManager;
     private readonly Mechanic.Factory mechanicFactory;
@@ -63,6 +65,7 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
         HelpWindow helpWindow,
         ChangelogWindow changelogWindow,
         DalamudServices dalamud,
+        ResourceLoader resourceLoader,
         EncounterManager encounterManager,
         EntityManager entityManager,
         Mechanic.Factory mechanicFactory,
@@ -82,6 +85,7 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
         this.helpWindow = helpWindow;
         this.changelogWindow = changelogWindow;
         this.dalamud = dalamud;
+        this.resourceLoader = resourceLoader;
         this.encounterManager = encounterManager;
         this.entityManager = entityManager;
         this.mechanicFactory = mechanicFactory;

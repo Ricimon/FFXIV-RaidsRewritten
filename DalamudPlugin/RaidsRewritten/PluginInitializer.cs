@@ -6,6 +6,7 @@ using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using ECommons.DalamudServices;
+using ECommons.EzHookManager;
 using Ninject;
 using Ninject.Extensions.Factory;
 using Ninject.Planning.Bindings.Resolvers;
@@ -93,6 +94,9 @@ public sealed class PluginInitializer : IDalamudPlugin
             this.kernel.Dispose();
             ecsContainer.World.Dispose();
         }
+
+        // Services
+        EzHookCommon.DisposeAll();
     }
 
     private void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)

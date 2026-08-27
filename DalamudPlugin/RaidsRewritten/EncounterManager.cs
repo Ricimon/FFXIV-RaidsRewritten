@@ -137,6 +137,14 @@ public sealed class EncounterManager(
         logger.Trace(text);
 
         if (configuration.EverythingDisabled) { return; }
+
+        if (ActiveEncounter != null)
+        {
+            foreach(var mechanic in ActiveEncounter.GetMechanics())
+            {
+                mechanic.OnMapEffect(Position, Param1, Param2);
+            }
+        }
     }
 
     private void OnObjectEffect(uint Target, uint Param1, uint Param2)
