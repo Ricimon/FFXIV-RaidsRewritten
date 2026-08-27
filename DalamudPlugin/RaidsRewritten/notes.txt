@@ -29,6 +29,12 @@ Ground Ice Effect: bgcommon/world/common/vfx_for_btl/b0195/eff/b0195_yuka_c.avfx
 O11N
 Pointing arrows: bgcommon/world/common/vfx_for_bg/eff/b1490tagt1_o.avfx (static)
 Electric circle: bg/ex2/05_zon_z3/common/vfx/eff/b1526bari1_u.avfx (static)
+Looper: vfx/common/eff/abnormal_st_circle_c0i.avfx (actor)
+1-player tower: bg/ex2/05_zon_z3/common/vfx/eff/b1512pil01_u.avfx (static)
+1-player tower filled: bg/ex2/05_zon_z3/common/vfx/eff/b1512pil02_u.avfx (static)
+2-player tower: bg/ex2/05_zon_z3/common/vfx/eff/b1513pil01_u.avfx (static)
+Tower failure: vfx/monster/gimmick2/eff/z3oe_b3_g04c0i.avfx (actor)
+Tower failure: sound/vfx/monster6/SE_Vfx_Monster_OIIIBOSS3_TrapAE_penalty_c.scd, 0
 
 The Dancing Plague
 Star Omen: bg/ex3/01_nvt_n4/common/vfx/eff/b1588rod01_u.avfx (static)

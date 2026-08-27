@@ -18,7 +18,7 @@ pub struct Nisi {
     pub type_: u8,
 }
 
-const SHANOA_INTERACTION_RADIUS: f32 = 1.5;
+const SHANOA_INTERACTION_RADIUS: f32 = 0.9;
 
 pub fn create_mechanic(entity: EntityView<'_>) -> EntityView<'_> {
     entity.add(UpdateNisiStatus)

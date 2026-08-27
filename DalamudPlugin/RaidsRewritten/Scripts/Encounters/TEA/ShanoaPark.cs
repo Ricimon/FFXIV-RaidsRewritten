@@ -35,6 +35,7 @@ public class ShanoaPark : Mechanic
     private const string AetherCompassLocationArrowsVfxPath = "bgcommon/world/common/vfx_for_bg/eff/b1490tagt1_o.avfx";
     private const string AbsorbMarkerVfxPath1 = "vfx/monster/m0982/eff/m0982sp006c0c.avfx";
     private const string AbsorbMarkerVfxPath2 = "vfx/monster/m0982/eff/m0982sp006t0c.avfx";
+    private const string LooperVfx = "vfx/common/eff/abnormal_st_circle_c0i.avfx";
     private const string FinalSentenceVfxPath = "vfx/monster/gimmick/eff/alexfour_hitogata_shinpan_c0c.avfx";
     private const string FinalSentenceSfxPath = "sound/vfx/monster3/SE_Vfx_Monster_QuadrupedMachine_Judgement_c.scd";
 
@@ -237,6 +238,11 @@ public class ShanoaPark : Mechanic
         {
             case (int)NetworkMechanicCommand.TeaShowShanoa:
                 {
+                    int mode = 0;
+                    if (!string.IsNullOrEmpty(payload.extraData))
+                    {
+                        _ = int.TryParse(payload.extraData, out mode);
+                    }
                     this.shanoa.SafeDestruct();
                     if (EntityManager.TryCreateEntity<Shanoa>(out var shanoa))
                     {
@@ -244,6 +250,18 @@ public class ShanoaPark : Mechanic
                             .Set(new Position(new(payload.worldPositionX ?? default, payload.worldPositionY ?? default, payload.worldPositionZ ?? default)))
                             .Set(new Rotation(payload.rotation ?? default))
                             .Set(new ChatBubble("Meow!♪"));
+                        if (mode == 1)
+                        {
+                            World.Entity()
+                                // This model sits below the ground, which places the particle effects from the VFX
+                                // in a good position
+                                .Set(new Model(392))
+                                .Set(new LocalPosition(new(0, -0.1f, 0)))
+                                .Set(new Rotation())
+                                .Set(new ActorVfx("vfx/common/eff/abnormal_st_circle_c0i.avfx"))
+                                .Set(new UniformScale(0.4f))
+                                .ChildOf(shanoa);
+                        }
                         attacks.Add(shanoa);
                         this.shanoa = shanoa;
                     }

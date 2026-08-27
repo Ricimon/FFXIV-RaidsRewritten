@@ -30,6 +30,7 @@ public partial class MainWindow
     private Entity debugSpawnedVfx = default;
     private Vector3 debugVfxScale = Vector3.One;
     private bool debugVfxScaleEqualized = true;
+    private string debugSfxPath = "sound/vfx/monster6/SE_Vfx_Monster_OIIIBOSS3_TrapAE_penalty_c.scd";
 
     private void DebugSpawnModel()
     {
@@ -862,6 +863,21 @@ public partial class MainWindow
                         e.Set(new OneTimeModelTimeline(Shanoa.AttackAnimationId));
                     });
                 }
+                SameLineIfFits("Looper");
+                if (ImGui.Button("Looper"))
+                {
+                    using var q = World.Query<Shanoa.Component>();
+                    q.Each((Entity e, ref Shanoa.Component _) =>
+                    {
+                        World.Entity()
+                            .Set(new Model(392))
+                            .Set(new LocalPosition(new(0, -0.1f, 0)))
+                            .Set(new Rotation())
+                            .Set(new ActorVfx("vfx/common/eff/abnormal_st_circle_c0i.avfx"))
+                            .Set(new UniformScale(0.4f))
+                            .ChildOf(e);
+                    });
+                }
             }
         }
 
@@ -950,7 +966,7 @@ public partial class MainWindow
                         }
                     }
                     
-                    if (ImGui.Button("Shanoa"))
+                    if (ImGui.Button("Shanoa##Networked"))
                     {
                         var player = this.dalamud.ObjectTable.LocalPlayer;
                         if (player != null)
@@ -970,6 +986,46 @@ public partial class MainWindow
                             }).SafeFireAndForget();
                         }
                     }
+                    ImGui.SameLine();
+                    ImGui.Text(":");
+                    ImGui.SameLine();
+                    if (ImGui.Button("BJCC##Shanoa"))
+                    {
+                        var player = this.dalamud.ObjectTable.LocalPlayer;
+                        if (player != null)
+                        {
+                            this.networkClient.SendAsync(new Message
+                            {
+                                action = Message.Action.StartMechanic,
+                                startMechanic = new Message.StartMechanicPayload
+                                {
+                                    requestId = Guid.NewGuid().ToString(),
+                                    mechanicId = (uint)NetworkMechanic.TeaShowShanoa,
+                                    worldPositionX = player.Position.X,
+                                    worldPositionY = player.Position.Y,
+                                    worldPositionZ = player.Position.Z,
+                                    rotation = player.Rotation,
+                                    extraData = "1",
+                                }
+                            }).SafeFireAndForget();
+                        }
+                    }
+                    ImGui.SameLine();
+                    ImGui.Text("|");
+                    ImGui.SameLine();
+                    if (ImGui.Button("Show Guidance Markers"))
+                    {
+                        this.networkClient.SendAsync(new Message
+                        {
+                            action = Message.Action.StartMechanic,
+                            startMechanic = new Message.StartMechanicPayload
+                            {
+                                requestId = Guid.NewGuid().ToString(),
+                                mechanicId = (uint)NetworkMechanic.TeaShowShanoaGuidanceMarkers,
+                            }
+                        }).SafeFireAndForget();
+                    }
+
                     ImGui.Text("Give self Nisi:");
                     ImGui.SameLine();
                     if (ImGui.Button("None##Nisi"))
@@ -1148,9 +1204,10 @@ public partial class MainWindow
 
             if (ImGui.CollapsingHeader("Sound"))
             {
-                if (ImGui.Button("Final Sentence"))
+                ImGui.InputText("SFX Path", ref debugSfxPath);
+                if (ImGui.Button("Play SFX"))
                 {
-                    resourceLoader.PlaySound("sound/vfx/monster3/SE_Vfx_Monster_QuadrupedMachine_Judgement_c.scd", 0);
+                    resourceLoader.PlaySound(debugSfxPath, 0);
                 }
             }
 

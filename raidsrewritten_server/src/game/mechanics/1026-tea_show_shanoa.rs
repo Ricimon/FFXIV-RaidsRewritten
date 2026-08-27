@@ -20,6 +20,7 @@ pub fn create_systems(world: &World) {
             let entity = it.entity(index);
             let world = &it.world();
 
+            let mut shanoa_found = false;
             world
                 .query::<(&mut TeaShanoa, &mut Position, &mut Rotation, &Party)>()
                 .build()
@@ -27,6 +28,7 @@ pub fn create_systems(world: &World) {
                     if p.id != party.id {
                         return;
                     }
+                    shanoa_found = true;
                     shanoa.active = true;
                     shanoa_position.x = position.x;
                     shanoa_position.y = position.y;
@@ -34,24 +36,32 @@ pub fn create_systems(world: &World) {
                     shanoa_rotation.value = rotation.value;
                 });
 
-            if let Some(pc) = find_party_container(world, &party.id) {
-                let io = get_socket_io(world);
-                pc.each_child(|c| {
-                    c.try_get::<(&Socket, &Player)>(|(s, _)| {
-                        send_run_mechanic_command(
-                            io.clone(),
-                            s.id,
-                            RunMechanicCommandPayload {
-                                mechanic_command_id: NetworkMechanicCommand::TeaShowShanoa as i32,
-                                world_position_x: Some(position.x),
-                                world_position_y: Some(position.y),
-                                world_position_z: Some(position.z),
-                                rotation: Some(rotation.value),
-                                extra_data: None,
-                            },
-                        );
-                    });
+            if shanoa_found {
+                let mut extra_data: Option<String> = None;
+                entity.try_get::<&ExtraMechanicData>(|d| {
+                    extra_data = Some(d.value.clone());
                 });
+
+                if let Some(pc) = find_party_container(world, &party.id) {
+                    let io = get_socket_io(world);
+                    pc.each_child(|c| {
+                        c.try_get::<(&Socket, &Player)>(|(s, _)| {
+                            send_run_mechanic_command(
+                                io.clone(),
+                                s.id,
+                                RunMechanicCommandPayload {
+                                    mechanic_command_id: NetworkMechanicCommand::TeaShowShanoa
+                                        as i32,
+                                    world_position_x: Some(position.x),
+                                    world_position_y: Some(position.y),
+                                    world_position_z: Some(position.z),
+                                    rotation: Some(rotation.value),
+                                    extra_data: extra_data.clone(),
+                                },
+                            );
+                        });
+                    });
+                }
             }
 
             info!(
