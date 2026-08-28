@@ -1,10 +1,9 @@
-﻿// Adapted from https://github.com/Caraxi/SimpleTweaksPlugin/blob/main/Tweaks/UiAdjustment/FadeUnavailableActions.cs
-// 6c80885
+﻿// Adapted from https://github.com/MidoriKami/VanillaPlus/blob/master/VanillaPlus/Features/FadeUnavailableActions/FadeUnavailableActions.cs
+// 35ee994
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Dalamud.Hooking;
-using Dalamud.Utility.Signatures;
 using FFXIVClientStructs.Attributes;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI;
@@ -17,7 +16,7 @@ using ZLinq;
 
 namespace RaidsRewritten.Interop;
 
-public unsafe sealed class HotbarManager : IDisposable
+public sealed class HotbarManager : IDisposable
 {
     public bool DisableAllActions
     {
@@ -45,10 +44,6 @@ public unsafe sealed class HotbarManager : IDisposable
         }
     }
 
-    private delegate void UpdateHotBarSlotDelegate(AddonActionBarBase* addon, ActionBarSlot* uiData, NumberArrayData* numberArray, StringArrayData* stringArray, int numberArrayIndex, int stringArrayIndex);
-    [Signature("E8 ?? ?? ?? ?? 48 81 C6 ?? ?? ?? ?? 83 C7 11", DetourName = nameof(OnHotBarSlotUpdate))]
-    private Hook<UpdateHotBarSlotDelegate> onHotBarSlotUpdateHook = null!;
-
     private readonly DalamudServices dalamud;
     private readonly ILogger logger;
 
@@ -68,6 +63,7 @@ public unsafe sealed class HotbarManager : IDisposable
         "_ActionDoubleCrossL",
     ];
 
+    private Hook<AddonActionBarBase.Delegates.UpdateHotbarSlot> onHotBarSlotUpdateHook;
     private bool disableAllActions;
     private bool disableDamagingActions;
 
@@ -76,7 +72,10 @@ public unsafe sealed class HotbarManager : IDisposable
         this.dalamud = dalamud;
         this.logger = logger;
 
-        dalamud.GameInteropProvider.InitializeFromAttributes(this);
+        unsafe
+        {
+            onHotBarSlotUpdateHook = dalamud.GameInteropProvider.HookFromAddress<AddonActionBarBase.Delegates.UpdateHotbarSlot>(AddonActionBarBase.MemberFunctionPointers.UpdateHotbarSlot, OnHotBarSlotUpdate);
+        }
     }
 
     public void Dispose()
@@ -86,7 +85,24 @@ public unsafe sealed class HotbarManager : IDisposable
         this.onHotBarSlotUpdateHook.Dispose();
     }
 
-    private void ProcessAllHotBars()
+    private unsafe void OnHotBarSlotUpdate(AddonActionBarBase* addon, ActionBarSlot* hotBarSlotData, NumberArrayData* numberArray, StringArrayData* stringArray, int numberArrayIndex, int stringArrayIndex)
+    {
+        //this.logger.Debug($"OnHotBarSlotUpdate addon:{addon->NameString}, numberArrayDataPtr:0x{(nint)numberArray:X} numberArrayIndex:{numberArrayIndex}, stringArrayIndex:{stringArrayIndex}");
+        try
+        {
+            ProcessHotBarSlot(addon, hotBarSlotData);
+        }
+        catch (Exception e)
+        {
+            this.logger.Error(e.ToStringFull());
+        }
+        finally
+        {
+            onHotBarSlotUpdateHook.Original(addon, hotBarSlotData, numberArray, stringArray, numberArrayIndex, stringArrayIndex);
+        }
+    }
+
+    private unsafe void ProcessAllHotBars()
     {
         foreach (var addonName in addonActionBarNames)
         {
@@ -113,22 +129,7 @@ public unsafe sealed class HotbarManager : IDisposable
         }
     }
 
-    private void OnHotBarSlotUpdate(AddonActionBarBase* addon, ActionBarSlot* hotBarSlotData, NumberArrayData* numberArray, StringArrayData* stringArray, int numberArrayIndex, int stringArrayIndex)
-    {
-        //this.logger.Debug($"OnHotBarSlotUpdate addon:{addon->NameString}, numberArrayDataPtr:0x{(nint)numberArray:X} numberArrayIndex:{numberArrayIndex}, stringArrayIndex:{stringArrayIndex}");
-        try
-        {
-            ProcessHotBarSlot(addon, hotBarSlotData);
-        }
-        catch(Exception e)
-        {
-            this.logger.Error(e.ToStringFull());
-        }
-
-        onHotBarSlotUpdateHook.Original(addon, hotBarSlotData, numberArray, stringArray, numberArrayIndex, stringArrayIndex);
-    }
-
-    private void ProcessHotBarSlot(AddonActionBarBase* addon, ActionBarSlot* hotBarSlotData)
+    private unsafe void ProcessHotBarSlot(AddonActionBarBase* addon, ActionBarSlot* hotBarSlotData)
     {
         if (!DisableAllActions && !DisableDamagingActions)
         {
@@ -167,7 +168,7 @@ public unsafe sealed class HotbarManager : IDisposable
         }
     }
 
-    private void ApplyDarkening(ActionBarSlot* hotBarSlotData, bool darken)
+    private unsafe void ApplyDarkening(ActionBarSlot* hotBarSlotData, bool darken)
     {
         if (hotBarSlotData is null) { return; }
         var iconComponent = (AtkComponentIcon*)hotBarSlotData->Icon->Component;
@@ -203,7 +204,7 @@ public unsafe sealed class HotbarManager : IDisposable
     }
 
     // Taken from https://github.com/Caraxi/SimpleTweaksPlugin/blob/main/Utility/Common.cs#L80
-    private T* GetUnitBase<T>(string? name = null, int index = 1) where T : unmanaged
+    private unsafe T* GetUnitBase<T>(string? name = null, int index = 1) where T : unmanaged
     {
         if (string.IsNullOrEmpty(name))
         {
