@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Numerics;
 using AsyncAwaitBestPractices;
 using Dalamud.Plugin.Services;
 using ECommons.Hooks;
+using ECommons.Hooks.ActionEffectTypes;
 using Flecs.NET.Core;
 using RaidsRewritten.Network;
 using RaidsRewritten.Scripts.Components;
@@ -22,6 +24,7 @@ public class ShanoaAndNisi : Mechanic
     private const string NisiBetaVfxPath = "vfx/common/eff/m0598_stlp7c0c.avfx";
     private const string NisiGammaVfxPath = "vfx/common/eff/m0598_stlp8c0c.avfx";
     private const string NisiDeltaVfxPath = "vfx/common/eff/m0598_stlp9c0c.avfx";
+    private const uint PhotonActionId = 18486;
 
     private enum Nisi : byte
     {
@@ -35,10 +38,12 @@ public class ShanoaAndNisi : Mechanic
     public struct NisiVfx;
 
     private readonly List<Entity> attacks = [];
+    private readonly Vector3 arenaMiddle = new(100, 0, 100);
 
     private DateTime nextAllowedUpdateNisiSend;
     private Nisi lastNisiPolled;
     private bool inBjccPhase;
+    private bool photonCasted;
 
     public override void Reset()
     {
@@ -49,6 +54,7 @@ public class ShanoaAndNisi : Mechanic
         attacks.Clear();
         lastNisiPolled = Nisi.None;
         inBjccPhase = false;
+        photonCasted = false;
     }
 
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
@@ -115,6 +121,32 @@ public class ShanoaAndNisi : Mechanic
             inBjccPhase = false;
         }
     }
+
+    public override void OnActionEffectEvent(ActionEffectSet set)
+    {
+        if (set.Action == null || set.Source == null) { return; }
+
+        if (set.Action.Value.RowId == PhotonActionId)
+        {
+            if (photonCasted) { return; }
+            photonCasted = true;
+
+            NetworkClient.SendAsync(new Message
+            {
+                action = Message.Action.StartMechanic,
+                startMechanic = new Message.StartMechanicPayload
+                {
+                    requestId = NetworkMechanic.TeaShowShanoa + "_photon",
+                    mechanicId = (uint)NetworkMechanic.TeaShowShanoa,
+                    worldPositionX = arenaMiddle.X,
+                    worldPositionY = arenaMiddle.Y,
+                    worldPositionZ = arenaMiddle.Z,
+                    rotation = 0,
+                    extraData = "1",
+                }
+            }).SafeFireAndForget();
+        }
+    } 
 
     public override void OnNetworkMechanicCommand(Message.RunMechanicCommandPayload payload)
     {

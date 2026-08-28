@@ -358,6 +358,21 @@ public partial class MainWindow
                     .Set(new StaticVfx("bg/ex3/01_nvt_n4/common/vfx/eff/b2155trp01_o.avfx"))
                     .ChildOf(placeEntity);
             }
+
+            if (ImGui.Button("Nisi Tower"))
+            {
+                var player = this.dalamud.ObjectTable.LocalPlayer;
+                if (player != null)
+                {
+                    if (this.entityManager.TryCreateEntity<NisiTowerOmen>(out var tower))
+                    {
+                        tower.Set(new Position(player.Position));
+                        tower.Set(new Rotation(player.Rotation));
+                        tower.Set(new Scale(Vector3.One));
+                        tower.Add<NisiTowerOmen.UseLocalPlayerPosition>();
+                    }
+                }
+            }
         }
 
         if (ImGui.CollapsingHeader("Test Attacks (Local)"))
@@ -875,6 +890,7 @@ public partial class MainWindow
                             .Set(new Rotation())
                             .Set(new ActorVfx("vfx/common/eff/abnormal_st_circle_c0i.avfx"))
                             .Set(new UniformScale(0.4f))
+                            .Set(new ModelHeight(-1.66667f))
                             .ChildOf(e);
                     });
                 }

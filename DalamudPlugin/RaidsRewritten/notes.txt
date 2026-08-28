@@ -33,6 +33,8 @@ Looper: vfx/common/eff/abnormal_st_circle_c0i.avfx (actor)
 1-player tower: bg/ex2/05_zon_z3/common/vfx/eff/b1512pil01_u.avfx (static)
 1-player tower filled: bg/ex2/05_zon_z3/common/vfx/eff/b1512pil02_u.avfx (static)
 2-player tower: bg/ex2/05_zon_z3/common/vfx/eff/b1513pil01_u.avfx (static)
+Tower success: vfx/monster/gimmick2/eff/z3oe_b3_g03c0i.avfx (actor)
+Tower success: sound/vfx/monster6/SE_Vfx_Monster_OIIIBOSS3_TrapAE_c.scd, 0
 Tower failure: vfx/monster/gimmick2/eff/z3oe_b3_g04c0i.avfx (actor)
 Tower failure: sound/vfx/monster6/SE_Vfx_Monster_OIIIBOSS3_TrapAE_penalty_c.scd, 0
 

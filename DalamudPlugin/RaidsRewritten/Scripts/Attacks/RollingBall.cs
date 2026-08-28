@@ -275,7 +275,7 @@ public unsafe sealed class RollingBall(DalamudServices dalamud, CommonQueries co
                 Random rand = entity.Has<SeededRandom>() ? entity.Get<SeededRandom>().Random : random;
                 var newDirection = Vector2.Reflect(movement.Direction, reflectionNormal.Value);
                 var angleVariance = rand.NextSingle() * float.DegreesToRadians(ReflectAngleVariance / 2f);
-                angleVariance *= rand.Next(2) == 0 ? 1 : -1;
+                angleVariance *= rand.Next(2) == 0 ? -1 : 1;
                 newDirection = MathUtilities.Rotate(newDirection, angleVariance);
                 movement.Direction = newDirection;
                 movement.Speed = 0;

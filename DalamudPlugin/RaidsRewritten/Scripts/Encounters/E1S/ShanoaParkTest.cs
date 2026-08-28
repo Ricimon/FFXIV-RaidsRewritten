@@ -13,10 +13,10 @@ using RaidsRewritten.Network;
 using RaidsRewritten.Scripts.Attacks;
 using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
+using RaidsRewritten.Scripts.Encounters.TEA;
 using RaidsRewritten.Scripts.Models;
 using RaidsRewritten.Spawn;
 using RaidsRewritten.Utility;
-using static RaidsRewritten.Scripts.Encounters.TEA.ShanoaAndNisi;
 
 namespace RaidsRewritten.Scripts.Encounters.E1S;
 
@@ -185,13 +185,12 @@ public class ShanoaParkTest : Mechanic
                         if (mode == 1)
                         {
                             World.Entity()
-                                // This model sits below the ground, which places the particle effects from the VFX
-                                // in a good position
                                 .Set(new Model(392))
                                 .Set(new LocalPosition(new(0, -0.1f, 0)))
                                 .Set(new Rotation())
                                 .Set(new ActorVfx("vfx/common/eff/abnormal_st_circle_c0i.avfx"))
                                 .Set(new UniformScale(0.4f))
+                                .Set(new ModelHeight(-1.66667f)) // This removes the particles from the VFX
                                 .ChildOf(shanoa);
                         }
                         attacks.Add(shanoa);
@@ -260,7 +259,7 @@ public class ShanoaParkTest : Mechanic
                     }
                     if (delay == 0.0f)
                     {
-                        using var q = World.QueryBuilder<Shanoa.Component>().With<NisiVfx>().TermAt(0).Up().Build();
+                        using var q = World.QueryBuilder<Shanoa.Component>().With<ShanoaAndNisi.NisiVfx>().TermAt(0).Up().Build();
                         q.Each((Entity e, ref Shanoa.Component _) =>
                         {
                             delay = 0.75f;

@@ -35,10 +35,13 @@ public static class MathUtilities
         return radians;
     }
 
+    /// <summary>
+    /// Rotates clockwise by radians, consistent with FFXIV rotation units
+    /// </summary>
     public static Vector2 Rotate(Vector2 v, float radians)
     {
-        var c = MathF.Cos(radians);
-        var s = MathF.Sin(radians);
+        var c = MathF.Cos(-radians);
+        var s = MathF.Sin(-radians);
         return new Vector2(c * v.X - s * v.Y, s * v.X + c * v.Y);
     }
 
