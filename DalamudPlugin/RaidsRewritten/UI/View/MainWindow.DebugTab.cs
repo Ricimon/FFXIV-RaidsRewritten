@@ -369,6 +369,7 @@ public partial class MainWindow
                         tower.Set(new Position(player.Position));
                         tower.Set(new Rotation(player.Rotation));
                         tower.Set(new Scale(Vector3.One));
+                        tower.Set(new NisiTowerOmen.Component(NisiTowerOmen.Nisi.Beta));
                         tower.Add<NisiTowerOmen.UseLocalPlayerPosition>();
                     }
                 }
@@ -981,7 +982,7 @@ public partial class MainWindow
                             }).SafeFireAndForget();
                         }
                     }
-                    
+
                     if (ImGui.Button("Shanoa##Networked"))
                     {
                         var player = this.dalamud.ObjectTable.LocalPlayer;
@@ -1084,6 +1085,28 @@ public partial class MainWindow
                                 extraData = "2",
                             }
                         }).SafeFireAndForget();
+                    }
+
+                    if (ImGui.Button("Nisi Tower"))
+                    {
+                        var player = this.dalamud.ObjectTable.LocalPlayer;
+                        if (player != null)
+                        {
+                            this.networkClient.SendAsync(new Message
+                            {
+                                action = Message.Action.StartMechanic,
+                                startMechanic = new Message.StartMechanicPayload
+                                {
+                                    requestId = Guid.NewGuid().ToString(),
+                                    mechanicId = (uint)NetworkMechanic.TeaNisiTower,
+                                    worldPositionX = player.Position.X,
+                                    worldPositionY = player.Position.Y,
+                                    worldPositionZ = player.Position.Z,
+                                    rotation = player.Rotation,
+                                    extraData = "1",
+                                }
+                            }).SafeFireAndForget();
+                        }
                     }
                 }
             }

@@ -11,16 +11,30 @@ namespace RaidsRewritten.Scripts.Attacks.Omens;
 
 public class NisiTowerOmen(DalamudServices dalamud, ILogger logger) : IEntity, ISystem
 {
+    public const string NisiAlphaVfxPath = "vfx/common/eff/m0598_stlp6c0c.avfx";
+    public const string NisiBetaVfxPath = "vfx/common/eff/m0598_stlp7c0c.avfx";
+    public const string NisiGammaVfxPath = "vfx/common/eff/m0598_stlp8c0c.avfx";
+    public const string NisiDeltaVfxPath = "vfx/common/eff/m0598_stlp9c0c.avfx";
+
     private const float Radius = 3.0f;
     private const float TimeToSnapshot = 8.0f;
 
+    public enum Nisi : byte
+    {
+        None = 0,
+        Alpha = 1,
+        Beta = 2,
+        Gamma = 3,
+        Delta = 4,
+    }
+
+    public record struct Component(Nisi NisiType, Entity NisiVfx = default, Entity TowerFilledVfx = default, float ElapsedTime = 0);
     public struct UseLocalPlayerPosition;
-    private record struct Component(Entity TowerFilledVfx = default, float ElapsedTime = 0);
     private record struct NisiVfx(float RotationInterval);
 
     public Entity Create(World world)
     {
-        var tower = world.Entity()
+        return world.Entity()
             .Set(new StaticVfx("bg/ex2/05_zon_z3/common/vfx/eff/b1512pil01_u.avfx"))
             .Set(new Position())
             .Set(new Rotation())
@@ -29,15 +43,6 @@ public class NisiTowerOmen(DalamudServices dalamud, ILogger logger) : IEntity, I
             .Set(new InTowerOmen())
             .Add<Attack>()
             .Add<Omen>();
-
-        FakeActor.Create(world)
-            .Set(new ActorVfx("vfx/common/eff/m0598_stlp6c0c.avfx"))
-            .Set(new LocalPosition())
-            .Set(new Rotation())
-            .Set(new NisiVfx(5.0f))
-            .ChildOf(tower);
-
-        return tower;
     }
 
     public void Register(World world)
@@ -45,6 +50,32 @@ public class NisiTowerOmen(DalamudServices dalamud, ILogger logger) : IEntity, I
         world.System<Component>()
             .Each((Iter it, int i, ref Component component) =>
             {
+                if (!component.NisiVfx.IsValid())
+                {
+                    var nisiVfxPath = component.NisiType switch
+                    {
+                        Nisi.Alpha => NisiAlphaVfxPath,
+                        Nisi.Beta => NisiBetaVfxPath,
+                        Nisi.Gamma => NisiGammaVfxPath,
+                        Nisi.Delta => NisiDeltaVfxPath,
+                        _ => string.Empty,
+                    };
+
+                    if (!string.IsNullOrEmpty(nisiVfxPath))
+                    {
+                        component.NisiVfx = FakeActor.Create(it.World())
+                            .Set(new ActorVfx(nisiVfxPath))
+                            .Set(new LocalPosition())
+                            .Set(new Rotation())
+                            .Set(new NisiVfx(5.0f))
+                            .ChildOf(it.Entity(i));
+                    }
+                    else
+                    {
+                        component.NisiVfx = it.World().Entity().ChildOf(it.Entity(i));
+                    }
+                }
+
                 component.ElapsedTime += it.DeltaTime();
 
                 if (component.ElapsedTime > 10.0f)

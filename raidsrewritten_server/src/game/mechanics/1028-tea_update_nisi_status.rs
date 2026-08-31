@@ -103,7 +103,7 @@ pub fn create_systems(world: &World) {
                     if new_nisi != shanoa_nisi {
                         return;
                     }
-                    if nisi.type_ == shanoa_nisi {
+                    if nisi.type_ == 0 || nisi.type_ == shanoa_nisi {
                         return;
                     }
 

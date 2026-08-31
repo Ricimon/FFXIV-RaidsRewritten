@@ -185,6 +185,22 @@ pub fn send_run_mechanic_command(io: SocketIo, socket_id: Sid, payload: RunMecha
     );
 }
 
+pub fn send_play_sfx(io: SocketIo, socket_id: Sid, payload: PlaySfxPayload) {
+    info!(
+        socket_str = socket_id.as_str(),
+        payload.sfx_path, payload.sfx_index, "Sending play_sfx"
+    );
+    send_message(
+        io,
+        socket_id,
+        Message {
+            action: Action::PlaySfx,
+            play_sfx: Some(payload),
+            ..Default::default()
+        },
+    );
+}
+
 pub fn send_message(io: SocketIo, socket_id: Sid, message: Message) {
     tokio::spawn(async move {
         io.to(socket_id).emit("message", &message).await.unwrap();

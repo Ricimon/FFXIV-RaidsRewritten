@@ -27,6 +27,7 @@ public struct Message
         StopVfx = 58,
         UpdateConditions = 59,
         RunMechanicCommand = 60,
+        PlaySfx = 61,
     }
     [JsonProperty(PropertyName = "a")]
     public Action action;
@@ -261,4 +262,14 @@ public struct Message
     }
     [JsonProperty(PropertyName = "rmc")]
     public RunMechanicCommandPayload? runMechanicCommand;
+
+    public struct PlaySfxPayload
+    {
+        [JsonProperty(PropertyName = "s")]
+        public string sfxPath;
+        [JsonProperty(PropertyName = "i")]
+        public int sfxIndex;
+    }
+    [JsonProperty(PropertyName = "ps")]
+    public PlaySfxPayload? playSfx;
 }

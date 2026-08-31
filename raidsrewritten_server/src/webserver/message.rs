@@ -27,6 +27,7 @@ pub enum Action {
     StopVfx = 58,
     UpdateConditions = 59,
     RunMechanicCommand = 60,
+    PlaySfx = 61,
 }
 
 #[serde_with::skip_serializing_none]
@@ -62,6 +63,8 @@ pub struct Message {
     pub update_conditions: Option<UpdateConditionsPayload>,
     #[serde(rename = "rmc")]
     pub run_mechanic_command: Option<RunMechanicCommandPayload>,
+    #[serde(rename = "ps")]
+    pub play_sfx: Option<PlaySfxPayload>,
 }
 
 // To server ===============
@@ -249,4 +252,12 @@ pub struct RunMechanicCommandPayload {
     pub rotation: Option<f32>,
     #[serde(rename = "ed")]
     pub extra_data: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct PlaySfxPayload {
+    #[serde(rename = "s")]
+    pub sfx_path: String,
+    #[serde(rename = "i")]
+    pub sfx_index: i32,
 }

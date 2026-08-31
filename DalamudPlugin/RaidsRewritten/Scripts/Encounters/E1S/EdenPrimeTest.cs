@@ -34,6 +34,9 @@ public class EdenPrimeTest(
     {
         mechanics.Clear();
 
+        var rngSeedString = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
+        int rngSeed = RandomUtilities.HashToRngSeed(rngSeedString);
+
         if (configuration.GetEncounterSetting(PermaTwisterKey, true))
         {
             mechanics.Add(mechanicFactory.Create<PermanentViceOfApathyTest>());
@@ -42,8 +45,7 @@ public class EdenPrimeTest(
         if (configuration.GetEncounterSetting(RollingBallKey, true))
         {
             var rollingBall = mechanicFactory.Create<RollingBallOnViceOfApathy>();
-            var seed = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
-            rollingBall.RngSeed = RandomUtilities.HashToRngSeed(seed);
+            rollingBall.RngSeed = rngSeed;
             mechanics.Add(rollingBall);
         }
  
@@ -56,7 +58,9 @@ public class EdenPrimeTest(
         {
             mechanics.Add(mechanicFactory.Create<ShanoaParkTest>());
             mechanics.Add(mechanicFactory.Create<ShanoaAndFireTornadoTest>());
-            mechanics.Add(mechanicFactory.Create<ShanoaAndNisi>());
+            var shanoaAndNisi = mechanicFactory.Create<ShanoaAndNisi>();
+            shanoaAndNisi.RngSeed = rngSeed;
+            mechanics.Add(shanoaAndNisi);
         }
     }
 

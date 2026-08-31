@@ -6,6 +6,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using Flecs.NET.Bindings;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
+using RaidsRewritten.Interop;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
@@ -17,6 +18,7 @@ namespace RaidsRewritten.Network;
 
 public sealed class NetworkClientMessageHandler(
     DalamudServices dalamud,
+    ResourceLoader resourceLoader,
     VfxSpawn vfxSpawn,
     EcsContainer ecsContainer,
     CommonQueries commonQueries,
@@ -77,6 +79,9 @@ public sealed class NetworkClientMessageHandler(
             case Message.Action.RunMechanicCommand:
                 if (message.runMechanicCommand != null) { RunMechanicCommand(message.runMechanicCommand.Value); }
                 break;
+            case Message.Action.PlaySfx:
+                if (message.playSfx != null) { PlaySfx(message.playSfx.Value); }
+                break;
         }
     }
 
@@ -85,6 +90,16 @@ public sealed class NetworkClientMessageHandler(
         if (!Regex.IsMatch(path, @"(^vfx|^bg)\/[\w\/]*\w+\.avfx$"))
         {
             logger.Error($"{path} is not a valid VFX to play.");
+            return false;
+        }
+        return true;
+    }
+
+    private bool CheckIsValidSfxPath(string path)
+    {
+        if (!Regex.IsMatch(path, @"^sound\/vfx\/[\w\/]*\w+\.scd$"))
+        {
+            logger.Error($"{path} is not a valid SFX to play.");
             return false;
         }
         return true;
@@ -305,6 +320,16 @@ public sealed class NetworkClientMessageHandler(
                     mechanic.OnNetworkMechanicCommand(payload);
                 }
             }
+        });
+    }
+
+    private void PlaySfx(Message.PlaySfxPayload payload)
+    {
+        if (!CheckIsValidSfxPath(payload.sfxPath)) { return; }
+
+        dalamud.Framework.Run(() =>
+        {
+            resourceLoader.PlaySound(payload.sfxPath, payload.sfxIndex);
         });
     }
 }
