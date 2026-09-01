@@ -123,7 +123,7 @@ public class ShanoaAndNisi : Mechanic
             if (photonCasted) { return; }
             photonCasted = true;
 
-            DelayedAction.Create(World, () =>
+            var action1 = DelayedAction.Create(World, () =>
             {
                 NetworkClient.SendAsync(new Message
                 {
@@ -139,9 +139,14 @@ public class ShanoaAndNisi : Mechanic
                         extraData = "1",
                     }
                 }).SafeFireAndForget();
-
-                SendSpawnNisiTower(arenaMiddle);
             }, 1.0f);
+            attacks.Add(action1);
+
+            var action2 = DelayedAction.Create(World, () =>
+            {
+                SendSpawnNisiTower(arenaMiddle);
+            }, 2.0f);
+            attacks.Add(action2);
         }
     } 
 
@@ -255,7 +260,7 @@ public class ShanoaAndNisi : Mechanic
                 worldPositionY = position.Y,
                 worldPositionZ = position.Z,
                 rotation = 0,
-                extraData = nisi.ToString(),
+                extraData = ((byte)nisi).ToString(),
             }
         }).SafeFireAndForget();
 
