@@ -204,20 +204,9 @@ pub fn create_systems(world: &World) {
                                 let player = c.entity_view(world);
                                 apply_condition(
                                     &player,
-                                    condition::Condition::Hysteria as u128,
-                                    condition::Condition::Hysteria,
-                                    15.0,
-                                    false,
-                                )
-                                .entity_view(world)
-                                .set(conditions::Hysteria {
-                                    redirection_interval: 5.0,
-                                });
-                                apply_condition(
-                                    &player,
                                     condition::Condition::Pacify as u128,
                                     condition::Condition::Pacify,
-                                    30.0,
+                                    60.0,
                                     false,
                                 );
                             });

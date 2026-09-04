@@ -20,7 +20,7 @@ using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Encounters.TEA;
 
-public class ShanoaPark : Mechanic
+public class ShanoaPark : Mechanic, IShanoaPark
 {
     private const uint LiquidRageDataId = 0x2C49;
     private const uint FluidSwingActionId = 18864;
@@ -94,30 +94,32 @@ public class ShanoaPark : Mechanic
     public override void OnObjectCreation(nint newObjectPointer, IGameObject? newObject)
     {
         if (newObject == null) { return; }
-        if (newObject.BaseId != LiquidRageDataId) { return; }
-        if (availableTornadoPositions.Count == 1) { return; }
-
-        if (availableTornadoPositions.Count == 0)
+        if (newObject.BaseId == LiquidRageDataId)
         {
-            if (tornadoPositions1.Contains(newObject.Position))
-            {
-                availableTornadoPositions = [.. tornadoPositions1];
-            }
-            else
-            {
-                availableTornadoPositions = [.. tornadoPositions2];
-            }
-        }
+            if (availableTornadoPositions.Count == 1) { return; }
 
-        availableTornadoPositions.Remove(newObject.Position);
+            if (availableTornadoPositions.Count == 0)
+            {
+                if (tornadoPositions1.Contains(newObject.Position))
+                {
+                    availableTornadoPositions = [.. tornadoPositions1];
+                }
+                else
+                {
+                    availableTornadoPositions = [.. tornadoPositions2];
+                }
+            }
+
+            availableTornadoPositions.Remove(newObject.Position);
+        }
     }
 
     public override void OnStartingCast(Action action, IBattleChara source)
     {
-        if (!protean1Casted && action.RowId == LivingLiquidProteanWaveActionId)
+        if (action.RowId == LivingLiquidProteanWaveActionId && !protean1Casted)
         {
             protean1Casted = true;
-            AttackMarkers();
+            AttackMarkers("protean1");
         }
     }
 
@@ -255,7 +257,7 @@ public class ShanoaPark : Mechanic
                                 .Set(new Model(392))
                                 .Set(new LocalPosition(new(0, -0.1f, 0)))
                                 .Set(new Rotation())
-                                .Set(new ActorVfx("vfx/common/eff/abnormal_st_circle_c0i.avfx"))
+                                .Set(new ActorVfx(LooperVfx))
                                 .Set(new UniformScale(0.4f))
                                 .Set(new ModelHeight(-1.66667f)) // This removes the particles from the VFX
                                 .ChildOf(shanoa);
@@ -314,6 +316,8 @@ public class ShanoaPark : Mechanic
                             _ = float.TryParse(arguments[1], out rotationSpeed);
                         }
                     }
+
+                    ClearGuidanceEntities();
 
                     var delay = 0.0f;
                     using (var q = World.Query<FireTornadoEntity.Component>())
@@ -399,6 +403,7 @@ public class ShanoaPark : Mechanic
             case (int)NetworkMechanicCommand.TeaHideShanoa:
                 {
                     shanoa.SafeDestruct();
+                    ClearGuidanceEntities();
                 }
                 break;
         }
@@ -406,10 +411,10 @@ public class ShanoaPark : Mechanic
 
     public override void DebugSimulate()
     {
-        AttackMarkers();
+        AttackMarkers(System.Guid.NewGuid().ToString());
     }
 
-    private unsafe void AttackMarkers()
+    public unsafe void AttackMarkers(string mechanicName)
     {
         var markers = MarkingController.Instance()->FieldMarkers;
         for (var i = 0; i < markers.Length; i++)
@@ -447,7 +452,7 @@ public class ShanoaPark : Mechanic
                 action = Message.Action.StartMechanic,
                 startMechanic = new Message.StartMechanicPayload
                 {
-                    requestId = NetworkMechanic.TeaShowShanoaGuidanceMarkers.ToString() + "_protean1",
+                    requestId = NetworkMechanic.TeaShowShanoaGuidanceMarkers.ToString() + $"_{mechanicName}",
                     mechanicId = (uint)NetworkMechanic.TeaShowShanoaGuidanceMarkers,
                 }
             }).SafeFireAndForget();
@@ -471,23 +476,31 @@ public class ShanoaPark : Mechanic
                 var position = marker.Position;
                 position.Y = arenaMiddle.Y; // in case markers are illegally placed
 
-                var ring = World.Entity()
-                    .Set(new StaticVfx(AetherCompassLocationVfxPath))
-                    .Set(new Position(position))
-                    .Set(new Rotation())
-                    .Set(new Scale(GuidanceMarkerRadius * 0.1f * Vector3.One))
-                    .Add<Components.Omen>();
-                attacks.Add(ring);
-                guidanceEntities.Add(ring);
+                // Sometimes drawing too many static vfx's in one frame will drop some of the vfx's,
+                // so spread these out over multiple frames
+                var action = DelayedAction.Create(World, () =>
+                {
+                    var ring = World.Entity()
+                        .Set(new StaticVfx(AetherCompassLocationVfxPath))
+                        .Set(new Position(position))
+                        .Set(new Rotation())
+                        .Set(new Scale(GuidanceMarkerRadius * 0.1f * Vector3.One))
+                        .Add<Components.Omen>();
+                    attacks.Add(ring);
+                    guidanceEntities.Add(ring);
 
-                var arrows = World.Entity()
-                    .Set(new StaticVfx(AetherCompassLocationArrowsVfxPath))
-                    .Set(new Position(position))
-                    .Set(new Rotation())
-                    .Set(new Scale(0.75f * Vector3.One))
-                    .Add<Components.Omen>();
-                attacks.Add(arrows);
-                guidanceEntities.Add(arrows);
+                    var arrows = World.Entity()
+                        .Set(new StaticVfx(AetherCompassLocationArrowsVfxPath))
+                        .Set(new Position(position))
+                        .Set(new Rotation())
+                        .Set(new Scale(0.75f * Vector3.One))
+                        .Add<Components.Omen>();
+                    attacks.Add(arrows);
+                    guidanceEntities.Add(arrows);
+
+                }, i);
+                attacks.Add(action);
+                guidanceEntities.Add(action);
 
                 availableGuidanceMarkers.Add(i);
             }

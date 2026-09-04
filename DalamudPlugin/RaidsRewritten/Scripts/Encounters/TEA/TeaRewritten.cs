@@ -21,6 +21,7 @@ public class TeaRewritten : IEncounter
     private string KKickKey => $"{Name}.KKick";
     private string ShanoaParkKey => $"{Name}.ShanoaPark";
     private string ChakramBallsKey => $"{Name}.ChakramBalls";
+    private string IcePlusKey => $"{Name}.IcePlus";
 
     private readonly Mechanic.Factory mechanicFactory;
     private readonly DalamudServices dalamud;
@@ -47,6 +48,7 @@ public class TeaRewritten : IEncounter
             { KKickKey, true },
             { ShanoaParkKey, true },
             { ChakramBallsKey, true },
+            { IcePlusKey, true },
         };
 
         this.defaultIntSettings = new()
@@ -93,9 +95,11 @@ public class TeaRewritten : IEncounter
         }
         if (configuration.GetEncounterSetting(ShanoaParkKey, defaultBoolSettings[ShanoaParkKey]))
         {
-            mechanics.Add(mechanicFactory.Create<ShanoaPark>());
+            var shanoaPark = mechanicFactory.Create<ShanoaPark>();
+            mechanics.Add(shanoaPark);
             var shanoaAndNisi = mechanicFactory.Create<ShanoaAndNisi>();
             shanoaAndNisi.RngSeed = rngSeed;
+            shanoaAndNisi.ShanoaPark = shanoaPark;
             mechanics.Add(shanoaAndNisi);
         }
         if (configuration.GetEncounterSetting(ShanoaParkKey, defaultBoolSettings[ShanoaParkKey]) &&
@@ -109,6 +113,12 @@ public class TeaRewritten : IEncounter
             var chakramBalls = mechanicFactory.Create<ChakramBalls>();
             chakramBalls.RngSeed = rngSeed;
             mechanics.Add(chakramBalls);
+        }
+        if (configuration.GetEncounterSetting(IcePlusKey, defaultBoolSettings[IcePlusKey]))
+        {
+            var icePlus = mechanicFactory.Create<IcePlus>();
+            icePlus.RngSeed = rngSeed;
+            mechanics.Add(icePlus);
         }
     }
 
@@ -215,6 +225,15 @@ public class TeaRewritten : IEncounter
         {
             configuration.EncounterSettings[ChakramBallsKey] =
                 chakramBalls ? bool.TrueString : bool.FalseString;
+            configuration.Save();
+            RefreshMechanics();
+        }
+
+        bool icePlus = configuration.GetEncounterSetting(IcePlusKey, defaultBoolSettings[IcePlusKey]);
+        if (ImGui.Checkbox("Ice Plus (incomplete)", ref icePlus))
+        {
+            configuration.EncounterSettings[IcePlusKey] =
+                icePlus ? bool.TrueString : bool.FalseString;
             configuration.Save();
             RefreshMechanics();
         }

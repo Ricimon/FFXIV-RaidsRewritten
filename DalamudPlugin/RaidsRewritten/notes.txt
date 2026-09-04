@@ -132,7 +132,9 @@ HP equalization Deep Blue: vfx/monster/m0982/eff/m0982sp006t0c.avfx (actor)
 HP equalization Red Hot: vfx/monster/m0982/eff/m0982sp005c0c.avfx (actor, source & target)
 HP equalization Red Hot: vfx/monster/m0982/eff/m0982sp005t0c.avfx (actor)
 
-Rectangle Omen: vfx/omen/eff/general02f.avfx (static)
+Rectangle omen: vfx/omen/eff/general02f.avfx (static)
+Line omen: vfx/omen/eff/general_x02f.avfx (static)
+CCW rotation omen: vfx/lockon/eff/m0515_turning_left01c.avfx (static)
 
 Explosive trap: bg/ex3/01_nvt_n4/common/vfx/eff/b2155trp01_o.avfx (static), 3y radius
 Poison trap: bg/ex3/01_nvt_n4/common/vfx/eff/b2156trp01_o.avfx (static), 3y radius

@@ -56,10 +56,12 @@ public class EdenPrimeTest(
 
         if (configuration.GetEncounterSetting(ShanoaParkKey, true))
         {
-            mechanics.Add(mechanicFactory.Create<ShanoaParkTest>());
+            var shanoaPark = mechanicFactory.Create<ShanoaParkTest>();
+            mechanics.Add(shanoaPark);
             mechanics.Add(mechanicFactory.Create<ShanoaAndFireTornadoTest>());
             var shanoaAndNisi = mechanicFactory.Create<ShanoaAndNisi>();
             shanoaAndNisi.RngSeed = rngSeed;
+            shanoaAndNisi.ShanoaPark = shanoaPark;
             mechanics.Add(shanoaAndNisi);
         }
     }

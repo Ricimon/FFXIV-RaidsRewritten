@@ -89,6 +89,11 @@ public sealed class NetworkClient : IDisposable
             {
                 return false;
             }
+
+            if (IsConnecting || IsConnected)
+            {
+                return true;
+            }
         }
 
         try

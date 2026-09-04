@@ -20,7 +20,7 @@ using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Encounters.E1S;
 
-public class ShanoaParkTest : Mechanic
+public class ShanoaParkTest : Mechanic, IShanoaPark
 {
     private const uint EdensGravityActionId = 15728;
     private const uint ViceAndVirtueActionId = 17647;
@@ -97,7 +97,7 @@ public class ShanoaParkTest : Mechanic
         {
             edensGravityCasted = true;
 
-            AttackMarkers();
+            AttackMarkers("gravity");
         }
     }
 
@@ -188,7 +188,7 @@ public class ShanoaParkTest : Mechanic
                                 .Set(new Model(392))
                                 .Set(new LocalPosition(new(0, -0.1f, 0)))
                                 .Set(new Rotation())
-                                .Set(new ActorVfx("vfx/common/eff/abnormal_st_circle_c0i.avfx"))
+                                .Set(new ActorVfx(LooperVfx))
                                 .Set(new UniformScale(0.4f))
                                 .Set(new ModelHeight(-1.66667f)) // This removes the particles from the VFX
                                 .ChildOf(shanoa);
@@ -247,6 +247,8 @@ public class ShanoaParkTest : Mechanic
                             _ = float.TryParse(arguments[1], out rotationSpeed);
                         }
                     }
+
+                    ClearGuidanceEntities();
 
                     var delay = 0.0f;
                     using (var q = World.Query<FireTornadoEntity.Component>())
@@ -328,15 +330,22 @@ public class ShanoaParkTest : Mechanic
                     }
                 }
                 break;
+
+            case (int)NetworkMechanicCommand.TeaHideShanoa:
+                {
+                    shanoa.SafeDestruct();
+                    ClearGuidanceEntities();
+                }
+                break;
         }
     }
 
     public override void DebugSimulate()
     {
-        AttackMarkers();
+        AttackMarkers(System.Guid.NewGuid().ToString());
     }
 
-    private unsafe void AttackMarkers()
+    public unsafe void AttackMarkers(string mechanicName)
     {
         var markers = MarkingController.Instance()->FieldMarkers;
         for (var i = 0; i < markers.Length; i++)
@@ -374,7 +383,7 @@ public class ShanoaParkTest : Mechanic
                 action = Message.Action.StartMechanic,
                 startMechanic = new Message.StartMechanicPayload
                 {
-                    requestId = NetworkMechanic.TeaShowShanoaGuidanceMarkers.ToString() + "_protean1",
+                    requestId = NetworkMechanic.TeaShowShanoaGuidanceMarkers.ToString() + $"_{mechanicName}",
                     mechanicId = (uint)NetworkMechanic.TeaShowShanoaGuidanceMarkers,
                 }
             }).SafeFireAndForget();
@@ -399,23 +408,31 @@ public class ShanoaParkTest : Mechanic
                 var position = marker.Position;
                 position.Y = arenaMiddle.Y; // in case markers are illegally placed
 
-                var ring = World.Entity()
-                    .Set(new StaticVfx(AetherCompassLocationVfxPath))
-                    .Set(new Position(position))
-                    .Set(new Rotation())
-                    .Set(new Scale(GuidanceMarkerRadius * 0.1f * Vector3.One))
-                    .Add<Components.Omen>();
-                attacks.Add(ring);
-                guidanceEntities.Add(ring);
+                // Sometimes drawing too many static vfx's in one frame will drop some of the vfx's,
+                // so spread these out over multiple frames
+                var action = DelayedAction.Create(World, () =>
+                {
+                    var ring = World.Entity()
+                        .Set(new StaticVfx(AetherCompassLocationVfxPath))
+                        .Set(new Position(position))
+                        .Set(new Rotation())
+                        .Set(new Scale(GuidanceMarkerRadius * 0.1f * Vector3.One))
+                        .Add<Components.Omen>();
+                    attacks.Add(ring);
+                    guidanceEntities.Add(ring);
 
-                var arrows = World.Entity()
-                    .Set(new StaticVfx(AetherCompassLocationArrowsVfxPath))
-                    .Set(new Position(position))
-                    .Set(new Rotation())
-                    .Set(new Scale(0.75f * Vector3.One))
-                    .Add<Components.Omen>();
-                attacks.Add(arrows);
-                guidanceEntities.Add(arrows);
+                    var arrows = World.Entity()
+                        .Set(new StaticVfx(AetherCompassLocationArrowsVfxPath))
+                        .Set(new Position(position))
+                        .Set(new Rotation())
+                        .Set(new Scale(0.75f * Vector3.One))
+                        .Add<Components.Omen>();
+                    attacks.Add(arrows);
+                    guidanceEntities.Add(arrows);
+
+                }, i);
+                attacks.Add(action);
+                guidanceEntities.Add(action);
 
                 availableGuidanceMarkers.Add(i);
             }

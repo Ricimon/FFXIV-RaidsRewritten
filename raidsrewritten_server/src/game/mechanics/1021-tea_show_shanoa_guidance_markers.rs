@@ -11,7 +11,7 @@ struct ShowShanoaGuidanceMarkers {
 }
 
 pub fn create_mechanic(entity: EntityView<'_>) -> EntityView<'_> {
-    entity.set(ShowShanoaGuidanceMarkers { duration: 5.0 })
+    entity.set(ShowShanoaGuidanceMarkers { duration: 10.0 })
 }
 
 pub fn create_systems(world: &World) {

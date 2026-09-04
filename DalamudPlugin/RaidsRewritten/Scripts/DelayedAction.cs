@@ -10,8 +10,8 @@ public class DelayedAction(ILogger logger) : ISystem
 {
     public delegate void IterDelegate(ref Iter it);
 
-    public record struct Component(Action Action, float TimeRemaining);
-    public record struct IterComponent(IterDelegate Action, float TimeRemaining);
+    public record struct Component(Action Action, float TimeRemaining, int FramesRemaining);
+    public record struct IterComponent(IterDelegate Action, float TimeRemaining, int FramesRemaining);
     public struct Immediate;
 
     /// <summary>
@@ -22,7 +22,7 @@ public class DelayedAction(ILogger logger) : ISystem
     /// <param name="delay">In seconds</param>
     public static Entity Create(World world, Action action, float delay, bool immediate = false)
     {
-        var entity = world.Entity().Set(new Component(action, delay));
+        var entity = world.Entity().Set(new Component(action, delay, 0));
         if (immediate)
         {
             entity.Add<Immediate>();
@@ -38,7 +38,39 @@ public class DelayedAction(ILogger logger) : ISystem
     /// <param name="delay">In seconds</param>
     public static Entity Create(World world, IterDelegate action, float delay, bool immediate = false)
     {
-        var entity = world.Entity().Set(new IterComponent(action, delay));
+        var entity = world.Entity().Set(new IterComponent(action, delay, 0));
+        if (immediate)
+        {
+            entity.Add<Immediate>();
+        }
+        return entity;
+    }
+
+    /// <summary>
+    /// Setting immediate to true specifies that the system that runs this action should execute in
+    /// immediate mode, suspending any deferrals and modifying components/entities at the moment of execution.
+    /// See https://www.flecs.dev/flecs/md_docs_2Systems.html#immediate-systems for more information
+    /// </summary>
+    /// <param name="delay">In seconds</param>
+    public static Entity Create(World world, Action action, int delayFrames, bool immediate = false)
+    {
+        var entity = world.Entity().Set(new Component(action, 0, delayFrames));
+        if (immediate)
+        {
+            entity.Add<Immediate>();
+        }
+        return entity;
+    }
+
+    /// <summary>
+    /// Setting immediate to true specifies that the system that runs this action should execute in
+    /// immediate mode, suspending any deferrals and modifying components/entities at the moment of execution.
+    /// See https://www.flecs.dev/flecs/md_docs_2Systems.html#immediate-systems for more information
+    /// </summary>
+    /// <param name="delay">In seconds</param>
+    public static Entity Create(World world, IterDelegate action, int delayFrames, bool immediate = false)
+    {
+        var entity = world.Entity().Set(new IterComponent(action, 0, delayFrames));
         if (immediate)
         {
             entity.Add<Immediate>();
@@ -74,7 +106,9 @@ public class DelayedAction(ILogger logger) : ISystem
     private void Run(Iter it, int i, ref Component component, bool immediate)
     {
         component.TimeRemaining = Math.Max(component.TimeRemaining - it.DeltaTime(), 0);
-        if (component.TimeRemaining > 0) { return; }
+        component.FramesRemaining = Math.Max(component.FramesRemaining - 1, 0);
+
+        if (component.TimeRemaining > 0 || component.FramesRemaining > 0) { return; }
 
         try
         {

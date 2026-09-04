@@ -307,6 +307,20 @@ public partial class MainWindow
                     }
                 }
             }
+            SameLineIfFits("Line Omen");
+            if (ImGui.Button("Line Omen"))
+            {
+                var player = this.dalamud.ObjectTable.LocalPlayer;
+                if (player != null)
+                {
+                    if (this.entityManager.TryCreateEntity<LineOmen>(out var line))
+                    {
+                        line.Set(new Position(player.Position));
+                        line.Set(new Rotation(player.Rotation));
+                        line.Set(new Scale(Vector3.One));
+                    }
+                }
+            }
             SameLineIfFits("Star Omen");
             if (ImGui.Button("Star Omen"))
             {
@@ -1219,7 +1233,7 @@ public partial class MainWindow
                         World.Entity()
                             .Set(new StaticVfx(debugVfxPath))
                             .Set(new Position(localPlayer.Position))
-                            .Set(new Rotation())
+                            .Set(new Rotation(localPlayer.Rotation))
                             .Set(new Scale(debugVfxScale))
                             .ChildOf(debugSpawnedVfx);
 
