@@ -49,6 +49,14 @@ public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogge
                 }
             });
 
+        world.System<StaticVfx, Color>()
+            .Each((Iter it, int i, ref StaticVfx vfx, ref Color color) =>
+            {
+                if (!it.Changed()) { return; }
+                if (vfx.VfxPtr == null) { return; }
+                vfx.VfxPtr.UpdateColor(color.Value);
+            });
+
         world.System<StaticVfx, Alpha>()
             .Each((Iter it, int i, ref StaticVfx vfx, ref Alpha alpha) =>
             {

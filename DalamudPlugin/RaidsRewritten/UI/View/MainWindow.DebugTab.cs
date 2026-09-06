@@ -373,18 +373,26 @@ public partial class MainWindow
                     .ChildOf(placeEntity);
             }
 
-            if (ImGui.Button("Nisi Tower"))
+            var nisiTowers = new[] { "Nisi Tower α", "Nisi Tower β", "Nisi Tower γ", "Nisi Tower δ" };
+            for (var i = 0; i < nisiTowers.Length; i++)
             {
-                var player = this.dalamud.ObjectTable.LocalPlayer;
-                if (player != null)
+                if (i != 0)
                 {
-                    if (this.entityManager.TryCreateEntity<NisiTowerOmen>(out var tower))
+                    SameLineIfFits(nisiTowers[i]);
+                }
+                if (ImGui.Button(nisiTowers[i]))
+                {
+                    var player = this.dalamud.ObjectTable.LocalPlayer;
+                    if (player != null)
                     {
-                        tower.Set(new Position(player.Position));
-                        tower.Set(new Rotation(player.Rotation));
-                        tower.Set(new Scale(Vector3.One));
-                        tower.Set(new NisiTowerOmen.Component(NisiTowerOmen.Nisi.Beta));
-                        tower.Add<NisiTowerOmen.UseLocalPlayerPosition>();
+                        if (this.entityManager.TryCreateEntity<NisiTowerOmen>(out var tower))
+                        {
+                            tower.Set(new Position(player.Position));
+                            tower.Set(new Rotation(player.Rotation));
+                            tower.Set(new Scale(Vector3.One));
+                            tower.Set(new NisiTowerOmen.Component((NisiTowerOmen.Nisi)(i + 1)));
+                            tower.Add<NisiTowerOmen.UseLocalPlayerPosition>();
+                        }
                     }
                 }
             }

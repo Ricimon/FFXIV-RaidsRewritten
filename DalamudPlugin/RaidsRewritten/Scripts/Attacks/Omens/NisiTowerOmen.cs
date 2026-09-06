@@ -16,6 +16,11 @@ public class NisiTowerOmen(DalamudServices dalamud, ILogger logger) : IEntity, I
     public const string NisiGammaVfxPath = "vfx/common/eff/m0598_stlp8c0c.avfx";
     public const string NisiDeltaVfxPath = "vfx/common/eff/m0598_stlp9c0c.avfx";
 
+    public static readonly Vector4 NisiAlphaColor = new(0.333f, 0.604f, 1.0f, 1.0f);
+    public static readonly Vector4 NisiBetaColor = new(1.0f, 0.624f, 0.196f, 1.0f);
+    public static readonly Vector4 NisiGammaColor = new(1.0f, 0.439f, 1.0f, 1.0f);
+    public static readonly Vector4 NisiDeltaColor = new(0.525f, 1.0f, 0.49f, 1.0f);
+
     private const float Radius = 3.0f;
     private const float TimeToSnapshot = 8.0f;
 
@@ -50,6 +55,18 @@ public class NisiTowerOmen(DalamudServices dalamud, ILogger logger) : IEntity, I
         world.System<Component>()
             .Each((Iter it, int i, ref Component component) =>
             {
+                var e = it.Entity(i);
+
+                var color = component.NisiType switch
+                {
+                    Nisi.Alpha => NisiAlphaColor,
+                    Nisi.Beta => NisiBetaColor,
+                    Nisi.Gamma => NisiGammaColor,
+                    Nisi.Delta => NisiDeltaColor,
+                    _ => Vector4.One,
+                };
+                e.Set(new Color(color));
+
                 if (!component.NisiVfx.IsValid())
                 {
                     var nisiVfxPath = component.NisiType switch
@@ -68,11 +85,11 @@ public class NisiTowerOmen(DalamudServices dalamud, ILogger logger) : IEntity, I
                             .Set(new LocalPosition())
                             .Set(new Rotation())
                             .Set(new NisiVfx(5.0f))
-                            .ChildOf(it.Entity(i));
+                            .ChildOf(e);
                     }
                     else
                     {
-                        component.NisiVfx = it.World().Entity().ChildOf(it.Entity(i));
+                        component.NisiVfx = it.World().Entity().ChildOf(e);
                     }
                 }
 
@@ -80,7 +97,7 @@ public class NisiTowerOmen(DalamudServices dalamud, ILogger logger) : IEntity, I
 
                 if (component.ElapsedTime > 10.0f)
                 {
-                    it.Entity(i).Destruct();
+                    e.Destruct();
                 }
             });
 
@@ -119,8 +136,18 @@ public class NisiTowerOmen(DalamudServices dalamud, ILogger logger) : IEntity, I
                 {
                     if (!component.TowerFilledVfx.IsValid())
                     {
+                        var color = component.NisiType switch
+                        {
+                            Nisi.Alpha => NisiAlphaColor,
+                            Nisi.Beta => NisiBetaColor,
+                            Nisi.Gamma => NisiGammaColor,
+                            Nisi.Delta => NisiDeltaColor,
+                            _ => Vector4.One,
+                        };
+
                         component.TowerFilledVfx = it.World().Entity()
                             .Set(new StaticVfx("bg/ex2/05_zon_z3/common/vfx/eff/b1512pil02_u.avfx"))
+                            .Set(new Color(color))
                             .Set(new Position(position.Value))
                             .Set(new Rotation(rotation.Value))
                             .Set(new Scale(scale.Value))

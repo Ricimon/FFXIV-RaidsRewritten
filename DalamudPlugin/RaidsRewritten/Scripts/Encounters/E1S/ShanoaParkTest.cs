@@ -190,7 +190,8 @@ public class ShanoaParkTest : Mechanic, IShanoaPark
                         shanoa
                             .Set(new Position(new(payload.worldPositionX ?? default, payload.worldPositionY ?? default, payload.worldPositionZ ?? default)))
                             .Set(new Rotation(payload.rotation ?? default))
-                            .Set(new ChatBubble("Meow!♪"));
+                            .Set(new ChatBubble("Meow!♪"))
+                            .Add<Attack>();
                         if (mode == 1)
                         {
                             World.Entity()

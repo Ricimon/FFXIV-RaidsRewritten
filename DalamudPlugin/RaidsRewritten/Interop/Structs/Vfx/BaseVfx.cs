@@ -61,6 +61,12 @@ public abstract unsafe class BaseVfx
         );
     }
 
+    public void UpdateColor(Vector4 color)
+    {
+        if (Vfx == null) { return; }
+        Vfx->Color = color;
+    }
+
     public void UpdateAlpha(float alpha)
     {
         if (Vfx == null) { return; }
