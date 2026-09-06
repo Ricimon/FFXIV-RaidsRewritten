@@ -74,7 +74,7 @@ public abstract unsafe class BaseVfx
         //Vfx->SetTransparency(alpha); // this seems to do nothing
     }
 
-    public void Update()
+    public virtual void Update()
     {
         if (Vfx == null) { return; }
         Vfx->UpdateTransforms(true);
