@@ -265,13 +265,13 @@ public class PickyDolls : Mechanic
                 {
                     case Villain.Epic:
                         {
-                            using var q = World.QueryBuilder<EpicHero.Component>().With(Ecs.ChildOf, e).Build();
+                            using var q = e.CsWorld().QueryBuilder().With<EpicHero.Component>().With(Ecs.ChildOf, e).Build();
                             applyPunishment = !q.IsTrue();
                         }
                         break;
                     case Villain.Fated:
                         {
-                            using var q = World.QueryBuilder<FatedHero.Component>().With(Ecs.ChildOf, e).Build();
+                            using var q = e.CsWorld().QueryBuilder().With<FatedHero.Component>().With(Ecs.ChildOf, e).Build();
                             applyPunishment = !q.IsTrue();
                         }
                         break;
@@ -282,7 +282,7 @@ public class PickyDolls : Mechanic
                     var player = Dalamud.ObjectTable.LocalPlayer;
                     if (player != null && !player.IsDead && !player.HasTranscendance())
                     {
-                        var action = DelayedAction.Create(World, () =>
+                        var action = DelayedAction.Create(e.CsWorld(), () =>
                         {
                             if (player != null && !player.IsDead && e.IsValid())
                             {
