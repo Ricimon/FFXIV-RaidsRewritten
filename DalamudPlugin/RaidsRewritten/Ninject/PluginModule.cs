@@ -98,6 +98,7 @@ public class PluginModule : NinjectModule
         Bind<IEntity>().To<CircleOmen>();
         Bind<IEntity>().To<Fan90Omen>();
         Bind<IEntity>().To<Fan120Omen>();
+        Bind<IEntity>().To<ProteanOmen>();
         Bind<IEntity>().To<RectangleOmen>();
         Bind<IEntity>().To<LineOmen>();
         Bind<IEntity>().To<ShortStarOmen>();

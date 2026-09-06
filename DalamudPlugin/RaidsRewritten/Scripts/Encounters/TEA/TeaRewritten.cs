@@ -68,6 +68,7 @@ public class TeaRewritten : IEncounter
         var rngSeedString = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
         int rngSeed = RandomUtilities.HashToRngSeed(rngSeedString);
 
+        mechanics.Add(mechanicFactory.Create<ThrottleMania>());
         if (configuration.GetEncounterSetting(FireTornadoKey, defaultBoolSettings[FireTornadoKey]))
         {
             mechanics.Add(mechanicFactory.Create<FireTornado>());
