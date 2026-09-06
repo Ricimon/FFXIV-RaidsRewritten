@@ -22,6 +22,7 @@ public class TeaRewritten : IEncounter
     private string ShanoaParkKey => $"{Name}.ShanoaPark";
     private string ChakramBallsKey => $"{Name}.ChakramBalls";
     private string IcePlusKey => $"{Name}.IcePlus";
+    private string SuperJumpPlusKey => $"{Name}.SuperJumpPlus";
 
     private readonly Mechanic.Factory mechanicFactory;
     private readonly DalamudServices dalamud;
@@ -49,6 +50,7 @@ public class TeaRewritten : IEncounter
             { ShanoaParkKey, true },
             { ChakramBallsKey, true },
             { IcePlusKey, true },
+            { SuperJumpPlusKey, true },
         };
 
         this.defaultIntSettings = new()
@@ -119,6 +121,10 @@ public class TeaRewritten : IEncounter
             var icePlus = mechanicFactory.Create<IcePlus>();
             icePlus.RngSeed = rngSeed;
             mechanics.Add(icePlus);
+        }
+        if (configuration.GetEncounterSetting(SuperJumpPlusKey, defaultBoolSettings[SuperJumpPlusKey]))
+        {
+            mechanics.Add(mechanicFactory.Create<SuperJumpPlus>());
         }
     }
 
@@ -230,10 +236,19 @@ public class TeaRewritten : IEncounter
         }
 
         bool icePlus = configuration.GetEncounterSetting(IcePlusKey, defaultBoolSettings[IcePlusKey]);
-        if (ImGui.Checkbox("Ice Plus (incomplete)", ref icePlus))
+        if (ImGui.Checkbox("Ice+ (incomplete)", ref icePlus))
         {
             configuration.EncounterSettings[IcePlusKey] =
                 icePlus ? bool.TrueString : bool.FalseString;
+            configuration.Save();
+            RefreshMechanics();
+        }
+
+        bool superJumpPlus = configuration.GetEncounterSetting(SuperJumpPlusKey, defaultBoolSettings[SuperJumpPlusKey]);
+        if (ImGui.Checkbox("Super Jump+", ref superJumpPlus))
+        {
+            configuration.EncounterSettings[SuperJumpPlusKey] =
+                superJumpPlus ? bool.TrueString : bool.FalseString;
             configuration.Save();
             RefreshMechanics();
         }

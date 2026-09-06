@@ -28,6 +28,8 @@ pub mod m1027_tea_hide_shanoa;
 pub mod m1028_tea_update_nisi_status;
 #[path = "mechanics/1029-tea_nisi_tower.rs"]
 pub mod m1029_tea_nisi_tower;
+#[path = "mechanics/1050-tea_super_jump_enumeration.rs"]
+pub mod m1050_tea_super_jump_enumeration;
 
 use crate::{
     game::{components::*, utils::*},
@@ -63,6 +65,7 @@ pub fn create_mechanic(
         1027 => Some(m1027_tea_hide_shanoa::create_mechanic),
         1028 => Some(m1028_tea_update_nisi_status::create_mechanic),
         1029 => Some(m1029_tea_nisi_tower::create_mechanic),
+        1050 => Some(m1050_tea_super_jump_enumeration::create_mechanic),
         _ => None,
     };
     if let Some(f) = mechanic_fn {
@@ -128,6 +131,7 @@ pub fn create_systems(world: &World) {
     m1027_tea_hide_shanoa::create_systems(world);
     m1028_tea_update_nisi_status::create_systems(world);
     m1029_tea_nisi_tower::create_systems(world);
+    m1050_tea_super_jump_enumeration::create_systems(world);
 }
 
 pub fn create_observers(world: &World) {

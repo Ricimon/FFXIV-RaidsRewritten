@@ -20,6 +20,8 @@ public enum NetworkMechanic : uint
     TeaHideShanoa = 1027,
     TeaUpdateNisiStatus = 1028,
     TeaNisiTower = 1029,
+    TeaSuperJumpEnumeration = 1050,
+    TeaApocalypticRaySpreads = 1051,
 }
 
 // To client
