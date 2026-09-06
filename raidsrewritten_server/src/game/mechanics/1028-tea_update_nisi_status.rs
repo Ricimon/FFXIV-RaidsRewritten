@@ -78,10 +78,13 @@ pub fn create_systems(world: &World) {
     // Shanoa and Nisi interaction
     world.system::<(&TeaShanoa, &Position, &Party)>().each_iter(
         |it, index, (shanoa, shanoa_position, party)| {
-            if !shanoa.active { return; }
-
             let entity = it.entity(index);
             let world = &it.world();
+
+            if !shanoa.active {
+                entity.remove(Nisi::id());
+                return;
+            }
 
             let mut shanoa_nisi: u8 = 0;
             entity.try_get::<&Nisi>(|nisi| shanoa_nisi = nisi.type_);

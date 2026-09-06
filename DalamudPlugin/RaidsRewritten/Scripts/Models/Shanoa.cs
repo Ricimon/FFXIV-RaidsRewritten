@@ -2,13 +2,14 @@
 using System.Numerics;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
+using RaidsRewritten.Interop;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Models;
 
-public class Shanoa(ILogger logger) : IEntity, ISystem
+public class Shanoa(ResourceLoader resourceLoader, ILogger logger) : IEntity, ISystem
 {
     public const int ModelId = 438;
     public const ushort ScratchSelfAnimationId = 4;
@@ -17,9 +18,17 @@ public class Shanoa(ILogger logger) : IEntity, ISystem
     public const ushort WalkAnimationId = 7;
     public const ushort RunAnimationId = 22;
 
+    public const int Model2Id = 1499;
+    public const ushort Model2RunAnimationId = 8;
+    public const ushort Model2HeartAnimationId = 3201;
+
+    public const string HeartsVfxPath = "vfx/monster/m0331/eff/m0331sp_01c1h.avfx";
+    public const string MeowSfxPath = "sound/vfx/monster4/SE_Vfx_Monster_GoblinKaniTank_CoeurlCheer_c.scd";
+
     public record struct Component(float MovementSpeed, float RotationSpeed);
     public record struct TargetPosition(Vector3 Value);
     public record struct TargetRotation(float Value);
+    public struct Meow;
 
     public Entity Create(World world)
     {
@@ -89,6 +98,20 @@ public class Shanoa(ILogger logger) : IEntity, ISystem
                 {
                     timeline.Value = 0;
                 }
+            });
+
+        world.System<Component>()
+            .With<Meow>()
+            .Each((Iter it, int i, ref Component component) =>
+            {
+                var e = it.Entity(i);
+                e.Remove<Meow>();
+
+                it.World().Entity()
+                    .Set(new ActorVfx(HeartsVfxPath))
+                    .ChildOf(e);
+
+                resourceLoader.PlaySound(MeowSfxPath, 0);
             });
     }
 }

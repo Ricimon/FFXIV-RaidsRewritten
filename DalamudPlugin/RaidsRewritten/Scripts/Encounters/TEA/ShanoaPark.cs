@@ -32,6 +32,7 @@ public class ShanoaPark : Mechanic, IShanoaPark
     private const string MarkerAttackVfxPath = "vfx/monster/d1024/eff/arthur_thunderstorm_t0s.avfx";
     private const string AetherCompassLocationVfxPath = "bg/ex2/05_zon_z3/common/vfx/eff/b1526bari1_u.avfx";
     private const string AetherCompassLocationArrowsVfxPath = "bgcommon/world/common/vfx_for_bg/eff/b1490tagt1_o.avfx";
+    private const string DestinationArrowVfxPath = "vfx/lockon/eff/m0372trg_t2j.avfx";
     private const string AbsorbMarkerVfxPath1 = "vfx/monster/m0982/eff/m0982sp006c0c.avfx";
     private const string AbsorbMarkerVfxPath2 = "vfx/monster/m0982/eff/m0982sp006t0c.avfx";
     private const string LooperVfx = "vfx/common/eff/abnormal_st_circle_c0i.avfx";
@@ -229,7 +230,15 @@ public class ShanoaPark : Mechanic, IShanoaPark
         if (source.BaseId == LivingLiquidBaseId &&
             command == 14) // command 14 seems to be death animation
         {
-            shanoa.SafeDestruct();
+            NetworkClient.SendAsync(new Message
+            {
+                action = Message.Action.StartMechanic,
+                startMechanic = new Message.StartMechanicPayload
+                {
+                    mechanicId = (uint)NetworkMechanic.TeaHideShanoa,
+                    requestId = nameof(NetworkMechanic.TeaHideShanoa) + "_LivingLiquidEnd",
+                }
+            }).SafeFireAndForget();
         }
     }
 
@@ -283,13 +292,15 @@ public class ShanoaPark : Mechanic, IShanoaPark
                 {
                     ClearGuidanceEntities();
                     if (!shanoa.IsValid()) { return; }
-                    shanoa
-                        .Set(new Shanoa.TargetPosition(new Vector3(
+                    var position = new Vector3(
                             payload.worldPositionX ?? default,
                             payload.worldPositionY ?? default,
-                            payload.worldPositionZ ?? default)))
+                            payload.worldPositionZ ?? default);
+                    shanoa
+                        .Set(new Shanoa.TargetPosition(position))
                         .Set(new Shanoa.TargetRotation(payload.rotation ?? default))
-                        .Set(new ChatBubble("Meow! Purrrrrr...♪"));
+                        .Set(new ChatBubble("Meow! Purrrrrr...♪"))
+                        .Add<Shanoa.Meow>();
                     if (!string.IsNullOrEmpty(payload.extraData))
                     {
                         var arguments = payload.extraData.Split(',');
@@ -300,6 +311,10 @@ public class ShanoaPark : Mechanic, IShanoaPark
                             shanoa.Set(new Shanoa.Component(movementSpeed, rotationSpeed));
                         }
                     }
+                    var destinationArrow = FakeActor.Create(World)
+                        .Set(new ActorVfx(DestinationArrowVfxPath))
+                        .Set(new Position(position + 1.0f * Vector3.UnitY));
+                    attacks.Add(destinationArrow);
                 }
                 break;
 

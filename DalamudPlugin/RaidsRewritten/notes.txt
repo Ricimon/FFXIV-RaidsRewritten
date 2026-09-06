@@ -1,5 +1,6 @@
 Common
 Start weaponskill/boss attack: vfx/common/eff/cmma_shoot1c.avfx (actor)
+Enemy spawn: vfx/common/eff/mon_pop1t.avfx (actor)
 
 Hall of the Novice
 Tower attack: vfx/monster/gimmick2/eff/g3d1_b2_g03c1v.avfx (actor)
@@ -54,6 +55,8 @@ Nisi Gamma: vfx/common/eff/m0598_stlp8c0c.avfx (actor)
 Nisi Delta: vfx/common/eff/m0598_stlp9c0c.avfx (actor)
 Final Sentence: vfx/monster/gimmick/eff/alexfour_hitogata_shinpan_c0c.avfx (actor)
 Final Sentence: sound/vfx/monster3/SE_Vfx_Monster_QuadrupedMachine_Judgement_c.scd, 0
+Shanoa meow: sound/vfx/monster4/SE_Vfx_Monster_GoblinKaniTank_CoeurlCheer_c.scd, 0
+Shanoa hearts: vfx/monster/m0331/eff/m0331sp_01c1h.avfx (actor)
 
 E5N
 Thunderstorm small AOE: vfx/monster/m0234/eff/ryu_no_su_tatumaki_pc_rakurai_c0s.avfx (actor), 3y radius
