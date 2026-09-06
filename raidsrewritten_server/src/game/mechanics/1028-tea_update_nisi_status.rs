@@ -76,17 +76,9 @@ pub fn create_systems(world: &World) {
         });
 
     // Shanoa and Nisi interaction
-    world.system::<(&mut TeaShanoa, &Position, &Party)>().each_iter(
+    world.system::<(&TeaShanoa, &Position, &Party)>().each_iter(
         |it, index, (shanoa, shanoa_position, party)| {
             if !shanoa.active { return; }
-
-            shanoa.nisi_interaction_timer -= it.delta_time();
-            if shanoa.nisi_interaction_timer > 0.0 {
-                return;
-            }
-            else {
-                shanoa.nisi_interaction_timer = 0.1;
-            }
 
             let entity = it.entity(index);
             let world = &it.world();

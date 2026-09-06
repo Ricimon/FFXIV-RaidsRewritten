@@ -15,7 +15,6 @@ pub struct TeaShanoa {
     pub fire_tornado: Entity,
     pub movement_speed: f32,
     pub rotation_speed: f32,
-    pub nisi_interaction_timer: f32,
 }
 
 #[derive(Component, Debug)]
@@ -86,7 +85,6 @@ pub fn create_systems(world: &World) {
                         fire_tornado: *entity,
                         movement_speed: 6.0,
                         rotation_speed: 7.0,
-                        nisi_interaction_timer: 0.0,
                     })
                     .set(Position {
                         x: shanoa_position.x,
