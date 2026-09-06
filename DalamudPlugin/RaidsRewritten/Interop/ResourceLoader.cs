@@ -17,6 +17,7 @@ public unsafe sealed partial class ResourceLoader : IDisposable
     public const string GetResourceSyncSig = "E8 ?? ?? ?? ?? 48 8B C8 8B C3 F0 0F C0 81";
     public const string GetResourceAsyncSig = "E8 ?? ?? ?? 00 48 8B D8 EB ?? F0 FF 83 ?? ?? 00 00";
 
+    public const string StaticVfxCreateSig = "E8 ?? ?? ?? ?? F3 0F 10 35 ?? ?? ?? ?? 48 89 43 08";
     public const string StaticVfxRunSig = "E8 ?? ?? ?? ?? B0 02 EB 02";
     public const string StaticVfxRemoveSig = "40 53 48 83 EC 20 48 8B D9 48 8B 89 ?? ?? ?? ?? 48 85 C9 74 28 33 D2 E8 ?? ?? ?? ?? 48 8B 8B ?? ?? ?? ?? 48 85 C9";
 
@@ -63,7 +64,7 @@ public unsafe sealed partial class ResourceLoader : IDisposable
 
         // VFX
 
-        var staticVfxCreateAddress = sigScanner.ScanText(VfxObject.Addresses.Create.String);
+        var staticVfxCreateAddress = sigScanner.ScanText(StaticVfxCreateSig);
         var actorVfxRemoveAddressTemp = sigScanner.ScanText(ActorVfxRemoveSig) + 7;
         var actorVfxRemoveAddress = Marshal.ReadIntPtr(actorVfxRemoveAddressTemp + Marshal.ReadInt32(actorVfxRemoveAddressTemp) + 4);
 
