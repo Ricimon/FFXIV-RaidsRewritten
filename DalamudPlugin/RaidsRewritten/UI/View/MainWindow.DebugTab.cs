@@ -1130,6 +1130,41 @@ public partial class MainWindow
                             }).SafeFireAndForget();
                         }
                     }
+
+                    if (ImGui.Button("Super Jump Enum"))
+                    {
+                        this.networkClient.SendAsync(new Message
+                        {
+                            action = Message.Action.StartMechanic,
+                            startMechanic = new Message.StartMechanicPayload
+                            {
+                                requestId = Guid.NewGuid().ToString(),
+                                mechanicId = (uint)NetworkMechanic.TeaSuperJumpEnumeration,
+                                extraData = this.dalamud.PlayerState.ContentId.ToString(),
+                            }
+                        }).SafeFireAndForget();
+                    }
+                    SameLineIfFits("Apoc Spread");
+                    if (ImGui.Button("Apoc Spread"))
+                    {
+                        var player = this.dalamud.ObjectTable.LocalPlayer;
+                        if (player != null)
+                        {
+                            this.networkClient.SendAsync(new Message
+                            {
+                                action = Message.Action.StartMechanic,
+                                startMechanic = new Message.StartMechanicPayload
+                                {
+                                    requestId = Guid.NewGuid().ToString(),
+                                    mechanicId = (uint)NetworkMechanic.TeaApocalypticRaySpreads,
+                                    worldPositionX = player.Position.X,
+                                    worldPositionY = player.Position.Y,
+                                    worldPositionZ = player.Position.Z,
+                                    rotation = player.Rotation,
+                                }
+                            }).SafeFireAndForget();
+                        }
+                    }
                 }
             }
         }

@@ -32,6 +32,7 @@ pub enum Condition {
     Knockback = 8,
     FireResistanceDown = 9,
     Flattened = 10,
+    MagicVulnerabilityUp = 11,
 }
 
 pub fn create_systems(world: &World) {
@@ -53,6 +54,15 @@ pub fn create_systems(world: &World) {
                     p.add(BroadcastConditions);
                 }
                 e.destruct();
+            }
+        });
+
+    world
+        .system::<&mut BroadcastDelay>()
+        .each_iter(|it, i, delay| {
+            delay.value -= it.delta_time();
+            if delay.value <= 0.0 {
+                it.entity(i).remove(BroadcastDelay::id());
             }
         });
 
@@ -84,10 +94,14 @@ pub fn create_systems(world: &World) {
                 c1.try_get::<&Player>(|p| {
                     let mut condition_details: Vec<UpdateConditionsConditionDetails> = Vec::new();
                     c1.each_child(|c2| {
-                        c2.try_get::<&components::Condition>(|c| {
-                            condition_details.push(build_condition_details(c2, c));
-                            c2.add(BroadcastedCondition);
-                        });
+                        c2.try_get::<(&components::Condition, Option<&BroadcastDelay>)>(
+                            |(c, bd)| {
+                                if bd.is_none() {
+                                    condition_details.push(build_condition_details(c2, c));
+                                    c2.add(BroadcastedCondition);
+                                }
+                            },
+                        );
                     });
                     players.push(UpdateConditionsPlayer {
                         content_id: p.content_id,

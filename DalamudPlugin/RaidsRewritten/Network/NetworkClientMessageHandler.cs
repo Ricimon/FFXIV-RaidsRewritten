@@ -1,7 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using AsyncAwaitBestPractices;
+using Dalamud.Game.ClientState.Objects.Types;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using Flecs.NET.Bindings;
 using Flecs.NET.Core;
@@ -153,24 +154,35 @@ public sealed class NetworkClientMessageHandler(
     {
         if (!CheckIsValidVfxPath(payload.vfxPath)) { return; }
 
+        if (payload.contentIdTargets.Length == 0) { return; }
+
         dalamud.Framework.Run(() =>
         {
-            var targetCharas = dalamud.ObjectTable.PlayerObjects.AsValueEnumerable().Where(pl =>
+            var targetCharas = new List<(IBattleChara, int)>();
+            foreach (var po in dalamud.ObjectTable.PlayerObjects)
             {
-                if (pl == null) { return false; }
+                if (po == null) { continue; }
                 BattleChara bc;
                 unsafe
                 {
-                    var bcA = (BattleChara*)pl.Address;
-                    if (bcA == null) { return false; }
+                    var bcA = (BattleChara*)po.Address;
+                    if (bcA == null) { continue; }
                     bc = *bcA;
                 }
-                return payload.contentIdTargets.Contains(bc.ContentId);
-            });
 
-            foreach (var target in targetCharas)
+                var count = payload.contentIdTargets.Count(bc.ContentId);
+                if (count > 0)
+                {
+                    targetCharas.Add((po, count));
+                }
+            }
+
+            foreach (var (target, count) in targetCharas)
             {
-                vfxSpawn.SpawnActorVfx(payload.vfxPath, target, target);
+                for (var i = 0; i < count; i++)
+                {
+                    vfxSpawn.SpawnActorVfx(payload.vfxPath, target, target);
+                }
             }
 
             // TODO: Use customIdTargets
@@ -298,6 +310,9 @@ public sealed class NetworkClientMessageHandler(
                                         break;
                                     case Message.Condition.Flattened:
                                         Flattened.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: false);
+                                        break;
+                                    case Message.Condition.MagicVulnerabilityUp:
+                                        MagicVulnerabilityUp.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: false);
                                         break;
                                 }
                             }

@@ -47,6 +47,7 @@ public struct Message
         Knockback = 8,
         FireResistanceDown = 9,
         Flattened = 10,
+        MagicVulnerabilityUp = 11,
     }
 
     // To server ============

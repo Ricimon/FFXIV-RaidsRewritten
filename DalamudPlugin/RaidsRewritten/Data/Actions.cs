@@ -439,12 +439,12 @@ public class Actions
         2254, // Death Blossom
         2255, // Aeolian Edge
         2258, // Trick Attack
-        2259, // Ten
-        2260, // Ninjutsu
-        2261, // Chi
+        //2259, // Ten
+        //2260, // Ninjutsu
+        //2261, // Chi
         //2262, // Shukuchi
-        2263, // Jin
-        2264, // Kassatsu
+        //2263, // Jin
+        //2264, // Kassatsu
         2265, // Fuma Shuriken
         2266, // Katon
         2267, // Raiton
@@ -470,9 +470,9 @@ public class Actions
         17418, // Throwing Dagger
         17419, // Death Blossom
         17420, // Hakke Mujinsatsu
-        18805, // Ten
-        18806, // Chi
-        18807, // Jin
+        //18805, // Ten
+        //18806, // Chi
+        //18807, // Jin
         18873, // Fuma Shuriken
         18874, // Fuma Shuriken
         18875, // Fuma Shuriken

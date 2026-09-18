@@ -103,6 +103,12 @@ pub struct Condition {
 #[derive(Component)]
 pub struct BroadcastedCondition;
 
+// Used to delay condition broadcasting, for cases when condition application should appear to line up with attack effect
+#[derive(Component, Debug)]
+pub struct BroadcastDelay {
+    pub value: f32,
+}
+
 #[derive(Component)]
 pub struct ClientCondition;
 

@@ -8,83 +8,85 @@ use crate::{
 };
 use flecs_ecs::prelude::*;
 use nalgebra::Vector2;
-use rand::seq::IndexedRandom;
 use std::collections::HashMap;
 use tracing::info;
 
 #[derive(Component, Debug)]
-pub struct SuperJumpEnumeration {
+pub struct ApocalypticRaySpreads {
     time_to_snapshot: f32,
     effect_delay: f32,
     radius: f32,
     omen_vfx_path: String,
-    attack_vfx_paths: [String; 2],
+    attack_vfx_path: String,
 }
+
+#[derive(Clone, Copy)]
+struct Target {
+    entity: Entity,
+    content_id: u64,
+    distance: f32,
+}
+
+const TARGET_COUNT: usize = 6;
 
 pub fn create_mechanic(entity: EntityView<'_>) -> EntityView<'_> {
-    entity.set(SuperJumpEnumeration {
-        time_to_snapshot: 6.0,
+    entity.set(ApocalypticRaySpreads {
+        time_to_snapshot: 5.0,
         effect_delay: 0.2,
-        radius: 3.0,
-        omen_vfx_path: "vfx/lockon/eff/2tagup_3m_6s_x.avfx".to_string(),
-        attack_vfx_paths: [
-            "vfx/monster/gimmick4/eff/z5fb_b_g10c0x.avfx".to_string(),
-            "vfx/monster/gimmick4/eff/z5fb_b_g10c1x.avfx".to_string(),
-        ],
+        radius: 6.0,
+        omen_vfx_path: "vfx/lockon/eff/target_ae_s5f.avfx".to_string(),
+        attack_vfx_path: "vfx/monster/gimmick4/eff/n5r8_b_g15_t0k1.avfx".to_string(),
     })
 }
-
 pub fn create_systems(world: &World) {
     // Assign target
     world
-        .system::<(
-            &Mechanic,
-            &mut SuperJumpEnumeration,
-            &ExtraMechanicData,
-            &Party,
-        )>()
+        .system::<(&Mechanic, &mut ApocalypticRaySpreads, &Position, &Party)>()
         .without(Targets::id())
-        .each_iter(|it, index, (mechanic, enumeration, extra_data, party)| {
+        .each_iter(|it, index, (mechanic, spread, position, party)| {
             let entity = it.entity(index);
             let world = &it.world();
 
-            let mut targets: Vec<u64> = Vec::new();
-            for t in extra_data.value.split(',') {
-                if let Ok(n) = t.parse::<u64>() {
-                    targets.push(n);
-                }
-            }
-
-            // Only pick 1 target
-            let target = targets.choose(&mut rand::rng());
-
-            if target.is_none() {
-                finish_mechanic(entity, mechanic, party);
-                return;
-            }
-
-            let targets = vec![*target.unwrap()];
-
             // Assign targets
-            let mut target_players: Vec<Entity> = Vec::new();
+            let mut targets: Vec<Target> = Vec::new();
+            if let Some(pc) = find_party_container(world, &party.id) {
+                let p1 = Vector2::new(position.x, position.z);
+                pc.each_child(|c| {
+                    c.try_get::<(&Player, &Position, &State)>(|(pl, p, s)| {
+                        if !s.is_alive {
+                            return;
+                        }
 
-            let player_query = world.query::<(&Player, &State)>().build();
-            player_query.each_entity(|entity, (player, state)| {
-                if !target_players.is_empty() {
-                    return;
-                }
-                if player.content_id == *target.unwrap() && state.is_alive {
-                    target_players.push(*entity);
-                }
-            });
+                        let p2 = Vector2::new(p.x, p.z);
+                        let distance: f32 = p1.metric_distance(&p2);
 
-            if target_players.is_empty() {
+                        targets.push(Target {
+                            entity: *c,
+                            content_id: pl.content_id,
+                            distance,
+                        });
+                    });
+                });
+
+                targets.sort_unstable_by(|a, b| a.distance.total_cmp(&b.distance));
+                targets.truncate(TARGET_COUNT);
+            }
+
+            if targets.is_empty() {
                 finish_mechanic(entity, mechanic, party);
                 return;
+            }
+
+            // Double-up
+            let target_count = targets.len();
+            let mut i = 0;
+            while targets.len() < TARGET_COUNT {
+                targets.push(targets[i]);
+                i = (i + 1) % target_count;
             }
 
             entity.set(Targets {
-                player_entities: target_players,
+                player_entities: targets.iter().map(|t| t.entity).collect(),
             });
 
             // Send omen vfx
@@ -96,8 +98,8 @@ pub fn create_systems(world: &World) {
                             io.clone(),
                             s.id,
                             PlayActorVfxOnTargetPayload {
-                                vfx_path: enumeration.omen_vfx_path.clone(),
-                                content_id_targets: targets.clone(),
+                                vfx_path: spread.omen_vfx_path.clone(),
+                                content_id_targets: targets.iter().map(|t| t.content_id).collect(),
                                 ..Default::default()
                             },
                         );
@@ -108,14 +110,14 @@ pub fn create_systems(world: &World) {
 
     // Assign affects
     world
-        .system::<(&mut SuperJumpEnumeration, &Party, &mut Targets)>()
+        .system::<(&mut ApocalypticRaySpreads, &Party, &mut Targets)>()
         .without(Affects::id())
-        .each_iter(|it, index, (enumeration, party, targets)| {
+        .each_iter(|it, index, (spread, party, targets)| {
             let entity = it.entity(index);
 
-            enumeration.time_to_snapshot -= it.delta_time();
+            spread.time_to_snapshot -= it.delta_time();
 
-            if enumeration.time_to_snapshot > 0.0 {
+            if spread.time_to_snapshot > 0.0 {
                 return;
             }
 
@@ -135,11 +137,10 @@ pub fn create_systems(world: &World) {
                 for e in &targets.player_entities {
                     // For every target player,
                     let e1 = e.entity_view(it.world());
-                    e1.try_get::<(&Player, &Position)>(|(pl1, p1)| {
+                    e1.try_get::<(&Player, &Position)>(|(_, p1)| {
                         // affect all players within radius
-                        let mut enumeration_success = false;
                         pc.each_child(|c| {
-                            c.try_get::<(&Player, &Position, &State)>(|(pl2, p2, s2)| {
+                            c.try_get::<(&Player, &Position, &State)>(|(_, p2, s2)| {
                                 if !s2.is_alive {
                                     return;
                                 }
@@ -147,18 +148,11 @@ pub fn create_systems(world: &World) {
                                 let p1 = Vector2::new(p1.x, p1.z);
                                 let p2 = Vector2::new(p2.x, p2.z);
 
-                                if p1.metric_distance(&p2) <= enumeration.radius {
-                                    if pl1.content_id != pl2.content_id {
-                                        enumeration_success = true;
-                                    }
+                                if p1.metric_distance(&p2) <= spread.radius {
                                     add_affect(&mut affects, &c, 1);
                                 }
                             });
                         });
-
-                        if !enumeration_success {
-                            add_affect(&mut affects, &e1, 1);
-                        }
                     });
                 }
             }
@@ -180,17 +174,15 @@ pub fn create_systems(world: &World) {
             if let Some(pc) = find_party_container(&it.world(), &party.id) {
                 pc.each_child(|c| {
                     c.try_get::<&Socket>(|s| {
-                        for vfx in &enumeration.attack_vfx_paths {
-                            send_play_actor_vfx_on_target(
-                                io.clone(),
-                                s.id,
-                                PlayActorVfxOnTargetPayload {
-                                    vfx_path: vfx.clone(),
-                                    content_id_targets: target_ids.clone(),
-                                    ..Default::default()
-                                },
-                            );
-                        }
+                        send_play_actor_vfx_on_target(
+                            io.clone(),
+                            s.id,
+                            PlayActorVfxOnTargetPayload {
+                                vfx_path: spread.attack_vfx_path.clone(),
+                                content_id_targets: target_ids.clone(),
+                                ..Default::default()
+                            },
+                        );
                     });
                 });
             }
@@ -198,12 +190,17 @@ pub fn create_systems(world: &World) {
 
     // Resolve effects
     world
-        .system::<(&Mechanic, &mut SuperJumpEnumeration, &Party, &mut Affects)>()
-        .each_iter(|it, index, (mechanic, enumeration, party, affects)| {
+        .system::<(&Mechanic, &mut ApocalypticRaySpreads, &Party, &mut Affects)>()
+        .each_iter(|it, index, (mechanic, spread, party, affects)| {
             let entity = it.entity(index);
             let world = &it.world();
 
-            enumeration.effect_delay = f32::max(enumeration.effect_delay - it.delta_time(), 0.0);
+            if affects.player_entities.is_empty() {
+                finish_mechanic(entity, mechanic, party);
+                return;
+            }
+
+            spread.effect_delay = f32::max(spread.effect_delay - it.delta_time(), 0.0);
 
             // Apply condition to 1 target at a time so as to apply and read magic vulns
             let extract: Vec<(Entity, u8)> = affects
@@ -212,7 +209,7 @@ pub fn create_systems(world: &World) {
                 .take(1)
                 .collect();
 
-            for (e, affect_count) in extract {
+            for (e, mut affect_count) in extract {
                 if let Some(player) = get_entity_view(&e, world) {
                     let mut has_vuln = false;
                     player.each_child(|c| {
@@ -223,7 +220,7 @@ pub fn create_systems(world: &World) {
                         });
                     });
 
-                    if has_vuln || affect_count > 1 {
+                    if has_vuln {
                         let stun = apply_condition(
                             &player,
                             condition::Condition::Stun as u128,
@@ -233,7 +230,7 @@ pub fn create_systems(world: &World) {
                         );
                         if let Some(stun) = get_entity_view(&stun, world) {
                             stun.set(BroadcastDelay {
-                                value: enumeration.effect_delay,
+                                value: spread.effect_delay,
                             });
                         }
                     }
@@ -247,14 +244,15 @@ pub fn create_systems(world: &World) {
                     );
                     if let Some(magic_vuln) = get_entity_view(&magic_vuln, world) {
                         magic_vuln.set(BroadcastDelay {
-                            value: enumeration.effect_delay,
+                            value: spread.effect_delay,
                         });
                     }
                 }
-            }
 
-            if affects.player_entities.is_empty() {
-                finish_mechanic(entity, mechanic, party);
+                affect_count -= 1;
+                if affect_count > 0 {
+                    affects.player_entities.insert(e, affect_count);
+                }
             }
         });
 }
@@ -264,5 +262,5 @@ fn finish_mechanic(entity: EntityView<'_>, mechanic: &Mechanic, party: &Party) {
         mechanic.request_id,
         mechanic.mechanic_id, party.id, "Completing Mechanic"
     );
-    entity.remove(SuperJumpEnumeration::id());
+    entity.remove(ApocalypticRaySpreads::id());
 }
