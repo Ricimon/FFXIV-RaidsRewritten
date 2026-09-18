@@ -16,7 +16,7 @@ public class NisiTowerOmen(DalamudServices dalamud, ILogger logger) : IEntity, I
     public const string NisiGammaVfxPath = "vfx/common/eff/m0598_stlp8c0c.avfx";
     public const string NisiDeltaVfxPath = "vfx/common/eff/m0598_stlp9c0c.avfx";
 
-    public static readonly Vector4 NisiAlphaColor = new(0.333f, 0.604f, 1.0f, 1.0f);
+    public static readonly Vector4 NisiAlphaColor = new(0.106f, 0.518f, 1.75f, 1.0f);
     public static readonly Vector4 NisiBetaColor = new(1.0f, 0.624f, 0.196f, 1.0f);
     public static readonly Vector4 NisiGammaColor = new(1.0f, 0.439f, 1.0f, 1.0f);
     public static readonly Vector4 NisiDeltaColor = new(0.525f, 1.0f, 0.49f, 1.0f);
