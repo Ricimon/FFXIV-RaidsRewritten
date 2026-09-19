@@ -1,10 +1,7 @@
 ﻿// Adapted from https://github.com/MidoriKami/VanillaPlus/blob/master/VanillaPlus/Features/FadeUnavailableActions/FadeUnavailableActions.cs
-// 35ee994
+// 05ad69a
 using System;
-using System.Collections.Generic;
-using System.Reflection;
 using Dalamud.Hooking;
-using FFXIVClientStructs.Attributes;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
@@ -12,7 +9,6 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 using RaidsRewritten.Data;
 using RaidsRewritten.Log;
 using RaidsRewritten.Utility;
-using ZLinq;
 
 namespace RaidsRewritten.Interop;
 
@@ -44,24 +40,10 @@ public sealed class HotbarManager : IDisposable
         }
     }
 
+    private const byte CrossHotbar1RaptureId = 10;
+
     private readonly DalamudServices dalamud;
     private readonly ILogger logger;
-
-    private readonly List<string> addonActionBarNames = [
-        "_ActionBar",
-        "_ActionBar01",
-        "_ActionBar02",
-        "_ActionBar03",
-        "_ActionBar04",
-        "_ActionBar05",
-        "_ActionBar06",
-        "_ActionBar07",
-        "_ActionBar08",
-        "_ActionBar09",
-        "_ActionCross",
-        "_ActionDoubleCrossR",
-        "_ActionDoubleCrossL",
-    ];
 
     private Hook<AddonActionBarBase.Delegates.UpdateHotbarSlot> onHotBarSlotUpdateHook;
     private bool disableAllActions;
@@ -104,18 +86,22 @@ public sealed class HotbarManager : IDisposable
 
     private unsafe void ProcessAllHotBars()
     {
-        foreach (var addonName in addonActionBarNames)
+        foreach(var addon in RaptureAtkUnitManager.Instance()->AllLoadedUnitsList.Entries)
         {
-            var addon = GetUnitBase<AddonActionBarBase>(addonName);
-            if (addon is null) { continue; } 
-
-            //this.logger.Debug($"Addon {addonName}, slots address: 0x{(nint)addon->ActionBarSlotVector.First:X}");
-            foreach (var slot in addon->ActionBarSlotVector)
+            if (addon.Value is null) continue;
+            if (addon.Value->NameString.Contains("_Action") && !addon.Value->NameString.Contains("Contents"))
             {
-                ProcessHotBarSlot(addon, &slot);
-                // slot.ActionId seems to hold a wrong value for slots that don't have a combat action,
-                // so this value is not reliable
-                // Ex. Limit Break has ActionId 3 (sprint)
+                var actionBar = (AddonActionBarBase*)addon.Value;
+                if (actionBar is null) continue;
+                if (actionBar->ActionBarSlotVector.First is null) continue;
+
+                foreach(var slot in actionBar->ActionBarSlotVector)
+                {
+                    ProcessHotBarSlot(actionBar, &slot);
+                    // slot.ActionId seems to hold a wrong value for slots that don't have a combat action,
+                    // so this value is not reliable
+                    // Ex. Limit Break has ActionId 3 (sprint)
+                }
             }
         }
 
@@ -131,9 +117,10 @@ public sealed class HotbarManager : IDisposable
 
     private unsafe void ProcessHotBarSlot(AddonActionBarBase* addon, ActionBarSlot* hotBarSlotData)
     {
+        ApplyDarkening(hotBarSlotData, false);
+
         if (!DisableAllActions && !DisableDamagingActions)
         {
-            ApplyDarkening(hotBarSlotData, false);
             return;
         }
 
@@ -141,16 +128,64 @@ public sealed class HotbarManager : IDisposable
         // meaning you cannot use addresses in a Find predicate.
         // Instead, we can use a pointer in the ActionBarSlot struct
         var slotIndex = addon->ActionBarSlotVector.FindIndex(s => s.Icon == hotBarSlotData->Icon);
-        //this.logger.Debug($"slotIndex:{slotIndex}");
         if (slotIndex < 0) { return; }
-        var raptureSlot = Framework.Instance()->GetUIModule()->GetRaptureHotbarModule()->GetSlotById(addon->RaptureHotbarId, (uint)slotIndex);
 
-        var isBlockableAction = 
+        var raptureHotbarId = addon->RaptureHotbarId;
+        if (addon->IsCrossHotbar)
+        {
+            //logger.Info("Processing crosshotbar id {0}, slotIndex {1}", raptureHotbarId, slotIndex);
+            var crossHotbarAddon = (AddonActionCross*)addon;
+            if (crossHotbarAddon != null)
+            {
+                // This value goes:
+                // Cross Hotbar 1 - Left = 1
+                // Cross Hotbar 1 - Right = 2
+                // Cross Hotbar 2 - Left = 3
+                if (crossHotbarAddon->ExpandedHoldMapValue != 0)
+                {
+                    // When using the expanded hotbar accessed through LT+RT, it's necessary to map the current slot value
+                    // back to the original rapture hotbar, as the expanded hotbar reuses the 4-11 slot indices,
+                    // and does not update its referenced RaptureHotbarId.
+                    if (slotIndex < 4 || slotIndex >= 12)
+                    {
+                        return;
+                    }
+
+                    raptureHotbarId = (byte)((crossHotbarAddon->ExpandedHoldMapValue - 1) / 2 + CrossHotbar1RaptureId);
+                    var left = crossHotbarAddon->ExpandedHoldMapValue % 2 != 0;
+                    if (left)
+                    {
+                        slotIndex -= 4;
+                    }
+                    else
+                    {
+                        slotIndex += 4;
+                    }
+
+                    // TODO: This does not work for the WXHB hotbars
+                }
+            }
+        }
+
+        var raptureSlot = Framework.Instance()->GetUIModule()->GetRaptureHotbarModule()->GetSlotById(raptureHotbarId, (uint)slotIndex);
+
+        if (addon->IsCrossHotbar)
+        {
+            logger.Info("Processing crosshotbar id {0}, slotIndex {1}, slotType {2}, actionId {3}", raptureHotbarId, slotIndex, raptureSlot->ApparentSlotType, raptureSlot->ApparentActionId);
+        }
+        var isBlockableAction =
             raptureSlot->ApparentSlotType == RaptureHotbarModule.HotbarSlotType.Action ||
             raptureSlot->ApparentSlotType == RaptureHotbarModule.HotbarSlotType.Item ||
             raptureSlot->ApparentSlotType == RaptureHotbarModule.HotbarSlotType.EventItem ||
             raptureSlot->ApparentSlotType == RaptureHotbarModule.HotbarSlotType.CraftAction ||
             raptureSlot->ApparentSlotType == RaptureHotbarModule.HotbarSlotType.GeneralAction;
+
+        // Aether Compass
+        if (raptureSlot->ApparentSlotType == RaptureHotbarModule.HotbarSlotType.McGuffin &&
+            raptureSlot->ApparentActionId == 4)
+        {
+            isBlockableAction = true;
+        }
 
         if (!isBlockableAction) { return; }
 
@@ -203,20 +238,15 @@ public sealed class HotbarManager : IDisposable
         }
     }
 
-    // Taken from https://github.com/Caraxi/SimpleTweaksPlugin/blob/main/Utility/Common.cs#L80
-    private unsafe T* GetUnitBase<T>(string? name = null, int index = 1) where T : unmanaged
+    private enum NumberArrayActionType : uint
     {
-        if (string.IsNullOrEmpty(name))
-        {
-            var attr = (AddonAttribute)typeof(T).GetCustomAttribute(typeof(AddonAttribute));
-            if (attr != null)
-            {
-                name = attr.AddonIdentifiers.AsValueEnumerable().FirstOrDefault();
-            }
-        }
-
-        if (string.IsNullOrEmpty(name)) { return null; }
-
-        return (T*)this.dalamud.GameGui.GetAddonByName(name, index).Address;
+        Empty = 0x0,
+        Macro = 0x2F,
+        Action = 0x30,
+        InventoryItem = 0x32,
+        KeyItem = 0x34,
+        CraftAction = 0x38,
+        MainCommand = 0x3B,
+        CollectionItem = 0x4B,
     }
 }
