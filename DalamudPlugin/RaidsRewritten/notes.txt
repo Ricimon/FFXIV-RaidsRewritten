@@ -1,6 +1,7 @@
 Common
 Start weaponskill/boss attack: vfx/common/eff/cmma_shoot1c.avfx (actor)
 Enemy spawn: vfx/common/eff/mon_pop1t.avfx (actor)
+Big casting: vfx/common/eff/cmml_castx1f.avfx (actor)
 
 Hall of the Novice
 Tower attack: vfx/monster/gimmick2/eff/g3d1_b2_g03c1v.avfx (actor)
@@ -49,6 +50,9 @@ Vice of Apathy: BaseId 0x1EAE20
 TEA
 Liquid Rage: BaseId 0x2C49
 Liquid Rage Puddle: BaseId 0x1E9998
+Chakram model: 1425
+Chakram spawn: vfx/monster/m0315/eff/m0315sp_pop0t.avfx (actor)
+Chakram attack: vfx/monster/m0315/eff/m0315hsp01c0t.avfx (actor), vfx/monster/m0315/eff/m0315hsp01c1t.avfx (actor)
 Nisi Alpha: vfx/common/eff/m0598_stlp6c0c.avfx (actor)
 Nisi Beta: vfx/common/eff/m0598_stlp7c0c.avfx (actor)
 Nisi Gamma: vfx/common/eff/m0598_stlp8c0c.avfx (actor)
@@ -91,6 +95,9 @@ Gale Sphere enumeration attack: vfx/monster/gimmick4/eff/z5fb_b_g10c0x.avfx (act
 
 The Puppet's Bunker
 Life's Last Song tell: vfx/monster/gimmick3/eff/n4r2_b1_g4c0w.avfx (actor)
+
+Tower of Babil
+Magitek Chakram Mighty Blow: action 25332, 4577 mon_sp/[SKL_ID]/hide/mon_sp005
 
 P4N/P4S
 Poison spread omen: vfx/lockon/eff/loc05sp_05af.avfx (actor), no sound effect
