@@ -57,6 +57,7 @@ Final Sentence: vfx/monster/gimmick/eff/alexfour_hitogata_shinpan_c0c.avfx (acto
 Final Sentence: sound/vfx/monster3/SE_Vfx_Monster_QuadrupedMachine_Judgement_c.scd, 0
 Shanoa meow: sound/vfx/monster4/SE_Vfx_Monster_GoblinKaniTank_CoeurlCheer_c.scd, 0
 Shanoa hearts: vfx/monster/m0331/eff/m0331sp_01c1h.avfx (actor)
+PA stack/spread: vfx/monster/m0117/eff/baha_bahamut_lenge_gt_c0s.avfx (actor)
 
 E5N
 Thunderstorm small AOE: vfx/monster/m0234/eff/ryu_no_su_tatumaki_pc_rakurai_c0s.avfx (actor), 3y radius

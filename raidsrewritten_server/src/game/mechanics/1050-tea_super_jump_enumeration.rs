@@ -18,7 +18,7 @@ pub struct SuperJumpEnumeration {
     effect_delay: f32,
     radius: f32,
     omen_vfx_path: String,
-    attack_vfx_paths: [String; 2],
+    attack_vfx_paths: [String; 1],
 }
 
 pub fn create_mechanic(entity: EntityView<'_>) -> EntityView<'_> {
@@ -27,10 +27,7 @@ pub fn create_mechanic(entity: EntityView<'_>) -> EntityView<'_> {
         effect_delay: 0.2,
         radius: 3.0,
         omen_vfx_path: "vfx/lockon/eff/2tagup_3m_6s_x.avfx".to_string(),
-        attack_vfx_paths: [
-            "vfx/monster/gimmick4/eff/z5fb_b_g10c0x.avfx".to_string(),
-            "vfx/monster/gimmick4/eff/z5fb_b_g10c1x.avfx".to_string(),
-        ],
+        attack_vfx_paths: ["vfx/monster/gimmick2/eff/d2ac2_b4_g01c0c.avfx".to_string()],
     })
 }
 

@@ -35,7 +35,7 @@ pub fn create_mechanic(entity: EntityView<'_>) -> EntityView<'_> {
         effect_delay: 0.2,
         radius: 6.0,
         omen_vfx_path: "vfx/lockon/eff/target_ae_s5f.avfx".to_string(),
-        attack_vfx_path: "vfx/monster/gimmick4/eff/n5r8_b_g15_t0k1.avfx".to_string(),
+        attack_vfx_path: "vfx/monster/m0117/eff/baha_bahamut_lenge_gt_c0s.avfx".to_string(),
     })
 }
 
