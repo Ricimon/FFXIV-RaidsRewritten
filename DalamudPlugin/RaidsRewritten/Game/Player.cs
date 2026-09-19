@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Numerics;
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Flecs.NET.Core;
 using RaidsRewritten.Interop;
@@ -127,6 +128,12 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
                     return;
                 }
 #endif
+
+                if (dalamud.Condition[ConditionFlag.DutyRecorderPlayback])
+                {
+                    DisableAllOverrides();
+                    return;
+                }
 
                 // Handle each condition
                 bool stun = false;

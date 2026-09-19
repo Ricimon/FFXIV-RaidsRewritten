@@ -169,10 +169,10 @@ public sealed class HotbarManager : IDisposable
 
         var raptureSlot = Framework.Instance()->GetUIModule()->GetRaptureHotbarModule()->GetSlotById(raptureHotbarId, (uint)slotIndex);
 
-        if (addon->IsCrossHotbar)
-        {
-            logger.Info("Processing crosshotbar id {0}, slotIndex {1}, slotType {2}, actionId {3}", raptureHotbarId, slotIndex, raptureSlot->ApparentSlotType, raptureSlot->ApparentActionId);
-        }
+        //if (addon->IsCrossHotbar)
+        //{
+        //    logger.Info("Processing crosshotbar id {0}, slotIndex {1}, slotType {2}, actionId {3}", raptureHotbarId, slotIndex, raptureSlot->ApparentSlotType, raptureSlot->ApparentActionId);
+        //}
         var isBlockableAction =
             raptureSlot->ApparentSlotType == RaptureHotbarModule.HotbarSlotType.Action ||
             raptureSlot->ApparentSlotType == RaptureHotbarModule.HotbarSlotType.Item ||

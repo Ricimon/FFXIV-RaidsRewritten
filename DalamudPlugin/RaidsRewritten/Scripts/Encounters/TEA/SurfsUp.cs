@@ -11,7 +11,8 @@ namespace RaidsRewritten.Scripts.Encounters.TEA;
 
 public class SurfsUp : Mechanic
 {
-    private const uint SuperBlasstyChargeActionId = 19279;
+    private const uint SuperBlasstyCharge1ActionId = 19279; // limit cut
+    private const uint SuperBlasstyCharge2ActionId = 18883; // wormhole
 
     private readonly List<Entity> attacks = [];
     private int bitsSpawned = 0;
@@ -44,7 +45,7 @@ public class SurfsUp : Mechanic
     {
         if (set.Action == null) { return; }
         if (set.Source == null) { return; }
-        if (set.Action.Value.RowId != SuperBlasstyChargeActionId) { return; }
+        if (set.Action.Value.RowId != SuperBlasstyCharge1ActionId && set.Action.Value.RowId != SuperBlasstyCharge2ActionId) { return; }
 
         if (EntityManager.TryCreateEntity<ArticulatedBit>(out var bit))
         {

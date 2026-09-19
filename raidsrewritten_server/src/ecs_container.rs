@@ -14,6 +14,7 @@ use tracing::info;
 struct CommonQueries<'a> {
     query_socket: Query<&'a Socket>,
     query_mechanic: Query<(&'a Mechanic, &'a Party)>,
+    query_player: Query<&'a Player>,
 }
 
 pub fn create_world() -> World {
@@ -27,6 +28,7 @@ pub fn run_world(world: World, rx_from_ws: Receiver<MessageToEcs>, io: &SocketIo
     let common_queries = CommonQueries {
         query_socket: world.query::<&Socket>().set_cached().build(),
         query_mechanic: world.query::<(&Mechanic, &Party)>().set_cached().build(),
+        query_player: world.query::<&Player>().set_cached().build(),
     };
 
     create_systems(&world);
@@ -291,6 +293,54 @@ fn process_messages(world: &World, queries: &CommonQueries, rx_from_ws: &Receive
                     party_container.add(BroadcastConditions);
                 }
             }
+
+            MessageToEcs::UpdateFakePlayer {
+                socket_id,
+                content_id,
+                name,
+                role,
+                party,
+                world_position_x,
+                world_position_y,
+                world_position_z,
+                is_alive,
+            } => {
+                let player_entity;
+                if let Some(e) = queries.query_player.find(|p| p.content_id == content_id) {
+                    info!(
+                        socket_str = socket_id.as_str(),
+                        content_id,
+                        name,
+                        role_str = Into::<&str>::into(&role),
+                        party,
+                        "Updating Fake Player"
+                    );
+                    player_entity = e;
+                } else if let Some(pc) = find_party_container(world, &party) {
+                    info!(
+                        socket_str = socket_id.as_str(),
+                        content_id,
+                        name,
+                        role_str = Into::<&str>::into(&role),
+                        party,
+                        "Adding Fake Player"
+                    );
+                    player_entity = world.entity().child_of(pc);
+                } else {
+                    return;
+                }
+
+                player_entity
+                    .set(Player { content_id, name })
+                    .set(Role { role })
+                    .set(Party { id: party.clone() })
+                    .set(Position {
+                        x: world_position_x,
+                        y: world_position_y,
+                        z: world_position_z,
+                    })
+                    .set(State { is_alive });
+            }
         }
     }
 }
@@ -306,7 +356,7 @@ fn create_observers(world: &World) {
     // Send UpdatePartyStatus to all party members when a player joins or leaves
     world
         .observer::<flecs::OnSet, &Party>()
-        .with(Player::id())
+        .with(Socket::id())
         .filter()
         .each_iter(|it, _, pa1| {
             on_player_update(&it.world(), it.event(), &pa1.id, None);
@@ -319,16 +369,17 @@ fn create_observers(world: &World) {
 
     // Cleanup party entities when the last player in the party leaves
     world
-        .observer::<flecs::OnRemove, (&Player, &Party)>()
-        .each_iter(|it, _, (player, party)| {
+        .observer::<flecs::OnRemove, (&Socket, &Player, &Party)>()
+        .each_iter(|it, _, (_, player, party)| {
             let last_player = it
                 .world()
-                .query::<(&Player, &Party)>()
+                .query::<(&Socket, &Player, &Party)>()
                 .build()
-                .find(|(pl, pa)| pa.id == party.id && pl.content_id != player.content_id)
+                .find(|(_, pl, pa)| pa.id == party.id && pl.content_id != player.content_id)
                 .is_none();
             info!(player.name, last_player, "Player removed");
             if last_player {
+                info!(party.id, "Last player removed, cleaning up party");
                 // Cleanup any party entities
                 it.world().query::<&Party>().build().each_entity(|e, p| {
                     if p.id == party.id {

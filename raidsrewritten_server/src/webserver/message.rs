@@ -16,6 +16,7 @@ pub enum Action {
     ClearMechanics = 4,
     SyncConditionsOnSelf = 5,
     ClearConditions = 6,
+    UpdateFakePlayer = 7,
 
     // To client
     // Deprecated: 51, 55
@@ -45,6 +46,8 @@ pub struct Message {
     pub start_mechanic: Option<StartMechanicPayload>,
     #[serde(rename = "scos")]
     pub sync_conditions_on_self: Option<SyncConditionsOnSelfPayload>,
+    #[serde(rename = "ufp")]
+    pub update_fake_player: Option<UpdateFakePlayerPayload>,
 
     // To client
     #[serde(rename = "ac")]
@@ -126,6 +129,28 @@ pub struct SyncConditionsOnSelfConditionDetails {
     #[serde(rename = "n")]
     #[serde_as(as = "BoolFromInt<Flexible>")]
     pub newly_applied: bool,
+}
+
+#[serde_as]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UpdateFakePlayerPayload {
+    #[serde(rename = "i")]
+    pub content_id: u64,
+    #[serde(rename = "n")]
+    pub name: String,
+    #[serde(rename = "r")]
+    pub role: Role,
+    #[serde(rename = "p")]
+    pub party: String,
+    #[serde(rename = "x")]
+    pub world_position_x: f32,
+    #[serde(rename = "y")]
+    pub world_position_y: f32,
+    #[serde(rename = "z")]
+    pub world_position_z: f32,
+    #[serde(rename = "a")]
+    #[serde_as(as = "BoolFromInt<Flexible>")]
+    pub is_alive: bool,
 }
 
 // To client ===============

@@ -38,6 +38,7 @@ pub fn create_mechanic(entity: EntityView<'_>) -> EntityView<'_> {
         attack_vfx_path: "vfx/monster/gimmick4/eff/n5r8_b_g15_t0k1.avfx".to_string(),
     })
 }
+
 pub fn create_systems(world: &World) {
     // Assign target
     world
@@ -69,6 +70,7 @@ pub fn create_systems(world: &World) {
                 });
 
                 targets.sort_unstable_by(|a, b| a.distance.total_cmp(&b.distance));
+                targets.reverse();
                 targets.truncate(TARGET_COUNT);
             }
 

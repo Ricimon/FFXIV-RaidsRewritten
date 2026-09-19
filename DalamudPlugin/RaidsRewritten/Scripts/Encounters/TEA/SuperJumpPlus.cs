@@ -12,10 +12,12 @@ namespace RaidsRewritten.Scripts.Encounters.TEA;
 public class SuperJumpPlus : Mechanic
 {
     private const uint SuperJumpActionId = 18506;
+    private const uint ApocalypticRayActionId = 18507;
 
     private readonly List<Entity> attacks = [];
 
     private int superJumpCount = 0;
+    private int apocalypticRayCount = 0;
 
     public override void Reset()
     {
@@ -25,6 +27,7 @@ public class SuperJumpPlus : Mechanic
         }
         attacks.Clear();
         superJumpCount = 0;
+        apocalypticRayCount = 0;
     }
 
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
@@ -78,6 +81,29 @@ public class SuperJumpPlus : Mechanic
                     }, 0.75f);
                     attacks.Add(action);
                 }
+            }
+        }
+
+        else if (set.Action.Value.RowId == ApocalypticRayActionId)
+        {
+            apocalypticRayCount++;
+
+            var bruteJustice = set.Source;
+            if (bruteJustice != null)
+            {
+                NetworkClient.SendAsync(new Message
+                {
+                    action = Message.Action.StartMechanic,
+                    startMechanic = new Message.StartMechanicPayload
+                    {
+                        requestId = "ApocalypticRay_" + apocalypticRayCount,
+                        mechanicId = (uint)NetworkMechanic.TeaApocalypticRaySpreads,
+                        worldPositionX = bruteJustice.Position.X,
+                        worldPositionY = bruteJustice.Position.Y,
+                        worldPositionZ = bruteJustice.Position.Z,
+                        rotation = bruteJustice.Rotation,
+                    }
+                }).SafeFireAndForget();
             }
         }
     }

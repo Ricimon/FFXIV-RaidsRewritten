@@ -64,6 +64,7 @@ async fn on_message_impl(
                 .unwrap();
             }
         }
+
         message::Action::UpdateStatus => {
             if let Some(update_status) = message.update_status {
                 tx.send(MessageToEcs::UpdateStatus {
@@ -76,6 +77,7 @@ async fn on_message_impl(
                 .unwrap();
             }
         }
+
         message::Action::StartMechanic => {
             if let Some(start_mechanic) = message.start_mechanic {
                 tx.send(MessageToEcs::StartMechanic {
@@ -91,12 +93,14 @@ async fn on_message_impl(
                 .unwrap();
             }
         }
+
         message::Action::ClearMechanics => {
             tx.send(MessageToEcs::ClearMechanics {
                 socket_id: socket.id,
             })
             .unwrap();
         }
+
         message::Action::SyncConditionsOnSelf => {
             if let Some(sync_conditions_on_self) = message.sync_conditions_on_self {
                 let conditions = sync_conditions_on_self
@@ -116,12 +120,31 @@ async fn on_message_impl(
                 .unwrap();
             }
         }
+
         message::Action::ClearConditions => {
             tx.send(MessageToEcs::ClearConditions {
                 socket_id: socket.id,
             })
             .unwrap();
         }
+
+        message::Action::UpdateFakePlayer => {
+            if let Some(update_fake_player) = message.update_fake_player {
+                tx.send(MessageToEcs::UpdateFakePlayer {
+                    socket_id: socket.id,
+                    content_id: update_fake_player.content_id,
+                    name: update_fake_player.name,
+                    role: update_fake_player.role,
+                    party: update_fake_player.party,
+                    world_position_x: update_fake_player.world_position_x,
+                    world_position_y: update_fake_player.world_position_y,
+                    world_position_z: update_fake_player.world_position_z,
+                    is_alive: update_fake_player.is_alive,
+                })
+                .unwrap();
+            }
+        }
+
         _ => {}
     }
 }

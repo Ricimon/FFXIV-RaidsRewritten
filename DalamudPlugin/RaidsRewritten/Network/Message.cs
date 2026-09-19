@@ -16,6 +16,7 @@ public struct Message
         ClearMechanics = 4,
         SyncConditionsOnSelf = 5,
         ClearConditions = 6,
+        UpdateFakePlayer = 7,
 
         // To client
         // Deprecated: 51, 55
@@ -33,6 +34,14 @@ public struct Message
     public Action action;
 
     // Common ============
+
+    public enum Role : uint
+    {
+        None = 0,
+        Tank = 1,
+        Healer = 2,
+        Dps = 3,
+    }
 
     public enum Condition : uint
     {
@@ -54,13 +63,6 @@ public struct Message
 
     public struct UpdatePlayerPayload
     {
-        public enum Role : uint
-        {
-            None = 0,
-            Tank = 1,
-            Healer = 2,
-            Dps = 3,
-        }
         public ulong contentId;
         public string name;
         public Role role;
@@ -121,6 +123,28 @@ public struct Message
     }
     [JsonProperty(PropertyName = "scos")]
     public SyncConditionsOnSelf? syncConditionsOnSelf;
+
+    public struct UpdateFakePlayerPayload
+    {
+        [JsonProperty(PropertyName = "i")]
+        public ulong contentId;
+        [JsonProperty(PropertyName = "n")]
+        public string name;
+        [JsonProperty(PropertyName = "r")]
+        public Role role;
+        [JsonProperty(PropertyName = "p")]
+        public string party;
+        [JsonProperty(PropertyName = "x")]
+        public float worldPositionX;
+        [JsonProperty(PropertyName = "y")]
+        public float worldPositionY;
+        [JsonProperty(PropertyName = "z")]
+        public float worldPositionZ;
+        [JsonProperty(PropertyName = "a")]
+        public bool isAlive;
+    }
+    [JsonProperty(PropertyName = "ufp")]
+    public UpdateFakePlayerPayload? updateFakePlayer;
 
     // To client ============
 

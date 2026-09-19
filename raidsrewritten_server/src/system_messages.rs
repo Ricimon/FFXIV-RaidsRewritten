@@ -39,6 +39,17 @@ pub enum MessageToEcs {
         socket_id: Sid,
         conditions: Vec<ConditionDetails>,
     },
+    UpdateFakePlayer {
+        socket_id: Sid,
+        content_id: u64,
+        name: String,
+        role: Role,
+        party: String,
+        world_position_x: f32,
+        world_position_y: f32,
+        world_position_z: f32,
+        is_alive: bool,
+    },
 }
 
 pub struct ConditionDetails {

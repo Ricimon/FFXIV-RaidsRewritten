@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using AsyncAwaitBestPractices;
+using Dalamud.Game.ClientState.Conditions;
+using FFXIVClientStructs.FFXIV.Client.Game.Character;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 using RaidsRewritten.Network;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Utility;
+using ZLinq;
 
 namespace RaidsRewritten.Scripts.Systems;
 
@@ -139,7 +143,7 @@ public sealed class NetworkClientSystem(DalamudServices dalamud, NetworkClient n
             {
                 contentId = dalamud.PlayerState.ContentId,
                 name = dalamud.PlayerState.CharacterName,
-                role = GetRole(),
+                role = GetRole(dalamud.PlayerState.ClassJob.Value.JobType),
                 party = configuration.UseCustomPartyId ? configuration.CustomPartyId : CalculatePartyHash(),
             },
         };
@@ -169,16 +173,51 @@ public sealed class NetworkClientSystem(DalamudServices dalamud, NetworkClient n
                 isAlive = !player.IsDead,
             }
         }).SafeFireAndForget();
+
+        // Duty Recorder behavior
+        if (dalamud.Condition[ConditionFlag.DutyRecorderPlayback])
+        {
+            unsafe
+            {
+                var battleCharas = CharacterManager.Instance()->BattleCharas.AsValueEnumerable()
+                    .Where(bc => !bc.IsNull)
+                    .Select(bc => (nint)bc.Value);
+
+                foreach (var addr in battleCharas)
+                {
+                    var bc = *(BattleChara*)addr;
+                    if (bc.ObjectKind != ObjectKind.Pc) { continue; }
+                    if (bc.GetGameObjectId().Id == player.GameObjectId) { continue; }
+
+                    networkClient.SendAsync(new Message
+                    {
+                        action = Message.Action.UpdateFakePlayer,
+                        updateFakePlayer = new Message.UpdateFakePlayerPayload
+                        {
+                            contentId = bc.ContentId,
+                            name = bc.NameString,
+                            role = GetRole(dalamud.DataManager.GetExcelSheet<Lumina.Excel.Sheets.ClassJob>().GetRow(bc.ClassJob).JobType),
+                            party = configuration.UseCustomPartyId ? configuration.CustomPartyId : CalculatePartyHash(),
+                            worldPositionX = bc.Position.X,
+                            worldPositionY = bc.Position.Y,
+                            worldPositionZ = bc.Position.Z,
+                            isAlive = !bc.IsDead(),
+                        }
+                    }).SafeFireAndForget();
+                }
+            }
+            // No message to clear fake players since they should be auto-cleared when the real player disconnects
+        }
     }
 
-    private Message.UpdatePlayerPayload.Role GetRole()
+    private Message.Role GetRole(byte jobType)
     {
-        return dalamud.PlayerState.ClassJob.Value.JobType switch
+        return jobType switch
         {
-            1 => Message.UpdatePlayerPayload.Role.Tank,
-            2 or 6 => Message.UpdatePlayerPayload.Role.Healer,
-            3 or 4 or 5 => Message.UpdatePlayerPayload.Role.Dps,
-            _ => Message.UpdatePlayerPayload.Role.None,
+            1 => Message.Role.Tank,
+            2 or 6 => Message.Role.Healer,
+            3 or 4 or 5 => Message.Role.Dps,
+            _ => Message.Role.None,
         };
     }
 
