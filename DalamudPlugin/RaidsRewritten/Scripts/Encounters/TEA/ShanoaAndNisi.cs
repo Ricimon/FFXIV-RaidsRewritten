@@ -321,6 +321,9 @@ public class ShanoaAndNisi : Mechanic
                             .Set(new ActorVfx(vfxPath))
                             .Add<NisiVfx>()
                             .ChildOf(e);
+                        World.Entity()
+                            .Set(new ActorVfx("vfx/common/eff/dk05th_stdn0t.avfx"))
+                            .ChildOf(e);
                     });
                 }
                 break;

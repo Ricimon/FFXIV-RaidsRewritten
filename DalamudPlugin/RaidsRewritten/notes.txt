@@ -2,6 +2,7 @@ Common
 Start weaponskill/boss attack: vfx/common/eff/cmma_shoot1c.avfx (actor)
 Enemy spawn: vfx/common/eff/mon_pop1t.avfx (actor)
 Big casting: vfx/common/eff/cmml_castx1f.avfx (actor)
+Gain debuff: vfx/common/eff/dk05th_stdn0t.avfx (actor)
 
 Hall of the Novice
 Tower attack: vfx/monster/gimmick2/eff/g3d1_b2_g03c1v.avfx (actor)
@@ -114,6 +115,10 @@ UCOB Megaflare tower (1-person): vfx/omen/eff/m0117_trap_01s.avfx (Omen 65, acti
 P8N
 Hemitheos's Flare omen: vfx/lockon/eff/target_ae_s5f.avfx (actor)
 Hemitheos's Flare: vfx/monster/gimmick4/eff/n5r8_b_g15_t0k1.avfx (actor)
+
+The Sil'dihn Subterrane
+Soap's Up (ice): vfx/monster/gimmick4/eff/w5d1_boss_a_g01c0g.avfx (actor)
+Soap's Up (wind): vfx/monster/gimmick4/eff/w5d1_boss_a_g02c0g.avfx (actor)
 
 P9S
 Limit cut tower attack: vfx/monster/d1025/eff/round_bunsanshouhani_t0s.avfx (actor)
