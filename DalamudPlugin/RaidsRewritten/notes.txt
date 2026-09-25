@@ -26,6 +26,9 @@ Blazing Scourge attack: vfx/monster/gimmick2/eff/d2ac2_b4_g01c0c.avfx (actor)
 Susano
 Rock arrow: vfx/lockon/eff/m0372trg_t2j.avfx (actor)
 
+The Burn
+Fog Plume: vfx/monster/gimmick2/eff/e3d7_b3_g3_c0v.avfx (actor)
+
 O10S
 Ground Ice Effect: bgcommon/world/common/vfx_for_btl/b0195/eff/b0195_yuka_c.avfx, 5y radius
 
@@ -37,9 +40,9 @@ Looper: vfx/common/eff/abnormal_st_circle_c0i.avfx (actor)
 1-player tower filled: bg/ex2/05_zon_z3/common/vfx/eff/b1512pil02_u.avfx (static)
 2-player tower: bg/ex2/05_zon_z3/common/vfx/eff/b1513pil01_u.avfx (static)
 Tower success: vfx/monster/gimmick2/eff/z3oe_b3_g03c0i.avfx (actor)
-Tower success: sound/vfx/monster6/SE_Vfx_Monster_OIIIBOSS3_TrapAE_c.scd, 0
+Tower success: sound/vfx/monster6/SE_Vfx_Monster_OIIIBOSS3_TrapAE_c.scd
 Tower failure: vfx/monster/gimmick2/eff/z3oe_b3_g04c0i.avfx (actor)
-Tower failure: sound/vfx/monster6/SE_Vfx_Monster_OIIIBOSS3_TrapAE_penalty_c.scd, 0
+Tower failure: sound/vfx/monster6/SE_Vfx_Monster_OIIIBOSS3_TrapAE_penalty_c.scd
 
 The Dancing Plague
 Star Omen: bg/ex3/01_nvt_n4/common/vfx/eff/b1588rod01_u.avfx (static)
@@ -59,8 +62,8 @@ Nisi Beta: vfx/common/eff/m0598_stlp7c0c.avfx (actor)
 Nisi Gamma: vfx/common/eff/m0598_stlp8c0c.avfx (actor)
 Nisi Delta: vfx/common/eff/m0598_stlp9c0c.avfx (actor)
 Final Sentence: vfx/monster/gimmick/eff/alexfour_hitogata_shinpan_c0c.avfx (actor)
-Final Sentence: sound/vfx/monster3/SE_Vfx_Monster_QuadrupedMachine_Judgement_c.scd, 0
-Shanoa meow: sound/vfx/monster4/SE_Vfx_Monster_GoblinKaniTank_CoeurlCheer_c.scd, 0
+Final Sentence: sound/vfx/monster3/SE_Vfx_Monster_QuadrupedMachine_Judgement_c.scd
+Shanoa meow: sound/vfx/monster4/SE_Vfx_Monster_GoblinKaniTank_CoeurlCheer_c.scd
 Shanoa hearts: vfx/monster/m0331/eff/m0331sp_01c1h.avfx (actor)
 PA stack/spread: vfx/monster/m0117/eff/baha_bahamut_lenge_gt_c0s.avfx (actor)
 
@@ -118,7 +121,9 @@ Hemitheos's Flare: vfx/monster/gimmick4/eff/n5r8_b_g15_t0k1.avfx (actor)
 
 The Sil'dihn Subterrane
 Soap's Up (ice): vfx/monster/gimmick4/eff/w5d1_boss_a_g01c0g.avfx (actor)
+Soap's Up (ice): sound/vfx/monster8/SE_Vfx_Monster_m0528_gim01.scd
 Soap's Up (wind): vfx/monster/gimmick4/eff/w5d1_boss_a_g02c0g.avfx (actor)
+Soap's Up (wind): sound/vfx/monster8/SE_Vfx_Monster_m0528_gim02.scd
 
 P9S
 Limit cut tower attack: vfx/monster/d1025/eff/round_bunsanshouhani_t0s.avfx (actor)

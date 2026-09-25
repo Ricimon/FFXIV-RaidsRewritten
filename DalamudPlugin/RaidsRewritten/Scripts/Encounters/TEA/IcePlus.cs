@@ -5,8 +5,13 @@ using Dalamud.Game.ClientState.Objects.Types;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using Flecs.NET.Core;
+using RaidsRewritten.Game;
 using RaidsRewritten.Scripts.Attacks.Omens;
 using RaidsRewritten.Scripts.Components;
+using RaidsRewritten.Scripts.Conditions;
+using RaidsRewritten.Spawn;
+using RaidsRewritten.Utility;
+using ZLinq;
 
 namespace RaidsRewritten.Scripts.Encounters.TEA;
 
@@ -16,6 +21,7 @@ public class IcePlus : Mechanic
 
     private const uint GelidGaolBaseId = 0x2C81;
     private const uint PropellerWindActionId = 18482;
+    private const string AttackVfx = "vfx/monster/gimmick2/eff/e3d7_b3_g3_c0v.avfx";
 
     private readonly List<Entity> attacks = [];
 
@@ -60,30 +66,72 @@ public class IcePlus : Mechanic
         {
             if (icePosition == null) { return; }
 
-            var seed = RngSeed;
-            unchecked
-            {
-                seed += 0x1CE;
-            }
-            var random = new Random(seed);
-            var rotationOffset = random.Next() == 0 ? 0 : 0.25f * MathF.PI;
+            StartAttack(icePosition.Value);
+        }
+    }
 
-            if (EntityManager.TryCreateEntity<LineOmen>(out var line1))
+    public override void DebugSimulate()
+    {
+        var player = Dalamud.ObjectTable.LocalPlayer;
+        if (player != null)
+        {
+            StartAttack(player.Position);
+        }
+    }
+
+    private void StartAttack(Vector3 position)
+    {
+        var seed = RngSeed;
+        unchecked
+        {
+            seed += 0x1CE;
+        }
+        var random = new Random(seed);
+        var rotationOffset = random.Next(2) == 0 ? 0 : (0.125f * MathF.PI);
+        var omenDuration = 3.0f;
+
+        var lines = new List<Entity>();
+        for (var i = 0; i < 4; i++)
+        {
+            if (EntityManager.TryCreateEntity<LineOmen>(out var line))
             {
-                line1.Set(new Position(icePosition.Value));
-                line1.Set(new Scale(new Vector3(3, 1, 50)));
-                line1.Set(new Rotation(rotationOffset));
-                line1.Set(new OmenDuration(3f, true));
-                attacks.Add(line1);
-            }
-            if (EntityManager.TryCreateEntity<LineOmen>(out var line2))
-            {
-                line2.Set(new Position(icePosition.Value));
-                line2.Set(new Rotation(0.5f * MathF.PI + rotationOffset));
-                line2.Set(new Scale(new Vector3(3, 1, 50)));
-                line2.Set(new OmenDuration(3f, true));
-                attacks.Add(line2);
+                line.Set(new Position(position));
+                line.Set(new Scale(new Vector3(2, 1, 50)));
+                line.Set(new Rotation(rotationOffset + i * 0.25f * MathF.PI));
+                line.Set(new OmenDuration(omenDuration, false));
+                lines.Add(line);
+                attacks.Add(line);
             }
         }
+
+        var action = DelayedAction.Create(World, () =>
+        {
+            for (var i = 0; i < 2; i++)
+            {
+                var v = FakeActor.Create(World)
+                    .Set(new ActorVfx(AttackVfx))
+                    .Set(new Position(position))
+                    .Set(new Rotation(rotationOffset + i * 0.25f * MathF.PI));
+                attacks.Add(v);
+            }
+
+            var player = Dalamud.ObjectTable.LocalPlayer;
+            if (player == null || player.IsDead) { return; }
+            if (lines.AsValueEnumerable().Any(l => LineOmen.IsInOmen(l, player.Position)))
+            {
+                if (player.HasTranscendance())
+                {
+                    VfxSpawn.PlayInvulnerabilityEffect(player);
+                }
+                else
+                {
+                    CommonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
+                    {
+                        Pacify.ApplyToTarget(e, 60.0f);
+                    });
+                }
+            }
+        }, omenDuration);
+        attacks.Add(action);
     }
 }

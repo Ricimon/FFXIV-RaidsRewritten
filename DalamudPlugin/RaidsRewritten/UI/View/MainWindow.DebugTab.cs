@@ -30,6 +30,7 @@ public partial class MainWindow
     private Entity debugSpawnedVfx = default;
     private Vector3 debugVfxScale = Vector3.One;
     private bool debugVfxScaleEqualized = true;
+    private bool debugVfxUseAlternateModel = false;
     private string debugSfxPath = "sound/vfx/monster6/SE_Vfx_Monster_OIIIBOSS3_TrapAE_penalty_c.scd";
 
     private void DebugSpawnModel()
@@ -1198,6 +1199,19 @@ public partial class MainWindow
                         }
                     }
                 }
+                SameLineIfFits("Chakram");
+                if (ImGui.Button("Chakram"))
+                {
+                    var player = this.dalamud.ObjectTable.LocalPlayer;
+                    if (player != null)
+                    {
+                        if (this.entityManager.TryCreateEntity<SteamChakram>(out var chakram))
+                        {
+                            chakram.Set(new Position(player.Position))
+                                .Set(new Rotation(player.Rotation));
+                        }
+                    }
+                }
 
                 ImGui.SetNextItemWidth(120);
                 ImGui.InputInt("ModelCharaId", ref debugModelCharaId);
@@ -1265,6 +1279,8 @@ public partial class MainWindow
                     ImGui.EndTooltip();
                 }
 
+                ImGui.Checkbox("Use Alternate Model", ref debugVfxUseAlternateModel);
+
                 if (!debugSpawnedVfx.IsValid() && ImGui.Button("Spawn VFX"))
                 {
                     var localPlayer = dalamud.ObjectTable.LocalPlayer;
@@ -1280,11 +1296,26 @@ public partial class MainWindow
                             .Set(new Scale(debugVfxScale))
                             .ChildOf(debugSpawnedVfx);
 
-                        var actor = World.Entity()
-                            .Set(new ActorVfx(debugVfxPath))
-                            .Set(new ActorVfxSource(dalamud.ObjectTable.LocalPlayer))
-                            .Set(new Scale(debugVfxScale))
-                            .ChildOf(debugSpawnedVfx);
+                        Entity actor;
+                        if (!debugVfxUseAlternateModel)
+                        {
+                            actor = World.Entity()
+                                .Set(new ActorVfx(debugVfxPath))
+                                .Set(new ActorVfxSource(localPlayer))
+                                .Set(new Scale(debugVfxScale))
+                                .ChildOf(debugSpawnedVfx);
+                        }
+                        else
+                        {
+                            actor = World.Entity()
+                                .Set(new Model(392))
+                                .Set(new LocalPosition(localPlayer.Position))
+                                .Set(new Rotation(localPlayer.Rotation))
+                                .Set(new ActorVfx(debugVfxPath))
+                                .Set(new UniformScale(debugVfxScale.X))
+                                .Set(new ModelHeight(debugVfxScale.X))
+                                .ChildOf(debugSpawnedVfx);
+                        }
 
                         if (localPlayer.TargetObject != null)
                         {

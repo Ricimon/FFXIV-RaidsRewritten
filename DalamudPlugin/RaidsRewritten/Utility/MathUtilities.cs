@@ -82,4 +82,39 @@ public static class MathUtilities
     {
         return ClampRadians((to - from + MathF.PI) % (2 * MathF.PI) - MathF.PI);
     }
+
+    public static float Lerp(float start, float end, float value)
+    {
+        value = Math.Clamp(value, 0.0f, 1.0f);
+        return start + (end - start) * value;
+    }
+
+    public static float InverseLerp(float start, float end, float value)
+    {
+        var t = (value - start) / (end - start);
+        return Math.Clamp(t, 0.0f, 1.0f);
+    }
+
+    public static float Tween(float start, float end, float value, Func<float, float> tweenFunction)
+    {
+        value = tweenFunction(value);
+        return start + (end - start) * value;
+    }
+
+    // https://easings.net/
+    public static class Ease
+    {
+        public static float EaseInSine(float x)
+        {
+            return 1 - MathF.Cos((x * MathF.PI) / 2);
+        }
+
+        public static float EaseOutBack(float x)
+        {
+            float c1 = 1.70158f;
+            float c3 = c1 + 1;
+
+            return 1 + c3 * MathF.Pow(x - 1, 3) + c1 * MathF.Pow(x - 1, 2);
+        }
+    }
 }

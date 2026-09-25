@@ -32,7 +32,7 @@ public unsafe class StaticVfx(ResourceLoader resourceLoader, string path) : Base
     {
         base.Update();
         if (Vfx == null) { return; }
-        Vfx->Flags |= 0x2;
+        //Vfx->Flags |= 0x2;
         // Remove flag that sometimes causes vfx to not appear?
         Vfx->SomeFlags &= 0xF7;
     }
