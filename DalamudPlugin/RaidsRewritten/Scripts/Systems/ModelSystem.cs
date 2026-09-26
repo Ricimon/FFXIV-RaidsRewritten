@@ -22,6 +22,7 @@ public unsafe sealed class ModelSystem(
     private Hook<CalculateAndApplyOverallSpeedDelegate> calculateAndApplyOverallSpeedHook = null!;
 
     private Query<Model, ModelTimelineSpeed> modelTimelineSpeedQuery;
+    private Query<ModelFadeOut, ModelTimelineSpeed> modelFadeOutTimelineSpeedQuery;
 
     public void HookToDalamud()
     {
@@ -33,6 +34,7 @@ public unsafe sealed class ModelSystem(
     public void Register(Flecs.NET.Core.World world)
     {
         modelTimelineSpeedQuery = world.QueryBuilder<Model, ModelTimelineSpeed>().Cached().Build();
+        modelFadeOutTimelineSpeedQuery = world.QueryBuilder<ModelFadeOut, ModelTimelineSpeed>().Cached().Build();
 
         world.System<Model, Position, Rotation, UniformScale>()
             .Each((Iter it, int i, ref Model model, ref Position position, ref Rotation rotation, ref UniformScale scale) =>
@@ -256,8 +258,13 @@ public unsafe sealed class ModelSystem(
                         }
                     }
                     var duration = a / 1.0f;
-                    e.CsWorld().Entity()
+                    var fadeOut = e.CsWorld().Entity()
                         .Set(new ModelFadeOut(model.ObjectIndex, duration, duration, a));
+
+                    if (e.TryGet(out ModelTimelineSpeed speed))
+                    {
+                        fadeOut.Set(new ModelTimelineSpeed(speed.Value));
+                    }
                 }
             });
 
@@ -290,6 +297,7 @@ public unsafe sealed class ModelSystem(
         calculateAndApplyOverallSpeedHook?.Dispose();
 
         modelTimelineSpeedQuery.SafeDispose();
+        modelFadeOutTimelineSpeedQuery.SafeDispose();
 
         if (!ecsContainer.World.ShouldQuit())
         {
@@ -317,22 +325,33 @@ public unsafe sealed class ModelSystem(
     private bool CalculateAndApplyOverallSpeedDetour(TimelineContainer* a1)
     {
         bool result = calculateAndApplyOverallSpeedHook.Original(a1);
-        if (!modelTimelineSpeedQuery.IsValid())
-        {
-            return result;
-        }
 
-        // Convert this to a dictionary lookup if needed
-        modelTimelineSpeedQuery.Each((ref Model model, ref ModelTimelineSpeed speed) =>
+        void SetModelTimelineSpeed(ushort modelObjectIndex, float speed)
         {
-            if (!model.Spawned) { return; }
-            var go = dalamud.ObjectTable.GetGameObjectByIndex(model.ObjectIndex);
+            var go = dalamud.ObjectTable.GetGameObjectByIndex(modelObjectIndex);
             if (go != null && go.Address == (nint)a1->OwnerObject)
             {
-                a1->OverallSpeed = speed.Value;
+                a1->OverallSpeed = speed;
                 result |= true;
             }
-        });
+        }
+
+        if (modelTimelineSpeedQuery.IsValid())
+        {
+            // Convert this to a dictionary lookup if needed
+            modelTimelineSpeedQuery.Each((ref Model model, ref ModelTimelineSpeed speed) =>
+            {
+                if (!model.Spawned) { return; }
+                SetModelTimelineSpeed(model.ObjectIndex, speed.Value);
+            });
+        }
+        if (modelFadeOutTimelineSpeedQuery.IsValid())
+        {
+            modelFadeOutTimelineSpeedQuery.Each((ref ModelFadeOut model, ref ModelTimelineSpeed speed) =>
+            {
+                SetModelTimelineSpeed(model.ObjectIndex, speed.Value);
+            });
+        }
         return result;
     }
 

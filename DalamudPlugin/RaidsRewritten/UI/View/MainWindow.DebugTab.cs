@@ -1212,6 +1212,19 @@ public partial class MainWindow
                         }
                     }
                 }
+                SameLineIfFits("Gear");
+                if (ImGui.Button("Gear"))
+                {
+                    var player = this.dalamud.ObjectTable.LocalPlayer;
+                    if (player != null)
+                    {
+                        if (this.entityManager.TryCreateEntity<Gear>(out var gear))
+                        {
+                            gear.Set(new Position(player.Position))
+                                .Set(new Rotation(player.Rotation));
+                        }
+                    }
+                }
 
                 ImGui.SetNextItemWidth(120);
                 ImGui.InputInt("ModelCharaId", ref debugModelCharaId);

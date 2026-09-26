@@ -33,7 +33,7 @@ public class Chefbingus(DalamudServices dalamud) : IEntity
 
         foreach (var r in replacements)
         {
-            var replacementPath = Path.Combine("chefbingus", r.Value);
+            var replacementPath = Path.Combine("models", "chefbingus", r.Value);
             replacementPath = dalamud.PluginInterface.GetResourcePath(replacementPath);
             world.Entity()
                 .Set(new FileReplacement(r.Key, replacementPath))

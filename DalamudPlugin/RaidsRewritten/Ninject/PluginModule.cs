@@ -93,6 +93,7 @@ public class PluginModule : NinjectModule
         // Entities
         // Models
         Bind<IEntity>().To<Chefbingus>();
+        Bind<IEntity>().To<Gear>();
         Bind<IEntity, ISystem>().To<Shanoa>();
         Bind<IEntity, ISystem>().To<SteamChakram>();
         // Omens
