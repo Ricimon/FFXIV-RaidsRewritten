@@ -6,10 +6,10 @@ using ECommons.Hooks;
 using ECommons.MathHelpers;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
+using RaidsRewritten.Scripts.Attacks;
 using RaidsRewritten.Scripts.Attacks.Omens;
 using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
-using RaidsRewritten.Scripts.Models;
 using RaidsRewritten.Spawn;
 using RaidsRewritten.Utility;
 

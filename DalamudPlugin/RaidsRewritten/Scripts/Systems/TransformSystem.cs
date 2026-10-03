@@ -26,5 +26,11 @@ public class TransformSystem : ISystem
 
                 e.Set(new Position(parentPosition + localPosition.Value));
             });
+
+        world.System<AngularVelocity, Rotation>()
+            .Each((Iter it, int i, ref AngularVelocity angularVelocity, ref Rotation rotation) =>
+            {
+                rotation.Value += angularVelocity.Value * it.DeltaTime();
+            });
     }
 }

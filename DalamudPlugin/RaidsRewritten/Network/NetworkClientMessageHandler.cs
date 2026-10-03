@@ -12,6 +12,7 @@ using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Spawn;
+using RaidsRewritten.Utility;
 using SocketIOClient;
 using ZLinq;
 
@@ -86,26 +87,6 @@ public sealed class NetworkClientMessageHandler(
         }
     }
 
-    private bool CheckIsValidVfxPath(string path)
-    {
-        if (!Regex.IsMatch(path, @"(^vfx|^bg)\/[\w\/]*\w+\.avfx$"))
-        {
-            logger.Error($"{path} is not a valid VFX to play.");
-            return false;
-        }
-        return true;
-    }
-
-    private bool CheckIsValidSfxPath(string path)
-    {
-        if (!Regex.IsMatch(path, @"^sound\/vfx\/[\w\/]*\w+\.scd$"))
-        {
-            logger.Error($"{path} is not a valid SFX to play.");
-            return false;
-        }
-        return true;
-    }
-
     private void ApplyCondition(Message.ApplyConditionPayload payload)
     {
         // Despite these operations not destructing any entities, any kind of operations on the EcsWorld have to be forwarded
@@ -131,7 +112,7 @@ public sealed class NetworkClientMessageHandler(
 
     private void PlayStaticVfx(Message.PlayStaticVfxPayload payload)
     {
-        if (!CheckIsValidVfxPath(payload.vfxPath)) { return; }
+        if (!GameUtilities.IsValidVfxPath(payload.vfxPath)) { return; }
 
         dalamud.Framework.Run(() =>
         {
@@ -152,7 +133,7 @@ public sealed class NetworkClientMessageHandler(
 
     private void PlayActorVfxOnTarget(Message.PlayActorVfxOnTargetPayload payload)
     {
-        if (!CheckIsValidVfxPath(payload.vfxPath)) { return; }
+        if (!GameUtilities.IsValidVfxPath(payload.vfxPath)) { return; }
 
         if (payload.contentIdTargets.Length == 0) { return; }
 
@@ -191,7 +172,7 @@ public sealed class NetworkClientMessageHandler(
 
     private void PlayActorVfxOnPosition(Message.PlayActorVfxOnPositionPayload payload)
     {
-        if (!CheckIsValidVfxPath(payload.vfxPath)) { return; }
+        if (!GameUtilities.IsValidVfxPath(payload.vfxPath)) { return; }
 
         dalamud.Framework.Run(() =>
         {
@@ -340,7 +321,7 @@ public sealed class NetworkClientMessageHandler(
 
     private void PlaySfx(Message.PlaySfxPayload payload)
     {
-        if (!CheckIsValidSfxPath(payload.sfxPath)) { return; }
+        if (!GameUtilities.IsValidSfxPath(payload.sfxPath)) { return; }
 
         dalamud.Framework.Run(() =>
         {

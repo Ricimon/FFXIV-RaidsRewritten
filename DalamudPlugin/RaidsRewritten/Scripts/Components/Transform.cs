@@ -8,3 +8,5 @@ public record struct Scale(Vector3 Value);
 public record struct UniformScale(float Value);
 
 public record struct LocalPosition(Vector3 Value);
+
+public record struct AngularVelocity(float Value);

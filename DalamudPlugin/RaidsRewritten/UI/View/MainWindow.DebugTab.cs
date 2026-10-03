@@ -1244,9 +1244,14 @@ public partial class MainWindow
             if (ImGui.CollapsingHeader("VFX"))
             {
                 ImGui.InputText("VFX Path", ref debugVfxPath);
-                ImGui.SameLine();
                 using (var iconFont = ImRaii.PushFont(UiBuilder.IconFont))
                 {
+                    ImGui.SameLine();
+                    if (ImGui.Button($"{FontAwesomeIcon.Paste.ToIconString()}##DebugVfxPaste"))
+                    {
+                        debugVfxPath = ImGui.GetClipboardText();
+                    }
+                    ImGui.SameLine();
                     ImGui.Text(FontAwesomeIcon.ExclamationTriangle.ToIconString());
                 }
                 if (ImGui.IsItemHovered())
@@ -1294,48 +1299,63 @@ public partial class MainWindow
 
                 ImGui.Checkbox("Use Alternate Model", ref debugVfxUseAlternateModel);
 
-                if (!debugSpawnedVfx.IsValid() && ImGui.Button("Spawn VFX"))
+                if (!debugSpawnedVfx.IsValid())
                 {
-                    var localPlayer = dalamud.ObjectTable.LocalPlayer;
-                    if (localPlayer != null && !string.IsNullOrEmpty(debugVfxPath))
+                    var validVfxPath = GameUtilities.IsValidVfxPath(debugVfxPath);
+                    using (ImRaii.Disabled(!validVfxPath))
                     {
-                        var target = localPlayer.TargetObject;
-                        debugSpawnedVfx = World.Entity();
-
-                        World.Entity()
-                            .Set(new StaticVfx(debugVfxPath))
-                            .Set(new Position(localPlayer.Position))
-                            .Set(new Rotation(localPlayer.Rotation))
-                            .Set(new Scale(debugVfxScale))
-                            .ChildOf(debugSpawnedVfx);
-
-                        Entity actor;
-                        if (!debugVfxUseAlternateModel)
+                        if (ImGui.Button("Spawn VFX"))
                         {
-                            actor = World.Entity()
-                                .Set(new ActorVfx(debugVfxPath))
-                                .Set(new ActorVfxSource(localPlayer))
-                                .Set(new Scale(debugVfxScale))
-                                .ChildOf(debugSpawnedVfx);
-                        }
-                        else
-                        {
-                            actor = World.Entity()
-                                .Set(new Model(392))
-                                .Set(new LocalPosition(localPlayer.Position))
-                                .Set(new Rotation(localPlayer.Rotation))
-                                .Set(new ActorVfx(debugVfxPath))
-                                .Set(new UniformScale(debugVfxScale.X))
-                                .Set(new ModelHeight(debugVfxScale.X))
-                                .ChildOf(debugSpawnedVfx);
-                        }
+                            var localPlayer = dalamud.ObjectTable.LocalPlayer;
+                            if (localPlayer != null && !string.IsNullOrEmpty(debugVfxPath))
+                            {
+                                var target = localPlayer.TargetObject;
+                                debugSpawnedVfx = World.Entity();
 
-                        if (localPlayer.TargetObject != null)
-                        {
-                            actor.Set(new ActorVfxTarget(localPlayer.TargetObject));
+                                World.Entity()
+                                    .Set(new StaticVfx(debugVfxPath))
+                                    .Set(new Position(localPlayer.Position))
+                                    .Set(new Rotation(localPlayer.Rotation))
+                                    .Set(new Scale(debugVfxScale))
+                                    .ChildOf(debugSpawnedVfx);
+
+                                Entity actor;
+                                if (!debugVfxUseAlternateModel)
+                                {
+                                    actor = World.Entity()
+                                        .Set(new ActorVfx(debugVfxPath))
+                                        .Set(new ActorVfxSource(localPlayer))
+                                        .Set(new Scale(debugVfxScale))
+                                        .ChildOf(debugSpawnedVfx);
+                                }
+                                else
+                                {
+                                    actor = World.Entity()
+                                        .Set(new Model(392))
+                                        .Set(new LocalPosition(localPlayer.Position))
+                                        .Set(new Rotation(localPlayer.Rotation))
+                                        .Set(new ActorVfx(debugVfxPath))
+                                        .Set(new UniformScale(debugVfxScale.X))
+                                        .Set(new ModelHeight(debugVfxScale.X))
+                                        .ChildOf(debugSpawnedVfx);
+                                }
+
+                                if (localPlayer.TargetObject != null)
+                                {
+                                    actor.Set(new ActorVfxTarget(localPlayer.TargetObject));
+                                }
+
+                                debugSpawnedVfx.Set(new LinkedEntity(actor));
+                            }
                         }
                     }
+                    if (!validVfxPath)
+                    {
+                        ImGui.SameLine();
+                        ImGui.TextColored(new Vector4(1, 0, 0, 1), "Invalid VFX path");
+                    }
                 }
+
                 if (debugSpawnedVfx.IsValid() && ImGui.Button("Despawn"))
                 {
                     debugSpawnedVfx.Destruct();
@@ -1345,9 +1365,26 @@ public partial class MainWindow
             if (ImGui.CollapsingHeader("Sound"))
             {
                 ImGui.InputText("SFX Path", ref debugSfxPath);
-                if (ImGui.Button("Play SFX"))
+                using (var iconFont = ImRaii.PushFont(UiBuilder.IconFont))
                 {
-                    resourceLoader.PlaySound(debugSfxPath, 0);
+                    ImGui.SameLine();
+                    if (ImGui.Button($"{FontAwesomeIcon.Paste.ToIconString()}##DebugSfxPaste"))
+                    {
+                        debugSfxPath = ImGui.GetClipboardText();
+                    }
+                }
+                var validSfxPath = GameUtilities.IsValidSfxPath(debugSfxPath);
+                using (ImRaii.Disabled(!validSfxPath))
+                {
+                    if (ImGui.Button("Play SFX"))
+                    {
+                        resourceLoader.PlaySound(debugSfxPath, 0);
+                    }
+                }
+                if (!validSfxPath)
+                {
+                    ImGui.SameLine();
+                    ImGui.TextColored(new Vector4(1, 0, 0, 1), "Invalid SFX path");
                 }
             }
 

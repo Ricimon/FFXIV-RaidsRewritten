@@ -24,6 +24,7 @@ public class TeaRewritten : IEncounter
     private string IcePlusKey => $"{Name}.IcePlus";
     private string MoreChakramsKey => $"{Name}.MoreChakrams";
     private string SuperJumpPlusKey => $"{Name}.SuperJumpPlus";
+    private string GearBeamKey => $"{Name}.GearBeam";
 
     private readonly Mechanic.Factory mechanicFactory;
     private readonly DalamudServices dalamud;
@@ -53,6 +54,7 @@ public class TeaRewritten : IEncounter
             { IcePlusKey, true },
             { MoreChakramsKey, true },
             { SuperJumpPlusKey, true },
+            { GearBeamKey, true },
         };
 
         this.defaultIntSettings = new()
@@ -133,6 +135,12 @@ public class TeaRewritten : IEncounter
         if (configuration.GetEncounterSetting(SuperJumpPlusKey, defaultBoolSettings[SuperJumpPlusKey]))
         {
             mechanics.Add(mechanicFactory.Create<SuperJumpPlus>());
+        }
+        if (configuration.GetEncounterSetting(GearBeamKey, defaultBoolSettings[GearBeamKey]))
+        {
+            var gearBeam = mechanicFactory.Create<GearBeams>();
+            gearBeam.RngSeed = rngSeed;
+            mechanics.Add(gearBeam);
         }
     }
 
@@ -266,6 +274,15 @@ public class TeaRewritten : IEncounter
         {
             configuration.EncounterSettings[SuperJumpPlusKey] =
                 superJumpPlus ? bool.TrueString : bool.FalseString;
+            configuration.Save();
+            RefreshMechanics();
+        }
+
+        bool gearBeam = configuration.GetEncounterSetting(GearBeamKey, defaultBoolSettings[GearBeamKey]);
+        if (ImGui.Checkbox("Gear Weal", ref gearBeam))
+        {
+            configuration.EncounterSettings[GearBeamKey] =
+                gearBeam ? bool.TrueString : bool.FalseString;
             configuration.Save();
             RefreshMechanics();
         }

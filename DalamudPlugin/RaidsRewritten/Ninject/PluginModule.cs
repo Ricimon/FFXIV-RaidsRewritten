@@ -58,6 +58,7 @@ public class PluginModule : NinjectModule
         Bind<IDalamudHook, EncounterManager>().To<EncounterManager>().InSingletonScope();
         Bind<Lazy<EncounterManager>>().ToMethod(c => new Lazy<EncounterManager>(() => c.Kernel.Get<EncounterManager>()));
         Bind<IDalamudHook, EntityManager>().To<EntityManager>().InSingletonScope();
+        Bind<Lazy<EntityManager>>().ToMethod(c => new Lazy<EntityManager>(() => c.Kernel.Get<EntityManager>()));
         Bind<Mechanic.Factory>().ToSelf();
         Bind<InputEventSource>().ToSelf().InSingletonScope();
         Bind<EcsContainer>().ToSelf().InSingletonScope();
@@ -125,6 +126,7 @@ public class PluginModule : NinjectModule
         Bind<IEntity, ISystem>().To<Dreadknight>();
         Bind<IEntity, ISystem>().To<ADS>();
         Bind<IEntity, ISystem>().To<DistanceSnapshotTether>();
+        Bind<IEntity, ISystem>().To<Puddle>();
         Bind<IEntity, ISystem>().To<ExpandingPuddle>();
         Bind<IEntity, ISystem>().To<Star>();
         Bind<IEntity, ISystem>().To<Tornado>();
@@ -135,12 +137,14 @@ public class PluginModule : NinjectModule
         Bind<IEntity, ISystem>().To<VoidGate>();
         Bind<IEntity, ISystem>().To<ArticulatedBit>();
         Bind<IEntity, ISystem>().To<FireTornadoEntity>();
+        Bind<IEntity, ISystem>().To<GearBeam>();
         Bind<ISystem>().To<FireTornadoEntity.Donut>();
         Bind<ISystem>().To<FireTornadoEntity.Cone>();
 
         // Systems
         Bind<ISystem>().To<Player>();
         Bind<ISystem>().To<DelayedAction>();
+        Bind<ISystem>().To<FlecsSystem>();
         Bind<ISystem>().To<TransformSystem>();
         Bind<ISystem>().To<VfxSystem>();
         Bind<ISystem>().To<OmenSystem>();

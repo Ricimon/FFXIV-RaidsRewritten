@@ -8,7 +8,7 @@ using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Utility;
 
-namespace RaidsRewritten.Scripts.Models;
+namespace RaidsRewritten.Scripts.Attacks;
 
 public class SteamChakram(ILogger logger) : IEntity, ISystem
 {
