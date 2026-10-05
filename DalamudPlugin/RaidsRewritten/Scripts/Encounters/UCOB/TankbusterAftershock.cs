@@ -214,7 +214,7 @@ public class TankbusterAftershock : Mechanic
                     DelayedAction.Create(e.CsWorld(), () =>
                     {
                         Heavy.ApplyToTarget(e, HeavyDurationSeconds, true);
-                        Pacify.ApplyToTarget(e, PacifyDurationSeconds, true);
+                        DamageDown.ApplyToTarget(e, PacifyDurationSeconds, true);
                     }, aftershockData.StatusDelaySeconds);
                 }
             }

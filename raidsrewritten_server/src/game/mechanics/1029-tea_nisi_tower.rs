@@ -204,8 +204,8 @@ pub fn create_systems(world: &World) {
                                 let player = c.entity_view(world);
                                 apply_condition(
                                     &player,
-                                    condition::Condition::Pacify as u128,
-                                    condition::Condition::Pacify,
+                                    condition::Condition::DamageDown as u128,
+                                    condition::Condition::DamageDown,
                                     60.0,
                                     false,
                                 );

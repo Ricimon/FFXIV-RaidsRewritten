@@ -127,7 +127,7 @@ public class IcePlus : Mechanic
                 {
                     CommonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
                     {
-                        Pacify.ApplyToTarget(e, 60.0f);
+                        DamageDown.ApplyToTarget(e, 60.0f);
                     });
                 }
             }

@@ -53,7 +53,7 @@ public class EarthShakerStar : Mechanic
                 OnHit: e =>
                 {
                     Stun.ApplyToTarget(e, 5.0f, true);
-                    Pacify.ApplyToTarget(e, 30.0f, true);
+                    DamageDown.ApplyToTarget(e, 30.0f, true);
                 }));
             star.Set(new Position(newObject.Position));
             attacks.Add(star);

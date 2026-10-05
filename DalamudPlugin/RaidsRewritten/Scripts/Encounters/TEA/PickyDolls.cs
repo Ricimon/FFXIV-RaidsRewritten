@@ -286,7 +286,7 @@ public class PickyDolls : Mechanic
                             if (player != null && !player.IsDead && e.IsValid())
                             {
                                 Stun.ApplyToTarget(e, 15.0f);
-                                Pacify.ApplyToTarget(e, 30.0f);
+                                DamageDown.ApplyToTarget(e, 60.0f);
                             }
                         }, 0.42f);
                         attacks.Add(action);
@@ -323,7 +323,7 @@ public class PickyDolls : Mechanic
             CommonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
             {
                 Hysteria.ApplyToTarget(e, 10.0f, 5.0f);
-                Pacify.ApplyToTarget(e, 30.0f);
+                DamageDown.ApplyToTarget(e, 60.0f);
             });
         }
     }

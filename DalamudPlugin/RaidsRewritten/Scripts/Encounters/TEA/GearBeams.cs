@@ -122,7 +122,7 @@ public class GearBeams : Mechanic
                             }
                             else
                             {
-                                Pacify.ApplyToTarget(e, 60.0f);
+                                DamageDown.ApplyToTarget(e, 60.0f);
                             }
                         })
                     );
@@ -166,7 +166,7 @@ public class GearBeams : Mechanic
                             .Set(new Scale(gearRadius * Vector3.One))
                             .Set(new Puddle.Component(
                                 "bgcommon/world/common/vfx_for_btl/b0994/eff/b0994yuka1_o.avfx", 0.2f,
-                                1.0f, (e) => { Pacify.ApplyToTarget(e, 60.0f); }));
+                                1.0f, (e) => { DamageDown.ApplyToTarget(e, 60.0f); }));
                         attacks.Add(puddle);
                     }
 

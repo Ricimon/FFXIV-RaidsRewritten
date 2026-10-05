@@ -27,6 +27,7 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
     private Query<Condition.Component> overheatQuery;
     private Query<Condition.Component> deepfreezeQuery;
     private Query<Condition.Component> flattenedQuery;
+    private Query<Condition.Component> damageDownQuery;
 
     public static Entity Create(World world, bool isLocalPlayer, IPlayerCharacter? playerCharacter = null, ulong? contentId = null)
     {
@@ -55,6 +56,7 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
         this.overheatQuery.SafeDispose();
         this.deepfreezeQuery.SafeDispose();
         this.flattenedQuery.SafeDispose();
+        this.damageDownQuery.SafeDispose();
     }
 
     public void Register(World world)
@@ -83,6 +85,9 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
             .With<LocalPlayer>().Up().Cached().Build();
         this.flattenedQuery = world.QueryBuilder<Condition.Component>()
             .With<Flattened.Component>()
+            .With<LocalPlayer>().Up().Cached().Build();
+        this.damageDownQuery = world.QueryBuilder<Condition.Component>()
+            .With<DamageDown.Component>()
             .With<LocalPlayer>().Up().Cached().Build();
 
         world.System<Component>().With<LocalPlayer>()
@@ -138,6 +143,7 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
                 // Handle each condition
                 bool stun = false;
                 bool disableAllActions = false;
+                bool disableDamagingActions = false;
 
                 Entity knockbackEntity = this.knockbackQuery.First();
 
@@ -166,6 +172,10 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
                 Entity heavyEntity = this.heavyQuery.First();
 
                 Entity pacifyEntity = this.pacifyQuery.First();
+                disableDamagingActions |= pacifyEntity.IsValid();
+
+                Entity damageDownEntity = this.damageDownQuery.First();
+                disableDamagingActions |= damageDownEntity.IsValid();
 
                 Entity overheatEntity = this.overheatQuery.First();
 
@@ -222,7 +232,7 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
 
                 // Action override
                 playerManager.DisableAllActions = disableAllActions;
-                playerManager.DisableDamagingActions = pacifyEntity.IsValid();
+                playerManager.DisableDamagingActions = disableDamagingActions;
             });
     }
 

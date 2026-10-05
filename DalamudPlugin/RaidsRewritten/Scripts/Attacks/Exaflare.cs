@@ -158,7 +158,7 @@ public class Exaflare(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogger logger
         {
             DelayedAction.Create(e.CsWorld(), () => {
                 Stun.ApplyToTarget(e, StunDuration);
-                Pacify.ApplyToTarget(e, PacifyDuration);
+                DamageDown.ApplyToTarget(e, PacifyDuration);
             }, StatusDelay)
                 .ChildOf(e);
         }

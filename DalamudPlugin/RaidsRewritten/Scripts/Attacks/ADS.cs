@@ -122,7 +122,7 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
                                     DelayedAction.Create(e.CsWorld(), () =>
                                     {
                                         Paralysis.ApplyToTarget(e, ParalysisDuration, StunInterval, StunDuration);
-                                        Pacify.ApplyToTarget(e, PacifyDuration);
+                                        DamageDown.ApplyToTarget(e, PacifyDuration);
                                     }, SnapshotEffectDelay)
                                         .ChildOf(entity);
                                 });
@@ -206,7 +206,7 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
                                         DelayedAction.Create(e.CsWorld(), () =>
                                         {
                                             Paralysis.ApplyToTarget(e, ParalysisDuration, StunInterval, StunDuration);
-                                            Pacify.ApplyToTarget(e, PacifyDuration);
+                                            DamageDown.ApplyToTarget(e, PacifyDuration);
                                         }, SnapshotEffectDelay)
                                             .ChildOf(entity);
                                     });

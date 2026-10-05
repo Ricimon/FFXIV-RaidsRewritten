@@ -32,7 +32,7 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
         public struct TornadoEntity;
         public const float OmenDuration = 0.75f;
         private const ushort AttackAnimation = 7594;
-        private const float PacifyDuration = 30f;
+        private const float PacifyDuration = 60f;
         private const float AttackDelay = 0f;
         private const string AttackVfx = "vfx/monster/m0905/eff/m0905sp_002c0e1.avfx";
 
@@ -109,7 +109,7 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
                                     {
                                         commonQueries.LocalPlayerQuery.Each((Entity player, ref Player.Component _) =>
                                         {
-                                            DelayedAction.Create(world, () => Pacify.ApplyToTarget(player, PacifyDuration), 0.2f).ChildOf(player);
+                                            DelayedAction.Create(world, () => DamageDown.ApplyToTarget(player, PacifyDuration), 0.2f).ChildOf(player);
                                         });
                                     }
                                 }
@@ -259,7 +259,7 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
     private const ushort IdleAnimation = 8;
     private const float Tick = 1.5f;
     private const float PuddleRadius = 5f;
-    private const float PunishmentDuration = 5f;
+    private const float PunishmentDuration = 60.0f;
 
     public static Entity CreateEntity(World world)
     {
@@ -332,8 +332,7 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
             {
                 commonQueries.LocalPlayerQuery.Each((Entity player, ref Player.Component _) =>
                 {
-                    // maybe this should be a pacify instead?
-                    DelayedAction.Create(world, () => Stun.ApplyToTarget(player, PunishmentDuration, overrideExistingDuration: true), 0.2f).ChildOf(player);
+                    DelayedAction.Create(world, () => DamageDown.ApplyToTarget(player, PunishmentDuration, overrideExistingDuration: true), 0.2f).ChildOf(player);
                 });
             }
         });

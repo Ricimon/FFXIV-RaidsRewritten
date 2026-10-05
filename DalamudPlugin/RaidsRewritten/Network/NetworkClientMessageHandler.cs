@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using Dalamud.Game.ClientState.Objects.Types;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using Flecs.NET.Bindings;
@@ -294,6 +293,9 @@ public sealed class NetworkClientMessageHandler(
                                         break;
                                     case Message.Condition.MagicVulnerabilityUp:
                                         MagicVulnerabilityUp.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: false);
+                                        break;
+                                    case Message.Condition.DamageDown:
+                                        DamageDown.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: false);
                                         break;
                                 }
                             }

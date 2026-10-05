@@ -199,9 +199,9 @@ pub fn create_systems(world: &World) {
                                 );
                                 apply_condition(
                                     &player,
-                                    condition::Condition::Pacify as u128,
-                                    condition::Condition::Pacify,
-                                    30.0,
+                                    condition::Condition::DamageDown as u128,
+                                    condition::Condition::DamageDown,
+                                    60.0,
                                     false,
                                 );
                             }
@@ -270,9 +270,9 @@ pub fn create_systems(world: &World) {
                                 });
                                 apply_condition(
                                     &player,
-                                    condition::Condition::Pacify as u128,
-                                    condition::Condition::Pacify,
-                                    30.0,
+                                    condition::Condition::DamageDown as u128,
+                                    condition::Condition::DamageDown,
+                                    60.0,
                                     false,
                                 );
                             });

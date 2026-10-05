@@ -144,7 +144,7 @@ public class MoreChakrams : Mechanic
                                 {
                                     action = () => CommonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
                                     {
-                                        Pacify.ApplyToTarget(e, 60.0f);
+                                        DamageDown.ApplyToTarget(e, 60.0f);
                                         Knockback.ApplyToTarget(e, MathUtilities.RotationToUnitVector(rotationOffset + MathF.PI).ToVector3(position.Y), 5.0f, false);
                                     });
                                 }

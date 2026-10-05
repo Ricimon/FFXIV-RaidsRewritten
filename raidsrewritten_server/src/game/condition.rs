@@ -33,6 +33,7 @@ pub enum Condition {
     FireResistanceDown = 9,
     Flattened = 10,
     MagicVulnerabilityUp = 11,
+    DamageDown = 12,
 }
 
 pub fn create_systems(world: &World) {

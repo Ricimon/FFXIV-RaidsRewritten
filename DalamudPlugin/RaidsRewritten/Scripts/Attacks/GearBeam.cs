@@ -169,7 +169,7 @@ public class GearBeam(DalamudServices dalamud, Lazy<EntityManager> entityManager
                         {
                             commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
                             {
-                                Pacify.ApplyToTarget(e, 60.0f);
+                                DamageDown.ApplyToTarget(e, 60.0f);
                             });
                         }
                     }

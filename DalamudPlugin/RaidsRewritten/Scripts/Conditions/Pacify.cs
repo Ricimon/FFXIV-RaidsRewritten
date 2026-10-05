@@ -1,9 +1,11 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Numerics;
 using Flecs.NET.Core;
 using RaidsRewritten.Scripts.Components;
 
 namespace RaidsRewritten.Scripts.Conditions;
 
+[Obsolete("Use Damage Down")]
 public class Pacify
 {
     private const string IconId = "215017";

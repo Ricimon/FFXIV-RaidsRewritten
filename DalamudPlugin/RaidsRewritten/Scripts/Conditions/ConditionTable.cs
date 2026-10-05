@@ -21,6 +21,7 @@ public class ConditionTable
         public const int FireResistanceDown = 1137;
         public const int Flattened = 0xF1410D;
         public const int MagicVulnerabilityUp = 60;
+        public const int DamageDown = 62;
     }
     
     public class IconToReplace
@@ -41,5 +42,6 @@ public class ConditionTable
         public const int FireResistanceDown = 216576;
         public const int Flattened = 216577;
         public const int MagicVulnerabilityUp = 216578;
+        public const int DamageDown = 216579;
     }
 }

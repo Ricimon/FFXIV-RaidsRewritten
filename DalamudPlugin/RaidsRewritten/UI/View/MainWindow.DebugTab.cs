@@ -232,13 +232,20 @@ public partial class MainWindow
                     FatedHero.ApplyToTarget(e);
                 });
             }
-
             SameLineIfFits("Flattened");
             if (ImGui.Button("Flattened"))
             {
                 commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
                 {
                     Flattened.ApplyToTarget(e, 3.0f);
+                });
+            }
+            SameLineIfFits("Damage Down");
+            if (ImGui.Button("Damage Down"))
+            {
+                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+                {
+                    DamageDown.ApplyToTarget(e, 5.0f);
                 });
             }
 
