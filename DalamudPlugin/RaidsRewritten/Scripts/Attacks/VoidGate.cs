@@ -27,7 +27,7 @@ public class VoidGate() : IEntity, ISystem
     private const string GateActorVfx = "chara/monster/m0273/obj/body/b0001/vfx/eff/vm0001.avfx";
     public static Entity CreateEntity(World world)
     {
-        return FakeActor.Create(world)
+        return FakeActor.CreateInvalidModel(world)
             .Set(new Position())
             .Set(new Rotation())
             .Set(new Scale())
@@ -55,7 +55,7 @@ public class VoidGate() : IEntity, ISystem
                 using var animationQuery = world.QueryBuilder().With(flecs.EcsChildOf, entity).With<AnimationActor>().Build();
                 if (!animationQuery.IsTrue())
                 {
-                    animationActor = FakeActor.Create(it.World())
+                    animationActor = FakeActor.CreateInvalidModel(it.World())
                         .Set(new Position(position.Value))
                         .Set(new Rotation(rotation.Value))
                         .Add<AnimationActor>()
@@ -69,7 +69,7 @@ public class VoidGate() : IEntity, ISystem
                 using var gateQuery = world.QueryBuilder().With(flecs.EcsChildOf, entity).With<GateActor>().Build();
                 if (!gateQuery.IsTrue())
                 {
-                    gateActor = FakeActor.Create(it.World())
+                    gateActor = FakeActor.CreateInvalidModel(it.World())
                         .Set(new Position(position.Value))
                         .Set(new Rotation(rotation.Value))
                         .Add<GateActor>()

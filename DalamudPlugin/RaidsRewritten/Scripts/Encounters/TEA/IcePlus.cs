@@ -108,7 +108,7 @@ public class IcePlus : Mechanic
         {
             for (var i = 0; i < 2; i++)
             {
-                var v = FakeActor.Create(World)
+                var v = FakeActor.CreateInvalidModel(World)
                     .Set(new ActorVfx(AttackVfx))
                     .Set(new Position(position))
                     .Set(new Rotation(rotationOffset + i * 0.25f * MathF.PI));

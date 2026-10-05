@@ -312,7 +312,7 @@ public class ShanoaPark : Mechanic, IShanoaPark
                             shanoa.Set(new Shanoa.Component(movementSpeed, rotationSpeed));
                         }
                     }
-                    var destinationArrow = FakeActor.Create(World)
+                    var destinationArrow = FakeActor.CreateInvalidModel(World)
                         .Set(new ActorVfx(DestinationArrowVfxPath))
                         .Set(new Position(position + 1.0f * Vector3.UnitY));
                     attacks.Add(destinationArrow);
@@ -396,7 +396,7 @@ public class ShanoaPark : Mechanic, IShanoaPark
                     if (shanoa.TryGet(out Model shanoaModel))
                     {
                         var shanoaGo = Dalamud.ObjectTable.GetGameObjectByIndex(shanoaModel.ObjectIndex);
-                        FakeActor.Create(World)
+                        FakeActor.CreateInvalidModel(World)
                             .Set(new Position(markerPosition))
                             .Set(new ActorVfx(AbsorbMarkerVfxPath1))
                             .Set(new ActorVfxTarget(shanoaGo));

@@ -47,7 +47,7 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
 
         public static Entity CreateEntity(World world)
         {
-            return FakeActor.Create(world)
+            return FakeActor.CreateInvalidModel(world)
                 .Set(new Position())
                 .Set(new Rotation())
                 .Set(new Scale())
@@ -233,7 +233,7 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
                     case Phase.Vfx:
                         if (ShouldReturn(donut)) { return; }
 
-                        var fakeActor = FakeActor.Create(it.World())
+                        var fakeActor = FakeActor.CreateInvalidModel(it.World())
                             .Set(new Position(position.Value))
                             .Set(new Rotation(rotation.Value))
                             .ChildOf(e);

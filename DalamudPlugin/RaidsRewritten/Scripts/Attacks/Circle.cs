@@ -117,7 +117,7 @@ public class Circle(DalamudServices dalamud, CommonQueries commonQueries, ILogge
                         runtime.AttackVfxPlayed = true;
                         if (!string.IsNullOrEmpty(component.AttackVfxPath))
                         {
-                            runtime.AttackVfx = FakeActor.Create(it.World())
+                            runtime.AttackVfx = FakeActor.CreateInvalidModel(it.World())
                                 .Set(new Position(position.Value))
                                 .Set(new Rotation(rotation.Value))
                                 .Set(new ActorVfx(component.AttackVfxPath))

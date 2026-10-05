@@ -176,7 +176,7 @@ public sealed class NetworkClientMessageHandler(
 
         dalamud.Framework.Run(() =>
         {
-            FakeActor.Create(World)
+            FakeActor.CreateInvalidModel(World)
                 .Set(new ActorVfx(payload.vfxPath))
                 .Set(new Position(new(payload.worldPositionX, payload.worldPositionY, payload.worldPositionZ)))
                 .Set(new Rotation(payload.rotation));

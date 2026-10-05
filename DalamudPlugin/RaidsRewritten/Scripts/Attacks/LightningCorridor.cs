@@ -120,7 +120,7 @@ public sealed class LightningCorridor(DalamudServices dalamud, CommonQueries com
                     {
                         var p = position.Value + ((0.5f * Width + 20.0f) * MathUtilities.RotationToUnitVector(r1)).ToVector3(0);
                         var pVfx = p + (-20.0f + j * 40.0f) * MathUtilities.RotationToUnitVector(rotation.Value).ToVector3(0);
-                        var fakeActor = FakeActor.Create(it.World())
+                        var fakeActor = FakeActor.CreateInvalidModel(it.World())
                             .Set(new Position(pVfx))
                             .Set(new Rotation(rotation.Value))
                             .Set(new ActorVfx("vfx/monster/gimmick5/eff/x6r4_b_g016_c0t1.avfx"))
@@ -129,7 +129,7 @@ public sealed class LightningCorridor(DalamudServices dalamud, CommonQueries com
                         // SFX
                         if (j == 0)
                         {
-                            var fakeSfxActor = FakeActor.Create(it.World())
+                            var fakeSfxActor = FakeActor.CreateInvalidModel(it.World())
                                 .Set(new Position(position.Value))
                                 .Set(new Rotation(rotation.Value))
                                 //.Set(new OneTimeModelTimeline(11179))
@@ -149,7 +149,7 @@ public sealed class LightningCorridor(DalamudServices dalamud, CommonQueries com
                     {
                         var p = position.Value + ((0.5f * Width + 20.0f) * MathUtilities.RotationToUnitVector(r2)).ToVector3(0);
                         var pVfx = p + (-20.0f + j * 40.0f) * MathUtilities.RotationToUnitVector(rotation.Value).ToVector3(0);
-                        var fakeActor = FakeActor.Create(it.World())
+                        var fakeActor = FakeActor.CreateInvalidModel(it.World())
                             .Set(new Position(pVfx))
                             .Set(new Rotation(rotation.Value))
                             .Set(new ActorVfx("vfx/monster/gimmick5/eff/x6r4_b_g016_c0t1.avfx"))

@@ -73,7 +73,7 @@ public class Exaflare(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogger logger
 
                     if (!childQuery.IsTrue())
                     {
-                        fakeActor = FakeActor.Create(it.World())
+                        fakeActor = FakeActor.CreateInvalidModel(it.World())
                             .Set(new Position(position.Value))
                             .Set(new Rotation(rotation.Value))
                             .ChildOf(entity);

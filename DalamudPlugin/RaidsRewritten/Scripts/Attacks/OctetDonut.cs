@@ -74,7 +74,7 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
                 case Phase.Snapshot:
                     if (ShouldReturn(component)) { return; }
 
-                    var fakeActor = FakeActor.Create(world)
+                    var fakeActor = FakeActor.CreateInvalidModel(world)
                         .Set(new Position(position.Value))
                         .Set(new ActorVfx(AoEVfx))
                         .ChildOf(entity);

@@ -107,12 +107,12 @@ public class TankbusterAftershock : Mechanic
         var backAngle = MathUtilities.ClampRadians(originalRotation + MathF.PI);
 
         // create fake actors to keep vfxes in place if boss turns/moves
-        var fakeActorFront = FakeActor.Create(this.World)
+        var fakeActorFront = FakeActor.CreateInvalidModel(this.World)
             .Set(new Position(originalPosition))
             .Set(new Rotation(originalRotation));
         ToDestruct.Add(fakeActorFront);
 
-        var fakeActorBack = FakeActor.Create(this.World)
+        var fakeActorBack = FakeActor.CreateInvalidModel(this.World)
             .Set(new Position(originalPosition))
             .Set(new Rotation(backAngle));
         ToDestruct.Add(fakeActorBack);

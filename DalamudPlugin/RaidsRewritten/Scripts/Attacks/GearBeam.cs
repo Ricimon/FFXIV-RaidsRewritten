@@ -52,7 +52,7 @@ public class GearBeam(DalamudServices dalamud, Lazy<EntityManager> entityManager
                         component.Model = gear;
 
                         // Entry VFX
-                        FakeActor.Create(it.World())
+                        FakeActor.CreateInvalidModel(it.World())
                             .Set(new ActorVfx("vfx/pop/m0318/eff/m0318_pop01h.avfx"))
                             .Set(new Position(position.Value))
                             .ChildOf(gear);
@@ -109,7 +109,7 @@ public class GearBeam(DalamudServices dalamud, Lazy<EntityManager> entityManager
                     }
                     if (beam.AttackWindupReplayTimer == 0)
                     {
-                        var attackWindup = FakeActor.Create(it.World())
+                        var attackWindup = FakeActor.CreateInvalidModel(it.World())
                             .Set(new ActorVfx("vfx/monster/d1085/eff/d1085_sp_011_c0v.avfx"))
                             .ChildOf(entity);
                         beam.AttackWindups ??= [];
@@ -141,7 +141,7 @@ public class GearBeam(DalamudServices dalamud, Lazy<EntityManager> entityManager
                 if (beam.ElapsedTime >= beam.OmenDuration &&
                     !beam.Attack.IsValid())
                 {
-                    beam.Attack = FakeActor.Create(it.World())
+                    beam.Attack = FakeActor.CreateInvalidModel(it.World())
                         .Set(new ActorVfx("vfx/common/eff/d1085_idle_sp2_c0v.avfx"))
                         .ChildOf(entity);
                 }

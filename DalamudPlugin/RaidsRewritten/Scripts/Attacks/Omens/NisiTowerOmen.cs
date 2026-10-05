@@ -80,7 +80,7 @@ public class NisiTowerOmen(DalamudServices dalamud, ILogger logger) : IEntity, I
 
                     if (!string.IsNullOrEmpty(nisiVfxPath))
                     {
-                        component.NisiVfx = FakeActor.Create(it.World())
+                        component.NisiVfx = FakeActor.CreateInvalidModel(it.World())
                             .Set(new ActorVfx(nisiVfxPath))
                             .Set(new LocalPosition())
                             .Set(new Rotation())

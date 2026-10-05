@@ -186,19 +186,16 @@ public class GearBeams : Mechanic
                         }
                         else if (index == 1 && j == 1)
                         {
-                            var rotationOmen = FakeActor.Create(World)
+                            var rotationOmen = FakeActor.CreateInvalidModel(World)
                                 .Set(new Position(position))
                                 .Set(new Rotation(rotation))
                                 .Set(new ActorVfx(rotationOmenVfxPath));
                             attacks.Add(rotationOmen);
 
-                            var rotationOmen2 = FakeActor.Create(World)
-                                .Set(new Model(0))
+                            var rotationOmen2 = FakeActor.CreateZeroScaleModel(World)
                                 .Set(new Position(position))
                                 .Set(new Rotation(rotation))
-                                .Set(new UniformScale(0))
-                                .Set(new ActorVfx(rotationOmen2VfxPath))
-                                .Add<EnsureModelIsDrawn>();
+                                .Set(new ActorVfx(rotationOmen2VfxPath));
                             attacks.Add(rotationOmen2);
                         }
                         else if (j == 2)
@@ -206,23 +203,17 @@ public class GearBeams : Mechanic
                             position += 0.5f * gearPositionVector;
                             var fr = Quaternion.CreateFromAxisAngle(Vector3.UnitY, rotation);
                             fr *= Quaternion.CreateFromAxisAngle(Vector3.UnitX, 0.5f * MathF.PI);
-                            var rotationOmen = FakeActor.Create(World)
-                                .Set(new Model(0))
+                            var rotationOmen = FakeActor.CreateZeroAlphaModel(World)
                                 .Set(new Position(position))
                                 .Set(new Rotation(rotation))
-                                .Set(new Alpha(0))
                                 .Set(new ActorVfx(rotationOmenVfxPath))
-                                .Set(new FullRotation(fr))
-                                .Add<EnsureModelIsDrawn>();
+                                .Set(new FullRotation(fr));
                             attacks.Add(rotationOmen);
 
-                            var rotationOmen2 = FakeActor.Create(World)
-                                .Set(new Model(0))
+                            var rotationOmen2 = FakeActor.CreateZeroScaleModel(World)
                                 .Set(new Position(position))
                                 .Set(new Rotation(rotation))
-                                .Set(new UniformScale(0))
-                                .Set(new ActorVfx(rotationOmen2VfxPath))
-                                .Add<EnsureModelIsDrawn>();
+                                .Set(new ActorVfx(rotationOmen2VfxPath));
                             attacks.Add(rotationOmen2);
                         }
 

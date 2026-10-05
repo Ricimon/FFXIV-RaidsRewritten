@@ -218,13 +218,13 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
                         break;
                     case Phase.Vfx:
                         if (ShouldReturn(component)) { return; }
-                        FakeActor.Create(world)
+                        FakeActor.CreateInvalidModel(world)
                             .Set(new Position(component.TargetPosition1))
                             .Set(new ActorVfx(CircleActionVfx))
                             .ChildOf(entity);
                         if (component.TargetPosition2.HasValue)
                         {
-                            FakeActor.Create(world)
+                            FakeActor.CreateInvalidModel(world)
                                 .Set(new Position(component.TargetPosition2.Value))
                                 .Set(new ActorVfx(CircleActionVfx))
                                 .ChildOf(entity);

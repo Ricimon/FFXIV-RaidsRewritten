@@ -39,7 +39,7 @@ public sealed class JumpableShockwave(DalamudServices dalamud, CommonQueries com
 
         for (var i = 0; i < 2; i++)
         {
-            FakeActor.Create(world)
+            FakeActor.CreateInvalidModel(world)
                 .Set(new ActorVfx("vfx/monster/gimmick3/eff/n4r2_b1_g4c0w.avfx"))
                 .ChildOf(entity);
         }
