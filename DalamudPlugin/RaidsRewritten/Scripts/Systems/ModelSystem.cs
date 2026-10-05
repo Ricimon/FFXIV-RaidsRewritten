@@ -148,6 +148,24 @@ public unsafe sealed class ModelSystem(
                 }
             });
 
+        world.System<Model, FullRotation>()
+            .Each((Iter it, int i, ref Model model, ref FullRotation rotation) =>
+            {
+                if (!it.Changed()) { return; }
+                if (model.Spawned)
+                {
+                    var obj = ClientObjectManager.Instance()->GetObjectByIndex(model.ObjectIndex);
+                    if (obj != null)
+                    {
+                        var drawObj = obj->DrawObject;
+                        if (drawObj != null)
+                        {
+                            drawObj->Rotation = rotation.Value;
+                        }
+                    }
+                }
+            });
+
         world.System<Model, Alpha>()
             .Each((Iter it, int i, ref Model model, ref Alpha alpha) =>
             {

@@ -52,42 +52,57 @@ public class GearBeams : Mechanic
     {
         // Command 54, p1 1 is become targetable
         // Command 54, p1 0 is become untargetable
-        if (source.BaseId == ALEXANDER_PRIME_BASE_ID && command == 54 && p1 == 1 && timesExecuted == 0)
+        if (source.BaseId == ALEXANDER_PRIME_BASE_ID && command == 54 && p1 == 1)
         {
-            StartMechanic();
-            timesExecuted++;
+            StartMechanic(++timesExecuted);
         }
     }
 
     public override void DebugSimulate()
     {
-        StartMechanic();
+        StartMechanic(++timesExecuted);
     }
 
-    private void StartMechanic()
+    private void StartMechanic(int index)
     {
+        var totalGears = 0;
+        switch (index)
+        {
+            case 1: totalGears = 2; break;
+            case 2: totalGears = 3; break;
+            default: return;
+        }
+
         var seed = RngSeed;
         unchecked
         {
-            seed += 0x4EA5;
+            seed += 0x4EA5 + index;
         }
         var random = new Random(seed);
 
         var gear1Distance = 11.5f;
         var gear2Distance = 20.0f;
+        var gear3Distance = 23.7f;
         var gearRadius = 5.0f;
         var gearPlacementRotation = random.Next(8) * 0.25f * MathF.PI;
+        var attackRotation = random.Next(2);
         var gearPositionVector = MathUtilities.RotationToUnitVector(gearPlacementRotation).ToVector3(arenaMiddle.Y);
 
         var gearDropOmenDuration = 3.0f;
         var fullDelay = gearDropOmenDuration;
 
         // Drop gears
-        for (var i = 0; i < 2; i++)
+        for (var i = 0; i < totalGears; i++)
         {
-            var distance = i == 0 ? gear1Distance : gear2Distance;
+            var distance = i switch
+            {
+                0 => gear1Distance,
+                1 => gear2Distance,
+                2 => gear3Distance,
+                _ => 0,
+            };
             var position = arenaMiddle + distance * gearPositionVector;
-            if (EntityManager.TryCreateEntity<Circle>(out Entity circle))
+            if (i < 2 && EntityManager.TryCreateEntity<Circle>(out Entity circle))
             {
                 circle
                     .Set(new Position(position))
@@ -112,98 +127,148 @@ public class GearBeams : Mechanic
                         })
                     );
                 attacks.Add(circle);
+            }
 
-                var j = i;
-                var action1 = DelayedAction.Create(World, () =>
+            var j = i;
+            var action = DelayedAction.Create(World, () =>
+            {
+                var rotation = j switch
                 {
-                    var rotation = j == 0 ? 0 : (1.0f / 16.0f * MathF.PI);
-                    rotation += gearPlacementRotation + MathF.PI;
-                    if (EntityManager.TryCreateEntity<GearBeam>(out Entity gear))
+                    0 => 0,
+                    1 => 1.0f / 16.0f * MathF.PI,
+                    2 => 0,
+                    _ => 0,
+                };
+                rotation += gearPlacementRotation + MathF.PI;
+                if (EntityManager.TryCreateEntity<GearBeam>(out Entity gear))
+                {
+                    gear
+                        .Set(new Position(position))
+                        .Set(new Rotation(rotation))
+                        .Set(new GearBeam.Component(gearRadius))
+                        .Add<Attack>();
+                    attacks.Add(gear);
+                    if (j == 2)
                     {
-                        gear
-                            .Set(new Position(position))
-                            .Set(new Rotation(rotation))
-                            .Set(new GearBeam.Component(gearRadius))
-                            .Add<Attack>();
-                        attacks.Add(gear);
+                        position += 5.0f * Vector3.UnitY;
+                        gear.Set(new Position(position));
+                        var fr = Quaternion.CreateFromAxisAngle(Vector3.UnitY, rotation);
+                        fr *= Quaternion.CreateFromAxisAngle(Vector3.UnitX, -0.5f * MathF.PI);
+                        gear.Set(new FullRotation(fr));
+                    }
 
-                        // Puddle
-                        if (EntityManager.TryCreateEntity<Puddle>(out var puddle))
+                    // Puddle
+                    Entity puddle = default;
+                    if (j < 2 && EntityManager.TryCreateEntity<Puddle>(out puddle))
+                    {
+                        puddle
+                            .Set(new Position(position))
+                            .Set(new Scale(gearRadius * Vector3.One))
+                            .Set(new Puddle.Component(
+                                "bgcommon/world/common/vfx_for_btl/b0994/eff/b0994yuka1_o.avfx", 0.2f,
+                                1.0f, (e) => { Pacify.ApplyToTarget(e, 60.0f); }));
+                        attacks.Add(puddle);
+                    }
+
+                    // Attack Omen
+                    var attackOmenDelay = 0.75f;
+                    var attackOmenDuration = 5.5f;
+                    var action = DelayedAction.Create(World, () =>
+                    {
+                        var ar = attackRotation;
+                        if (totalGears % 2 == 1) { ar = 1 - ar; }
+                        var rotationOmenVfxPath = ar == 0 ? "vfx/lockon/eff/m1001_turning_left01w.avfx" : "vfx/lockon/eff/m1001_turning_right01w.avfx";
+                        // Put this at a scale of 0 just for the sound effect volume boost
+                        var rotationOmen2VfxPath = ar == 0 ? "vfx/lockon/eff/m0973_turning_left_5sec_c0e1.avfx" : "vfx/lockon/eff/m0973_turning_right_5sec_c0e1.avfx";
+                        if (j == 0)
                         {
-                            puddle
+                            gear.Set(new GearBeam.Beam(attackOmenDuration));
+                        }
+                        else if (index == 1 && j == 1)
+                        {
+                            var rotationOmen = FakeActor.Create(World)
                                 .Set(new Position(position))
-                                .Set(new Scale(gearRadius * Vector3.One))
-                                .Set(new Puddle.Component(
-                                    "bgcommon/world/common/vfx_for_btl/b0994/eff/b0994yuka1_o.avfx", 0.2f,
-                                    1.0f, (e) => { Pacify.ApplyToTarget(e, 60.0f); }));
-                            attacks.Add(puddle);
+                                .Set(new Rotation(rotation))
+                                .Set(new ActorVfx(rotationOmenVfxPath));
+                            attacks.Add(rotationOmen);
+
+                            var rotationOmen2 = FakeActor.Create(World)
+                                .Set(new Model(0))
+                                .Set(new Position(position))
+                                .Set(new Rotation(rotation))
+                                .Set(new UniformScale(0))
+                                .Set(new ActorVfx(rotationOmen2VfxPath))
+                                .Add<EnsureModelIsDrawn>();
+                            attacks.Add(rotationOmen2);
+                        }
+                        else if (j == 2)
+                        {
+                            position += 0.5f * gearPositionVector;
+                            var fr = Quaternion.CreateFromAxisAngle(Vector3.UnitY, rotation);
+                            fr *= Quaternion.CreateFromAxisAngle(Vector3.UnitX, 0.5f * MathF.PI);
+                            var rotationOmen = FakeActor.Create(World)
+                                .Set(new Model(0))
+                                .Set(new Position(position))
+                                .Set(new Rotation(rotation))
+                                .Set(new Alpha(0))
+                                .Set(new ActorVfx(rotationOmenVfxPath))
+                                .Set(new FullRotation(fr))
+                                .Add<EnsureModelIsDrawn>();
+                            attacks.Add(rotationOmen);
+
+                            var rotationOmen2 = FakeActor.Create(World)
+                                .Set(new Model(0))
+                                .Set(new Position(position))
+                                .Set(new Rotation(rotation))
+                                .Set(new UniformScale(0))
+                                .Set(new ActorVfx(rotationOmen2VfxPath))
+                                .Add<EnsureModelIsDrawn>();
+                            attacks.Add(rotationOmen2);
                         }
 
-                        // Attack Omen
-                        var attackOmenDelay = 0.75f;
-                        var attackOmenDuration = 5.0f;
-                        var attackRotation = random.Next(2);
+                        // Execute attack
+                        var attackDuration = 6.0f;
+                        var rotationVelocity = 1.0f / attackDuration * MathF.PI * (attackRotation == 0 ? 1 : -1);
                         var action = DelayedAction.Create(World, () =>
                         {
                             if (j == 0)
                             {
-                                gear.Set(new GearBeam.Beam(attackOmenDuration));
+                                gear.Set(new AngularVelocity(-rotationVelocity));
                             }
                             else if (j == 1)
                             {
-                                var rotationOmenVfxPath = attackRotation == 0 ? "vfx/lockon/eff/m1001_turning_left01w.avfx" : "vfx/lockon/eff/m1001_turning_right01w.avfx";
-                                var rotationOmen = FakeActor.Create(World)
-                                    .Set(new Position(position))
-                                    .Set(new ActorVfx(rotationOmenVfxPath));
-                                attacks.Add(rotationOmen);
-
-                                // Put this under the ground just for the sound effect volume boost
-                                var rotationOmen2VfxPath = attackRotation == 0 ? "vfx/lockon/eff/m0973_turning_left_5sec_c0e1.avfx" : "vfx/lockon/eff/m0973_turning_right_5sec_c0e1.avfx";
-                                var rotationOmen2 = FakeActor.Create(World)
-                                    .Set(new Position(position - 6.0f * Vector3.UnitY))
-                                    .Set(new ActorVfx(rotationOmen2VfxPath));
-                                attacks.Add(rotationOmen2);
+                                gear.Set(new AngularVelocity(rotationVelocity));
+                            }
+                            else if (j == 2)
+                            {
+                                var fav = -rotationVelocity * Vector3.Normalize(MathUtilities.RotationToUnitVector(rotation).ToVector3(0));
+                                gear.Set(new FullAngularVelocity(fav));
                             }
 
-                            // Execute attack
-                            var attackDuration = 6.0f;
-                            var rotationVelocity = 1.0f / attackDuration * MathF.PI * (attackRotation == 0 ? 1 : -1);
+                            // Stop attack
                             var action = DelayedAction.Create(World, () =>
                             {
-                                if (j == 0)
-                                {
-                                    rotationVelocity *= -1;
-                                    gear.Set(new AngularVelocity(rotationVelocity));
-                                }
-                                else if (j == 1)
-                                {
-                                    gear.Set(new AngularVelocity(rotationVelocity));
-                                }
+                                gear.Remove<GearBeam.Beam>();
+                                gear.Remove<AngularVelocity>();
+                                gear.Remove<FullAngularVelocity>();
 
-                                // Stop attack
+                                // Cleanup
+                                var cleanupDelay = 0.25f;
                                 var action = DelayedAction.Create(World, () =>
                                 {
-                                    gear.Remove<GearBeam.Beam>();
-                                    gear.Remove<AngularVelocity>();
-
-                                    // Cleanup
-                                    var cleanupDelay = 0.25f;
-                                    var action = DelayedAction.Create(World, () =>
-                                    {
-                                        gear.SafeDestruct();
-                                        puddle.SafeDestruct();
-                                    }, cleanupDelay);
-                                    attacks.Add(action);
-                                }, attackDuration);
+                                    gear.SafeDestruct();
+                                    puddle.SafeDestruct();
+                                }, cleanupDelay);
                                 attacks.Add(action);
-                            }, attackOmenDuration);
+                            }, attackDuration);
                             attacks.Add(action);
-                        }, attackOmenDelay);
+                        }, attackOmenDuration);
                         attacks.Add(action);
-                    }
-                }, fullDelay);
-                attacks.Add(action1);
-            }
+                    }, attackOmenDelay);
+                    attacks.Add(action);
+                }
+            }, fullDelay);
+            attacks.Add(action);
         }
     }
 }

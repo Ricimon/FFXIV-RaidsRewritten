@@ -61,6 +61,13 @@ public abstract unsafe class BaseVfx
         );
     }
 
+    public void UpdateRotation(Quaternion rotation)
+    {
+        if (Vfx == null) { return; }
+
+        Vfx->Rotation = rotation;
+    }
+
     public void UpdateColor(Vector4 color)
     {
         if (Vfx == null) { return; }

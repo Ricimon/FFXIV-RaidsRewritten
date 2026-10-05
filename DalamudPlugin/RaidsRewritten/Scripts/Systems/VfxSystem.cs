@@ -1,11 +1,11 @@
-﻿using Flecs.NET.Core;
-using Dalamud.Game.ClientState.Objects.Types;
+﻿using Dalamud.Game.ClientState.Objects.Types;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
+using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
+using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Spawn;
 using RaidsRewritten.Utility;
-using System.Numerics;
-using RaidsRewritten.Scripts.Components;
 
 namespace RaidsRewritten.Scripts.Systems;
 
@@ -20,6 +20,8 @@ public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogge
         world.System<StaticVfx, Position, Rotation, Scale>()
             .Each((Iter it, int i, ref StaticVfx vfx, ref Position position, ref Rotation rotation, ref Scale scale) =>
             {
+                var entity = it.Entity(i);
+
                 if (vfx.VfxPtr == null)
                 {
                     vfx.VfxPtr = this.vfxSpawn.SpawnStaticVfx(vfx.Path, position.Value, rotation.Value);
@@ -36,17 +38,28 @@ public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogge
                 // Vfx self-destructed, because it finished playing
                 if (vfx.VfxPtr.Vfx == null)
                 {
-                    it.Entity(i).Destruct();
+                    entity.Destruct();
                     return;
                 }
 
                 if (it.Changed())
                 {
                     vfx.VfxPtr.UpdatePosition(position.Value);
-                    vfx.VfxPtr.UpdateRotation(rotation.Value);
+                    if (!entity.Has<FullRotation>())
+                    {
+                        vfx.VfxPtr.UpdateRotation(rotation.Value);
+                    }
                     vfx.VfxPtr.UpdateScale(scale.Value);
                     vfx.VfxPtr.Update();
                 }
+            });
+
+        world.System<StaticVfx, FullRotation>()
+            .Each((Iter it, int i, ref StaticVfx vfx, ref FullRotation rotation) =>
+            {
+                if (!it.Changed()) { return; }
+                if (vfx.VfxPtr == null) { return; }
+                vfx.VfxPtr.UpdateRotation(rotation.Value);
             });
 
         world.System<StaticVfx, Color>()
@@ -117,7 +130,15 @@ public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogge
             .TermAt(0).Self().Up()
             .Each((Iter it, int i, ref Model model, ref ActorVfx vfx) =>
             {
+                var entity = it.Entity(i);
                 if (!model.Spawned) { return; }
+                if (entity.Has<EnsureModelIsDrawn>())
+                {
+                    var obj = ClientObjectManager.Instance()->GetObjectByIndex(model.ObjectIndex);
+                    if (obj == null) { return; }
+                    var drawObj = obj->DrawObject;
+                    if (drawObj == null) { return; }
+                }
                 ProcessActorVfx(it.Entity(i), dalamud.ObjectTable.GetGameObjectByIndex(model.ObjectIndex), ref vfx);
             });
 
@@ -219,13 +240,15 @@ public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogge
                 if (target != null && target.IsCompletelyValid())
                 {
                     vfx.VfxPtr = vfxSpawn.SpawnActorVfx(vfx.Path, source, target);
-                } else
+                }
+                else
                 {
                     // don't bother spawning vfx if target isn't valid
                     entity.Destruct();
                     return;
                 }
-            } else
+            }
+            else
             {
                 vfx.VfxPtr = vfxSpawn.SpawnActorVfx(vfx.Path, source, source);
             }

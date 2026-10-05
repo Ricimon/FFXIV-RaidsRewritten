@@ -61,10 +61,29 @@ public class GearBeam(DalamudServices dalamud, Lazy<EntityManager> entityManager
 
                 if (component.Model.IsValid())
                 {
+                    var p = position.Value;
+                    if (entity.TryGet(out FullRotation fullRotation))
+                    {
+                        p += Vector3.Transform(-2.0f * Vector3.UnitY, fullRotation.Value);
+                    }
+                    else
+                    {
+                        p += -2.0f * Vector3.UnitY;
+                    }
                     component.Model
-                        .Set(new Position(position.Value - 2.0f * Vector3.UnitY))
+                        .Set(new Position(p))
                         .Set(new Rotation(rotation.Value))
                         .Set(new UniformScale(1.8f / 5.0f * component.Radius));
+                }
+            });
+
+        world.System<Component, FullRotation>()
+            .Each((Iter it, int i, ref Component component, ref FullRotation rotation) =>
+            {
+                if (!it.Changed()) { return; }
+                if (component.Model.IsValid())
+                {
+                    component.Model.Set(new FullRotation(rotation.Value));
                 }
             });
 
