@@ -134,20 +134,6 @@ public unsafe sealed class ModelSystem(
                 }
             });
 
-        world.System<Model, ModelHeight>()
-            .Each((Iter it, int i, ref Model model, ref ModelHeight height) =>
-            {
-                if (!it.Changed()) { return; }
-                if (model.Spawned)
-                {
-                    var obj = ClientObjectManager.Instance()->GetObjectByIndex(model.ObjectIndex);
-                    if (obj != null)
-                    {
-                        obj->Height = height.Value;
-                    }
-                }
-            });
-
         world.System<Model, FullRotation>()
             .Each((Iter it, int i, ref Model model, ref FullRotation rotation) =>
             {
@@ -162,6 +148,20 @@ public unsafe sealed class ModelSystem(
                         {
                             drawObj->Rotation = rotation.Value;
                         }
+                    }
+                }
+            });
+
+        world.System<Model, ModelHeight>()
+            .Each((Iter it, int i, ref Model model, ref ModelHeight height) =>
+            {
+                if (!it.Changed()) { return; }
+                if (model.Spawned)
+                {
+                    var obj = ClientObjectManager.Instance()->GetObjectByIndex(model.ObjectIndex);
+                    if (obj != null)
+                    {
+                        obj->Height = height.Value;
                     }
                 }
             });

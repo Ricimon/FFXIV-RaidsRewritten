@@ -35,6 +35,32 @@ public class FileReplacementSystem(ResourceLoader resourceLoader) : ISystem
                 }
             });
 
+        world.System<ActorVfx, FileReplacement>().TermAt(0).Up()
+            .Each((ref ActorVfx vfx, ref FileReplacement replace) =>
+            {
+                if (vfx.VfxPtr == null && replace.FramesSinceApplication < 0)
+                {
+                    resourceLoader.AddFileReplacement(replace.OriginalPath, replace.ReplacementPath);
+                    replace.FramesSinceApplication = 0;
+                    return;
+                }
+
+                if (replace.FramesSinceApplication >= 0)
+                {
+                    if (vfx.VfxPtr != null)
+                    {
+                        replace.FramesSinceApplication++;
+                    }
+
+                    // Replacements need to stay for a few frames for loading systems to pick them up
+                    if (replace.FramesSinceApplication == 30)
+                    {
+                        resourceLoader.RemoveFileReplacement(replace.OriginalPath);
+                        replace.FramesSinceApplication = -1;
+                    }
+                }
+            });
+
         world.System<FlyText, FileReplacement>().Immediate()
             .Each((ref FlyText _, ref FileReplacement replace) =>
             {

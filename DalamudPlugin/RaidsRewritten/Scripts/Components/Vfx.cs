@@ -11,3 +11,4 @@ public struct EnsureModelIsDrawn;
 public record struct VfxId(BigInteger Value);
 public record struct VfxFadeOut(Interop.Structs.Vfx.BaseVfx VfxPtr, float Duration, float TimeRemaining);
 public record struct VfxFadeOutDuration(float Value);
+public record struct ExpectFileReplacement(bool FilesReplaced = false);

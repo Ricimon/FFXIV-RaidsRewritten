@@ -371,6 +371,18 @@ public partial class MainWindow
                     }
                 }
             }
+            SameLineIfFits("Rotating Lockon");
+            if (ImGui.Button("Rotating Lockon"))
+            {
+                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+                {
+                    if (this.entityManager.TryCreateEntity<RotatingLockOnOmen>(out var o))
+                    {
+                        o.Set(new RotatingLockOnOmen.Component(random.Next(2) == 0 ? RotatingLockOnOmen.Direction.Clockwise : RotatingLockOnOmen.Direction.Counterclockwise));
+                        o.ChildOf(e);
+                    }
+                });
+            }
 
             if (ImGui.Button("Place Trap"))
             {

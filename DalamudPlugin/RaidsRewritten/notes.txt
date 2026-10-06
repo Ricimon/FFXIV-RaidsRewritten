@@ -197,6 +197,11 @@ CW rotation omen: vfx/lockon/eff/m0515_turning_right01c.avfx (actor, fixed posit
 CW rotation omen: vfx/lockon/eff/m0489_turning_right01f.avfx (actor, follow position, 8s)
 CW rotation omen: vfx/lockon/eff/m1001_turning_right01w.avfx (actor, fixed position, 5s)
 CW rotation omen: vfx/lockon/eff/x6r3_turning_right_c0e1.avfx (actor, follow position, 6s, bigger)
+CW rotation omen: vfx/lockon/eff/d1004turning_right_c0p.avfx (actor, follow position, 5s, bigger)
+Target omen: vfx/lockon/eff/com_trg07_0a1.avfx (actor)
+Target omen: vfx/lockon/eff/lockon3_t0h.avfx (actor)
+Target omen: vfx/lockon/eff/lockon5_t0h.avfx (actor)
+Target omen: vfx/lockon/eff/lockon8_t0w.avfx (actor)
 
 Explosive trap: bg/ex3/01_nvt_n4/common/vfx/eff/b2155trp01_o.avfx (static), 3y radius
 Poison trap: bg/ex3/01_nvt_n4/common/vfx/eff/b2156trp01_o.avfx (static), 3y radius
