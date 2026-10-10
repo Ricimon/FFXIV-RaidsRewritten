@@ -52,5 +52,17 @@ public class TransformSystem : ISystem
                 rotation.Value = deltaRotation * rotation.Value;
                 rotation.Value = Quaternion.Normalize(rotation.Value);
             });
+
+        world.System<FollowPosition, Position>()
+            .Each((Entity e, ref FollowPosition follow, ref Position position) =>
+            {
+                if (follow.Target == null || !follow.Target.IsValid())
+                {
+                    e.Destruct();
+                    return;
+                }
+
+                position.Value = follow.Target.Position;
+            });
     }
 }

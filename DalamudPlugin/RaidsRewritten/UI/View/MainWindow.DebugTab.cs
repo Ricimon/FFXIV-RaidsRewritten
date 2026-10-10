@@ -2,6 +2,7 @@
 using System.Numerics;
 using AsyncAwaitBestPractices;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
 using ECommons;
@@ -376,10 +377,10 @@ public partial class MainWindow
             {
                 commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
                 {
-                    if (this.entityManager.TryCreateEntity<RotatingLockOnOmen>(out var o))
+                    if (pc.PlayerCharacter != null && this.entityManager.TryCreateEntity<RotatingLockOnOmen>(out var o))
                     {
-                        o.Set(new RotatingLockOnOmen.Component(random.Next(2) == 0 ? RotatingLockOnOmen.Direction.Clockwise : RotatingLockOnOmen.Direction.Counterclockwise));
-                        o.ChildOf(e);
+                        o.Set(new RotatingLockOnOmen.Component(random.Next(2) == 0 ? RotatingLockOnOmen.Direction.Clockwise : RotatingLockOnOmen.Direction.Counterclockwise,
+                            pc.PlayerCharacter));
                     }
                 });
             }
@@ -936,6 +937,24 @@ public partial class MainWindow
                             .Set(new ModelHeight(-1.66667f))
                             .ChildOf(e);
                     });
+                }
+
+                if (ImGui.Button("Screw"))
+                {
+                    var player = this.dalamud.ObjectTable.LocalPlayer;
+                    if (player != null)
+                    {
+                        IGameObject target = player;
+                        if (player.TargetObject != null)
+                        {
+                            target = player.TargetObject;
+                        }
+                        if (this.entityManager.TryCreateEntity<Screw>(out Entity screw))
+                        {
+                            var rotationDirection = random.Next(2) == 0 ? Screw.Direction.Clockwise : Screw.Direction.Counterclockwise;
+                            screw.Set(new Screw.Component(true, rotationDirection, target));
+                        }
+                    }
                 }
             }
         }

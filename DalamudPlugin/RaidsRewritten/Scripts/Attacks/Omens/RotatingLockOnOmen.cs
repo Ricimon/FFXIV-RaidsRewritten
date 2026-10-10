@@ -1,4 +1,5 @@
-﻿using Flecs.NET.Core;
+﻿using Dalamud.Game.ClientState.Objects.Types;
+using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Utility;
@@ -7,12 +8,14 @@ namespace RaidsRewritten.Scripts.Attacks.Omens;
 
 public class RotatingLockOnOmen(DalamudServices dalamud) : IEntity, ISystem
 {
+    public const float OmenDuration = 6.0f;
+
     public enum Direction
     {
         Clockwise,
         Counterclockwise,
     }
-    public record struct Component(Direction Direction, Entity? LockOn = null, Entity? Rotation = null);
+    public record struct Component(Direction Direction, IGameObject Target, Entity? LockOn = null, Entity? Rotation = null);
 
     private const string LockOnClockwiseVfxPath = "vfx/lockon/eff/lockon6_t0t.avfx";
     private const string LockOnCounterclockwiseVfxPath = "vfx/lockon/eff/m0126trg_t2h.avfx";
@@ -44,6 +47,7 @@ public class RotatingLockOnOmen(DalamudServices dalamud) : IEntity, ISystem
 
                     var lockOnVfx = world.Entity()
                         .Set(new ActorVfx(vfxPath))
+                        .Set(new ActorVfxSource(component.Target))
                         .Add<Attack>()
                         .Add<Omen>()
                         .ChildOf(entity);
@@ -67,6 +71,7 @@ public class RotatingLockOnOmen(DalamudServices dalamud) : IEntity, ISystem
 
                     var rotationVfx = it.World().Entity()
                         .Set(new ActorVfx(vfxPath))
+                        .Set(new ActorVfxSource(component.Target))
                         .Set(new ExpectFileReplacement())
                         .Add<Attack>()
                         .Add<Omen>()

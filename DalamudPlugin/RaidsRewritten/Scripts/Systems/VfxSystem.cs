@@ -139,7 +139,7 @@ public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogge
                     var drawObj = obj->DrawObject;
                     if (drawObj == null) { return; }
                 }
-                ProcessActorVfx(it.Entity(i), dalamud.ObjectTable.GetGameObjectByIndex(model.ObjectIndex), ref vfx);
+                ProcessActorVfx(entity, dalamud.ObjectTable.GetGameObjectByIndex(model.ObjectIndex), ref vfx);
             });
 
         world.System<ActorVfxSource, ActorVfx>()
@@ -153,29 +153,7 @@ public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogge
             .TermAt(0).Up()
             .Each((Iter it, int i, ref Player.Component pc, ref ActorVfx vfx) =>
             {
-                var entity = it.Entity(i);
-                var target = pc.PlayerCharacter;
-                if (vfx.VfxPtr == null && target != null)
-                {
-                    // This tag check needs to be here as ActorVfx's attached to existing GameObjects
-                    // will instantly spawn without waiting for file replacements otherwise
-                    if (entity.TryGet(out ExpectFileReplacement efr))
-                    {
-                        if (!efr.FilesReplaced)
-                        {
-                            entity.Set(new ExpectFileReplacement(true));
-                            return;
-                        }
-                    }
-                    vfx.VfxPtr = vfxSpawn.SpawnActorVfx(vfx.Path, target, target);
-                }
-
-                // Vfx self-destructed, because it finished playing
-                if (vfx.VfxPtr != null && vfx.VfxPtr.Vfx == null)
-                {
-                    entity.Destruct();
-                    return;
-                }
+                ProcessActorVfx(it.Entity(i), pc.PlayerCharacter, ref vfx);
             });
 
         world.System<ActorVfx, Scale>()
@@ -245,6 +223,17 @@ public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogge
         // Position/Rotation should be based on source actor
         if (vfx.VfxPtr == null && source != null && source.IsCompletelyValid())
         {
+            // This tag check needs to be here as ActorVfx's attached to existing GameObjects
+            // will instantly spawn without waiting for file replacements otherwise
+            if (entity.TryGet(out ExpectFileReplacement efr))
+            {
+                if (!efr.FilesReplaced)
+                {
+                    entity.Set(new ExpectFileReplacement(true));
+                    return;
+                }
+            }
+
             if (entity.TryGet<ActorVfxTarget>(out var targetComponent))
             {
                 var target = targetComponent.Target;

@@ -218,6 +218,8 @@ Tethers
 Purple tether: vfx/channeling/eff/chn_dark001f.avfx (actor, source & target)
 White tether: vfx/channeling/eff/chn_light01f.avfx (actor, source & target)
 Arrowed tether: vfx/channeling/eff/chn_arrow01f.avfx (actor, source & target)
+Blue chain: vfx/channeling/eff/chn_kusabi_d0t.avfx (actor, source & target)
+Purple chain from hand: vfx/channeling/eff/chn_m0196_01o2.avfx (actor, sourcec & targe)
 
 Animations
 Minion normal/idle_inactive1: 4

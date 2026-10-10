@@ -138,9 +138,10 @@ public class PluginModule : NinjectModule
         Bind<IEntity, ISystem>().To<VoidGate>();
         Bind<IEntity, ISystem>().To<ArticulatedBit>();
         Bind<IEntity, ISystem>().To<FireTornadoEntity>();
-        Bind<IEntity, ISystem>().To<GearBeam>();
         Bind<ISystem>().To<FireTornadoEntity.Donut>();
         Bind<ISystem>().To<FireTornadoEntity.Cone>();
+        Bind<IEntity, ISystem>().To<GearBeam>();
+        Bind<IEntity, ISystem>().To<Screw>();
 
         // Systems
         Bind<ISystem>().To<Player>();

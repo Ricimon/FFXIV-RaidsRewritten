@@ -25,6 +25,7 @@ public class TeaRewritten : IEncounter
     private string MoreChakramsKey => $"{Name}.MoreChakrams";
     private string SuperJumpPlusKey => $"{Name}.SuperJumpPlus";
     private string GearBeamKey => $"{Name}.GearBeam";
+    private string ScrewdriverKey => $"{Name}.Screwdriver";
 
     private readonly Mechanic.Factory mechanicFactory;
     private readonly DalamudServices dalamud;
@@ -55,6 +56,7 @@ public class TeaRewritten : IEncounter
             { MoreChakramsKey, true },
             { SuperJumpPlusKey, true },
             { GearBeamKey, true },
+            { ScrewdriverKey, true },
         };
 
         this.defaultIntSettings = new()
@@ -141,6 +143,10 @@ public class TeaRewritten : IEncounter
             var gearBeam = mechanicFactory.Create<GearBeams>();
             gearBeam.RngSeed = rngSeed;
             mechanics.Add(gearBeam);
+        }
+        if (configuration.GetEncounterSetting(ScrewdriverKey, defaultBoolSettings[ScrewdriverKey]))
+        {
+            mechanics.Add(mechanicFactory.Create<Screwdriver>());
         }
     }
 
@@ -283,6 +289,15 @@ public class TeaRewritten : IEncounter
         {
             configuration.EncounterSettings[GearBeamKey] =
                 gearBeam ? bool.TrueString : bool.FalseString;
+            configuration.Save();
+            RefreshMechanics();
+        }
+
+        bool screwdriver = configuration.GetEncounterSetting(ScrewdriverKey, defaultBoolSettings[ScrewdriverKey]);
+        if (ImGui.Checkbox("Screwdriver", ref screwdriver))
+        {
+            configuration.EncounterSettings[ScrewdriverKey] =
+                screwdriver ? bool.TrueString : bool.FalseString;
             configuration.Save();
             RefreshMechanics();
         }
