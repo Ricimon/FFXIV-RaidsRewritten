@@ -1263,6 +1263,19 @@ public partial class MainWindow
                         }
                     }
                 }
+                SameLineIfFits("Bolt");
+                if (ImGui.Button("Bolt"))
+                {
+                    var player = this.dalamud.ObjectTable.LocalPlayer;
+                    if (player != null)
+                    {
+                        if (this.entityManager.TryCreateEntity<Bolt>(out var bolt))
+                        {
+                            bolt.Set(new Position(player.Position))
+                                .Set(new Rotation(player.Rotation));
+                        }
+                    }
+                }
 
                 ImGui.SetNextItemWidth(120);
                 ImGui.InputInt("ModelCharaId", ref debugModelCharaId);

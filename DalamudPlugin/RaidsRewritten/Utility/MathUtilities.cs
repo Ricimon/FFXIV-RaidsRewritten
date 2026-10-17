@@ -104,9 +104,24 @@ public static class MathUtilities
     // https://easings.net/
     public static class Ease
     {
+        public static float Linear(float x)
+        {
+            return x;
+        }
+
         public static float EaseInSine(float x)
         {
             return 1 - MathF.Cos((x * MathF.PI) / 2);
+        }
+
+        public static float EaseInQuad(float x)
+        {
+            return x * x;
+        }
+
+        public static float EaseOutCirc(float x)
+        {
+            return MathF.Sqrt(1 - MathF.Pow(x - 1, 2));
         }
 
         public static float EaseOutBack(float x)

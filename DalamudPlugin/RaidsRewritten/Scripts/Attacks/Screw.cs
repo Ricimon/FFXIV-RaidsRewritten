@@ -2,15 +2,18 @@
 using System.Numerics;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons.GameFunctions;
+using ECommons.MathHelpers;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
+using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks.Omens;
 using RaidsRewritten.Scripts.Components;
+using RaidsRewritten.Scripts.Models;
 using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public class Screw(DalamudServices dalamud, Lazy<EntityManager> entityManager) : IEntity, ISystem
+public class Screw(DalamudServices dalamud, Lazy<EntityManager> entityManager, Random random, ILogger logger) : IEntity, ISystem
 {
     public const float LinkRadius = 1.9f;
 
@@ -26,7 +29,8 @@ public class Screw(DalamudServices dalamud, Lazy<EntityManager> entityManager) :
     {
         Omen,
         Active,
-        Resolved,
+        ResolvedSuccess,
+        ResolvedFail,
     }
     private record struct Runtime(
         float ElapsedTime = 0,
@@ -38,6 +42,12 @@ public class Screw(DalamudServices dalamud, Lazy<EntityManager> entityManager) :
         Entity GroundIndicator = default,
         Entity LinkVfx = default,
         float LinkRotation = default);
+    private record struct BoltRuntime(
+        float AnimationTime = 0,
+        Entity Model = default,
+        Vector3 StartPosition = default,
+        Quaternion StartRotation = default,
+        Vector3 FallDirection = default);
 
     public Entity Create(World world)
     {
@@ -53,6 +63,13 @@ public class Screw(DalamudServices dalamud, Lazy<EntityManager> entityManager) :
             .Each((Iter it, int i, ref Component component, ref Runtime runtime) =>
             {
                 var entity = it.Entity(i);
+
+                // There's a completely inexplicable bug here:
+                // If runtime.GroundIndicator is assigned an entity with at least 2 components/tags,
+                // Then runtime.RotationIndicator is assigned an entity with at least 1 component,
+                // THEN an entity with at least 1 component is assigned as a child of runtime.RotationIndicator,
+                // AND neither runtime.GroundIndicator nor runtime.RotationIndicator are assigned as children of entity,
+                // when the Runtime OnRemove observer fires, runtime.RotationIndicator.SafeDestruct() will CRASH.
 
                 runtime.ElapsedTime += it.DeltaTime();
 
@@ -90,6 +107,7 @@ public class Screw(DalamudServices dalamud, Lazy<EntityManager> entityManager) :
                                         component.Target));
                                     break;
                             }
+                            omen.ChildOf(entity);
                             runtime.Omen = omen;
                         }
                         return;
@@ -99,12 +117,15 @@ public class Screw(DalamudServices dalamud, Lazy<EntityManager> entityManager) :
                 // Active
                 if (runtime.Phase == Phase.Active)
                 {
+                    if (!entity.Has<BoltRuntime>()) { entity.Set(new BoltRuntime()); }
+
                     if (!runtime.GroundIndicator.IsValid())
                     {
                         var vfxPath = "vfx/common/eff/ev_lockon_01x.avfx";
                         runtime.GroundIndicator = FakeActor.CreateZeroAlphaModel(it.World())
                             .Set(new ActorVfx(vfxPath))
-                            .Set(new FollowPosition(component.Target));
+                            .Set(new FollowPosition(component.Target))
+                            .ChildOf(entity);
 
                         var replacementPath = dalamud.PluginInterface.GetResourcePath("vfx/ground_lockon.avfx");
                         it.World().Entity()
@@ -143,7 +164,8 @@ public class Screw(DalamudServices dalamud, Lazy<EntityManager> entityManager) :
                             runtime.RotationIndicator = it.World().Entity()
                                 .Set(new ActorVfx(vfxPath))
                                 .Set(new ActorVfxSource(component.Target))
-                                .Set(new ExpectFileReplacement());
+                                .Set(new ExpectFileReplacement())
+                                .ChildOf(entity);
 
                             var replacementPath = dalamud.PluginInterface.GetResourcePath(vfxPathReplacement);
                             it.World().Entity()
@@ -153,9 +175,10 @@ public class Screw(DalamudServices dalamud, Lazy<EntityManager> entityManager) :
                         else
                         {
                             // Resolve
-                            runtime.Phase = Phase.Resolved;
                             runtime.RotationIndicator.SafeDestruct();
                             runtime.GroundIndicator.SafeDestruct();
+                            ref var boltRuntime = ref entity.GetMut<BoltRuntime>();
+                            boltRuntime.AnimationTime = 0;
 
                             bool success = false;
                             switch (component.Direction)
@@ -171,6 +194,7 @@ public class Screw(DalamudServices dalamud, Lazy<EntityManager> entityManager) :
                                 it.World().Entity()
                                     .Set(new ActorVfx("vfx/lockon/eff/m0489trg_a0c.avfx"))
                                     .Set(new ActorVfxSource(component.Target));
+                                runtime.Phase = Phase.ResolvedSuccess;
                             }
                             else
                             {
@@ -180,6 +204,7 @@ public class Screw(DalamudServices dalamud, Lazy<EntityManager> entityManager) :
                                 it.World().Entity()
                                     .Set(new ActorVfx("vfx/monster/m0005/eff/m0005sp_15t0t.avfx"))
                                     .Set(new ActorVfxSource(component.Target));
+                                runtime.Phase = Phase.ResolvedFail;
                             }
                             return;
                         }
@@ -199,10 +224,15 @@ public class Screw(DalamudServices dalamud, Lazy<EntityManager> entityManager) :
                 }
 
                 // Resolve
-                if (runtime.Phase == Phase.Resolved)
+                if (runtime.Phase == Phase.ResolvedSuccess ||
+                    runtime.Phase == Phase.ResolvedFail)
                 {
-                    entity.Destruct();
+                    if (!entity.Has<BoltRuntime>())
+                    {
+                        entity.Destruct();
+                    }
                 }
+
             });
 
         world.System<Component, LinkedTo, Runtime>()
@@ -226,7 +256,8 @@ public class Screw(DalamudServices dalamud, Lazy<EntityManager> entityManager) :
                     runtime.LinkVfx = it.World().Entity()
                         .Set(new ActorVfx("vfx/channeling/eff/chn_elem0f.avfx"))
                         .Set(new ActorVfxSource(component.Target))
-                        .Set(new ActorVfxTarget(linkedTo.Target));
+                        .Set(new ActorVfxTarget(linkedTo.Target))
+                        .ChildOf(entity);
                 }
                 else
                 {
@@ -236,15 +267,121 @@ public class Screw(DalamudServices dalamud, Lazy<EntityManager> entityManager) :
                 runtime.LinkRotation = linkRotation;
             });
 
-        world.Observer<Runtime>()
-            .Event(Ecs.OnRemove)
-            .Each((Entity e, ref Runtime _) =>
+        world.System<Component, Runtime, BoltRuntime>()
+            .Each((Iter it, int i, ref Component component, ref Runtime runtime, ref BoltRuntime boltRuntime) =>
             {
-                var runtime = e.Get<Runtime>();
-                runtime.Omen.SafeDestruct();
-                runtime.RotationIndicator.SafeDestruct();
-                runtime.GroundIndicator.SafeDestruct();
-                runtime.LinkVfx.SafeDestruct();
+                var entity = it.Entity(i);
+
+                if (!boltRuntime.Model.IsValid() && entityManager.Value.TryCreateEntity<Bolt>(out Entity bolt))
+                {
+                    bolt.Set(new UniformScale(1.8f)).ChildOf(entity);
+                    boltRuntime.Model = bolt;
+                }
+
+                var activeBoltY = -0.8f;
+
+                float CalcRotationOffset(float y)
+                {
+                    return (y - activeBoltY) * 4f * MathF.PI;
+                }
+
+                if (runtime.Phase == Phase.Active)
+                {
+                    var startY = 3.0f;
+                    var duration = 1.25f;
+                    var t = Math.Clamp(boltRuntime.AnimationTime / duration, 0, 1);
+                    var y = MathUtilities.Tween(startY, activeBoltY, t, MathUtilities.Ease.EaseOutCirc);
+                    var position = component.Target.Position + y * Vector3.UnitY;
+                    boltRuntime.Model.Set(new Position(position));
+
+                    var r = CalcRotationOffset(y);
+                    if (component.Direction == Direction.Counterclockwise)
+                    {
+                        r *= -1;
+                    }
+                    var rotation = runtime.Rotation + r;
+                    boltRuntime.Model.Set(new Rotation(rotation));
+                }
+                else if (runtime.Phase == Phase.ResolvedFail)
+                {
+                    var endY = -1.2f;
+                    var duration = 1.2f;
+                    var t = Math.Clamp(boltRuntime.AnimationTime / duration, 0, 1);
+                    var y = MathUtilities.Tween(activeBoltY, endY, t, MathUtilities.Ease.Linear);
+                    var position = component.Target.Position + y * Vector3.UnitY;
+                    boltRuntime.Model.Set(new Position(position));
+
+                    var r = CalcRotationOffset(y);
+                    if (component.Direction == Direction.Counterclockwise)
+                    {
+                        r *= -1;
+                    }
+                    var rotation = runtime.Rotation + r;
+                    boltRuntime.Model.Set(new Rotation(rotation));
+
+                    if (boltRuntime.AnimationTime > 3.0f)
+                    {
+                        entity.Destruct();
+                    }
+                }
+                else if (runtime.Phase == Phase.ResolvedSuccess)
+                {
+                    if (boltRuntime.AnimationTime == 0)
+                    {
+                        boltRuntime.StartPosition = boltRuntime.Model.Get<Position>().Value;
+                        boltRuntime.StartRotation = Quaternion.CreateFromAxisAngle(Vector3.UnitY, runtime.Rotation);
+                        boltRuntime.FallDirection = MathUtilities.RotationToUnitVector(random.NextSingle() * 2 * MathF.PI).ToVector3(0);
+                    }
+
+                    var position = boltRuntime.StartPosition;
+                    var a = -35.0f;
+                    var v_i = 8.5f;
+                    var y_i = position.Y;
+                    var y_ground = position.Y - activeBoltY;
+                    var t_end = (-v_i - MathF.Sqrt((v_i * v_i) - (2 * a * activeBoltY))) / a;
+
+                    var v_x = 2.5f;
+                    var rotationAxis = Vector3.Transform(boltRuntime.FallDirection, Quaternion.CreateFromAxisAngle(Vector3.UnitY, 0.5f * MathF.PI));
+                    var targetRotation = 0.4f * MathF.PI;
+                    var rotationSpeed = targetRotation / t_end;
+                    //logger.Info("t_end1 {0}, t_end2 {1}", t_end, t_end2);
+
+                    float x;
+                    float y;
+                    Quaternion r_d;
+
+                    if (boltRuntime.AnimationTime < t_end)
+                    {
+                        x = v_x * boltRuntime.AnimationTime;
+                        float CalcY(float t)
+                        {
+                            return 0.5f * a * t * t + v_i * t + y_i;
+                        }
+                        y = CalcY(boltRuntime.AnimationTime);
+                        var t = MathUtilities.Tween(0, t_end, boltRuntime.AnimationTime / t_end, MathUtilities.Ease.EaseInQuad);
+                        r_d = Quaternion.CreateFromAxisAngle(rotationAxis, rotationSpeed * t);
+                    }
+                    else
+                    {
+                        x = v_x * t_end;
+                        y = y_ground;
+                        r_d = Quaternion.CreateFromAxisAngle(rotationAxis, rotationSpeed * t_end);
+                    }
+
+                    position += x * boltRuntime.FallDirection;
+                    position.Y = y;
+                    boltRuntime.Model.Set(new Position(position));
+
+                    var rotation = r_d * boltRuntime.StartRotation;
+                    boltRuntime.Model.Set(new FullRotation(rotation));
+
+                    if (boltRuntime.AnimationTime > 3.0f)
+                    {
+                        entity.Destruct();
+                    }
+                }
+
+                boltRuntime.AnimationTime += it.DeltaTime();
             });
     }
 }
