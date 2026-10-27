@@ -22,6 +22,7 @@ public enum NetworkMechanic : uint
     TeaNisiTower = 1029,
     TeaSuperJumpEnumeration = 1050,
     TeaApocalypticRaySpreads = 1051,
+    TeaScrewdriverTarget = 1060,
 }
 
 // To client
@@ -37,4 +38,5 @@ public enum NetworkMechanicCommand : int
     TeaHideShanoa = -1027,
     TeaUpdateShanoaNisiStatus = -1028,
     TeaUpdateNisiTower = -1029,
+    TeaUpdateScrewdriverState = -1060,
 }
