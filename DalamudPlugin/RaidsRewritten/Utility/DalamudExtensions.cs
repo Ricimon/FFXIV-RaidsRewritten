@@ -61,6 +61,16 @@ public static class DalamudExtensions
         return (GameObject*)go.Address;
     }
 
+    public unsafe static ulong GetContentId(this ICharacter character)
+    {
+        var bc = (Character*)character.Address;
+        if (bc == null)
+        {
+            return 0;
+        }
+        return bc->ContentId;
+    }
+
     public unsafe static IGameObject? GetGameObjectByIndex(this IObjectTable objectTable, ushort index)
     {
         // ObjectTable.GetObjectAddress does not return the correct value for fake objects

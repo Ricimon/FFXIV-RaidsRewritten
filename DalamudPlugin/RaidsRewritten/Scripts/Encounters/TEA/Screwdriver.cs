@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using AsyncAwaitBestPractices;
+using Dalamud.Game.ClientState.Objects.Types;
 using ECommons.GameFunctions;
 using ECommons.Hooks;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Network;
+using RaidsRewritten.Scripts.Attacks;
 using RaidsRewritten.Utility;
 using ZLinq;
 
@@ -42,6 +44,60 @@ public class Screwdriver : Mechanic
     public override void OnCombatEnd()
     {
         Reset();
+    }
+
+    public override void OnNetworkMechanicCommand(Message.RunMechanicCommandPayload payload)
+    {
+        switch (payload.mechanicCommandId)
+        {
+            case (int)NetworkMechanicCommand.TeaUpdateScrewdriverState:
+                {
+                    if (string.IsNullOrEmpty(payload.extraData)) { return; }
+                    var arguments = payload.extraData.Split(',');
+                    if (arguments.Length < 4) { return; }
+                    if (!ulong.TryParse(arguments[0], out var targetContentId)) { return; }
+                    if (!int.TryParse(arguments[1], out var direction)) { return; }
+                    if (!int.TryParse(arguments[2], out var rotationState)) { return; }
+                    if (!ulong.TryParse(arguments[3], out var linkedToContentId)) { return; }
+                    // rotationState
+                    // 3 = 3-bar
+                    // 2 = 2-bar
+                    // 1 = 1-bar
+                    // 0 = success
+                    // -1 = fail
+
+                    // First try to find the Screw attack
+                    using var q1 = World.Query<Screw.Component>();
+                    var screwAttack = q1.Find((ref Screw.Component component) =>
+                    {
+                        if (component.Target is ICharacter character)
+                        {
+                            return character.GetContentId() == targetContentId;
+                        }
+                        return false;
+                    });
+
+                    // Create the attack if it doesn't yet exist
+                    if (!screwAttack.IsValid())
+                    {
+                        using var q2 = World.Query<Player.Component, Player.ContentId>();
+                        var target = q2.Find((ref pc, ref contentId) => pc.PlayerCharacter != null && contentId.Value == targetContentId);
+                        if (target.IsValid() && target.TryGet(out Player.Component pc) &&
+                            EntityManager.TryCreateEntity<Screw>(out Entity screw))
+                        {
+                            screw.Set(new Screw.Component(true, (Screw.Direction)direction, pc.PlayerCharacter!,
+                                AttemptLink, RemoveLink, UpdateRotationCount, Resolve));
+                            screwAttack = screw;
+                        }
+                    }
+
+                    if (screwAttack.IsValid())
+                    {
+                        screwAttack.Set(new Screw.ServerState(rotationState, rotationState == 0, rotationState == -1, linkedToContentId));
+                    }
+                    break;
+                }
+        }
     }
 
     public override void DebugSimulate()
@@ -144,6 +200,7 @@ public class Screwdriver : Mechanic
         foreach (var t in assignedTargets)
         {
             j++;
+            var direction = random.Next(2);
             NetworkClient.SendAsync(new Message
             {
                 action = Message.Action.StartMechanic,
@@ -151,6 +208,7 @@ public class Screwdriver : Mechanic
                 {
                     mechanicId = (uint)NetworkMechanic.TeaScrewdriverTarget,
                     requestId = nameof(NetworkMechanic.TeaScrewdriverTarget) + $"_{j}",
+                    extraData = string.Join(",", [t.ContentId, direction]),
                 }
             }).SafeFireAndForget();
         }
@@ -160,5 +218,61 @@ public class Screwdriver : Mechanic
         {
             alreadyAssignedTargets.Add(t.ContentId);
         }
+    }
+
+    private void AttemptLink(Screw.Component component, ulong linkId)
+    {
+        NetworkClient.SendAsync(new Message
+        {
+            action = Message.Action.StartMechanic,
+            startMechanic = new Message.StartMechanicPayload
+            {
+                mechanicId = (uint)NetworkMechanic.TeaScrewdriverLink,
+                requestId = nameof(NetworkMechanic.TeaScrewdriverLink) + $"_{Guid.NewGuid()}",
+                extraData = string.Join(",", [component.Target.GetContentId(), linkId]),
+            }
+        }).SafeFireAndForget();
+    }
+
+    private void RemoveLink(Screw.Component component)
+    {
+        NetworkClient.SendAsync(new Message
+        {
+            action = Message.Action.StartMechanic,
+            startMechanic = new Message.StartMechanicPayload
+            {
+                mechanicId = (uint)NetworkMechanic.TeaScrewdriverLink,
+                requestId = nameof(NetworkMechanic.TeaScrewdriverLink) + $"_{Guid.NewGuid()}",
+                extraData = string.Join(",", [component.Target.GetContentId(), 0]),
+            }
+        }).SafeFireAndForget();
+    }
+
+    private void UpdateRotationCount(Screw.Component component, int rotationCount)
+    {
+        NetworkClient.SendAsync(new Message
+        {
+            action = Message.Action.StartMechanic,
+            startMechanic = new Message.StartMechanicPayload
+            {
+                mechanicId = (uint)NetworkMechanic.TeaScrewdriverTarget,
+                requestId = nameof(NetworkMechanic.TeaScrewdriverTarget) + $"_{Guid.NewGuid()}",
+                extraData = string.Join(",", [component.Target.GetContentId(), (int)component.Direction, rotationCount]),
+            }
+        }).SafeFireAndForget();
+    }
+
+    private void Resolve(Screw.Component component, bool success)
+    {
+        NetworkClient.SendAsync(new Message
+        {
+            action = Message.Action.StartMechanic,
+            startMechanic = new Message.StartMechanicPayload
+            {
+                mechanicId = (uint)NetworkMechanic.TeaScrewdriverTarget,
+                requestId = nameof(NetworkMechanic.TeaScrewdriverTarget) + $"_{Guid.NewGuid()}",
+                extraData = string.Join(",", [component.Target.GetContentId(), (int)component.Direction, success ? 0 : -1]),
+            }
+        }).SafeFireAndForget();
     }
 }

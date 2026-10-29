@@ -944,15 +944,16 @@ public partial class MainWindow
                     var player = this.dalamud.ObjectTable.LocalPlayer;
                     if (player != null)
                     {
-                        IGameObject target = player;
-                        if (player.TargetObject != null)
+                        ICharacter target = player;
+                        if (player.TargetObject != null && player.TargetObject is ICharacter)
                         {
-                            target = player.TargetObject;
+                            target = (ICharacter)player.TargetObject;
                         }
                         if (this.entityManager.TryCreateEntity<Screw>(out Entity screw))
                         {
                             var rotationDirection = random.Next(2) == 0 ? Screw.Direction.Clockwise : Screw.Direction.Counterclockwise;
                             screw.Set(new Screw.Component(true, rotationDirection, target));
+                            screw.Add<Screw.ClientControlled>();
                         }
                     }
                 }

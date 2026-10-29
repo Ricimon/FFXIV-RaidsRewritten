@@ -17,13 +17,18 @@ public class Screw(DalamudServices dalamud, Lazy<EntityManager> entityManager, R
 {
     public const float LinkRadius = 1.9f;
 
-    public enum Direction
+    public enum Direction : int
     {
-        Clockwise,
-        Counterclockwise,
+        Clockwise = 0,
+        Counterclockwise = 1,
     }
-    public record struct Component(bool ShowOmen, Direction Direction, IGameObject Target);
-    public record struct LinkedTo(IGameObject Target);
+    public record struct Component(bool ShowOmen, Direction Direction, ICharacter Target,
+        Action<Component, ulong>? AttemptLink = null, Action<Component>? RemoveLink = null,
+        Action<Component, int>? UpdateRotationCount = null, Action<Component, bool>? Resolve = null);
+    public record struct LinkedTo(ICharacter Target);
+    public record struct ServerState(int RotationCount = 0, bool ResolvedSuccess = false, bool ResolvedFail = false, ulong LinkedTo = 0);
+    // For debug purposes
+    public struct ClientControlled;
 
     private enum Phase
     {
@@ -41,7 +46,9 @@ public class Screw(DalamudServices dalamud, Lazy<EntityManager> entityManager, R
         int RotationIndicatorNumber = default,
         Entity GroundIndicator = default,
         Entity LinkVfx = default,
-        float LinkRotation = default);
+        float LinkRotation = default,
+        float AttemptLinkActionCooldown = default,
+        float RemoveLinkActionCooldown = default);
     private record struct BoltRuntime(
         float AnimationTime = 0,
         Entity Model = default,
@@ -72,11 +79,20 @@ public class Screw(DalamudServices dalamud, Lazy<EntityManager> entityManager, R
                 // when the Runtime OnRemove observer fires, runtime.RotationIndicator.SafeDestruct() will CRASH.
 
                 runtime.ElapsedTime += it.DeltaTime();
+                runtime.AttemptLinkActionCooldown = MathF.Max(runtime.AttemptLinkActionCooldown - it.DeltaTime(), 0);
+                runtime.RemoveLinkActionCooldown = MathF.Max(runtime.RemoveLinkActionCooldown - it.DeltaTime(), 0);
 
                 if (component.Target == null || !component.Target.IsValid() || component.Target.IsDead)
                 {
                     entity.Destruct();
                     return;
+                }
+
+                // LinkedTo
+                if (!entity.Has<LinkedTo>())
+                {
+                    runtime.LinkVfx.SafeDestruct();
+                    runtime.RemoveLinkActionCooldown = 0;
                 }
 
                 var timeThreshold = 0.0f;
@@ -141,8 +157,32 @@ public class Screw(DalamudServices dalamud, Lazy<EntityManager> entityManager, R
 
                     runtime.GroundIndicator.Set(new Rotation(runtime.Rotation));
 
-                    var rotationNumber = (int)(runtime.Rotation / (2 * MathF.PI));
-                    rotationNumber = Math.Max(3 - Math.Abs(rotationNumber), 0);
+                    var rotationNumber = 3;
+                    var resolvedSuccess = false;
+                    var resolvedFail = false;
+                    ulong linkedToId = 0;
+
+                    var linkIsSelf = false;
+                    if (entity.TryGet(out ServerState serverState))
+                    {
+                        linkedToId = serverState.LinkedTo;
+                        var player = dalamud.ObjectTable.LocalPlayer;
+                        linkIsSelf = player?.GetContentId() == serverState.LinkedTo;
+                    }
+                    var clientAuthoritative = linkIsSelf || entity.Has<ClientControlled>();
+
+                    if (clientAuthoritative)
+                    {
+                        rotationNumber = (int)(runtime.Rotation / (2 * MathF.PI));
+                        rotationNumber = Math.Max(3 - Math.Abs(rotationNumber), 0);
+                    }
+                    else if (entity.TryGet(out serverState))
+                    {
+                        rotationNumber = serverState.RotationCount;
+                        resolvedSuccess = serverState.ResolvedSuccess;
+                        resolvedFail = serverState.ResolvedFail;
+                    }
+
                     if (rotationNumber != runtime.RotationIndicatorNumber)
                     {
                         runtime.RotationIndicator.SafeDestruct();
@@ -171,15 +211,15 @@ public class Screw(DalamudServices dalamud, Lazy<EntityManager> entityManager, R
                             it.World().Entity()
                                 .Set(new FileReplacement(vfxPath, replacementPath))
                                 .ChildOf(runtime.RotationIndicator);
+
+                            if (clientAuthoritative)
+                            {
+                                component.UpdateRotationCount?.Invoke(component, rotationNumber);
+                            }
                         }
-                        else
+                        else if (clientAuthoritative)
                         {
                             // Resolve
-                            runtime.RotationIndicator.SafeDestruct();
-                            runtime.GroundIndicator.SafeDestruct();
-                            ref var boltRuntime = ref entity.GetMut<BoltRuntime>();
-                            boltRuntime.AnimationTime = 0;
-
                             bool success = false;
                             switch (component.Direction)
                             {
@@ -191,33 +231,75 @@ public class Screw(DalamudServices dalamud, Lazy<EntityManager> entityManager, R
 
                             if (success)
                             {
-                                it.World().Entity()
-                                    .Set(new ActorVfx("vfx/lockon/eff/m0489trg_a0c.avfx"))
-                                    .Set(new ActorVfxSource(component.Target));
-                                runtime.Phase = Phase.ResolvedSuccess;
+                                resolvedSuccess = true;
                             }
                             else
                             {
-                                it.World().Entity()
-                                    .Set(new ActorVfx("vfx/lockon/eff/m0489trg_b0c.avfx"))
-                                    .Set(new ActorVfxSource(component.Target));
-                                it.World().Entity()
-                                    .Set(new ActorVfx("vfx/monster/m0005/eff/m0005sp_15t0t.avfx"))
-                                    .Set(new ActorVfxSource(component.Target));
-                                runtime.Phase = Phase.ResolvedFail;
+                                resolvedFail = true;
                             }
-                            return;
+                            component.Resolve?.Invoke(component, success);
                         }
+                    }
+
+                    if (resolvedSuccess || resolvedFail)
+                    {
+                        runtime.RotationIndicator.SafeDestruct();
+                        runtime.GroundIndicator.SafeDestruct();
+                        ref var boltRuntime = ref entity.GetMut<BoltRuntime>();
+                        boltRuntime.AnimationTime = 0;
+
+                        if (resolvedSuccess)
+                        {
+                            it.World().Entity()
+                                .Set(new ActorVfx("vfx/lockon/eff/m0489trg_a0c.avfx"))
+                                .Set(new ActorVfxSource(component.Target));
+                            runtime.Phase = Phase.ResolvedSuccess;
+                        }
+                        else if (resolvedFail)
+                        {
+                            it.World().Entity()
+                                .Set(new ActorVfx("vfx/lockon/eff/m0489trg_b0c.avfx"))
+                                .Set(new ActorVfxSource(component.Target));
+                            it.World().Entity()
+                                .Set(new ActorVfx("vfx/monster/m0005/eff/m0005sp_15t0t.avfx"))
+                                .Set(new ActorVfxSource(component.Target));
+                            runtime.Phase = Phase.ResolvedFail;
+                        }
+                        return;
                     }
 
                     if (!entity.Has<LinkedTo>())
                     {
-                        var player = dalamud.ObjectTable.LocalPlayer;
-                        if (player != null && !player.IsDead)
+                        if (linkedToId != 0)
                         {
-                            if (Vector2.Distance(component.Target.Position2, player.Position2) <= LinkRadius)
+                            using var q = it.World().Query<Player.Component, Player.ContentId>();
+                            var player = q.Find((ref pc, ref contentId) => pc.PlayerCharacter != null && contentId.Value == linkedToId);
+                            if (player.IsValid() && player.TryGet(out Player.Component pc))
                             {
-                                entity.Set(new LinkedTo(player));
+                                entity.Set(new LinkedTo(pc.PlayerCharacter!));
+                            }
+                        }
+                        else
+                        {
+                            var player = dalamud.ObjectTable.LocalPlayer;
+                            if (player != null && !player.IsDead &&
+                                component.Target.GameObjectId != player.GameObjectId)
+                            {
+                                if (Vector2.Distance(component.Target.Position2, player.Position2) <= LinkRadius)
+                                {
+                                    if (!entity.Has<ClientControlled>())
+                                    {
+                                        if (runtime.AttemptLinkActionCooldown == 0)
+                                        {
+                                            component.AttemptLink?.Invoke(component, player.GetContentId());
+                                            runtime.AttemptLinkActionCooldown = 3.0f;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        entity.Set(new LinkedTo(player));
+                                    }
+                                }
                             }
                         }
                     }
@@ -240,12 +322,39 @@ public class Screw(DalamudServices dalamud, Lazy<EntityManager> entityManager, R
             {
                 var entity = it.Entity(i);
 
-                if (runtime.Phase != Phase.Active ||
-                    linkedTo.Target == null || !linkedTo.Target.IsValid() || linkedTo.Target.IsDead ||
+                if (runtime.Phase != Phase.Active || linkedTo.Target == null || !linkedTo.Target.IsValid())
+                {
+                    entity.Remove<LinkedTo>();
+                    return;
+                }
+
+                if (entity.TryGet(out ServerState serverState))
+                {
+                    if (serverState.LinkedTo == 0 ||
+                        linkedTo.Target.GetContentId() != serverState.LinkedTo)
+                    {
+                        entity.Remove<LinkedTo>();
+                        return;
+                    }
+                }
+
+                if (linkedTo.Target.IsDead ||
                     Vector2.Distance(component.Target.Position2, linkedTo.Target.Position2) > LinkRadius)
                 {
-                    runtime.LinkVfx.SafeDestruct();
-                    entity.Remove<LinkedTo>();
+                    var player = dalamud.ObjectTable.LocalPlayer;
+                    if (!entity.Has<ClientControlled>())
+                    {
+                        if (linkedTo.Target.GameObjectId == player?.GameObjectId &&
+                            runtime.RemoveLinkActionCooldown == 0)
+                        {
+                            component.RemoveLink?.Invoke(component);
+                            runtime.RemoveLinkActionCooldown = 3.0f;
+                        }
+                    }
+                    else
+                    {
+                        entity.Remove<LinkedTo>();
+                    }
                     return;
                 }
 

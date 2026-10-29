@@ -23,6 +23,7 @@ public enum NetworkMechanic : uint
     TeaSuperJumpEnumeration = 1050,
     TeaApocalypticRaySpreads = 1051,
     TeaScrewdriverTarget = 1060,
+    TeaScrewdriverLink = 1061,
 }
 
 // To client
