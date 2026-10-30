@@ -68,7 +68,8 @@ public class DalamudLogger(DalamudServices dalamud, Configuration configuration)
 
         dalamud.ChatGui.Print(new XivChatEntry
         {
-            Message = $"{logLevel} | {string.Format(message, values)}",
+            // Messages without values can contain literal braces (e.g. serialized JSON)
+            Message = $"{logLevel} | {(values.Length > 0 ? string.Format(message, values) : message)}",
             Type = chatType
         });
     }
