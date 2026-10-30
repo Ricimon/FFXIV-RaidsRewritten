@@ -27,7 +27,7 @@ pub fn create_mechanic(entity: EntityView<'_>) -> EntityView<'_> {
         time_to_snapshot: 5.0,
         effect_delay: 0.2,
         radius: 6.0,
-        magic_vuln_duration: 10.0,
+        magic_vuln_duration: 20.0,
         stun_duration: 20.0,
         omen_vfx_path: "vfx/lockon/eff/target_ae_s5f.avfx".to_string(),
         attack_vfx_path: "vfx/monster/m0117/eff/baha_bahamut_lenge_gt_c0s.avfx".to_string(),
@@ -43,7 +43,7 @@ pub fn create_systems(world: &World) {
             let entity = it.entity(index);
             let world = &it.world();
 
-            // Target the closest living player to Brute Justice
+            // Target closest player to Brute Justice
             let mut target: Option<(Entity, u64, f32)> = None;
             if let Some(pc) = find_party_container(world, &party.id) {
                 let p1 = Vector2::new(position.x, position.z);
