@@ -137,11 +137,11 @@ public sealed class NetworkClient : IDisposable
             try
             {
                 var message = response.GetValue<Message>();
-                logger.Info($"Received socket message eventName {eventName}, message {Serialize(message)}");
+                logger.Info("Received socket message eventName {0}, message {1}", eventName, Serialize(message));
             }
             catch (Exception)
             {
-                logger.Info($"Received socket message eventName {eventName}, response {response}");
+                logger.Info("Received socket message eventName {0}, response {1}", eventName, response);
             }
         });
 
@@ -168,7 +168,7 @@ public sealed class NetworkClient : IDisposable
         }
 
         if (!IsConnected) { return; }
-        logger.Info($"Sending {Serialize(message)}");
+        logger.Info("Sending {0}", Serialize(message));
         await client.EmitAsync("message", message);
     }
 
