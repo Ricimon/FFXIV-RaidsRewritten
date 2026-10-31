@@ -26,6 +26,7 @@ public class TeaRewritten : IEncounter
     private string SuperJumpPlusKey => $"{Name}.SuperJumpPlus";
     private string GearBeamKey => $"{Name}.GearBeam";
     private string ScrewdriverKey => $"{Name}.Screwdriver";
+    private string JWaveSpreadsKey => $"{Name}.JWaveSpreads";
 
     private readonly Mechanic.Factory mechanicFactory;
     private readonly DalamudServices dalamud;
@@ -57,6 +58,7 @@ public class TeaRewritten : IEncounter
             { SuperJumpPlusKey, true },
             { GearBeamKey, true },
             { ScrewdriverKey, true },
+            { JWaveSpreadsKey, true },
         };
 
         this.defaultIntSettings = new()
@@ -147,6 +149,10 @@ public class TeaRewritten : IEncounter
         if (configuration.GetEncounterSetting(ScrewdriverKey, defaultBoolSettings[ScrewdriverKey]))
         {
             mechanics.Add(mechanicFactory.Create<Screwdriver>());
+        }
+        if (configuration.GetEncounterSetting(JWaveSpreadsKey, defaultBoolSettings[JWaveSpreadsKey]))
+        {
+            mechanics.Add(mechanicFactory.Create<JWaveSpreads>());
         }
     }
 
@@ -298,6 +304,15 @@ public class TeaRewritten : IEncounter
         {
             configuration.EncounterSettings[ScrewdriverKey] =
                 screwdriver ? bool.TrueString : bool.FalseString;
+            configuration.Save();
+            RefreshMechanics();
+        }
+
+        bool jWaveSpreads = configuration.GetEncounterSetting(JWaveSpreadsKey, defaultBoolSettings[JWaveSpreadsKey]);
+        if (ImGui.Checkbox("J-Wave Spreads", ref jWaveSpreads))
+        {
+            configuration.EncounterSettings[JWaveSpreadsKey] =
+                jWaveSpreads ? bool.TrueString : bool.FalseString;
             configuration.Save();
             RefreshMechanics();
         }
