@@ -22,6 +22,7 @@ public enum NetworkMechanic : uint
     TeaNisiTower = 1029,
     TeaSuperJumpEnumeration = 1050,
     TeaApocalypticRaySpreads = 1051,
+    TeaJWaveSpread = 1052,
     TeaScrewdriverTarget = 1060,
 }
 

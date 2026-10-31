@@ -32,6 +32,8 @@ pub mod m1029_tea_nisi_tower;
 pub mod m1050_tea_super_jump_enumeration;
 #[path = "mechanics/1051-tea_apocalyptic_ray_spreads.rs"]
 pub mod m1051_tea_apocalyptic_ray_spreads;
+#[path = "mechanics/1052-tea_jwave_spread.rs"]
+pub mod m1052_tea_jwave_spread;
 #[path = "mechanics/1060-tea_screwdriver_target.rs"]
 pub mod m1060_tea_screwdriver_target;
 
@@ -71,6 +73,7 @@ pub fn create_mechanic(
         1029 => Some(m1029_tea_nisi_tower::create_mechanic),
         1050 => Some(m1050_tea_super_jump_enumeration::create_mechanic),
         1051 => Some(m1051_tea_apocalyptic_ray_spreads::create_mechanic),
+        1052 => Some(m1052_tea_jwave_spread::create_mechanic),
         1060 => Some(m1060_tea_screwdriver_target::create_mechanic),
         _ => None,
     };
@@ -139,6 +142,7 @@ pub fn create_systems(world: &World) {
     m1029_tea_nisi_tower::create_systems(world);
     m1050_tea_super_jump_enumeration::create_systems(world);
     m1051_tea_apocalyptic_ray_spreads::create_systems(world);
+    m1052_tea_jwave_spread::create_systems(world);
     m1060_tea_screwdriver_target::create_systems(world);
 }
 
