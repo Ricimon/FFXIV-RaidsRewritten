@@ -16,7 +16,7 @@ pub struct JWaveSpread {
     time_to_snapshot: f32,
     effect_delay: f32,
     radius: f32,
-    magic_vuln_duration: f32,
+    fire_resistance_down_duration: f32,
     stun_duration: f32,
     omen_vfx_path: String,
     attack_vfx_path: String,
@@ -27,10 +27,10 @@ pub fn create_mechanic(entity: EntityView<'_>) -> EntityView<'_> {
         time_to_snapshot: 5.0,
         effect_delay: 0.2,
         radius: 6.0,
-        magic_vuln_duration: 20.0,
+        fire_resistance_down_duration: 20.0,
         stun_duration: 20.0,
         omen_vfx_path: "vfx/lockon/eff/target_ae_s5f.avfx".to_string(),
-        attack_vfx_path: "vfx/monster/m0117/eff/baha_bahamut_lenge_gt_c0s.avfx".to_string(),
+        attack_vfx_path: "vfx/monster/gimmick4/eff/n5r8_b_g15_t0k1.avfx".to_string(),
     })
 }
 
@@ -185,7 +185,7 @@ pub fn create_systems(world: &World) {
 
             spread.effect_delay = f32::max(spread.effect_delay - it.delta_time(), 0.0);
 
-            // Apply condition to 1 target at a time so as to apply and read magic vulns
+            // Apply condition to 1 target at a time so as to apply and read fire resistance downs
             let extract: Vec<(Entity, u8)> = affects
                 .player_entities
                 .extract_if(|_, _| true)
@@ -194,16 +194,16 @@ pub fn create_systems(world: &World) {
 
             for (e, mut affect_count) in extract {
                 if let Some(player) = get_entity_view(&e, world) {
-                    let mut has_vuln = false;
+                    let mut has_fire_resistance_down = false;
                     player.each_child(|c| {
                         c.try_get::<&Condition>(|condition| {
-                            if condition.condition == condition::Condition::MagicVulnerabilityUp {
-                                has_vuln = true;
+                            if condition.condition == condition::Condition::FireResistanceDown {
+                                has_fire_resistance_down = true;
                             }
                         });
                     });
 
-                    if has_vuln {
+                    if has_fire_resistance_down {
                         let stun = apply_condition(
                             &player,
                             condition::Condition::Stun as u128,
@@ -218,15 +218,17 @@ pub fn create_systems(world: &World) {
                         }
                     }
 
-                    let magic_vuln = apply_condition(
+                    let fire_resistance_down = apply_condition(
                         &player,
-                        condition::Condition::MagicVulnerabilityUp as u128,
-                        condition::Condition::MagicVulnerabilityUp,
-                        spread.magic_vuln_duration,
+                        condition::Condition::FireResistanceDown as u128,
+                        condition::Condition::FireResistanceDown,
+                        spread.fire_resistance_down_duration,
                         false,
                     );
-                    if let Some(magic_vuln) = get_entity_view(&magic_vuln, world) {
-                        magic_vuln.set(BroadcastDelay {
+                    if let Some(fire_resistance_down) =
+                        get_entity_view(&fire_resistance_down, world)
+                    {
+                        fire_resistance_down.set(BroadcastDelay {
                             value: spread.effect_delay,
                         });
                     }
