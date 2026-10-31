@@ -168,7 +168,10 @@ public sealed class NetworkClient : IDisposable
         }
 
         if (!IsConnected) { return; }
-        logger.Info("Sending {0}", Serialize(message));
+        if (message.action != Message.Action.UpdateStatus && message.action != Message.Action.UpdateFakePlayer)
+        {
+            logger.Info("Sending {0}", Serialize(message));
+        }
         await client.EmitAsync("message", message);
     }
 

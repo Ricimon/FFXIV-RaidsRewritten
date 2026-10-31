@@ -16,6 +16,11 @@ pub struct Screw {
     rotation_state: i8,
     link_to_id: u64,
 }
+// This component contains duplicate data, but is here for Screw entity queries to run in a system that can write to Screw
+#[derive(Component)]
+pub struct ScrewTarget {
+    id: u64,
+}
 
 const DEFAULT_ROTATION_STATE: i8 = 3;
 const LINK_RADIUS: f32 = 1.9;
@@ -74,7 +79,8 @@ pub fn create_systems(world: &World) {
                         mechanic.requester_socket_id,
                         party.id.clone(),
                     )
-                    .set(screw.clone());
+                    .set(screw.clone())
+                    .set(ScrewTarget { id: target_id });
                 }
 
                 send_update_screwdriver_state(world, &party.id, &screw);
@@ -124,7 +130,7 @@ pub fn create_systems(world: &World) {
             }
             let target_position = target_position.unwrap();
 
-            let screw_query = world.query::<&Screw>().build();
+            let screw_query = world.query::<&ScrewTarget>().build();
 
             if screw.link_to_id == 0 {
                 // Look for new link targets
@@ -138,7 +144,7 @@ pub fn create_systems(world: &World) {
 
                             let mut is_screwed = false;
                             screw_query.each(|s| {
-                                if s.target_id == pl.content_id {
+                                if s.id == pl.content_id {
                                     is_screwed = true;
                                 }
                             });

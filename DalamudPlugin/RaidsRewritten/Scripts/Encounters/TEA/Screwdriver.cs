@@ -20,7 +20,7 @@ public class Screwdriver : Mechanic
     private record struct Target(Entity Entity, ulong ContentId);
 
     private readonly List<Entity> attacks = [];
-    private readonly HashSet<ulong> alreadyAssignedTargets = [];
+    private readonly List<ulong> alreadyAssignedTargets = [];
 
     public override void Reset()
     {
@@ -88,6 +88,7 @@ public class Screwdriver : Mechanic
                             screw.Set(new Screw.Component(true, (Screw.Direction)direction, pc.PlayerCharacter!,
                                 UpdateRotationCount, Resolve));
                             screwAttack = screw;
+                            attacks.Add(screw);
                         }
                     }
 
@@ -136,18 +137,22 @@ public class Screwdriver : Mechanic
         var seed = RngSeed;
         unchecked
         {
-            seed += 0x5C6E1111 + alreadyAssignedTargets.Count;
+            seed += 0x5C6E + alreadyAssignedTargets.Count * 100;
         }
-        var random = new Random(RngSeed);
+        var random = new Random(seed);
 
-        List<List<Target>> lists = [tanks, healers, dps, allTargets];
-        for (var i = 0; i < lists.Count; i++)
+        void Sort(ref List<Target> list)
         {
-            lists[i] = [.. lists[i].AsValueEnumerable()
+            list = list.AsValueEnumerable()
                 .OrderBy(v => v.ContentId)
                 .OrderBy(v => random.Next())
-                .OrderBy(v => alreadyAssignedTargets.Contains(v.ContentId))];
+                .OrderBy(v => alreadyAssignedTargets.Contains(v.ContentId))
+                .ToList();
         }
+        Sort(ref tanks);
+        Sort(ref healers);
+        Sort(ref dps);
+        Sort(ref allTargets);
 
         // Assign targets
         var assignedTargets = new List<Target>();
