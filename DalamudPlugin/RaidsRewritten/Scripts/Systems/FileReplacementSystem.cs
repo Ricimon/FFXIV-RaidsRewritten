@@ -10,8 +10,10 @@ public class FileReplacementSystem(ResourceLoader resourceLoader) : ISystem
     public void Register(World world)
     {
         world.System<Model, FileReplacement>().TermAt(0).Up()
-            .Each((ref Model model, ref FileReplacement replace) =>
+            .Each((Iter it, int i, ref Model model, ref FileReplacement replace) =>
             {
+                var entity = it.Entity(i);
+
                 if (!model.DrawEnabled && replace.FramesSinceApplication < 0)
                 {
                     resourceLoader.AddFileReplacement(replace.OriginalPath, replace.ReplacementPath);
@@ -21,13 +23,20 @@ public class FileReplacementSystem(ResourceLoader resourceLoader) : ISystem
 
                 if (replace.FramesSinceApplication >= 0)
                 {
+                    float durationLeft = 0;
                     if (model.DrawEnabled)
                     {
                         replace.FramesSinceApplication++;
+                        if (entity.Has<FileReplacementDuration>())
+                        {
+                            var duration = entity.Get<FileReplacementDuration>();
+                            duration.Seconds -= it.DeltaTime();
+                            durationLeft = duration.Seconds;
+                        }
                     }
 
                     // Replacements need to stay for a few frames for model loading systems to pick them up
-                    if (replace.FramesSinceApplication == 30)
+                    if (replace.FramesSinceApplication >= 30 && durationLeft <= 0)
                     {
                         resourceLoader.RemoveFileReplacement(replace.OriginalPath);
                         replace.FramesSinceApplication = -1;
@@ -36,8 +45,10 @@ public class FileReplacementSystem(ResourceLoader resourceLoader) : ISystem
             });
 
         world.System<ActorVfx, FileReplacement>().TermAt(0).Up()
-            .Each((ref ActorVfx vfx, ref FileReplacement replace) =>
+            .Each((Iter it, int i, ref ActorVfx vfx, ref FileReplacement replace) =>
             {
+                var entity = it.Entity(i);
+
                 if (vfx.VfxPtr == null && replace.FramesSinceApplication < 0)
                 {
                     resourceLoader.AddFileReplacement(replace.OriginalPath, replace.ReplacementPath);
@@ -47,13 +58,20 @@ public class FileReplacementSystem(ResourceLoader resourceLoader) : ISystem
 
                 if (replace.FramesSinceApplication >= 0)
                 {
+                    float durationLeft = 0;
                     if (vfx.VfxPtr != null)
                     {
                         replace.FramesSinceApplication++;
+                        if (entity.Has<FileReplacementDuration>())
+                        {
+                            var duration = entity.Get<FileReplacementDuration>();
+                            duration.Seconds -= it.DeltaTime();
+                            durationLeft = duration.Seconds;
+                        }
                     }
 
                     // Replacements need to stay for a few frames for loading systems to pick them up
-                    if (replace.FramesSinceApplication == 30)
+                    if (replace.FramesSinceApplication >= 30 && durationLeft <= 0)
                     {
                         resourceLoader.RemoveFileReplacement(replace.OriginalPath);
                         replace.FramesSinceApplication = -1;

@@ -229,7 +229,16 @@ public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogge
             {
                 if (!efr.FilesReplaced)
                 {
-                    entity.Set(new ExpectFileReplacement(true));
+                    var framesToWait = efr.FramesToWait;
+                    framesToWait--;
+                    if (framesToWait <= 0)
+                    {
+                        entity.Set(new ExpectFileReplacement(0, true));
+                    }
+                    else
+                    {
+                        entity.Set(new ExpectFileReplacement(framesToWait, false));
+                    }
                     return;
                 }
             }

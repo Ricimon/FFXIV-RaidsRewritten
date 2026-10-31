@@ -23,6 +23,8 @@ public class RotatingLockOnOmen(DalamudServices dalamud) : IEntity, ISystem
     private const string RotationCounterclockwiseVfxPath = "vfx/lockon/eff/x6r3_turning_left_c0e1.avfx";
     private const string RotationClockwiseVfxPathReplacement = "vfx/lockon_turning_right.avfx";
     private const string RotationCounterclockwiseVfxPathReplacement = "vfx/lockon_turning_left.avfx";
+    private const string RotationScdPath = "sound/vfx/monster9/SE_Vfx_Monster_m0905_lock02.scd";
+    private const string RotationScdPathReplacement = "sound/lockon_turning.scd";
 
     public Entity Create(World world)
     {
@@ -72,14 +74,23 @@ public class RotatingLockOnOmen(DalamudServices dalamud) : IEntity, ISystem
                     var rotationVfx = it.World().Entity()
                         .Set(new ActorVfx(vfxPath))
                         .Set(new ActorVfxSource(component.Target))
-                        .Set(new ExpectFileReplacement())
+                        .Set(new ExpectFileReplacement(60))
                         .Add<Attack>()
                         .Add<Omen>()
                         .ChildOf(entity);
 
-                    var replacementPath = dalamud.PluginInterface.GetResourcePath(vfxPathReplacement);
+                    DelayedAction.Create(it.World(), () =>
+                    {
+                        var vfxReplacementPath = dalamud.PluginInterface.GetResourcePath(vfxPathReplacement);
+                        it.World().Entity()
+                            .Set(new FileReplacement(vfxPath, vfxReplacementPath))
+                            .ChildOf(rotationVfx);
+                    }, 0.1f);
+
+                    var scdReplacementPath = dalamud.PluginInterface.GetResourcePath(RotationScdPathReplacement);
                     it.World().Entity()
-                        .Set(new FileReplacement(vfxPath, replacementPath))
+                        .Set(new FileReplacement(RotationScdPath, scdReplacementPath))
+                        .Set(new FileReplacementDuration(30.0f))
                         .ChildOf(rotationVfx);
 
                     component.Rotation = rotationVfx;
