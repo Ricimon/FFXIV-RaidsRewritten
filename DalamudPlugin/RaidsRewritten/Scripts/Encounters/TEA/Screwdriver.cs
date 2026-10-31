@@ -86,7 +86,7 @@ public class Screwdriver : Mechanic
                             EntityManager.TryCreateEntity<Screw>(out Entity screw))
                         {
                             screw.Set(new Screw.Component(true, (Screw.Direction)direction, pc.PlayerCharacter!,
-                                AttemptLink, RemoveLink, UpdateRotationCount, Resolve));
+                                UpdateRotationCount, Resolve));
                             screwAttack = screw;
                         }
                     }
@@ -218,34 +218,6 @@ public class Screwdriver : Mechanic
         {
             alreadyAssignedTargets.Add(t.ContentId);
         }
-    }
-
-    private void AttemptLink(Screw.Component component, ulong linkId)
-    {
-        NetworkClient.SendAsync(new Message
-        {
-            action = Message.Action.StartMechanic,
-            startMechanic = new Message.StartMechanicPayload
-            {
-                mechanicId = (uint)NetworkMechanic.TeaScrewdriverLink,
-                requestId = nameof(NetworkMechanic.TeaScrewdriverLink) + $"_{Guid.NewGuid()}",
-                extraData = string.Join(",", [component.Target.GetContentId(), linkId]),
-            }
-        }).SafeFireAndForget();
-    }
-
-    private void RemoveLink(Screw.Component component)
-    {
-        NetworkClient.SendAsync(new Message
-        {
-            action = Message.Action.StartMechanic,
-            startMechanic = new Message.StartMechanicPayload
-            {
-                mechanicId = (uint)NetworkMechanic.TeaScrewdriverLink,
-                requestId = nameof(NetworkMechanic.TeaScrewdriverLink) + $"_{Guid.NewGuid()}",
-                extraData = string.Join(",", [component.Target.GetContentId(), 0]),
-            }
-        }).SafeFireAndForget();
     }
 
     private void UpdateRotationCount(Screw.Component component, int rotationCount)

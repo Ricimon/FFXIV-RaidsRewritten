@@ -9,4 +9,5 @@ pub enum NetworkMechanicCommand {
     TeaHideShanoa = -1027,
     TeaUpdateShanoaNisiStatus = -1028,
     TeaUpdateNisiTower = -1029,
+    TeaUpdateScrewdriverState = -1060,
 }
