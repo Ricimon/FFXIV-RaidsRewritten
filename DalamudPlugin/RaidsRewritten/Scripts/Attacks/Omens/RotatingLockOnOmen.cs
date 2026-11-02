@@ -74,23 +74,19 @@ public class RotatingLockOnOmen(DalamudServices dalamud) : IEntity, ISystem
                     var rotationVfx = it.World().Entity()
                         .Set(new ActorVfx(vfxPath))
                         .Set(new ActorVfxSource(component.Target))
-                        .Set(new ExpectFileReplacement(60))
+                        .Set(new ExpectFileReplacement())
                         .Add<Attack>()
                         .Add<Omen>()
                         .ChildOf(entity);
 
-                    DelayedAction.Create(it.World(), () =>
-                    {
-                        var vfxReplacementPath = dalamud.PluginInterface.GetResourcePath(vfxPathReplacement);
-                        it.World().Entity()
-                            .Set(new FileReplacement(vfxPath, vfxReplacementPath))
-                            .ChildOf(rotationVfx);
-                    }, 0.1f);
+                    var vfxReplacementPath = dalamud.PluginInterface.GetResourcePath(vfxPathReplacement);
+                    it.World().Entity()
+                        .Set(new FileReplacement(vfxPath, vfxReplacementPath))
+                        .ChildOf(rotationVfx);
 
                     var scdReplacementPath = dalamud.PluginInterface.GetResourcePath(RotationScdPathReplacement);
                     it.World().Entity()
                         .Set(new FileReplacement(RotationScdPath, scdReplacementPath))
-                        .Set(new FileReplacementDuration(30.0f))
                         .ChildOf(rotationVfx);
 
                     component.Rotation = rotationVfx;
