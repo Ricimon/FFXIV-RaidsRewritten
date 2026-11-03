@@ -148,7 +148,9 @@ public class TeaRewritten : IEncounter
         }
         if (configuration.GetEncounterSetting(ScrewdriverKey, defaultBoolSettings[ScrewdriverKey]))
         {
-            mechanics.Add(mechanicFactory.Create<Screwdriver>());
+            var screwdriver = mechanicFactory.Create<Screwdriver>();
+            screwdriver.RngSeed = rngSeed;
+            mechanics.Add(screwdriver);
         }
         if (configuration.GetEncounterSetting(JWaveSpreadsKey, defaultBoolSettings[JWaveSpreadsKey]))
         {

@@ -125,11 +125,14 @@ public unsafe sealed class ModelSystem(
 
                 if (!model.DrawEnabled)
                 {
-                    if (chara->IsReadyToDraw())
+                    if (chara->DrawObject != null)
+                    {
+                        model.DrawEnabled = true;
+                    }
+                    else if (chara->IsReadyToDraw())
                     {
                         // This is needed to play action sounds, so this is called even for invalid models
                         chara->EnableDraw();
-                        model.DrawEnabled = true;
                     }
                 }
             });

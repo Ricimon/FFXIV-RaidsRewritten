@@ -132,13 +132,7 @@ public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogge
             {
                 var entity = it.Entity(i);
                 if (!model.Spawned) { return; }
-                if (entity.Has<EnsureModelIsDrawn>())
-                {
-                    var obj = ClientObjectManager.Instance()->GetObjectByIndex(model.ObjectIndex);
-                    if (obj == null) { return; }
-                    var drawObj = obj->DrawObject;
-                    if (drawObj == null) { return; }
-                }
+                if (entity.Has<EnsureModelIsDrawn>() && !model.DrawEnabled) { return; }
                 ProcessActorVfx(entity, dalamud.ObjectTable.GetGameObjectByIndex(model.ObjectIndex), ref vfx);
             });
 

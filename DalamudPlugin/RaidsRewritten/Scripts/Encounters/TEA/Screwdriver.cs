@@ -5,6 +5,7 @@ using Dalamud.Game.ClientState.Objects.Types;
 using ECommons.GameFunctions;
 using ECommons.Hooks;
 using Flecs.NET.Core;
+using Lumina.Excel.Sheets;
 using RaidsRewritten.Game;
 using RaidsRewritten.Network;
 using RaidsRewritten.Scripts.Attacks;
@@ -16,6 +17,8 @@ namespace RaidsRewritten.Scripts.Encounters.TEA;
 public class Screwdriver : Mechanic
 {
     public int RngSeed { get; set; }
+
+    private const int ChasteningHeatActionId = 19072;
 
     private record struct Target(Entity Entity, ulong ContentId);
 
@@ -44,6 +47,15 @@ public class Screwdriver : Mechanic
     public override void OnCombatEnd()
     {
         Reset();
+    }
+
+    public override void OnStartingCast(Lumina.Excel.Sheets.Action action, IBattleChara source)
+    {
+        // This is on castbar because Chastening Heat can fizzle if its target dies before the cast finishes.
+        if (action.RowId == ChasteningHeatActionId)
+        {
+            DelayedAction.Create(World, StartMechanic, 5.0f);
+        }
     }
 
     public override void OnNetworkMechanicCommand(Message.RunMechanicCommandPayload payload)

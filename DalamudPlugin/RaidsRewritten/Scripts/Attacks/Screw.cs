@@ -8,12 +8,18 @@ using RaidsRewritten.Game;
 using RaidsRewritten.Log;
 using RaidsRewritten.Scripts.Attacks.Omens;
 using RaidsRewritten.Scripts.Components;
+using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Scripts.Models;
 using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Scripts.Attacks;
 
-public class Screw(DalamudServices dalamud, Lazy<EntityManager> entityManager, Random random, ILogger logger) : IEntity, ISystem
+public class Screw(
+    DalamudServices dalamud,
+    Lazy<EntityManager> entityManager,
+    CommonQueries commonQueries,
+    Random random,
+    ILogger logger) : IEntity, ISystem
 {
     public const float LinkRadius = 1.9f;
 
@@ -52,6 +58,10 @@ public class Screw(DalamudServices dalamud, Lazy<EntityManager> entityManager, R
         Vector3 StartPosition = default,
         Quaternion StartRotation = default,
         Vector3 FallDirection = default);
+
+    private readonly BigInteger BindId = 0x5C6E1;
+    private const float FailureStunDuration = 15.0f;
+    private const float FailureDamageDownDuration = 60.0f;
 
     public Entity Create(World world)
     {
@@ -156,11 +166,12 @@ public class Screw(DalamudServices dalamud, Lazy<EntityManager> entityManager, R
                     var resolvedFail = false;
                     ulong linkedToId = 0;
 
+                    var player = dalamud.ObjectTable.LocalPlayer;
+                    var targetIsSelf = component.Target.GameObjectId == player?.GameObjectId;
                     var linkIsSelf = false;
                     if (entity.TryGet(out ServerState serverState))
                     {
                         linkedToId = serverState.LinkedTo;
-                        var player = dalamud.ObjectTable.LocalPlayer;
                         linkIsSelf = player?.GetContentId() == serverState.LinkedTo;
                     }
                     var clientAuthoritative = linkIsSelf || entity.Has<ClientControlled>();
@@ -241,6 +252,10 @@ public class Screw(DalamudServices dalamud, Lazy<EntityManager> entityManager, R
                         runtime.GroundIndicator.SafeDestruct();
                         ref var boltRuntime = ref entity.GetMut<BoltRuntime>();
                         boltRuntime.AnimationTime = 0;
+                        if (targetIsSelf)
+                        {
+                            RemoveBindStatus();
+                        }
 
                         if (resolvedSuccess)
                         {
@@ -258,6 +273,15 @@ public class Screw(DalamudServices dalamud, Lazy<EntityManager> entityManager, R
                                 .Set(new ActorVfx("vfx/monster/m0005/eff/m0005sp_15t0t.avfx"))
                                 .Set(new ActorVfxSource(component.Target));
                             runtime.Phase = Phase.ResolvedFail;
+
+                            if (targetIsSelf)
+                            {
+                                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
+                                {
+                                    Stun.ApplyToTarget(e, FailureStunDuration);
+                                    DamageDown.ApplyToTarget(e, FailureDamageDownDuration);
+                                });
+                            }
                         }
                         return;
                     }
@@ -267,17 +291,15 @@ public class Screw(DalamudServices dalamud, Lazy<EntityManager> entityManager, R
                         if (linkedToId != 0)
                         {
                             using var q = it.World().Query<Player.Component, Player.ContentId>();
-                            var player = q.Find((ref pc, ref contentId) => pc.PlayerCharacter != null && contentId.Value == linkedToId);
-                            if (player.IsValid() && player.TryGet(out Player.Component pc))
+                            var playerEntity = q.Find((ref pc, ref contentId) => pc.PlayerCharacter != null && contentId.Value == linkedToId);
+                            if (playerEntity.IsValid() && playerEntity.TryGet(out Player.Component pc))
                             {
                                 entity.Set(new LinkedTo(pc.PlayerCharacter!));
                             }
                         }
                         else if (entity.Has<ClientControlled>())
                         {
-                            var player = dalamud.ObjectTable.LocalPlayer;
-                            if (player != null && !player.IsDead &&
-                                component.Target.GameObjectId != player.GameObjectId)
+                            if (player != null && !player.IsDead && !targetIsSelf)
                             {
                                 if (Vector2.Distance(component.Target.Position2, player.Position2) <= LinkRadius)
                                 {
@@ -285,6 +307,22 @@ public class Screw(DalamudServices dalamud, Lazy<EntityManager> entityManager, R
                                 }
                             }
                         }
+                    }
+
+                    // Status
+                    if (targetIsSelf)
+                    {
+                        commonQueries.LocalPlayerQuery.Each((Iter it, int i, ref Player.Component pc) =>
+                        {
+                            var entity = it.Entity(i);
+
+                            using var q = it.World().QueryBuilder<Condition.Id>().With(Ecs.ChildOf, entity).Build();
+                            var hasBind = q.Find((ref id) => id.Value == BindId).IsValid();
+                            if (!hasBind)
+                            {
+                                Bind.ApplyToTarget(entity, float.PositiveInfinity, BindId);
+                            }
+                        });
                     }
                 }
 
@@ -465,5 +503,32 @@ public class Screw(DalamudServices dalamud, Lazy<EntityManager> entityManager, R
 
                 boltRuntime.AnimationTime += it.DeltaTime();
             });
+
+        // Status removal
+        world.Observer<Component>()
+            .Event(Ecs.OnRemove)
+            .Each((Iter it, int i, ref Component _) =>
+            {
+                var component = it.Entity(i).Get<Component>();
+                var player = dalamud.ObjectTable.LocalPlayer;
+                if (component.Target.GameObjectId == player?.GameObjectId)
+                {
+                    DelayedAction.Create(it.World(), RemoveBindStatus, 0);
+                }
+            });
+    }
+
+    private void RemoveBindStatus()
+    {
+        commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
+        {
+            e.Children((child) =>
+            {
+                if (child.TryGet(out Condition.Id id) && id.Value == BindId)
+                {
+                    child.Destruct();
+                }
+            });
+        });
     }
 }
