@@ -31,6 +31,22 @@ public sealed class NetworkClientMessageHandler(
 
     private World World => ecsContainer.World;
 
+    public void OnConnect()
+    {
+        if (!encounterManager.Value.InCombat)
+        {
+            encounterManager.Value.ActiveEncounter?.RefreshMechanics();
+        }
+    }
+
+    public void OnDisconnect()
+    {
+        if (!encounterManager.Value.InCombat)
+        {
+            encounterManager.Value.ActiveEncounter?.RefreshMechanics();
+        }
+    }
+
     public void OnMessage(SocketIOResponse response)
     {
         if (configuration.EverythingDisabled)
