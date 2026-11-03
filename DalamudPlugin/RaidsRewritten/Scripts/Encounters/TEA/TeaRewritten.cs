@@ -230,7 +230,7 @@ public class TeaRewritten : IEncounter
         }
 
         bool hawkTower = configuration.GetEncounterSetting(HawkTowerKey, defaultBoolSettings[HawkTowerKey]);
-        if (ImGui.Checkbox("Hawk Tower", ref hawkTower))
+        if (ImGui.Checkbox("Hawk Tuawer (tower)", ref hawkTower))
         {
             configuration.EncounterSettings[HawkTowerKey] =
                 hawkTower ? bool.TrueString : bool.FalseString;
@@ -284,7 +284,7 @@ public class TeaRewritten : IEncounter
         }
 
         bool superJumpPlus = configuration.GetEncounterSetting(SuperJumpPlusKey, defaultBoolSettings[SuperJumpPlusKey]);
-        if (ImGui.Checkbox("Super Jump+", ref superJumpPlus))
+        if (ImGui.Checkbox("Super Super Jump", ref superJumpPlus))
         {
             configuration.EncounterSettings[SuperJumpPlusKey] =
                 superJumpPlus ? bool.TrueString : bool.FalseString;
@@ -311,7 +311,7 @@ public class TeaRewritten : IEncounter
         }
 
         bool jWaveSpreads = configuration.GetEncounterSetting(JWaveSpreadsKey, defaultBoolSettings[JWaveSpreadsKey]);
-        if (ImGui.Checkbox("J-Wave Spreads", ref jWaveSpreads))
+        if (ImGui.Checkbox("JS-Waves", ref jWaveSpreads))
         {
             configuration.EncounterSettings[JWaveSpreadsKey] =
                 jWaveSpreads ? bool.TrueString : bool.FalseString;
