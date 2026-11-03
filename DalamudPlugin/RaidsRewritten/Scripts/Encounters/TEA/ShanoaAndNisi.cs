@@ -57,7 +57,7 @@ public class ShanoaAndNisi : Mechanic
     private NisiTowerOmen.Nisi lastNisiPolled;
     private bool inBjccPhase;
     private bool eyeOfTheChakramCasted;
-    private bool photonCasted;
+    private int photonsCasted;
     //private bool sludgePuddleCreated = false;
     private int nisiTowersSpawned = 0;
     private List<Vector3> towerPositions = [];
@@ -75,7 +75,7 @@ public class ShanoaAndNisi : Mechanic
         lastNisiPolled = NisiTowerOmen.Nisi.None;
         inBjccPhase = false;
         eyeOfTheChakramCasted = false;
-        photonCasted = false;
+        photonsCasted = 0;
         //sludgePuddleCreated = false;
         nisiTowersSpawned = 0;
         towerPositions = [];
@@ -156,6 +156,16 @@ public class ShanoaAndNisi : Mechanic
             if (inBjccPhase)
             {
                 SendUpdateNisi(NisiTowerOmen.Nisi.None);
+
+                NetworkClient.SendAsync(new Message
+                {
+                    action = Message.Action.StartMechanic,
+                    startMechanic = new Message.StartMechanicPayload
+                    {
+                        mechanicId = (uint)NetworkMechanic.TeaHideShanoa,
+                        requestId = nameof(NetworkMechanic.TeaHideShanoa) + "_BjccEnd",
+                    }
+                }).SafeFireAndForget();
             }
             inBjccPhase = false;
         }
@@ -204,7 +214,9 @@ public class ShanoaAndNisi : Mechanic
     }
 
     public override void OnStartingCast(Lumina.Excel.Sheets.Action action, IBattleChara source)
-    { 
+    {
+        if (!inBjccPhase) { return; }
+
         if (action.RowId == WhirlwindActionId)
         {
             if (nisiTowersSpawned == 3)
@@ -217,11 +229,28 @@ public class ShanoaAndNisi : Mechanic
         {
             SendSpawnNextPositionNisiTower();
         }
+
+        else if (action.RowId == PhotonActionId)
+        {
+            if (photonsCasted == 1)
+            {
+                NetworkClient.SendAsync(new Message
+                {
+                    action = Message.Action.StartMechanic,
+                    startMechanic = new Message.StartMechanicPayload
+                    {
+                        mechanicId = (uint)NetworkMechanic.TeaHideShanoa,
+                        requestId = nameof(NetworkMechanic.TeaHideShanoa) + "_photon",
+                    }
+                }).SafeFireAndForget();
+            }
+        }
     }
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
         if (set.Action == null || set.Source == null) { return; }
+        if (!inBjccPhase) { return; }
 
         if (set.Action.Value.RowId == EyeOfTheChakramActionId)
         {
@@ -254,8 +283,8 @@ public class ShanoaAndNisi : Mechanic
 
         else if (set.Action.Value.RowId == PhotonActionId)
         {
-            if (photonCasted) { return; }
-            photonCasted = true;
+            photonsCasted++;
+            if (photonsCasted > 1) { return; }
 
             ShanoaPark?.AttackMarkers("photon");
 

@@ -126,6 +126,9 @@ public class TeaRewritten : IEncounter
             shanoaAndNisi.RngSeed = rngSeed;
             shanoaAndNisi.ShanoaPark = shanoaPark;
             mechanics.Add(shanoaAndNisi);
+            var shanoaAndAlexPrime = mechanicFactory.Create<ShanoaAndAlexPrime>();
+            shanoaAndAlexPrime.ShanoaPark = shanoaPark;
+            mechanics.Add(shanoaAndAlexPrime);
         }
         if (GetEncounterSetting(ShanoaParkKey) && GetEncounterSetting(FireTornadoKey))
         {

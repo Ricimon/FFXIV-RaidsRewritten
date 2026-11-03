@@ -24,7 +24,7 @@ public class HelpWindow(DalamudServices dalamud, ILogger logger) : IPluginUIView
         if (!Visible) { return; }
 
         ImGui.SetNextWindowSize(Vector2.Zero, ImGuiCond.Always);
-        var width = Math.Min(ImGui.GetMainViewport().Size.X / ImGuiHelpers.GlobalScale / 2, 800);
+        var width = Math.Min(ImGui.GetMainViewport().Size.X / ImGuiHelpers.GlobalScale / 2, 810);
         ImGui.SetNextWindowSizeConstraints(
             new(width, 0),
             new(width, float.PositiveInfinity));
@@ -43,6 +43,9 @@ public class HelpWindow(DalamudServices dalamud, ILogger logger) : IPluginUIView
         {
             ImGui.Image(icon.Handle, ImGuiHelpers.GlobalScale * new Vector2(100, 100));
         }
+        ImGui.SameLine();
+        ImGui.SetCursorPosY(ImGuiHelpers.GlobalScale * 100 + 0.75f * ImGui.GetTextLineHeight());
+        ImGui.Text("by Ricimon");
         ImGui.TextWrapped("RaidsRewritten is a plugin that adds custom mechanics to fights.");
 
         ImGui.Text("---");
@@ -64,6 +67,13 @@ public class HelpWindow(DalamudServices dalamud, ILogger logger) : IPluginUIView
         ImGui.Text("---");
         ImGui.TextWrapped("Custom mechanic punishments don't do anything that you can't normally do without the plugin, and you can test some of their effects in the Debug tab.");
         ImGui.TextWrapped("You don't need to pretend mechanic punishments are worse than they actually are. Be creative with solutions and recoveries!");
+
+        ImGui.Text("---");
+        ImGui.TextWrapped("A RaidsRewritten server exists to enable custom mechanics that require a single source of truth, such as spreads and stacks.");
+        ImGui.TextWrapped("Server connection does not happen automatically, but is required to enable these mechanics.");
+        ImGui.TextWrapped("PRIVACY: Information sent to the server include your character's content ID, name, and coordinate position.");
+        ImGui.TextWrapped("Your character's content ID is not persistently saved in any way, and the rest of your character information appears in logs solely for error diagnosis.");
+        ImGui.TextWrapped("This is a passion project I've spent countless hours on. I have no intention to misuse your data.");
 
         ImGui.Text("---");
         ImGui.TextWrapped("Lastly, there is a special reward if you can defeat the intended difficulty (or harder)!");

@@ -895,8 +895,8 @@ public partial class MainWindow
                 }
                 SameLineIfFits(":");
                 ImGui.Text(":");
-                SameLineIfFits("scratch self");
-                if (ImGui.Button("scratch self"))
+                SameLineIfFits("itch");
+                if (ImGui.Button("itch"))
                 {
                     using var q = World.Query<Shanoa.Component>();
                     q.Each((Entity e, ref Shanoa.Component _) =>
@@ -936,6 +936,20 @@ public partial class MainWindow
                             .Set(new UniformScale(0.4f))
                             .Set(new ModelHeight(-1.66667f))
                             .ChildOf(e);
+                    });
+                }
+                SameLineIfFits("Goku");
+                if (ImGui.Button("Goku"))
+                {
+                    using var q = World.Query<Shanoa.Component, Model>();
+                    q.Each((Entity e, ref Shanoa.Component _, ref Model model) =>
+                    {
+                        var go = dalamud.ObjectTable.GetGameObjectByIndex(model.ObjectIndex);
+                        if (go != null)
+                        {
+                            vfxSpawn.SpawnActorVfx("vfx/common/eff/itm_sp03_c0c.avfx", go, go);
+                            vfxSpawn.SpawnActorVfx("vfx/common/eff/itm_sp03_c1c.avfx", go, go);
+                        }
                     });
                 }
 
