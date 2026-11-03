@@ -34,6 +34,8 @@ pub mod m1050_tea_super_jump_enumeration;
 pub mod m1051_tea_apocalyptic_ray_spreads;
 #[path = "mechanics/1052-tea_jwave_spread.rs"]
 pub mod m1052_tea_jwave_spread;
+#[path = "mechanics/1053-tea_wormhole_super_jump.rs"]
+pub mod m1053_tea_wormhole_super_jump;
 #[path = "mechanics/1060-tea_screwdriver_target.rs"]
 pub mod m1060_tea_screwdriver_target;
 
@@ -74,6 +76,7 @@ pub fn create_mechanic(
         1050 => Some(m1050_tea_super_jump_enumeration::create_mechanic),
         1051 => Some(m1051_tea_apocalyptic_ray_spreads::create_mechanic),
         1052 => Some(m1052_tea_jwave_spread::create_mechanic),
+        1053 => Some(m1053_tea_wormhole_super_jump::create_mechanic),
         1060 => Some(m1060_tea_screwdriver_target::create_mechanic),
         _ => None,
     };
@@ -143,6 +146,7 @@ pub fn create_systems(world: &World) {
     m1050_tea_super_jump_enumeration::create_systems(world);
     m1051_tea_apocalyptic_ray_spreads::create_systems(world);
     m1052_tea_jwave_spread::create_systems(world);
+    m1053_tea_wormhole_super_jump::create_systems(world);
     m1060_tea_screwdriver_target::create_systems(world);
 }
 
