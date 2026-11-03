@@ -18,9 +18,12 @@ public class ShanoaAndAlexPrime : Mechanic
     private const uint JStormActionId = 18550;
     private const uint CruiseChaserBaseId = 0x2C4E;
     private const uint BruteJusticeBaseId = 0x2C4C;
+    private const uint AlexanderPrimeBaseId = 0x2C53;
 
     private readonly List<Entity> attacks = [];
     private readonly Vector3 arenaMiddle = new(100, 0, 100);
+
+    private bool summonAlexanderCasted = false;
 
     public override void Reset()
     {
@@ -29,6 +32,7 @@ public class ShanoaAndAlexPrime : Mechanic
             attack.SafeDestruct();
         }
         attacks.Clear();
+        summonAlexanderCasted = false;
     }
 
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
@@ -49,6 +53,8 @@ public class ShanoaAndAlexPrime : Mechanic
     {
         if (action.RowId == SummonAlexanderActionId)
         {
+            summonAlexanderCasted = true;
+
             var position = arenaMiddle;
             position.Z = 121.4f;
             var rotation = MathUtilities.VectorToRotation(new(0, -1));
@@ -74,22 +80,34 @@ public class ShanoaAndAlexPrime : Mechanic
 
         if (set.Action.Value.RowId == JStormActionId)
         {
-            ShanoaPark?.AttackMarkers("jstorm");
+            var action = DelayedAction.Create(World, () =>
+            {
+                ShanoaPark?.AttackMarkers("jstorm");
+            }, 1.0f);
+            attacks.Add(action);
         }
     }
 
     public override void OnActorControl(IGameObject source, uint command, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, uint p7, uint p8, ulong targetId, byte replaying)
     {
+        if (!summonAlexanderCasted) { return; }
+
         if (source.BaseId == CruiseChaserBaseId &&
-            command == 537) // command 537 seems to be death at P3 enrage
+            command == 537) // command 537 seems to be 0.1% "death"
         {
             ShanoaPark?.AttackMarkers("cruisechaserdefeat");
         }
 
         else if (source.BaseId == BruteJusticeBaseId &&
-            command == 537) // command 537 seems to be death at P3 enrage
+            command == 537)
         {
             ShanoaPark?.AttackMarkers("brutejusticedefeat");
+        }
+
+        else if (source.BaseId == AlexanderPrimeBaseId &&
+            command == 15) // command 15 seems to be canceled Divine Judgment
+        {
+
         }
     }
 
