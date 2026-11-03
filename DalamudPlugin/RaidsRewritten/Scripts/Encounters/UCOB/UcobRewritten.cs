@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Text;
+using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
 using RaidsRewritten.Game;
+using RaidsRewritten.Network;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.UI.Util;
 using RaidsRewritten.Utility;
@@ -17,6 +19,7 @@ public class UcobRewritten : IEncounter
 
     // Config
     private string RngSeedKey => $"{Name}.RngSeed";
+    private string BlindProgModeKey => $"{Name}.BlindProgMode";
     private string TankbusterAftershockKey => $"{Name}.TankbusterAftershock";
     private string LightningCorridorKey => $"{Name}.LightningCorridor";
     private string MoreExaflaresKey => $"{Name}.MoreExaflares";
@@ -40,6 +43,8 @@ public class UcobRewritten : IEncounter
     private readonly DalamudServices dalamud;
     private readonly Configuration configuration;
     private readonly EcsContainer ecsContainer;
+    private readonly NetworkClient networkClient;
+    private readonly NetworkClientUi networkClientUi;
 
     private readonly List<Mechanic> mechanics = [];
     private readonly string[] moreExaflaresDifficulties = [
@@ -51,12 +56,14 @@ public class UcobRewritten : IEncounter
     private readonly Dictionary<string, bool> defaultBoolSettings;
     private readonly Dictionary<string, int> defaultIntSettings;
 
-    public UcobRewritten(Mechanic.Factory mechanicFactory, DalamudServices dalamud, Configuration configuration, EcsContainer ecsContainer)
+    public UcobRewritten(Mechanic.Factory mechanicFactory, DalamudServices dalamud, Configuration configuration, EcsContainer ecsContainer, NetworkClient networkClient, NetworkClientUi networkClientUi)
     {
         this.mechanicFactory = mechanicFactory;
         this.dalamud = dalamud;
         this.configuration = configuration;
         this.ecsContainer = ecsContainer;
+        this.networkClient = networkClient;
+        this.networkClientUi = networkClientUi;
 
         this.defaultBoolSettings = new()
         {
@@ -218,6 +225,9 @@ public class UcobRewritten : IEncounter
 
     public void DrawConfig()
     {
+        networkClientUi.DrawConfig();
+        ImGui.Spacing();
+
         if (ImGui.Button("Apply Intended Difficulty"))
         {
             ApplyIntendedFightSettings();
@@ -238,6 +248,44 @@ public class UcobRewritten : IEncounter
         }
         ImGui.SameLine();
         Common.HelpMarker("Make sure all players are on the same RNG seed");
+
+        if (configuration.GetEncounterSetting(BlindProgModeKey, true))
+        {
+            using (var iconFont = ImRaii.PushFont(UiBuilder.IconFont))
+            {
+                var errorIcon = FontAwesomeIcon.EyeSlash.ToIconString();
+                ImGui.Text(errorIcon);
+            }
+            ImGui.SameLine();
+            ImGui.Text("Blind prog mode, mechanic names hidden");
+
+            var intendedDifficultyActive = true;
+            foreach(var setting in defaultBoolSettings)
+            {
+                if (configuration.GetEncounterSetting(setting.Key, setting.Value) != setting.Value)
+                {
+                    intendedDifficultyActive = false;
+                    break;
+                }
+            }
+            if (!intendedDifficultyActive)
+            {
+                using (var iconFont = ImRaii.PushFont(UiBuilder.IconFont))
+                {
+                    var errorIcon = FontAwesomeIcon.ExclamationTriangle.ToIconString();
+                    ImGui.TextColored(Vector4Colors.Yellow, errorIcon);
+                }
+                ImGui.SameLine();
+                ImGui.Text("Intended difficulty is not active");
+            }
+
+            if (ImGui.Button("Show Mechanic Toggles"))
+            {
+                configuration.EncounterSettings[BlindProgModeKey] = bool.FalseString;
+                configuration.Save();
+            }
+            return;
+        }
 
         bool tankbusterAftershock = configuration.GetEncounterSetting(TankbusterAftershockKey, this.defaultBoolSettings[TankbusterAftershockKey]);
         if (ImGui.Checkbox("Tankbuster Aftershocks", ref tankbusterAftershock))
@@ -336,6 +384,13 @@ public class UcobRewritten : IEncounter
         }
 
         DrawRollingBallConfig();
+
+        if (!configuration.GetEncounterSetting(BlindProgModeKey, true) &&
+            ImGui.Button("Hide Mechanic Toggles (blind prog mode)"))
+        {
+            configuration.EncounterSettings[BlindProgModeKey] = bool.TrueString;
+            configuration.Save();
+        }
     }
 
     private void DrawMoreExaflaresConfig()

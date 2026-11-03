@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
 using RaidsRewritten.Network;
 using RaidsRewritten.UI.Util;
@@ -15,6 +16,7 @@ public class TeaRewritten : IEncounter
 
     // Config
     private string RngSeedKey => $"{Name}.RngSeed";
+    private string BlindProgModeKey => $"{Name}.BlindProgMode";
     private string FireTornadoKey => $"{Name}.FireTornado";
     private string PickyDollsKey => $"{Name}.PickyDolls";
     private string SurfsUpKey => $"{Name}.SurfsUp";
@@ -192,6 +194,7 @@ public class TeaRewritten : IEncounter
     public void DrawConfig()
     {
         networkClientUi.DrawConfig();
+        ImGui.Spacing();
 
         if (ImGui.Button("Apply Intended Difficulty"))
         {
@@ -213,6 +216,54 @@ public class TeaRewritten : IEncounter
         }
         ImGui.SameLine();
         Common.HelpMarker("Make sure all players are on the same RNG seed");
+
+        if (configuration.GetEncounterSetting(BlindProgModeKey, true))
+        {
+            using (var iconFont = ImRaii.PushFont(UiBuilder.IconFont))
+            {
+                var errorIcon = FontAwesomeIcon.EyeSlash.ToIconString();
+                ImGui.Text(errorIcon);
+            }
+            ImGui.SameLine();
+            ImGui.Text("Blind prog mode, mechanic names hidden");
+
+            var intendedDifficultyActive = true;
+            foreach(var setting in defaultBoolSettings)
+            {
+                if (configuration.GetEncounterSetting(setting.Key, setting.Value) != setting.Value)
+                {
+                    intendedDifficultyActive = false;
+                    break;
+                }
+            }
+            if (!intendedDifficultyActive)
+            {
+                using (var iconFont = ImRaii.PushFont(UiBuilder.IconFont))
+                {
+                    var errorIcon = FontAwesomeIcon.ExclamationTriangle.ToIconString();
+                    ImGui.TextColored(Vector4Colors.Yellow, errorIcon);
+                }
+                ImGui.SameLine();
+                ImGui.Text("Intended difficulty is not active");
+            }
+
+            if (!networkClient.IsConnected)
+            {
+                using (var iconFont = ImRaii.PushFont(UiBuilder.IconFont))
+                {
+                    var errorIcon = FontAwesomeIcon.ExclamationTriangle.ToIconString();
+                    ImGui.TextColored(Vector4Colors.Yellow, errorIcon);
+                }
+                ImGui.SameLine();
+                ImGui.Text("A server connection is required for some mechanics");
+            }
+            if (ImGui.Button("Show Mechanic Toggles"))
+            {
+                configuration.EncounterSettings[BlindProgModeKey] = bool.FalseString;
+                configuration.Save();
+            }
+            return;
+        }
 
         bool fireTornado = GetEncounterSetting(FireTornadoKey);
         using (ImRaii.Disabled(!networkClient.IsConnected))
@@ -354,6 +405,13 @@ public class TeaRewritten : IEncounter
             }
         }
         ServerRequiredTooltip();
+
+        if (!configuration.GetEncounterSetting(BlindProgModeKey, true) &&
+            ImGui.Button("Hide Mechanic Toggles (blind prog mode)"))
+        {
+            configuration.EncounterSettings[BlindProgModeKey] = bool.TrueString;
+            configuration.Save();
+        }
     }
 
     private bool GetEncounterSetting(string key)
@@ -373,7 +431,7 @@ public class TeaRewritten : IEncounter
     {
         if (!networkClient.IsConnected && ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
         {
-            ImGui.SetTooltip("Requires a server connection.");
+            ImGui.SetTooltip("Requires a server connection");
         }
     }
 

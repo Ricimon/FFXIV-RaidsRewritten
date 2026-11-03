@@ -52,32 +52,32 @@ public class NetworkClientUi(NetworkClient client, Configuration configuration)
             }
         }
 
-        var labelWidth2 = ImGui.CalcTextSize("Custom Party ID").X + padding;
-        using (ImRaii.Disabled(!configuration.UseCustomPartyId))
-        using (ImRaii.ItemWidth(ImGui.GetWindowWidth()  - labelWidth2))
-        {
-            string customPartyId = configuration.CustomPartyId;
-            if (ImGui.InputText("Custom Party ID", ref customPartyId))
-            {
-                configuration.CustomPartyId = customPartyId;
-                configuration.Save();
-            }
-            if (ImGui.IsItemHovered() && !ImGui.IsItemActive())
-            {
-                ImGui.SetTooltip("Treat this field like a password and share only with players that you expect to be connected with.");
-            }
-        }
-        ImGui.SameLine();
-        bool useCustomPartyId = configuration.UseCustomPartyId;
-        if (ImGui.RadioButton("##UseCustomPartyId", useCustomPartyId))
-        {
-            configuration.UseCustomPartyId = !configuration.UseCustomPartyId;
-            configuration.Save();
-        }
-        if (ImGui.IsItemHovered())
-        {
-            ImGui.SetTooltip("Use custom party ID.\nEnable this if custom mechanics need to be synced across non-party members.\nNOT CURRENTLY FUNCTIONAL, COMING SOON™");
-        }
+        //var labelWidth2 = ImGui.CalcTextSize("Custom Party ID").X + padding;
+        //using (ImRaii.Disabled(!configuration.UseCustomPartyId))
+        //using (ImRaii.ItemWidth(ImGui.GetWindowWidth()  - labelWidth2))
+        //{
+        //    string customPartyId = configuration.CustomPartyId;
+        //    if (ImGui.InputText("Custom Party ID", ref customPartyId))
+        //    {
+        //        configuration.CustomPartyId = customPartyId;
+        //        configuration.Save();
+        //    }
+        //    if (ImGui.IsItemHovered() && !ImGui.IsItemActive())
+        //    {
+        //        ImGui.SetTooltip("Treat this field like a password and share only with players that you expect to be connected with.");
+        //    }
+        //}
+        //ImGui.SameLine();
+        //bool useCustomPartyId = configuration.UseCustomPartyId;
+        //if (ImGui.RadioButton("##UseCustomPartyId", useCustomPartyId))
+        //{
+        //    configuration.UseCustomPartyId = !configuration.UseCustomPartyId;
+        //    configuration.Save();
+        //}
+        //if (ImGui.IsItemHovered())
+        //{
+        //    ImGui.SetTooltip("Use custom party ID.\nEnable this if custom mechanics need to be synced across non-party members.\nNOT CURRENTLY FUNCTIONAL, COMING SOON™");
+        //}
 
         var buttonWidth = ImGui.CalcTextSize("Disconnect").X + 2 * ImGui.GetStyle().CellPadding.X;
         if (client.IsConnected || client.IsConnecting)
@@ -95,6 +95,10 @@ public class NetworkClientUi(NetworkClient client, Configuration configuration)
                 {
                     client.Connect();
                 }
+            }
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.SetTooltip("Connect to the RaidsRewritten server.\nThis enables networked mechanics and displays custom statuses applied to other connected party members.");
             }
         }
 

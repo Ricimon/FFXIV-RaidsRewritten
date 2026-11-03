@@ -49,17 +49,17 @@ public class HelpWindow(DalamudServices dalamud, ILogger logger) : IPluginUIView
         ImGui.TextWrapped("In case the plugin is accidentally running when not intended, there is an emergency shutoff button.");
 
         ImGui.Text("---");
-        ImGui.TextWrapped("Custom mechanics will apply fake statuses that affect the control of your character.");
-        ImGui.TextWrapped("These fake statuses are displayed as Dalamud UI overlays. Press \"Display Fake Status\" to see one.");
-        ImGui.TextWrapped("Adjust the Status Display Position X and Y values to place the overlay in an appropriate position." +
-            "\nThese values correspond to your screen pixel values.");
+        ImGui.TextWrapped("Custom mechanics can apply custom statuses that may affect the control of your character.");
+        ImGui.TextWrapped("These custom statuses will appear on your status bar and on the party list.");
+        ImGui.TextWrapped("All custom statuses will have a chef-hat icon with a (RaidsRewritten) description to indicate that they come from the plugin.");
+        ImGui.TextWrapped("You can swap back to legacy status rendering from RaidsRewritten v1 through the Misc menu.");
 
         ImGui.Text("---");
         ImGui.TextWrapped("The plugin becomes active when in a supported fight.");
         ImGui.TextWrapped("Custom mechanics can be customized before a pull, but not during a pull.");
         ImGui.TextWrapped("The intended difficulty is a specially crafted set of custom mechanics aimed at making the fight much harder and a novel progression experience.");
-        ImGui.TextWrapped("Some custom mechanic names are intentionally unclear to not spoil the blind progression experience.");
-        ImGui.TextWrapped("Since this plugin (currently) runs purely client-side, it's important to match the RNG seed between all players so every player sees the same mechanic variation for mechanics with RNG.");
+        ImGui.TextWrapped("Some custom mechanic names are intentionally unclear because I like to be funny.");
+        ImGui.TextWrapped("Some custom mechanics use client-side RNG seeding, so it's important to match the RNG seed between all players so every player sees the same mechanic variation for mechanics with RNG.");
 
         ImGui.Text("---");
         ImGui.TextWrapped("Custom mechanic punishments don't do anything that you can't normally do without the plugin, and you can test some of their effects in the Debug tab.");
