@@ -80,6 +80,7 @@ public class TeaRewritten : IEncounter
             SuperJumpPlusKey,
             ScrewdriverKey,
             JWaveSpreadsKey,
+            WormholeSuperJumpKey,
             ];
     }
 
@@ -175,7 +176,7 @@ public class TeaRewritten : IEncounter
         {
             mechanics.Add(mechanicFactory.Create<JWaveSpreads>());
         }
-        if (configuration.GetEncounterSetting(WormholeSuperJumpKey, defaultBoolSettings[WormholeSuperJumpKey]))
+        if (GetEncounterSetting(WormholeSuperJumpKey))
         {
             mechanics.Add(mechanicFactory.Create<WormholeSuperJump>());
         }
@@ -415,6 +416,19 @@ public class TeaRewritten : IEncounter
         }
         ServerRequiredTooltip();
 
+        bool wormholeSuperJump = GetEncounterSetting(WormholeSuperJumpKey);
+        using (ImRaii.Disabled(!networkClient.IsConnected))
+        {
+            if (ImGui.Checkbox("Wormhole Super Jump", ref wormholeSuperJump))
+            {
+                configuration.EncounterSettings[WormholeSuperJumpKey] =
+                    wormholeSuperJump ? bool.TrueString : bool.FalseString;
+                configuration.Save();
+                RefreshMechanics();
+            }
+        }
+        ServerRequiredTooltip();
+
         if (!configuration.GetEncounterSetting(BlindProgModeKey, true) &&
             ImGui.Button("Hide Mechanic Toggles (blind prog mode)"))
         {
@@ -441,15 +455,6 @@ public class TeaRewritten : IEncounter
         if (!networkClient.IsConnected && ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
         {
             ImGui.SetTooltip("Requires a server connection");
-        }
-
-        bool wormholeSuperJump = configuration.GetEncounterSetting(WormholeSuperJumpKey, defaultBoolSettings[WormholeSuperJumpKey]);
-        if (ImGui.Checkbox("Wormhole Super Jump", ref wormholeSuperJump))
-        {
-            configuration.EncounterSettings[WormholeSuperJumpKey] =
-                wormholeSuperJump ? bool.TrueString : bool.FalseString;
-            configuration.Save();
-            RefreshMechanics();
         }
     }
 
