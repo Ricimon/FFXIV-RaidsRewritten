@@ -153,7 +153,11 @@ pub fn create_systems(world: &World) {
                                 RunMechanicCommandPayload {
                                     mechanic_command_id:
                                         NetworkMechanicCommand::TeaShanoaAbsorbsMarker as i32,
-                                    extra_data: Some(target_position.marker_id.to_string()),
+                                    extra_data: Some(format!(
+                                        "{},{}",
+                                        target_position.marker_id,
+                                        shanoa.absorbed_markers.len(),
+                                    )),
                                     ..Default::default()
                                 },
                             );

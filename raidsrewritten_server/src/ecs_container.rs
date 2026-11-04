@@ -60,7 +60,7 @@ fn process_messages(world: &World, queries: &CommonQueries, rx_from_ws: &Receive
                 if let Some(e) = find_socket(&queries.query_socket, socket_id) {
                     info!(
                         socket_str = socket_id.as_str(),
-                        content_id,
+                        // content_id,
                         name,
                         role_str = Into::<&str>::into(&role),
                         party,
@@ -71,7 +71,7 @@ fn process_messages(world: &World, queries: &CommonQueries, rx_from_ws: &Receive
                 } else {
                     info!(
                         socket_str = socket_id.as_str(),
-                        content_id,
+                        // content_id,
                         name,
                         role_str = Into::<&str>::into(&role),
                         party,
@@ -309,7 +309,7 @@ fn process_messages(world: &World, queries: &CommonQueries, rx_from_ws: &Receive
                 if let Some(e) = queries.query_player.find(|p| p.content_id == content_id) {
                     info!(
                         socket_str = socket_id.as_str(),
-                        content_id,
+                        // content_id,
                         name,
                         role_str = Into::<&str>::into(&role),
                         party,
@@ -319,7 +319,7 @@ fn process_messages(world: &World, queries: &CommonQueries, rx_from_ws: &Receive
                 } else if let Some(pc) = find_party_container(world, &party) {
                     info!(
                         socket_str = socket_id.as_str(),
-                        content_id,
+                        // content_id,
                         name,
                         role_str = Into::<&str>::into(&role),
                         party,

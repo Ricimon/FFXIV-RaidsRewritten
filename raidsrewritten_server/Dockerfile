@@ -6,14 +6,14 @@
 
 # Want to help us make this template better? Share your feedback here: https://forms.gle/ybq9Krt8jtBL3iCk7
 
-ARG RUST_VERSION=1.92.0
-ARG APP_NAME=raidsrewritten_server
+# ARG RUST_VERSION=1.92.0
+# ARG APP_NAME=raidsrewritten_server
 
 ################################################################################
 # Create a stage for building the application.
 
-FROM rust:${RUST_VERSION}-bookworm AS build
-ARG APP_NAME
+FROM rust:1.92.0-bookworm AS build
+ARG APP_NAME=raidsrewritten_server
 WORKDIR /app
 
 # Install host build dependencies.
@@ -43,6 +43,8 @@ cp ./target/release/$APP_NAME /bin/server
 # image from the build stage where the necessary files are copied from the build
 # stage.
 FROM debian:bookworm AS final
+
+LABEL org.opencontainers.image.source=https://github.com/Ricimon/FFXIV-RaidsRewritten
 
 # Create a non-privileged user that the app will run under.
 # See https://docs.docker.com/go/dockerfile-user-best-practices/

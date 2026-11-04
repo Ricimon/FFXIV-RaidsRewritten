@@ -39,6 +39,7 @@ public class ShanoaParkTest : Mechanic, IShanoaPark
     private const string ShanoaAetherCompassMessage = "Shanoa responds to the Aether Compass!";
     private const string ShanoaRunsAwayMessage = "Shanoa runs off...";
     private const string ShanoaAbsorbMarkerMessage = "Shanoa absorbs the waymark's essence.";
+    private const string ShanoaAbsorbAllMarkersMessage = "Shanoa has absorbed all the waymarks' essence!";
 
     private const float GuidanceMarkerRadius = 1.4f;
 
@@ -321,7 +322,10 @@ public class ShanoaParkTest : Mechanic, IShanoaPark
             case (int)NetworkMechanicCommand.TeaShanoaAbsorbsMarker:
                 {
                     if (string.IsNullOrEmpty(payload.extraData)) { return; }
-                    if (!byte.TryParse(payload.extraData, out var markerId)) { return; }
+                    var arguments = payload.extraData.Split(',');
+                    if (arguments.Length < 2) { return; }
+                    if (!byte.TryParse(arguments[0], out var markerId)) { return; }
+                    if (!byte.TryParse(arguments[1], out var totalMarkersAbsorbed)) { return; }
                     if (!TryGetMarkerPosition(markerId, out var markerPosition)) { return; }
                     if (!shanoa.IsValid()) { return; }
                     if (shanoa.TryGet(out Model shanoaModel))
@@ -341,8 +345,27 @@ public class ShanoaParkTest : Mechanic, IShanoaPark
                         attacks.Add(action);
                         shanoa.Set(new OneTimeModelTimeline(Shanoa.ScratchSelfAnimationId));
 
-                        Dalamud.ToastGui.ShowNormal(ShanoaAbsorbMarkerMessage);
-                        Dalamud.ChatGui.PrintSystemMessage(ShanoaAbsorbMarkerMessage);
+                        string msg;
+                        if (totalMarkersAbsorbed >= 3)
+                        {
+                            msg = ShanoaAbsorbAllMarkersMessage;
+                            // Super Saiyan effect
+                            var action2 = DelayedAction.Create(World, () =>
+                            {
+                                if (shanoaGo != null)
+                                {
+                                    VfxSpawn.SpawnActorVfx("vfx/common/eff/itm_sp03_c0c.avfx", shanoaGo, shanoaGo);
+                                    VfxSpawn.SpawnActorVfx("vfx/common/eff/itm_sp03_c1c.avfx", shanoaGo, shanoaGo);
+                                }
+                            }, 0.8f);
+                            attacks.Add(action2);
+                        }
+                        else
+                        {
+                            msg = ShanoaAbsorbMarkerMessage;
+                        }
+                        Dalamud.ToastGui.ShowNormal(msg);
+                        Dalamud.ChatGui.PrintSystemMessage(msg);
                     }
                 }
                 break;

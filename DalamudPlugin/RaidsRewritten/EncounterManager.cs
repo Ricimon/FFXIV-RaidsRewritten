@@ -93,8 +93,7 @@ public sealed class EncounterManager(
         }
         else
         {
-            ActiveEncounter = null;
-            networkClient.DisconnectAsync().SafeFireAndForget();
+            OnTerritoryChanged(dalamud.ClientState.TerritoryType);
         }
     }
 

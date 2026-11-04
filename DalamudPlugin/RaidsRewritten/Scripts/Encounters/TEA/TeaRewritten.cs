@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
+using Dalamud.Interface.Utility.Raii;
 using RaidsRewritten.Network;
 using RaidsRewritten.UI.Util;
 using RaidsRewritten.Utility;
@@ -14,6 +16,7 @@ public class TeaRewritten : IEncounter
 
     // Config
     private string RngSeedKey => $"{Name}.RngSeed";
+    private string BlindProgModeKey => $"{Name}.BlindProgMode";
     private string FireTornadoKey => $"{Name}.FireTornado";
     private string PickyDollsKey => $"{Name}.PickyDolls";
     private string SurfsUpKey => $"{Name}.SurfsUp";
@@ -32,17 +35,20 @@ public class TeaRewritten : IEncounter
     private readonly Mechanic.Factory mechanicFactory;
     private readonly DalamudServices dalamud;
     private readonly Configuration configuration;
+    private readonly NetworkClient networkClient;
     private readonly NetworkClientUi networkClientUi;
 
     private readonly List<Mechanic> mechanics = [];
     private readonly Dictionary<string, bool> defaultBoolSettings;
     private readonly Dictionary<string, int> defaultIntSettings;
+    private readonly HashSet<string> networkedMechanics;
 
-    public TeaRewritten(Mechanic.Factory mechanicFactory, DalamudServices dalamud, Configuration configuration, NetworkClientUi networkClientUi)
+    public TeaRewritten(Mechanic.Factory mechanicFactory, DalamudServices dalamud, Configuration configuration, NetworkClient networkClient, NetworkClientUi networkClientUi)
     {
         this.mechanicFactory = mechanicFactory;
         this.dalamud = dalamud;
         this.configuration = configuration;
+        this.networkClient = networkClient;
         this.networkClientUi = networkClientUi;
 
         this.defaultBoolSettings = new()
@@ -66,6 +72,15 @@ public class TeaRewritten : IEncounter
         this.defaultIntSettings = new()
         {
         };
+
+        this.networkedMechanics = [
+            FireTornadoKey,
+            HawkTowerKey,
+            ShanoaParkKey,
+            SuperJumpPlusKey,
+            ScrewdriverKey,
+            JWaveSpreadsKey,
+            ];
     }
 
     public IEnumerable<Mechanic> GetMechanics()
@@ -80,32 +95,32 @@ public class TeaRewritten : IEncounter
         var rngSeedString = configuration.GetEncounterSetting(RngSeedKey, string.Empty);
         int rngSeed = RandomUtilities.HashToRngSeed(rngSeedString);
 
-        if (configuration.GetEncounterSetting(FireTornadoKey, defaultBoolSettings[FireTornadoKey]))
+        if (GetEncounterSetting(FireTornadoKey))
         {
             mechanics.Add(mechanicFactory.Create<FireTornado>());
         }
-        if (configuration.GetEncounterSetting(PickyDollsKey, defaultBoolSettings[PickyDollsKey]))
+        if (GetEncounterSetting(PickyDollsKey))
         {
             var pickyDolls = mechanicFactory.Create<PickyDolls>();
             pickyDolls.RngSeed = rngSeed;
             mechanics.Add(pickyDolls);
         }
-        if (configuration.GetEncounterSetting(SurfsUpKey, defaultBoolSettings[SurfsUpKey]))
+        if (GetEncounterSetting(SurfsUpKey))
         {
             var surfsUp = mechanicFactory.Create<SurfsUp>();
             mechanics.Add(surfsUp);
         }
-        if (configuration.GetEncounterSetting(HawkTowerKey, defaultBoolSettings[HawkTowerKey]))
+        if (GetEncounterSetting(HawkTowerKey))
         {
             var hawkTower = mechanicFactory.Create<HawkTower>();
             mechanics.Add(hawkTower);
         }
-        if (configuration.GetEncounterSetting(KKickKey, defaultBoolSettings[KKickKey]))
+        if (GetEncounterSetting(KKickKey))
         {
             var kkick = mechanicFactory.Create<KKick>();
             mechanics.Add(kkick);
         }
-        if (configuration.GetEncounterSetting(ShanoaParkKey, defaultBoolSettings[ShanoaParkKey]))
+        if (GetEncounterSetting(ShanoaParkKey))
         {
             var shanoaPark = mechanicFactory.Create<ShanoaPark>();
             mechanics.Add(shanoaPark);
@@ -113,46 +128,50 @@ public class TeaRewritten : IEncounter
             shanoaAndNisi.RngSeed = rngSeed;
             shanoaAndNisi.ShanoaPark = shanoaPark;
             mechanics.Add(shanoaAndNisi);
+            var shanoaAndAlexPrime = mechanicFactory.Create<ShanoaAndAlexPrime>();
+            shanoaAndAlexPrime.ShanoaPark = shanoaPark;
+            mechanics.Add(shanoaAndAlexPrime);
         }
-        if (configuration.GetEncounterSetting(ShanoaParkKey, defaultBoolSettings[ShanoaParkKey]) &&
-            configuration.GetEncounterSetting(FireTornadoKey, defaultBoolSettings[FireTornadoKey]))
+        if (GetEncounterSetting(ShanoaParkKey) && GetEncounterSetting(FireTornadoKey))
         {
             var shanoaAndFireTornado = mechanicFactory.Create<ShanoaAndFireTornado>();
             mechanics.Add(shanoaAndFireTornado);
         }
-        if (configuration.GetEncounterSetting(ChakramBallsKey, defaultBoolSettings[ChakramBallsKey]))
+        if (GetEncounterSetting(ChakramBallsKey))
         {
             var chakramBalls = mechanicFactory.Create<ChakramBalls>();
             chakramBalls.RngSeed = rngSeed;
             mechanics.Add(chakramBalls);
         }
-        if (configuration.GetEncounterSetting(IcePlusKey, defaultBoolSettings[IcePlusKey]))
+        if (GetEncounterSetting(IcePlusKey))
         {
             var icePlus = mechanicFactory.Create<IcePlus>();
             icePlus.RngSeed = rngSeed;
             mechanics.Add(icePlus);
         }
-        if (configuration.GetEncounterSetting(MoreChakramsKey, defaultBoolSettings[MoreChakramsKey]))
+        if (GetEncounterSetting(MoreChakramsKey))
         {
             var moreChakrams = mechanicFactory.Create<MoreChakrams>();
             moreChakrams.RngSeed = rngSeed;
             mechanics.Add(moreChakrams);
         }
-        if (configuration.GetEncounterSetting(SuperJumpPlusKey, defaultBoolSettings[SuperJumpPlusKey]))
+        if (GetEncounterSetting(SuperJumpPlusKey))
         {
             mechanics.Add(mechanicFactory.Create<SuperJumpPlus>());
         }
-        if (configuration.GetEncounterSetting(GearBeamKey, defaultBoolSettings[GearBeamKey]))
+        if (GetEncounterSetting(GearBeamKey))
         {
             var gearBeam = mechanicFactory.Create<GearBeams>();
             gearBeam.RngSeed = rngSeed;
             mechanics.Add(gearBeam);
         }
-        if (configuration.GetEncounterSetting(ScrewdriverKey, defaultBoolSettings[ScrewdriverKey]))
+        if (GetEncounterSetting(ScrewdriverKey))
         {
-            mechanics.Add(mechanicFactory.Create<Screwdriver>());
+            var screwdriver = mechanicFactory.Create<Screwdriver>();
+            screwdriver.RngSeed = rngSeed;
+            mechanics.Add(screwdriver);
         }
-        if (configuration.GetEncounterSetting(JWaveSpreadsKey, defaultBoolSettings[JWaveSpreadsKey]))
+        if (GetEncounterSetting(JWaveSpreadsKey))
         {
             mechanics.Add(mechanicFactory.Create<JWaveSpreads>());
         }
@@ -184,6 +203,7 @@ public class TeaRewritten : IEncounter
     public void DrawConfig()
     {
         networkClientUi.DrawConfig();
+        ImGui.Spacing();
 
         if (ImGui.Button("Apply Intended Difficulty"))
         {
@@ -206,16 +226,68 @@ public class TeaRewritten : IEncounter
         ImGui.SameLine();
         Common.HelpMarker("Make sure all players are on the same RNG seed");
 
-        bool fireTornado = configuration.GetEncounterSetting(FireTornadoKey, defaultBoolSettings[FireTornadoKey]);
-        if (ImGui.Checkbox("Fire Tornado", ref fireTornado))
+        if (configuration.GetEncounterSetting(BlindProgModeKey, true))
         {
-            configuration.EncounterSettings[FireTornadoKey] =
-                fireTornado ? bool.TrueString : bool.FalseString;
-            configuration.Save();
-            RefreshMechanics();
+            using (var iconFont = ImRaii.PushFont(UiBuilder.IconFont))
+            {
+                var errorIcon = FontAwesomeIcon.EyeSlash.ToIconString();
+                ImGui.Text(errorIcon);
+            }
+            ImGui.SameLine();
+            ImGui.Text("Blind prog mode, mechanic names hidden");
+
+            var intendedDifficultyActive = true;
+            foreach(var setting in defaultBoolSettings)
+            {
+                if (configuration.GetEncounterSetting(setting.Key, setting.Value) != setting.Value)
+                {
+                    intendedDifficultyActive = false;
+                    break;
+                }
+            }
+            if (!intendedDifficultyActive)
+            {
+                using (var iconFont = ImRaii.PushFont(UiBuilder.IconFont))
+                {
+                    var errorIcon = FontAwesomeIcon.ExclamationTriangle.ToIconString();
+                    ImGui.TextColored(Vector4Colors.Yellow, errorIcon);
+                }
+                ImGui.SameLine();
+                ImGui.Text("Intended difficulty is not active");
+            }
+
+            if (!networkClient.IsConnected)
+            {
+                using (var iconFont = ImRaii.PushFont(UiBuilder.IconFont))
+                {
+                    var errorIcon = FontAwesomeIcon.ExclamationTriangle.ToIconString();
+                    ImGui.TextColored(Vector4Colors.Yellow, errorIcon);
+                }
+                ImGui.SameLine();
+                ImGui.Text("A server connection is required for some mechanics");
+            }
+            if (ImGui.Button("Show Mechanic Toggles"))
+            {
+                configuration.EncounterSettings[BlindProgModeKey] = bool.FalseString;
+                configuration.Save();
+            }
+            return;
         }
 
-        bool pickyDolls = configuration.GetEncounterSetting(PickyDollsKey, defaultBoolSettings[PickyDollsKey]);
+        bool fireTornado = GetEncounterSetting(FireTornadoKey);
+        using (ImRaii.Disabled(!networkClient.IsConnected))
+        {
+            if (ImGui.Checkbox("Fire Tornado", ref fireTornado))
+            {
+                configuration.EncounterSettings[FireTornadoKey] =
+                    fireTornado ? bool.TrueString : bool.FalseString;
+                configuration.Save();
+                RefreshMechanics();
+            }
+        }
+        ServerRequiredTooltip();
+
+        bool pickyDolls = GetEncounterSetting(PickyDollsKey);
         if (ImGui.Checkbox("Picky Dolls", ref pickyDolls))
         {
             configuration.EncounterSettings[PickyDollsKey] =
@@ -224,7 +296,7 @@ public class TeaRewritten : IEncounter
             RefreshMechanics();
         }
 
-        bool surfsUp = configuration.GetEncounterSetting(SurfsUpKey, defaultBoolSettings[SurfsUpKey]);
+        bool surfsUp = GetEncounterSetting(SurfsUpKey);
         if (ImGui.Checkbox("Surfs Up!", ref surfsUp))
         {
             configuration.EncounterSettings[SurfsUpKey] =
@@ -233,16 +305,20 @@ public class TeaRewritten : IEncounter
             RefreshMechanics();
         }
 
-        bool hawkTower = configuration.GetEncounterSetting(HawkTowerKey, defaultBoolSettings[HawkTowerKey]);
-        if (ImGui.Checkbox("Hawk Tower", ref hawkTower))
+        bool hawkTower = GetEncounterSetting(HawkTowerKey);
+        using (ImRaii.Disabled(!networkClient.IsConnected))
         {
-            configuration.EncounterSettings[HawkTowerKey] =
-                hawkTower ? bool.TrueString : bool.FalseString;
-            configuration.Save();
-            RefreshMechanics();
+            if (ImGui.Checkbox("Hawk Tuawer (tower)", ref hawkTower))
+            {
+                configuration.EncounterSettings[HawkTowerKey] =
+                    hawkTower ? bool.TrueString : bool.FalseString;
+                configuration.Save();
+                RefreshMechanics();
+            }
         }
+        ServerRequiredTooltip();
 
-        bool kkick = configuration.GetEncounterSetting(KKickKey, defaultBoolSettings[KKickKey]);
+        bool kkick = GetEncounterSetting(KKickKey);
         if (ImGui.Checkbox("K-Kick", ref kkick))
         {
             configuration.EncounterSettings[KKickKey] =
@@ -251,16 +327,20 @@ public class TeaRewritten : IEncounter
             RefreshMechanics();
         }
 
-        bool shanoaPark = configuration.GetEncounterSetting(ShanoaParkKey, defaultBoolSettings[ShanoaParkKey]);
-        if (ImGui.Checkbox("Shanoa Park", ref shanoaPark))
+        bool shanoaPark = GetEncounterSetting(ShanoaParkKey);
+        using (ImRaii.Disabled(!networkClient.IsConnected))
         {
-            configuration.EncounterSettings[ShanoaParkKey] =
-                shanoaPark ? bool.TrueString : bool.FalseString;
-            configuration.Save();
-            RefreshMechanics();
+            if (ImGui.Checkbox("Shanoa Park", ref shanoaPark))
+            {
+                configuration.EncounterSettings[ShanoaParkKey] =
+                    shanoaPark ? bool.TrueString : bool.FalseString;
+                configuration.Save();
+                RefreshMechanics();
+            }
         }
+        ServerRequiredTooltip();
 
-        bool chakramBalls = configuration.GetEncounterSetting(ChakramBallsKey, defaultBoolSettings[ChakramBallsKey]);
+        bool chakramBalls = GetEncounterSetting(ChakramBallsKey);
         if (ImGui.Checkbox("Rolling Balls", ref chakramBalls))
         {
             configuration.EncounterSettings[ChakramBallsKey] =
@@ -269,7 +349,7 @@ public class TeaRewritten : IEncounter
             RefreshMechanics();
         }
 
-        bool icePlus = configuration.GetEncounterSetting(IcePlusKey, defaultBoolSettings[IcePlusKey]);
+        bool icePlus = GetEncounterSetting(IcePlusKey);
         if (ImGui.Checkbox("Ice+", ref icePlus))
         {
             configuration.EncounterSettings[IcePlusKey] =
@@ -278,7 +358,7 @@ public class TeaRewritten : IEncounter
             RefreshMechanics();
         }
 
-        bool moreChakrams = configuration.GetEncounterSetting(MoreChakramsKey, defaultBoolSettings[MoreChakramsKey]);
+        bool moreChakrams = GetEncounterSetting(MoreChakramsKey);
         if (ImGui.Checkbox("More Chakrams", ref moreChakrams))
         {
             configuration.EncounterSettings[MoreChakramsKey] =
@@ -287,16 +367,20 @@ public class TeaRewritten : IEncounter
             RefreshMechanics();
         }
 
-        bool superJumpPlus = configuration.GetEncounterSetting(SuperJumpPlusKey, defaultBoolSettings[SuperJumpPlusKey]);
-        if (ImGui.Checkbox("Super Jump+", ref superJumpPlus))
+        bool superJumpPlus = GetEncounterSetting(SuperJumpPlusKey);
+        using (ImRaii.Disabled(!networkClient.IsConnected))
         {
-            configuration.EncounterSettings[SuperJumpPlusKey] =
-                superJumpPlus ? bool.TrueString : bool.FalseString;
-            configuration.Save();
-            RefreshMechanics();
+            if (ImGui.Checkbox("Super Super Jump", ref superJumpPlus))
+            {
+                configuration.EncounterSettings[SuperJumpPlusKey] =
+                    superJumpPlus ? bool.TrueString : bool.FalseString;
+                configuration.Save();
+                RefreshMechanics();
+            }
         }
+        ServerRequiredTooltip();
 
-        bool gearBeam = configuration.GetEncounterSetting(GearBeamKey, defaultBoolSettings[GearBeamKey]);
+        bool gearBeam = GetEncounterSetting(GearBeamKey);
         if (ImGui.Checkbox("Gear Weal", ref gearBeam))
         {
             configuration.EncounterSettings[GearBeamKey] =
@@ -305,22 +389,58 @@ public class TeaRewritten : IEncounter
             RefreshMechanics();
         }
 
-        bool screwdriver = configuration.GetEncounterSetting(ScrewdriverKey, defaultBoolSettings[ScrewdriverKey]);
-        if (ImGui.Checkbox("Screwdriver", ref screwdriver))
+        bool screwdriver = GetEncounterSetting(ScrewdriverKey);
+        using (ImRaii.Disabled(!networkClient.IsConnected))
         {
-            configuration.EncounterSettings[ScrewdriverKey] =
-                screwdriver ? bool.TrueString : bool.FalseString;
-            configuration.Save();
-            RefreshMechanics();
+            if (ImGui.Checkbox("Screwdriver", ref screwdriver))
+            {
+                configuration.EncounterSettings[ScrewdriverKey] =
+                    screwdriver ? bool.TrueString : bool.FalseString;
+                configuration.Save();
+                RefreshMechanics();
+            }
         }
+        ServerRequiredTooltip();
 
-        bool jWaveSpreads = configuration.GetEncounterSetting(JWaveSpreadsKey, defaultBoolSettings[JWaveSpreadsKey]);
-        if (ImGui.Checkbox("J-Wave Spreads", ref jWaveSpreads))
+        bool jWaveSpreads = GetEncounterSetting(JWaveSpreadsKey);
+        using (ImRaii.Disabled(!networkClient.IsConnected))
         {
-            configuration.EncounterSettings[JWaveSpreadsKey] =
-                jWaveSpreads ? bool.TrueString : bool.FalseString;
+            if (ImGui.Checkbox("JS-Waves", ref jWaveSpreads))
+            {
+                configuration.EncounterSettings[JWaveSpreadsKey] =
+                    jWaveSpreads ? bool.TrueString : bool.FalseString;
+                configuration.Save();
+                RefreshMechanics();
+            }
+        }
+        ServerRequiredTooltip();
+
+        if (!configuration.GetEncounterSetting(BlindProgModeKey, true) &&
+            ImGui.Button("Hide Mechanic Toggles (blind prog mode)"))
+        {
+            configuration.EncounterSettings[BlindProgModeKey] = bool.TrueString;
             configuration.Save();
-            RefreshMechanics();
+        }
+    }
+
+    private bool GetEncounterSetting(string key)
+    {
+        if (networkedMechanics.Contains(key))
+        {
+            return configuration.GetEncounterSetting(key, defaultBoolSettings[key]) &&
+                networkClient.IsConnected;
+        }
+        else
+        {
+            return configuration.GetEncounterSetting(key, defaultBoolSettings[key]);
+        }
+    }
+
+    private void ServerRequiredTooltip()
+    {
+        if (!networkClient.IsConnected && ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
+        {
+            ImGui.SetTooltip("Requires a server connection");
         }
 
         bool wormholeSuperJump = configuration.GetEncounterSetting(WormholeSuperJumpKey, defaultBoolSettings[WormholeSuperJumpKey]);

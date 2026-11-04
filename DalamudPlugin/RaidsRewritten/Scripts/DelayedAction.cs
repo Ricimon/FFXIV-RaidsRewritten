@@ -80,6 +80,11 @@ public class DelayedAction(ILogger logger) : ISystem
 
     public void Register(World world)
     {
+        // For some reason the immediate DelayedAction system needs to be "warmed-up".
+        // Without this, components set on an entity in the first run of an immediate delayed action will not
+        // appear on the entity until the next frame.
+        Create(world, () => { }, 0, true);
+
         world.System<Component>().Without<Immediate>()
             .Each((Iter it, int i, ref Component component) =>
             {

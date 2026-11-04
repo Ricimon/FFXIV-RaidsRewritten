@@ -24,7 +24,7 @@ public class HelpWindow(DalamudServices dalamud, ILogger logger) : IPluginUIView
         if (!Visible) { return; }
 
         ImGui.SetNextWindowSize(Vector2.Zero, ImGuiCond.Always);
-        var width = Math.Min(ImGui.GetMainViewport().Size.X / ImGuiHelpers.GlobalScale / 2, 800);
+        var width = Math.Min(ImGui.GetMainViewport().Size.X / ImGuiHelpers.GlobalScale / 2, 810);
         ImGui.SetNextWindowSizeConstraints(
             new(width, 0),
             new(width, float.PositiveInfinity));
@@ -43,27 +43,37 @@ public class HelpWindow(DalamudServices dalamud, ILogger logger) : IPluginUIView
         {
             ImGui.Image(icon.Handle, ImGuiHelpers.GlobalScale * new Vector2(100, 100));
         }
+        ImGui.SameLine();
+        ImGui.SetCursorPosY(ImGuiHelpers.GlobalScale * 100 + 0.75f * ImGui.GetTextLineHeight());
+        ImGui.Text("by Ricimon");
         ImGui.TextWrapped("RaidsRewritten is a plugin that adds custom mechanics to fights.");
 
         ImGui.Text("---");
         ImGui.TextWrapped("In case the plugin is accidentally running when not intended, there is an emergency shutoff button.");
 
         ImGui.Text("---");
-        ImGui.TextWrapped("Custom mechanics will apply fake statuses that affect the control of your character.");
-        ImGui.TextWrapped("These fake statuses are displayed as Dalamud UI overlays. Press \"Display Fake Status\" to see one.");
-        ImGui.TextWrapped("Adjust the Status Display Position X and Y values to place the overlay in an appropriate position." +
-            "\nThese values correspond to your screen pixel values.");
+        ImGui.TextWrapped("Custom mechanics can apply custom statuses that may affect the control of your character.");
+        ImGui.TextWrapped("These custom statuses will appear on your status bar and on the party list.");
+        ImGui.TextWrapped("All custom statuses will have a chef-hat icon with a (RaidsRewritten) description to indicate that they come from the plugin.");
+        ImGui.TextWrapped("You can swap back to legacy status rendering from RaidsRewritten v1 through the Misc menu.");
 
         ImGui.Text("---");
         ImGui.TextWrapped("The plugin becomes active when in a supported fight.");
         ImGui.TextWrapped("Custom mechanics can be customized before a pull, but not during a pull.");
         ImGui.TextWrapped("The intended difficulty is a specially crafted set of custom mechanics aimed at making the fight much harder and a novel progression experience.");
-        ImGui.TextWrapped("Some custom mechanic names are intentionally unclear to not spoil the blind progression experience.");
-        ImGui.TextWrapped("Since this plugin (currently) runs purely client-side, it's important to match the RNG seed between all players so every player sees the same mechanic variation for mechanics with RNG.");
+        ImGui.TextWrapped("Some custom mechanic names are intentionally unclear because I like to be funny.");
+        ImGui.TextWrapped("Some custom mechanics use client-side RNG seeding, so it's important to match the RNG seed between all players so every player sees the same mechanic variation for mechanics with RNG.");
 
         ImGui.Text("---");
         ImGui.TextWrapped("Custom mechanic punishments don't do anything that you can't normally do without the plugin, and you can test some of their effects in the Debug tab.");
         ImGui.TextWrapped("You don't need to pretend mechanic punishments are worse than they actually are. Be creative with solutions and recoveries!");
+
+        ImGui.Text("---");
+        ImGui.TextWrapped("A RaidsRewritten server exists to enable custom mechanics that require a single source of truth, such as spreads and stacks.");
+        ImGui.TextWrapped("Server connection does not happen automatically, but is required to enable these mechanics.");
+        ImGui.TextWrapped("PRIVACY: Information sent to the server include your character's content ID, name, and coordinate position.");
+        ImGui.TextWrapped("Your character's content ID is not persistently saved in any way, and the rest of your character information appears in logs solely for error diagnosis.");
+        ImGui.TextWrapped("This is a passion project I've spent countless hours on. I have no intention to misuse your data.");
 
         ImGui.Text("---");
         ImGui.TextWrapped("Lastly, there is a special reward if you can defeat the intended difficulty (or harder)!");

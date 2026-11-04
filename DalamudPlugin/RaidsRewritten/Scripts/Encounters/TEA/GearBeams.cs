@@ -175,6 +175,8 @@ public class GearBeams : Mechanic
                     var attackOmenDuration = 5.5f;
                     var action = DelayedAction.Create(World, () =>
                     {
+                        if (!gear.IsValid()) { return; }
+
                         var ar = attackRotation;
                         if (totalGears % 2 == 1) { ar = 1 - ar; }
                         var rotationOmenVfxPath = ar == 0 ? "vfx/lockon/eff/m1001_turning_left01w.avfx" : "vfx/lockon/eff/m1001_turning_right01w.avfx";
@@ -222,6 +224,8 @@ public class GearBeams : Mechanic
                         var rotationVelocity = 1.0f / attackDuration * MathF.PI * (attackRotation == 0 ? 1 : -1);
                         var action = DelayedAction.Create(World, () =>
                         {
+                            if (!gear.IsValid()) { return; }
+
                             if (j == 0)
                             {
                                 gear.Set(new AngularVelocity(-rotationVelocity));
@@ -239,6 +243,8 @@ public class GearBeams : Mechanic
                             // Stop attack
                             var action = DelayedAction.Create(World, () =>
                             {
+                                if (!gear.IsValid()) { return; }
+
                                 gear.Remove<GearBeam.Beam>();
                                 gear.Remove<AngularVelocity>();
                                 gear.Remove<FullAngularVelocity>();

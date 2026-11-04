@@ -223,6 +223,8 @@ public sealed class NetworkClient : IDisposable
         IsConnecting = false;
         IsConnected = true;
 
+        messageHandler.OnConnect();
+
         if (!dalamud.PlayerState.IsLoaded)
         {
             logger.Warn("PlayerState is not loaded. Disconnecting client.");
@@ -233,6 +235,8 @@ public sealed class NetworkClient : IDisposable
 
     private void OnDisconnected(object? sender, string e)
     {
+        messageHandler.OnDisconnect();
+
         if (e == "io client disconnect")
         {
             logger.Info($"Client disconnected: {e}");
