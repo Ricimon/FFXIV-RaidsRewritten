@@ -8,6 +8,7 @@
 
 ARG RUST_VERSION=1.92.0
 ARG APP_NAME=raidsrewritten_server
+LABEL org.opencontainers.image.source=https://github.com/Ricimon/FFXIV-RaidsRewritten
 
 ################################################################################
 # Create a stage for building the application.
