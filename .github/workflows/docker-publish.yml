@@ -7,8 +7,9 @@ name: Server Docker Image
 
 on:
   push:
+    branches: [main]
     # Publish semver tags as releases.
-    tags: [ 'v*.*.*' ]
+    #tags: [ 'v*.*.*' ]
 
 env:
   # Use docker.io for Docker Hub if empty
@@ -50,6 +51,8 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
+            type=sha
+            type=ref,event=tag
             type=semver,pattern={{version}}
 
       - name: Set up Buildx
