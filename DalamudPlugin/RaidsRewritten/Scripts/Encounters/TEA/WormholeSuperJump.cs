@@ -6,8 +6,10 @@ using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Plugin.Services;
 using ECommons.Hooks;
 using Flecs.NET.Core;
+using RaidsRewritten.Game;
 using RaidsRewritten.Network;
 using RaidsRewritten.Scripts.Attacks;
+using RaidsRewritten.Scripts.Attacks.Omens;
 using RaidsRewritten.Scripts.Components;
 using RaidsRewritten.Scripts.Conditions;
 using RaidsRewritten.Spawn;
@@ -32,8 +34,13 @@ public class WormholeSuperJump : Mechanic
     private const int TargetableAfterWormhole = 3;
 
     private const int BruteJusticeModelId = 1357;
-    // Super Jump has no cast animation, so this is the loop from Apocalyptic Ray's cast
-    private const ushort CastingTimeline = 137;
+    private const ushort IdleTimeline = 34;
+    // Same warp out and in as the end of P2 and timestop
+    private const ushort WarpOutTimeline = 7737;
+    private const ushort WarpInTimeline = 7747;
+    // Super Jump's cast, mon_sp_c
+    private const ushort CastingStartTimeline = 134;
+    private const ushort CastingTimeline = 135;
     private const ushort SuperJumpTimeline = 3204;
     private const ushort ApocalypticRayTimeline = 3205;
 
@@ -46,19 +53,24 @@ public class WormholeSuperJump : Mechanic
     private const string WormholeExplosionVfx = "vfx/monster/d1025/eff/d1025_sp12_bunsan_zentai_t0s.avfx";
 
     private const string CastingVfx = "vfx/common/eff/mon_eisyo03t.avfx";
-    private const string LandingVfx = "vfx/monster/gimmick2/eff/d2ac2_b4_g01c0c.avfx";
+    // Both from BJ's Super Jump timeline (mon_sp004), which doesn't play them on our model
+    private const string TakeOffVfx = "vfx/common/eff/cmma_shoot1c.avfx";
+    private const string LandingVfx = "vfx/monster/m0300/eff/m0300sp04c0t.avfx";
     // From BJ's Apocalyptic Ray timeline (mon_sp005)
     private const string ApocalypticRayVfx = "vfx/monster/m0300/eff/m0300sp05c0t.avfx";
-    // Liquid Hell puddle from UCoB, about 5y across at scale 1
-    private const string PointBlankVfx = "bgcommon/world/common/vfx_for_btl/b0195/eff/b0195_yuka_c.avfx";
-    private const float PointBlankVfxRadius = 5.0f;
 
     // Same as the real one in the fight
     private const float BruteJusticeScale = 0.45f;
-    private const float WormholeScale = 1.0f;
+    // Second stage size, after one soak. Keep in sync with wormhole_radius on the server
+    private const float WormholeScale = 0.75f;
     // BJ is a lot bigger than a player
     private const float WarpVfxScale = 4.0f;
-    // Lands well before the server's jump_time so he sits on the wormhole for a bit
+    // Warp in plus the idle has to fit before the server's cast_time runs out
+    private const float WarpInDuration = 2.0f;
+    private const float IdleBeforeCast = 0.3f;
+    // He crouches before leaving the ground
+    private const float JumpWindup = 0.4f;
+    // Windup plus this has to match the 1s landing in the server's jump_time
     private const float JumpDuration = 0.6f;
     private const float JumpHeight = 10.0f;
     // Keep under the server's turn_time so he's done turning before the ray
@@ -72,8 +84,10 @@ public class WormholeSuperJump : Mechanic
     private const float ApocalypticRayLength = 40.0f;
     private const int ApocalypticRayDegrees = 90;
     private const float ApocalypticRayTickInterval = 1.0f;
-    // Stops people from just hugging BJ to dodge the ray
-    private const float PointBlankRadius = 10.0f;
+    // Safe spot is as wide as Sacrament
+    private const float DynamoSafeRadius = 16.0f;
+    // The server snapshots it, this just fills the omen
+    private const float DynamoDuration = 3.0f;
     private const float DamageDownDuration = 60.0f;
 
     private readonly List<Entity> attacks = [];
@@ -82,6 +96,7 @@ public class WormholeSuperJump : Mechanic
     private Entity castingVfx;
     private Entity wormhole;
     private Entity exitWormhole;
+    private Entity dynamo;
     private float bruteJusticeAlpha = 1.0f;
     private float bruteJusticeTargetAlpha = 1.0f;
     private bool jumping = false;
@@ -106,6 +121,7 @@ public class WormholeSuperJump : Mechanic
         castingVfx = default;
         wormhole = default;
         exitWormhole = default;
+        dynamo = default;
         bruteJusticeAlpha = 1.0f;
         bruteJusticeTargetAlpha = 1.0f;
         jumping = false;
@@ -154,6 +170,50 @@ public class WormholeSuperJump : Mechanic
         World.Entity()
             .Set(new ActorVfx(LandingVfx))
             .ChildOf(bruteJustice);
+        CreateDynamo();
+    }
+
+    private void CreateDynamo()
+    {
+        var center = new Vector3(100.0f, 0.0f, 100.0f);
+        foreach (var obj in Dalamud.ObjectTable)
+        {
+            if (obj.BaseId == AlexanderPrimeBaseId)
+            {
+                center = obj.Position;
+                break;
+            }
+        }
+
+        dynamo.SafeDestruct();
+        dynamo = OneThirdDonutOmen.CreateEntity(World)
+            .Set(new Position(center))
+            .Set(new Scale(DynamoSafeRadius / 0.3f * Vector3.One))
+            .Set(new OmenDuration(DynamoDuration, false));
+        attacks.Add(dynamo);
+    }
+
+    // Goes off at the same time as the wormhole
+    private void SnapshotDynamo()
+    {
+        if (!dynamo.IsValid()) { return; }
+
+        var player = Dalamud.ObjectTable.LocalPlayer;
+        if (player != null && !player.IsDead && OneThirdDonutOmen.IsInOmen(dynamo, player.Position))
+        {
+            if (player.HasTranscendance())
+            {
+                VfxSpawn.PlayInvulnerabilityEffect(player);
+            }
+            else
+            {
+                CommonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
+                {
+                    DamageDown.ApplyToTarget(e, DamageDownDuration);
+                });
+            }
+        }
+        dynamo.SafeDestruct();
     }
 
     private void TurnTo(float rotation)
@@ -251,12 +311,14 @@ public class WormholeSuperJump : Mechanic
                 SuperJump(position, rotation);
                 break;
             case Phase.Teleport:
+                SnapshotDynamo();
                 if (usedWormhole == 1)
                 {
                     Teleport(position, rotation);
                 }
                 else
                 {
+                    ExplodeWormhole();
                     TurnTo(rotation);
                 }
                 break;
@@ -264,7 +326,7 @@ public class WormholeSuperJump : Mechanic
                 ApocalypticRay(position, rotation, apocalypticRayDuration);
                 break;
             case Phase.Leave:
-                Leave(usedWormhole == 1);
+                Leave();
                 break;
         }
     }
@@ -277,12 +339,22 @@ public class WormholeSuperJump : Mechanic
             .Set(new Position(position))
             .Set(new Rotation(rotation))
             .Set(new UniformScale(BruteJusticeScale))
-            .Set(new TimelineBase(CastingTimeline))
+            .Set(new TimelineBase(IdleTimeline))
+            .Set(new OneTimeModelTimeline(WarpInTimeline))
             .Add<Attack>();
-        castingVfx = World.Entity()
-            .Set(new ActorVfx(CastingVfx))
-            .ChildOf(bruteJustice);
         attacks.Add(bruteJustice);
+
+        var cast = DelayedAction.Create(World, () =>
+        {
+            if (!bruteJustice.IsValid()) { return; }
+            bruteJustice
+                .Set(new TimelineBase(CastingTimeline))
+                .Set(new OneTimeModelTimeline(CastingStartTimeline));
+            castingVfx = World.Entity()
+                .Set(new ActorVfx(CastingVfx))
+                .ChildOf(bruteJustice);
+        }, WarpInDuration + IdleBeforeCast);
+        attacks.Add(cast);
 
         wormhole.SafeDestruct();
         wormhole = CreateWormhole(wormholePosition);
@@ -312,14 +384,22 @@ public class WormholeSuperJump : Mechanic
         castingVfx.SafeDestruct();
         bruteJustice
             .Set(new Rotation(rotation))
-            .Set(new TimelineBase(0))
+            .Set(new TimelineBase(IdleTimeline))
             .Set(new OneTimeModelTimeline(SuperJumpTimeline));
 
-        // Flown in OnFrameworkUpdate
+        // Flown in OnFrameworkUpdate once he's off the ground
         jumpStart = start.Value;
         jumpEnd = landingPosition;
         jumpElapsed = 0.0f;
-        jumping = true;
+        var takeOff = DelayedAction.Create(World, () =>
+        {
+            if (!bruteJustice.IsValid()) { return; }
+            World.Entity()
+                .Set(new ActorVfx(TakeOffVfx))
+                .ChildOf(bruteJustice);
+            jumping = true;
+        }, JumpWindup);
+        attacks.Add(takeOff);
     }
 
     private void Teleport(Vector3 position, float rotation)
@@ -375,6 +455,8 @@ public class WormholeSuperJump : Mechanic
         bruteJustice
             .Set(new Position(position))
             .Set(new Rotation(rotation))
+            // Otherwise he goes back to the last timeline when the ray's done
+            .Set(new TimelineBase(IdleTimeline))
             .Set(new OneTimeModelTimeline(ApocalypticRayTimeline));
         // The timeline doesn't play its own vfx on our model
         World.Entity()
@@ -382,15 +464,6 @@ public class WormholeSuperJump : Mechanic
             .ChildOf(bruteJustice);
 
         // No omen for the ray, same as the real one in P2
-        var pointBlank = World.Entity()
-            .Set(new StaticVfx(PointBlankVfx))
-            .Set(new Position(position))
-            .Set(new Rotation(0.0f))
-            .Set(new Scale(PointBlankRadius / PointBlankVfxRadius * Vector3.One))
-            .Add<Attack>();
-        attacks.Add(pointBlank);
-        attacks.Add(DelayedAction.Create(World, () => pointBlank.SafeDestruct(), duration));
-
         // Lingers, so tick it like the real thing
         for (var t = 0.0f; t < duration; t += ApocalypticRayTickInterval)
         {
@@ -403,13 +476,6 @@ public class WormholeSuperJump : Mechanic
                         .Set(new Rotation(rotation))
                         .Set(new Scale(ApocalypticRayLength * Vector3.One))
                         .Set(new Fan.Component(OnApocalypticRayHit, ApocalypticRayDegrees));
-                }
-                if (EntityManager.TryCreateEntity<Circle>(out var circle))
-                {
-                    circle
-                        .Set(new Position(position))
-                        .Set(new Scale(PointBlankRadius * Vector3.One))
-                        .Set(new Circle.Component(0.0f, 0.0f, null, 0.0f, OnApocalypticRayHit));
                 }
             }, t);
             attacks.Add(tick);
@@ -430,22 +496,25 @@ public class WormholeSuperJump : Mechanic
         }
     }
 
-    private void Leave(bool usedWormhole)
+    // Hysteria comes from the server
+    private void ExplodeWormhole()
+    {
+        if (!wormhole.TryGet(out Position wormholePosition)) { return; }
+
+        var explosion = FakeActor.CreateInvalidModel(World)
+            .Set(new Position(wormholePosition.Value))
+            .Set(new ActorVfx(WormholeExplosionVfx));
+        attacks.Add(explosion);
+        wormhole.SafeDestruct();
+    }
+
+    private void Leave()
     {
         if (bruteJustice.IsValid() && bruteJustice.TryGet(out Model model))
         {
             bruteJustice
-                .Set(new OneTimeModelTimeline(SuperJumpTimeline))
+                .Set(new OneTimeModelTimeline(WarpOutTimeline))
                 .Set(new ModelFadeOut(model.ObjectIndex, FadeOutDuration, FadeOutDuration));
-        }
-
-        // Hysteria comes from the server
-        if (!usedWormhole && wormhole.TryGet(out Position wormholePosition))
-        {
-            var explosion = FakeActor.CreateInvalidModel(World)
-                .Set(new Position(wormholePosition.Value))
-                .Set(new ActorVfx(WormholeExplosionVfx));
-            attacks.Add(explosion);
         }
 
         var cleanup = DelayedAction.Create(World, () =>

@@ -53,12 +53,15 @@ pub fn create_mechanic(entity: EntityView<'_>) -> EntityView<'_> {
     };
 
     entity.set(WormholeSuperJump {
-        cast_time: 5.0,
-        jump_time: 1.5,
+        // Warp in and a short idle, then Super Jump's 3.9s cast
+        cast_time: 6.2,
+        // Landing plus the 3s dynamo, the wormhole snapshots with it
+        jump_time: 4.0,
         teleport_time: 2.5,
         turn_time: 1.0,
         apocalyptic_ray_time: 5.0,
-        wormhole_radius: 5.0,
+        // Second stage wormhole, keep in sync with WormholeScale on the client
+        wormhole_radius: 3.75,
         hysteria_duration: 15.0,
         hysteria_redirection_interval: 5.0,
         wormhole_position: ARENA_CENTER + WORMHOLE_DISTANCE * wormhole_direction,
@@ -112,6 +115,7 @@ pub fn create_systems(world: &World) {
 
                     // Lands right on top of them, so they can bait it into the wormhole
                     let Some((landing_position, _)) = target else {
+                        send_update(world, &party.id, wormhole, Phase::Leave);
                         finish_mechanic(entity, mechanic, party);
                         return;
                     };
@@ -147,6 +151,7 @@ pub fn create_systems(world: &World) {
                             wormhole.bj_rotation = vector_to_rotation(to_center.x, to_center.y);
                         }
                         send_update(world, &party.id, wormhole, Phase::Teleport);
+                        apply_hysteria(world, &party.id, wormhole);
                     }
 
                     wormhole.phase = Phase::ApocalypticRay;
@@ -169,31 +174,6 @@ pub fn create_systems(world: &World) {
                     }
 
                     send_update(world, &party.id, wormhole, Phase::Leave);
-
-                    if !wormhole.used_wormhole
-                        && let Some(pc) = find_party_container(world, &party.id)
-                    {
-                        pc.each_child(|c| {
-                            c.try_get::<(&Player, &State)>(|(_, s)| {
-                                if !s.is_alive {
-                                    return;
-                                }
-                                let player = c.entity_view(world);
-                                apply_condition(
-                                    &player,
-                                    condition::Condition::Hysteria as u128,
-                                    condition::Condition::Hysteria,
-                                    wormhole.hysteria_duration,
-                                    false,
-                                )
-                                .entity_view(world)
-                                .set(conditions::Hysteria {
-                                    redirection_interval: wormhole.hysteria_redirection_interval,
-                                });
-                            });
-                        });
-                    }
-
                     finish_mechanic(entity, mechanic, party);
                 }
             }
@@ -227,6 +207,31 @@ fn send_update(world: &WorldRef, party_id: &String, wormhole: &WormholeSuperJump
                         )),
                     },
                 );
+            });
+        });
+    }
+}
+
+// The wormhole blows up when nobody puts BJ in it
+fn apply_hysteria(world: &WorldRef, party_id: &String, wormhole: &WormholeSuperJump) {
+    if let Some(pc) = find_party_container(world, party_id) {
+        pc.each_child(|c| {
+            c.try_get::<(&Player, &State)>(|(_, s)| {
+                if !s.is_alive {
+                    return;
+                }
+                let player = c.entity_view(world);
+                apply_condition(
+                    &player,
+                    condition::Condition::Hysteria as u128,
+                    condition::Condition::Hysteria,
+                    wormhole.hysteria_duration,
+                    false,
+                )
+                .entity_view(world)
+                .set(conditions::Hysteria {
+                    redirection_interval: wormhole.hysteria_redirection_interval,
+                });
             });
         });
     }
