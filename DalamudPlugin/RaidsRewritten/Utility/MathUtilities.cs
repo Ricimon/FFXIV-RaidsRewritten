@@ -114,6 +114,11 @@ public static class MathUtilities
             return 1 - MathF.Cos((x * MathF.PI) / 2);
         }
 
+        public static float EaseInOutSine(float x)
+        {
+            return -(MathF.Cos(MathF.PI * x) - 1) / 2;
+        }
+
         public static float EaseInQuad(float x)
         {
             return x * x;
