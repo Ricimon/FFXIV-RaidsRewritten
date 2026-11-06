@@ -229,7 +229,7 @@ public class WormholeSuperJump : Mechanic
 
         var player = Dalamud.ObjectTable.LocalPlayer;
         if (player != null && !player.IsDead &&
-            Vector2.Distance(player.Position.ToVector2(), center.Value.ToVector2()) > DynamoSafeRadius)
+            Vector2.Distance(player.Position.ToVector2(), center.Value.ToVector2()) >= DynamoSafeRadius)
         {
             if (player.HasTranscendance())
             {
