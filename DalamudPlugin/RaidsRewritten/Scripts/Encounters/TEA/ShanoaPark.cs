@@ -506,9 +506,9 @@ public class ShanoaPark : Mechanic, IShanoaPark
         var markers = MarkingController.Instance()->FieldMarkers;
         for (var i = 0; i < 8; i++)
         {
-            if (i >= markers.Length) { return; }
+            if (i >= markers.Length) { continue; }
             var marker = markers[i];
-            if (!marker.Active) { return; }
+            if (!marker.Active) { continue; }
 
             if ((availableMarkersFlags & (1 << i)) != 0)
             {

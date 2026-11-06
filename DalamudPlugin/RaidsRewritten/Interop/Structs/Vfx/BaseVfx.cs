@@ -85,5 +85,8 @@ public abstract unsafe class BaseVfx
     {
         if (Vfx == null) { return; }
         Vfx->UpdateTransforms(true);
+        //Vfx->Flags |= 0x2;
+        // Remove flag that sometimes causes vfx to not appear?
+        Vfx->SomeFlags &= 0xF7;
     }
 }
