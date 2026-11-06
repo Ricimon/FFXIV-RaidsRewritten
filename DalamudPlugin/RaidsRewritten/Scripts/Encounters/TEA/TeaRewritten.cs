@@ -30,6 +30,7 @@ public class TeaRewritten : IEncounter
     private string GearBeamKey => $"{Name}.GearBeam";
     private string ScrewdriverKey => $"{Name}.Screwdriver";
     private string JWaveSpreadsKey => $"{Name}.JWaveSpreads";
+    private string WormholeSuperJumpKey => $"{Name}.WormholeSuperJump";
 
     private readonly Mechanic.Factory mechanicFactory;
     private readonly DalamudServices dalamud;
@@ -65,6 +66,7 @@ public class TeaRewritten : IEncounter
             { GearBeamKey, true },
             { ScrewdriverKey, true },
             { JWaveSpreadsKey, true },
+            { WormholeSuperJumpKey, true },
         };
 
         this.defaultIntSettings = new()
@@ -78,6 +80,7 @@ public class TeaRewritten : IEncounter
             SuperJumpPlusKey,
             ScrewdriverKey,
             JWaveSpreadsKey,
+            WormholeSuperJumpKey,
             ];
     }
 
@@ -172,6 +175,10 @@ public class TeaRewritten : IEncounter
         if (GetEncounterSetting(JWaveSpreadsKey))
         {
             mechanics.Add(mechanicFactory.Create<JWaveSpreads>());
+        }
+        if (GetEncounterSetting(WormholeSuperJumpKey))
+        {
+            mechanics.Add(mechanicFactory.Create<WormholeSuperJump>());
         }
     }
 
@@ -403,6 +410,19 @@ public class TeaRewritten : IEncounter
             {
                 configuration.EncounterSettings[JWaveSpreadsKey] =
                     jWaveSpreads ? bool.TrueString : bool.FalseString;
+                configuration.Save();
+                RefreshMechanics();
+            }
+        }
+        ServerRequiredTooltip();
+
+        bool wormholeSuperJump = GetEncounterSetting(WormholeSuperJumpKey);
+        using (ImRaii.Disabled(!networkClient.IsConnected))
+        {
+            if (ImGui.Checkbox("Wormhole Super Jump", ref wormholeSuperJump))
+            {
+                configuration.EncounterSettings[WormholeSuperJumpKey] =
+                    wormholeSuperJump ? bool.TrueString : bool.FalseString;
                 configuration.Save();
                 RefreshMechanics();
             }
