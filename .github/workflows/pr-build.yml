@@ -1,0 +1,66 @@
+name: PR Build
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+# A new push makes the previous run for that PR pointless
+concurrency:
+  group: pr-build-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  plugin:
+    name: Plugin
+    # The plugin project references Windows only packages and paths
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      # The csproj and Dalamud.NET.Sdk both look for Dalamud here
+      - name: Download Dalamud
+        shell: pwsh
+        run: |
+          $dalamudPath = "$env:APPDATA\XIVLauncher\addon\Hooks\dev"
+          New-Item -ItemType Directory -Force -Path $dalamudPath | Out-Null
+          Invoke-WebRequest -Uri https://goatcorp.github.io/dalamud-distrib/latest.zip -OutFile "$env:RUNNER_TEMP\dalamud.zip"
+          Expand-Archive -Path "$env:RUNNER_TEMP\dalamud.zip" -DestinationPath $dalamudPath -Force
+
+      # Debug because packages.lock.json is locked to the Debug Flecs packages
+      - name: Build plugin
+        run: dotnet build DalamudPlugin/RaidsRewritten.sln -c Debug -p:Platform=x64
+
+  server:
+    name: Server
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Install build dependencies
+        run: sudo apt-get update && sudo apt-get install -y libclang-dev
+
+      # Keep in sync with the Dockerfile
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@1.92.0
+
+      - name: Cache Rust build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: raidsrewritten_server
+
+      - name: Build server
+        working-directory: raidsrewritten_server
+        run: cargo build --locked
