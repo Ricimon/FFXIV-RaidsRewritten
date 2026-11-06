@@ -65,6 +65,7 @@ public class ShanoaPark : Mechanic, IShanoaPark
     private Entity shanoa;
     private int fluidSwingsPerformed = 0;
     private bool protean1Casted = false;
+    private int cascadeCount = 0;
 
     public override void Reset()
     {
@@ -77,6 +78,7 @@ public class ShanoaPark : Mechanic, IShanoaPark
         availableTornadoPositions.Clear();
         fluidSwingsPerformed = 0;
         protean1Casted = false;
+        cascadeCount = 0;
     }
 
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
@@ -153,6 +155,7 @@ public class ShanoaPark : Mechanic, IShanoaPark
 
         else if (set.Action.Value.RowId == CascadeActionId)
         {
+            cascadeCount++;
             if (shanoa.IsValid())
             {
                 shanoa.Set(new OneTimeModelTimeline(Shanoa.StretchAnimationId));
@@ -165,7 +168,7 @@ public class ShanoaPark : Mechanic, IShanoaPark
                     startMechanic = new Message.StartMechanicPayload
                     {
                         mechanicId = (uint)NetworkMechanic.TeaHideShanoa,
-                        requestId = nameof(NetworkMechanic.TeaHideShanoa) + "_Cascade",
+                        requestId = nameof(NetworkMechanic.TeaHideShanoa) + $"_Cascade{cascadeCount}",
                     }
                 }).SafeFireAndForget();
             }, 1.0f);
