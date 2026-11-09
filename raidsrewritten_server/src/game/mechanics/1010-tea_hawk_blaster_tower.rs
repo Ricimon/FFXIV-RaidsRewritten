@@ -37,7 +37,7 @@ enum Phase {
 
 pub fn create_mechanic(entity: EntityView<'_>) -> EntityView<'_> {
     entity.set(HawkBlasterTower {
-        time_to_snapshot: 2.0,
+        time_to_snapshot: 2.5,
         attack_delay: 0.2,
         effect_delay: 0.2,
         failure_attack_delay: 1.0,
