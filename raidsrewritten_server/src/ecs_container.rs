@@ -307,14 +307,14 @@ fn process_messages(world: &World, queries: &CommonQueries, rx_from_ws: &Receive
             } => {
                 let player_entity;
                 if let Some(e) = queries.query_player.find(|p| p.content_id == content_id) {
-                    info!(
-                        socket_str = socket_id.as_str(),
-                        // content_id,
-                        name,
-                        role_str = Into::<&str>::into(&role),
-                        party,
-                        "Updating Fake Player"
-                    );
+                    // info!(
+                    //     socket_str = socket_id.as_str(),
+                    //     // content_id,
+                    //     name,
+                    //     role_str = Into::<&str>::into(&role),
+                    //     party,
+                    //     "Updating Fake Player"
+                    // );
                     player_entity = e;
                 } else if let Some(pc) = find_party_container(world, &party) {
                     info!(
