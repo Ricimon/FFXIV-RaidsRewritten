@@ -12,7 +12,7 @@
 ################################################################################
 # Create a stage for building the application.
 
-FROM rust:1.92.0-bookworm AS build
+FROM rust:1.99-bookworm AS build
 ARG APP_NAME=raidsrewritten_server
 WORKDIR /app
 
