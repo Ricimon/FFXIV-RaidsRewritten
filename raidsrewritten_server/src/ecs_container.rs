@@ -105,14 +105,14 @@ fn process_messages(world: &World, queries: &CommonQueries, rx_from_ws: &Receive
                 is_alive,
             } => {
                 if let Some(e) = find_socket(&queries.query_socket, socket_id) {
-                    info!(
-                        socket_str = socket_id.as_str(),
-                        world_position_x,
-                        world_position_y,
-                        world_position_z,
-                        is_alive,
-                        "Updating PlayerStatus"
-                    );
+                    // info!(
+                    //     socket_str = socket_id.as_str(),
+                    //     world_position_x,
+                    //     world_position_y,
+                    //     world_position_z,
+                    //     is_alive,
+                    //     "Updating PlayerStatus"
+                    // );
                     e.set(Position {
                         x: world_position_x,
                         y: world_position_y,
