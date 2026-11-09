@@ -60,16 +60,13 @@ pub fn create_systems(world: &World) {
                     link_to_id: 0,
                 };
                 let mut found_existing = false;
-                world
-                    .query::<&mut Screw>()
-                    .build()
-                    .each(|s| {
-                        if s.target_id == target_id {
-                            s.rotation_state = rotation_state.unwrap_or(s.rotation_state);
-                            found_existing = true;
-                            screw = s.clone();
-                        }
-                    });
+                world.query::<&mut Screw>().build().each(|s| {
+                    if s.target_id == target_id {
+                        s.rotation_state = rotation_state.unwrap_or(s.rotation_state);
+                        found_existing = true;
+                        screw = s.clone();
+                    }
+                });
 
                 if !found_existing {
                     create_generic_mechanic(
@@ -142,13 +139,8 @@ pub fn create_systems(world: &World) {
                                 return;
                             }
 
-                            let mut is_screwed = false;
-                            screw_query.each(|s| {
-                                if s.id == pl.content_id {
-                                    is_screwed = true;
-                                }
-                            });
-                            if is_screwed {
+                            let screw_target = screw_query.find(|s| s.id == pl.content_id);
+                            if screw_target.is_some() {
                                 return;
                             }
 
@@ -167,6 +159,14 @@ pub fn create_systems(world: &World) {
                     if pl.content_id == screw.link_to_id {
                         let player_position = Vector2::new(p.x, p.z);
                         if target_position.metric_distance(&player_position) > LINK_RADIUS {
+                            screw.link_to_id = 0;
+                            send_update_screwdriver_state(world, &party.id, screw);
+                            return;
+                        }
+
+                        // Screwed players can't be linked
+                        let screw_target = screw_query.find(|s| s.id == pl.content_id);
+                        if screw_target.is_some() {
                             screw.link_to_id = 0;
                             send_update_screwdriver_state(world, &party.id, screw);
                         }

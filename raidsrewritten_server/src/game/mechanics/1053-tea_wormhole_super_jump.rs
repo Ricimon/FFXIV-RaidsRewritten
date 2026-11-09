@@ -204,7 +204,10 @@ pub fn create_systems(world: &World) {
                     }
 
                     // He keeps facing the way he turned, which is out of the arena from the exit
-                    if wormhole.teleport_start.is_some_and(|start| elapsed >= start) {
+                    if wormhole
+                        .teleport_start
+                        .is_some_and(|start| elapsed >= start)
+                    {
                         wormhole.bj_position = wormhole.exit_wormhole_position;
                         send_update(world, &party.id, wormhole, Phase::Teleport);
                         wormhole.teleport_start = None;
