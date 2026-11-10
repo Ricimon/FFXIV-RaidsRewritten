@@ -22,6 +22,10 @@ namespace RaidsRewritten.Scripts.Encounters.TEA;
 
 public class ShanoaPark : Mechanic, IShanoaPark
 {
+    public bool EasyMode { get; set; }
+
+    public Entity Shanoa => shanoa;
+
     private const uint LiquidRageDataId = 0x2C49;
     private const uint FluidSwingActionId = 18864;
     private const uint LivingLiquidProteanWaveActionId = 18468;
@@ -158,7 +162,7 @@ public class ShanoaPark : Mechanic, IShanoaPark
             cascadeCount++;
             if (shanoa.IsValid())
             {
-                shanoa.Set(new OneTimeModelTimeline(Shanoa.StretchAnimationId));
+                shanoa.Set(new OneTimeModelTimeline(Models.Shanoa.StretchAnimationId));
             }
             var action = DelayedAction.Create(World, () =>
             {
@@ -415,7 +419,7 @@ public class ShanoaPark : Mechanic, IShanoaPark
                             }
                         }, 0.4f);
                         attacks.Add(action);
-                        shanoa.Set(new OneTimeModelTimeline(Shanoa.ScratchSelfAnimationId));
+                        shanoa.Set(new OneTimeModelTimeline(Models.Shanoa.ScratchSelfAnimationId));
 
                         string msg;
                         if (totalMarkersAbsorbed >= 8)

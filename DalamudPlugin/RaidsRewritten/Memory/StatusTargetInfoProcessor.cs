@@ -113,18 +113,15 @@ public unsafe sealed class StatusTargetInfoProcessor(Configuration configuration
                             return;
                         }
                         if (baseCnt < 3) { return; }
-                        if (condition.TimeRemaining > 0)
+                        if (child.TryGet<FileReplacementReference>(out var replacement))
                         {
-                            if (child.TryGet<FileReplacementReference>(out var replacement))
-                            {
-                                SetIcon(addon, baseCnt, ref customStatus, ref statusTooltip, ref condition, replacement.Replacement);
-                            }
-                            else
-                            {
-                                SetIcon(addon, baseCnt, ref customStatus, ref statusTooltip, ref condition);
-                            }
-                            baseCnt--;
+                            SetIcon(addon, baseCnt, ref customStatus, ref statusTooltip, ref condition, replacement.Replacement);
                         }
+                        else
+                        {
+                            SetIcon(addon, baseCnt, ref customStatus, ref statusTooltip, ref condition);
+                        }
+                        baseCnt--;
                     });
                 }
             });

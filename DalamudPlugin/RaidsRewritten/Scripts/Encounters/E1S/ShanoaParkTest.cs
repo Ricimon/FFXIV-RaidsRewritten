@@ -22,6 +22,10 @@ namespace RaidsRewritten.Scripts.Encounters.E1S;
 
 public class ShanoaParkTest : Mechanic, IShanoaPark
 {
+    public bool EasyMode { get; set; }
+
+    public Entity Shanoa => shanoa;
+
     private const uint EdensGravityActionId = 15728;
     private const uint ViceAndVirtueActionId = 17647;
     private const uint AetherCompassActionId = 26988;
@@ -343,7 +347,7 @@ public class ShanoaParkTest : Mechanic, IShanoaPark
                             }
                         }, 0.4f);
                         attacks.Add(action);
-                        shanoa.Set(new OneTimeModelTimeline(Shanoa.ScratchSelfAnimationId));
+                        shanoa.Set(new OneTimeModelTimeline(Models.Shanoa.ScratchSelfAnimationId));
 
                         string msg;
                         if (totalMarkersAbsorbed >= 3)

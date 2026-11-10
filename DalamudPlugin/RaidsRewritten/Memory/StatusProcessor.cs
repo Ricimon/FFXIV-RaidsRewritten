@@ -161,19 +161,16 @@ public unsafe sealed class StatusProcessor(
 
                     // rightmost node reached
                     if (baseCnt <= 0) { return; }
-                    if (condition.TimeRemaining > 0)
+                    if (child.TryGet<FileReplacementReference>(out var replacement))
                     {
-                        if (child.TryGet<FileReplacementReference>(out var replacement))
-                        {
-                            SetIcon(addon, baseCnt, ref customStatus, ref statusTooltip, ref condition, replacement.Replacement);
-                        }
-                        else
-                        {
-                            SetIcon(addon, baseCnt, ref customStatus, ref statusTooltip, ref condition);
-                        }
-                        // traverse left to right
-                        baseCnt--;
+                        SetIcon(addon, baseCnt, ref customStatus, ref statusTooltip, ref condition, replacement.Replacement);
                     }
+                    else
+                    {
+                        SetIcon(addon, baseCnt, ref customStatus, ref statusTooltip, ref condition);
+                    }
+                    // traverse left to right
+                    baseCnt--;
                 });
             });
         }

@@ -24,6 +24,7 @@ public class ShanoaAndAlexPrime : Mechanic
     private readonly Vector3 arenaMiddle = new(100, 0, 100);
 
     private bool summonAlexanderCasted = false;
+    private bool lastMarkerAttack = false;
 
     public override void Reset()
     {
@@ -33,6 +34,7 @@ public class ShanoaAndAlexPrime : Mechanic
         }
         attacks.Clear();
         summonAlexanderCasted = false;
+        lastMarkerAttack = false;
     }
 
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
@@ -102,6 +104,7 @@ public class ShanoaAndAlexPrime : Mechanic
             command == 537)
         {
             ShanoaPark?.AttackMarkers("brutejusticedefeat");
+            lastMarkerAttack = true;
         }
 
         else if (source.BaseId == AlexanderPrimeBaseId &&
@@ -121,7 +124,8 @@ public class ShanoaAndAlexPrime : Mechanic
                     var arguments = payload.extraData.Split(',');
                     if (arguments.Length < 2) { return; }
                     if (!byte.TryParse(arguments[1], out var totalMarkersAbsorbed)) { return; }
-                    if (totalMarkersAbsorbed >= 8)
+                    if (totalMarkersAbsorbed >= 8 ||
+                        ((ShanoaPark?.EasyMode ?? false) && lastMarkerAttack))
                     {
                         // do something cool
                     }

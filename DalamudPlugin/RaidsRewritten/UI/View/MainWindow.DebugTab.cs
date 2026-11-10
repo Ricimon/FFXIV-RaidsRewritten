@@ -209,14 +209,6 @@ public partial class MainWindow
                     Heavy.ApplyToTarget(e, 5.0f);
                 });
             }
-            SameLineIfFits("Heavy (e)");
-            if (ImGui.Button("Heavy (e)"))
-            {
-                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
-                {
-                    Heavy.ApplyToTarget(e, 5.0f, true);
-                });
-            }
             SameLineIfFits("Epic Hero");
             if (ImGui.Button("Epic Hero"))
             {
@@ -247,6 +239,22 @@ public partial class MainWindow
                 commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
                 {
                     DamageDown.ApplyToTarget(e, 5.0f);
+                });
+            }
+            SameLineIfFits("Heavy (e)");
+            if (ImGui.Button("Heavy (e)"))
+            {
+                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+                {
+                    Heavy.ApplyToTarget(e, 5.0f, true);
+                });
+            }
+            SameLineIfFits("Bind (∞)");
+            if (ImGui.Button("Bind (∞)"))
+            {
+                commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
+                {
+                    Bind.ApplyToTarget(e, float.PositiveInfinity);
                 });
             }
 
@@ -1215,6 +1223,30 @@ public partial class MainWindow
                                     worldPositionY = player.Position.Y,
                                     worldPositionZ = player.Position.Z,
                                     rotation = player.Rotation,
+                                }
+                            }).SafeFireAndForget();
+                        }
+                    }
+
+                    if (ImGui.Button("Screw##Networked"))
+                    {
+                        var player = this.dalamud.ObjectTable.LocalPlayer;
+                        if (player != null)
+                        {
+                            ICharacter target = player;
+                            if (player.TargetObject != null && player.TargetObject is ICharacter)
+                            {
+                                target = (ICharacter)player.TargetObject;
+                            }
+                            var direction = random.Next(2);
+                            networkClient.SendAsync(new Message
+                            {
+                                action = Message.Action.StartMechanic,
+                                startMechanic = new Message.StartMechanicPayload
+                                {
+                                    mechanicId = (uint)NetworkMechanic.TeaScrewdriverTarget,
+                                    requestId = nameof(NetworkMechanic.TeaScrewdriverTarget) + $"_{Guid.NewGuid()}",
+                                    extraData = string.Join(",", [target.GetContentId(), direction]),
                                 }
                             }).SafeFireAndForget();
                         }

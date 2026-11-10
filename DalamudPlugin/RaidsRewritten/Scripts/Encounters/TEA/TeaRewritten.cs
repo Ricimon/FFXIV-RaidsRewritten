@@ -23,6 +23,7 @@ public class TeaRewritten : IEncounter
     private string HawkTowerKey => $"{Name}.HawkTower";
     private string KKickKey => $"{Name}.KKick";
     private string ShanoaParkKey => $"{Name}.ShanoaPark";
+    private string NisiTowersKey => $"{Name}.NisiTowers";
     private string ChakramBallsKey => $"{Name}.ChakramBalls";
     private string IcePlusKey => $"{Name}.IcePlus";
     private string MoreChakramsKey => $"{Name}.MoreChakrams";
@@ -59,6 +60,7 @@ public class TeaRewritten : IEncounter
             { HawkTowerKey, true },
             { KKickKey, true },
             { ShanoaParkKey, true },
+            { NisiTowersKey, true },
             { ChakramBallsKey, true },
             { IcePlusKey, true },
             { MoreChakramsKey, true },
@@ -77,6 +79,7 @@ public class TeaRewritten : IEncounter
             FireTornadoKey,
             HawkTowerKey,
             ShanoaParkKey,
+            NisiTowersKey,
             SuperJumpPlusKey,
             ScrewdriverKey,
             JWaveSpreadsKey,
@@ -123,12 +126,17 @@ public class TeaRewritten : IEncounter
         }
         if (GetEncounterSetting(ShanoaParkKey))
         {
+            var nisiTowers = GetEncounterSetting(NisiTowersKey);
             var shanoaPark = mechanicFactory.Create<ShanoaPark>();
+            shanoaPark.EasyMode = !nisiTowers;
             mechanics.Add(shanoaPark);
-            var shanoaAndNisi = mechanicFactory.Create<ShanoaAndNisi>();
-            shanoaAndNisi.RngSeed = rngSeed;
-            shanoaAndNisi.ShanoaPark = shanoaPark;
-            mechanics.Add(shanoaAndNisi);
+            if (nisiTowers)
+            {
+                var shanoaAndNisi = mechanicFactory.Create<ShanoaAndNisi>();
+                shanoaAndNisi.RngSeed = rngSeed;
+                shanoaAndNisi.ShanoaPark = shanoaPark;
+                mechanics.Add(shanoaAndNisi);
+            }
             var shanoaAndAlexPrime = mechanicFactory.Create<ShanoaAndAlexPrime>();
             shanoaAndAlexPrime.ShanoaPark = shanoaPark;
             mechanics.Add(shanoaAndAlexPrime);
@@ -335,6 +343,19 @@ public class TeaRewritten : IEncounter
             {
                 configuration.EncounterSettings[ShanoaParkKey] =
                     shanoaPark ? bool.TrueString : bool.FalseString;
+                configuration.Save();
+                RefreshMechanics();
+            }
+        }
+        ServerRequiredTooltip();
+
+        bool nisiTowers = GetEncounterSetting(NisiTowersKey);
+        using (ImRaii.Disabled(!networkClient.IsConnected))
+        {
+            if (ImGui.Checkbox("Nisi Towers", ref nisiTowers))
+            {
+                configuration.EncounterSettings[NisiTowersKey] =
+                    nisiTowers ? bool.TrueString : bool.FalseString;
                 configuration.Save();
                 RefreshMechanics();
             }

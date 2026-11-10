@@ -230,19 +230,16 @@ public unsafe sealed class StatusPartyListProcessor(
                     }
                 }
 
-                if (condition.TimeRemaining > 0)
+                if (child.TryGet<FileReplacementReference>(out var replacement))
                 {
-                    if (child.TryGet<FileReplacementReference>(out var replacement))
-                    {
-                        statusList.Add(new Status(customStatus, statusTooltip, condition, StatusType.SelfEnfeeblement, replacement.Replacement));
-                    }
-                    else
-                    {
-                        statusList.Add(new Status(customStatus, statusTooltip, condition, StatusType.SelfEnfeeblement));
-                    }
-                    element.Dirty = true;
-                    pPlayerDict[(nint)pChara] = element;
+                    statusList.Add(new Status(customStatus, statusTooltip, condition, StatusType.SelfEnfeeblement, replacement.Replacement));
                 }
+                else
+                {
+                    statusList.Add(new Status(customStatus, statusTooltip, condition, StatusType.SelfEnfeeblement));
+                }
+                element.Dirty = true;
+                pPlayerDict[(nint)pChara] = element;
 
             });
 

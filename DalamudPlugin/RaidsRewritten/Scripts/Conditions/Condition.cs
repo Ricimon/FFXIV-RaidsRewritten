@@ -7,7 +7,7 @@ using RaidsRewritten.Network;
 
 namespace RaidsRewritten.Scripts.Conditions;
 
-public class Condition(ILogger logger) : ISystem
+public class Condition(NetworkClient networkClient, ILogger logger) : ISystem
 {
     public record struct Component(string Name, float TimeRemaining, DateTime CreationTime);
     public record struct Id(BigInteger Value);
@@ -84,6 +84,11 @@ public class Condition(ILogger logger) : ISystem
                 condition.TimeRemaining = Math.Max(condition.TimeRemaining - it.DeltaTime(), 0);
 
                 if (!e.Has<ServerCondition>() && condition.TimeRemaining <= 0)
+                {
+                    e.Destruct();
+                }
+
+                if (e.Has<ServerCondition>() && !networkClient.IsConnected && condition.TimeRemaining <= 0)
                 {
                     e.Destruct();
                 }

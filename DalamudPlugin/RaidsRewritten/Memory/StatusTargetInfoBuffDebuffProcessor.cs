@@ -111,17 +111,14 @@ public unsafe sealed class StatusTargetInfoBuffDebuffProcessor(
                                 return;
                             }
 
-                            if (condition.TimeRemaining > 0)
+                            if (child.TryGet<FileReplacementReference>(out var replacement))
                             {
-                                if (child.TryGet<FileReplacementReference>(out var replacement))
-                                {
-                                    SetIcon(addon, baseCnt, ref customStatus, ref statusTooltip, ref condition, replacement.Replacement);
-                                } else
-                                {
-                                    SetIcon(addon, baseCnt, ref customStatus, ref statusTooltip, ref condition);
-                                }
-                                baseCnt++;
+                                SetIcon(addon, baseCnt, ref customStatus, ref statusTooltip, ref condition, replacement.Replacement);
+                            } else
+                            {
+                                SetIcon(addon, baseCnt, ref customStatus, ref statusTooltip, ref condition);
                             }
+                            baseCnt++;
                         });
                     }
                 });
