@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Numerics;
-using System.Reactive.Linq;
 using System.Text;
 using AsyncAwaitBestPractices;
 using Dalamud.Bindings.ImGui;
