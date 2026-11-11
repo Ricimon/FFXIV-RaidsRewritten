@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using AsyncAwaitBestPractices;
+using Dalamud.Game.Text;
 using JsonConverters;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -143,7 +144,7 @@ public sealed class NetworkClient : IDisposable
                 });
             }
         }
-        catch(Exception e)
+        catch (Exception e)
         {
             logger.Error(e.ToStringFull());
             return false;
@@ -257,12 +258,18 @@ public sealed class NetworkClient : IDisposable
 
         if (e == "io client disconnect")
         {
-            logger.Info($"Client disconnected: {e}");
+            logger.Info($"Client disconnected ({e})");
             Dispose();
         }
         else
         {
-            logger.Warn($"Client disconnected: {e}, reconnecting...");
+            var msg = $"Client disconnected ({e}), reconnecting...";
+            logger.Warn(msg);
+            dalamud.ChatGui.Print(new XivChatEntry
+            {
+                Message = $"[{PluginInitializer.Name}] {msg}",
+                Type = XivChatType.ErrorMessage,
+            });
             Dispose();
             Connect();
         }
