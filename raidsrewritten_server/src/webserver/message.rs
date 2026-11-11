@@ -1,7 +1,9 @@
 use crate::game::{condition::Condition, role::Role};
-use serde::{Deserialize, Serialize};
+use rmpv::Value;
+use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
 use serde_repr::*;
 use serde_with::{BoolFromInt, formats::Flexible, serde_as};
+use tracing::info;
 
 #[derive(Serialize_repr, Deserialize_repr, PartialEq, Default, Debug)]
 #[repr(u32)]
@@ -125,6 +127,7 @@ pub struct SyncConditionsOnSelfConditionDetails {
     #[serde(rename = "c")]
     pub condition: Condition,
     #[serde(rename = "t")]
+    #[serde(deserialize_with = "deserialize_f32")]
     pub time_remaining: f32,
     #[serde(rename = "n")]
     #[serde_as(as = "BoolFromInt<Flexible>")]
@@ -243,6 +246,7 @@ pub struct UpdateConditionsConditionDetails {
     #[serde(rename = "c")]
     pub condition: Condition,
     #[serde(rename = "t")]
+    #[serde(serialize_with = "serialize_f32")]
     pub time_remaining: f32,
     #[serde(rename = "n")]
     pub newly_applied: bool,
@@ -285,4 +289,42 @@ pub struct PlaySfxPayload {
     pub sfx_path: String,
     #[serde(rename = "i")]
     pub sfx_index: i32,
+}
+
+// Util ===============
+
+fn serialize_f32<S>(f: &f32, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    if (*f).is_nan() {
+        return serializer.serialize_str("NaN");
+    } else if *f == f32::INFINITY {
+        return serializer.serialize_str("Infinity");
+    } else if *f == f32::NEG_INFINITY {
+        return serializer.serialize_str("-Infinity");
+    }
+    serializer.serialize_f32(*f)
+}
+
+// https://amish.naidu.dev/blog/serde-deserialize/
+// https://users.rust-lang.org/t/deserialize-a-number-that-may-be-inside-a-string-serde-json/27318/3
+fn deserialize_f32<'de, D>(deserializer: D) -> Result<f32, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let v = Value::deserialize(deserializer)?;
+    if let Some(f) = v.as_f64() {
+        return Ok(f as f32);
+    }
+    if let Some(s) = v.as_str() {
+        if s == "NaN" {
+            return Ok(f32::NAN);
+        } else if s == "Infinity" {
+            return Ok(f32::INFINITY);
+        } else if s == "-Infinity" {
+            return Ok(f32::NEG_INFINITY);
+        }
+    }
+    Err(de::Error::custom("invalid float"))
 }

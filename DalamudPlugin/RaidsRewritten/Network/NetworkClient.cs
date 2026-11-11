@@ -204,13 +204,14 @@ public sealed class NetworkClient : IDisposable
         }
 
         logger.Info($"Disconnecting client.");
-        client.DisconnectAsync().SafeFireAndForget();
+        await client.DisconnectAsync();
         Dispose();
     }
 
     public void Dispose()
     {
-        client?.DisconnectAsync().SafeFireAndForget();
+        // Disconnecting actually sends a packet so don't try to send one right before disposing the client
+        //client?.DisconnectAsync().SafeFireAndForget();
         client?.Dispose();
         if (client != null)
         {
