@@ -5,13 +5,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using AsyncAwaitBestPractices;
 using JsonConverters;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using RaidsRewritten.Data;
 using RaidsRewritten.Log;
 using RaidsRewritten.Utility;
-using SocketIO.Serializer.NewtonsoftJson;
 using SocketIOClient;
+using SocketIOClient.Common;
+using SocketIOClient.Serializer.NewtonsoftJson;
 
 namespace RaidsRewritten.Network;
 
@@ -34,20 +37,23 @@ public sealed class NetworkClient : IDisposable
     private readonly NetworkClientMessageHandler messageHandler;
     private readonly DalamudServices dalamud;
     private readonly Configuration configuration;
-    private readonly ILogger logger;
+    private readonly Log.ILogger logger;
+    private readonly DalamudLoggerProvider loggerProvider;
 
-    private SocketIOClient.SocketIO? client;
+    private SocketIO? client;
 
     public NetworkClient(
         NetworkClientMessageHandler messageHandler,
         DalamudServices dalamud,
         Configuration configuration,
-        ILogger logger)
+        Log.ILogger logger,
+        DalamudLoggerProvider loggerProvider)
     {
         this.messageHandler = messageHandler;
         this.dalamud = dalamud;
         this.configuration = configuration;
         this.logger = logger;
+        this.loggerProvider = loggerProvider;
 
         messageHandler.Client = this;
     }
@@ -100,7 +106,7 @@ public sealed class NetworkClient : IDisposable
         {
             var socketOptions = new SocketIOOptions()
             {
-                Transport = SocketIOClient.Transport.TransportProtocol.WebSocket,
+                Transport = TransportProtocol.WebSocket,
                 Reconnection = true,
                 ReconnectionAttempts = 3,
             };
@@ -111,19 +117,30 @@ public sealed class NetworkClient : IDisposable
             if (pathMatch.Success && pathMatch.Groups.Count > 2)
             {
                 serverUrl = pathMatch.Groups[1].Value;
-                socketOptions.Path = pathMatch.Groups[2].Value;
+                var path = pathMatch.Groups[2].Value;
+                if (!string.IsNullOrEmpty(path))
+                {
+                    socketOptions.Path = pathMatch.Groups[2].Value;
+                }
             }
 
             lock (clientLock)
             {
-                client = new SocketIOClient.SocketIO(serverUrl, socketOptions)
+                client = new SocketIO(new Uri(serverUrl), socketOptions, services =>
                 {
-                    Serializer = new NewtonsoftJsonSerializer(new JsonSerializerSettings
+                    services.AddNewtonsoftJson(new JsonSerializerSettings
                     {
                         NullValueHandling = NullValueHandling.Ignore,
                         Converters = [new BooleanJsonConverter()],
-                    })
-                };
+                    });
+#if DEBUG
+                    services.AddLogging(builder =>
+                    {
+                        builder.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);
+                        builder.AddProvider(loggerProvider);
+                    });
+#endif
+                });
             }
         }
         catch(Exception e)
@@ -132,17 +149,18 @@ public sealed class NetworkClient : IDisposable
             return false;
         }
 
-        client.OnAny((eventName, response) =>
+        client.OnAny((eventName, ctx) =>
         {
             try
             {
-                var message = response.GetValue<Message>();
+                var message = ctx.GetValue<Message>(0);
                 logger.Info("Received socket message eventName {0}, message {1}", eventName, Serialize(message));
             }
             catch (Exception)
             {
-                logger.Info("Received socket message eventName {0}, response {1}", eventName, response);
+                logger.Info("Received socket message eventName {0}, response {1}", eventName, ctx.GetValue<object>(0) ?? "null");
             }
+            return Task.CompletedTask;
         });
 
         client.OnConnected += OnConnected;
@@ -172,7 +190,7 @@ public sealed class NetworkClient : IDisposable
         {
             logger.Info("Sending {0}", Serialize(message));
         }
-        await client.EmitAsync("message", message);
+        await client.EmitAsync("message", [message]);
     }
 
     public async Task DisconnectAsync()
@@ -200,7 +218,6 @@ public sealed class NetworkClient : IDisposable
             client.OnDisconnected -= OnDisconnected;
             client.OnError -= OnError;
             client.OnReconnectAttempt -= OnReconnectAttempt;
-            client.Off("message");
         }
         lock (clientLock)
         {

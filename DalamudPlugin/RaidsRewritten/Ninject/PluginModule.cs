@@ -168,7 +168,7 @@ public class PluginModule : NinjectModule
 
         // Logging
         Bind<ILogger>().To<DalamudLogger>();
-        Bind<DalamudLoggerFactory>().ToSelf();
+        Bind<DalamudLoggerProvider>().ToSelf();
 
         // Misc
         Bind<Random>().ToConstant(new Random());

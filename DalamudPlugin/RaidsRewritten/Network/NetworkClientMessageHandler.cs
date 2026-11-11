@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Dalamud.Game.ClientState.Objects.Types;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using Flecs.NET.Bindings;
@@ -47,27 +48,27 @@ public sealed class NetworkClientMessageHandler(
         }
     }
 
-    public void OnMessage(SocketIOResponse response)
+    public Task OnMessage(IEventContext ctx)
     {
         if (configuration.EverythingDisabled)
         {
-            return;
+            return Task.CompletedTask;
         }
 
         Message message;
         try
         {
-            message = response.GetValue<Message>();
+            message = ctx.GetValue<Message>(0);
         }
         catch (JsonException jsonEx)
         {
             logger.Error("Failed to read server JSON data. You may need to update the plugin. Error:\n{0}", jsonEx.ToString());
-            return;
+            return Task.CompletedTask;
         }
         catch (Exception e)
         {
             logger.Error(e.ToString());
-            return;
+            return Task.CompletedTask;
         }
 
         switch (message.action)
@@ -100,6 +101,7 @@ public sealed class NetworkClientMessageHandler(
                 if (message.playSfx != null) { PlaySfx(message.playSfx.Value); }
                 break;
         }
+        return Task.CompletedTask;
     }
 
     private void ApplyCondition(Message.ApplyConditionPayload payload)

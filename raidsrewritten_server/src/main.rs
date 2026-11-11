@@ -6,7 +6,8 @@ mod webserver;
 use crate::system_messages::MessageToEcs;
 use std::sync::mpsc;
 use tracing::info;
-use tracing_subscriber::FmtSubscriber;
+use tracing_subscriber::prelude::*;
+use tracing_subscriber::{EnvFilter, fmt};
 
 // The server operates on two primary systems:
 // - socketioxide for the webserver logic
@@ -21,7 +22,16 @@ use tracing_subscriber::FmtSubscriber;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    tracing::subscriber::set_global_default(FmtSubscriber::default())?;
+    // Log info+ by default
+    // Use RUST_LOG environment variable to customize log level
+    tracing_subscriber::registry()
+        .with(fmt::layer())
+        .with(
+            EnvFilter::try_from_default_env()
+                .or_else(|_| EnvFilter::try_new("info"))
+                .unwrap(),
+        )
+        .init();
 
     let (tx_to_ecs, rx_from_ws) = mpsc::channel::<MessageToEcs>();
 

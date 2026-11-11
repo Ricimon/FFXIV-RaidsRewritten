@@ -95,25 +95,28 @@
           "SharpDX": "4.2.0"
         }
       },
-      "SocketIO.Serializer.NewtonsoftJson": {
-        "type": "Direct",
-        "requested": "[3.1.2, )",
-        "resolved": "3.1.2",
-        "contentHash": "vTCbbPo3UOC3KOma1VqNkZg33A/Y14ZHWT0y3JP65BWTmJN9B2NdeA1mkPkncponq6UkdszMobJ5WXHIOkvqtg==",
-        "dependencies": {
-          "Newtonsoft.Json": "13.0.3",
-          "SocketIO.Core": "3.1.2",
-          "SocketIO.Serializer.Core": "3.1.2"
-        }
-      },
       "SocketIOClient": {
         "type": "Direct",
-        "requested": "[3.1.2, )",
-        "resolved": "3.1.2",
-        "contentHash": "CMmnmhvG1Qf8k6BPh3RLqc/9MNvGUlCOyptjoP8a62bowPQkHTWvN25yy+gQqx5Ry/NgzkQHBJNpmRJhZNZrVQ==",
+        "requested": "[4.0.5, )",
+        "resolved": "4.0.5",
+        "contentHash": "VG4liS8wl5yg0K0MftVP5X2FV9iWPupNT0lAMd2rhmeNKYDTPjFm4Pkm4Br/0pUyAy3bACc1q7LRz0krB8uj4g==",
         "dependencies": {
-          "SocketIO.Serializer.Core": "3.1.2",
-          "SocketIO.Serializer.SystemTextJson": "3.1.2"
+          "Microsoft.Extensions.DependencyInjection": "10.0.3",
+          "Microsoft.Extensions.Logging": "10.0.3",
+          "SocketIOClient.Common": "4.0.0",
+          "SocketIOClient.Serializer": "4.0.0.1"
+        }
+      },
+      "SocketIOClient.Serializer.NewtonsoftJson": {
+        "type": "Direct",
+        "requested": "[4.0.0.1, )",
+        "resolved": "4.0.0.1",
+        "contentHash": "D7nzYdIcNIPjGp7LW+KmJHk5I6uz3ioGb6fwxdpspuruwTTl1bTwczRuvEFcFjTHtb0Avhbcaw65jo6eAUmsYw==",
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.2",
+          "Newtonsoft.Json": "13.0.4",
+          "SocketIOClient.Common": "4.0.0",
+          "SocketIOClient.Serializer": "4.0.0.1"
         }
       },
       "WindowsInput": {
@@ -218,8 +221,8 @@
       },
       "Newtonsoft.Json": {
         "type": "Transitive",
-        "resolved": "13.0.3",
-        "contentHash": "HrC5BXdl00IP9zeV+0Z848QWPAoCr9P3bDEZguI+gkLcBKAOxix/tLEAAHC+UvDNPv4a2d18lOReHMOagPa+zQ=="
+        "resolved": "13.0.4",
+        "contentHash": "pdgNNMai3zv51W5aq268sujXUyx7SNdE2bj1wZcWjAQrKMFZV260lbqYop1d2GM67JI1huLRwxo9ZqnfF/lC6A=="
       },
       "SharpDX": {
         "type": "Transitive",
@@ -267,26 +270,17 @@
           "SharpDX": "4.2.0"
         }
       },
-      "SocketIO.Core": {
+      "SocketIOClient.Common": {
         "type": "Transitive",
-        "resolved": "3.1.2",
-        "contentHash": "tb6vZ7DYhZooRGLHTPK7/Gifbu+kHbkQRbsee0LAnI28pWc5+Br+juh4pvid3kfIrGTl5dzAfy5huLELVU4svA=="
+        "resolved": "4.0.0",
+        "contentHash": "7wlg0hMX5/k+fZejclVR7aKSj+Q37KCmVrKPIjZV+9z/odb11hZ4L+a0T3cV1w1jicTBWFEKvjWfWh6YKtz9Qg=="
       },
-      "SocketIO.Serializer.Core": {
+      "SocketIOClient.Serializer": {
         "type": "Transitive",
-        "resolved": "3.1.2",
-        "contentHash": "/cJtU3JVzjqP/Jh3BpMMR0aNzYua6s9e3+hjZ6OnYprFHrGYyg/n9OcST1dBjmOvvgyJ3GwJlyq0NjnPETAHsA==",
+        "resolved": "4.0.0.1",
+        "contentHash": "+p1xnwSkX8UQQLgqr2Em6dIATl5pR7awHj1nbaRd/9aA2iAHGgy7HsseN8eblv3NHlPtTP9Y3IFDl5JKfWSYjg==",
         "dependencies": {
-          "SocketIO.Core": "3.1.2"
-        }
-      },
-      "SocketIO.Serializer.SystemTextJson": {
-        "type": "Transitive",
-        "resolved": "3.1.2",
-        "contentHash": "AA8w3Y4JldC3FaL1D4WuyG4zLPdrzjf8AQx1LCKtzlMlTLOcbEW0UGt+BhKxkUnxYAD5O5fsqRrTNCGXu6VeWA==",
-        "dependencies": {
-          "SocketIO.Core": "3.1.2",
-          "SocketIO.Serializer.Core": "3.1.2"
+          "SocketIOClient.Common": "4.0.0"
         }
       },
       "penumbra.string": {
