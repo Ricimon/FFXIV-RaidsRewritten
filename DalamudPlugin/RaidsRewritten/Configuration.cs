@@ -20,6 +20,7 @@ namespace RaidsRewritten
         public Vector3 StatusTextColor { get; set; } = Vector4Colors.Red.AsVector3();
 
         public string ServerUrl { get; set; } = string.Empty;
+        public string ServerEntryLabel { get; set; } = string.Empty;
         public bool UseCustomPartyId { get; set; }
         public string CustomPartyId { get; set; } = string.Empty;
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -26,6 +27,8 @@ public sealed class NetworkClient : IDisposable
     public byte ConnectedPlayersInParty { get; set; }
 
     public const string DefaultServerUrl = "http://localhost:3000";
+
+    public readonly OrderedDictionary<string, string> ServerEntries = [];
 
     private readonly JsonSerializerSettings printSettings = new()
     {
@@ -57,11 +60,6 @@ public sealed class NetworkClient : IDisposable
         this.loggerProvider = loggerProvider;
 
         messageHandler.Client = this;
-    }
-
-    public string GetServerUrl()
-    {
-        var serverUrl = DefaultServerUrl;
 
         var configPath = dalamud.PluginInterface.GetResourcePath("config.json");
         if (File.Exists(configPath))
@@ -70,12 +68,29 @@ public sealed class NetworkClient : IDisposable
             try
             {
                 var loadConfig = System.Text.Json.JsonSerializer.Deserialize<LoadConfig>(configString);
-                if (loadConfig != null && !string.IsNullOrEmpty(loadConfig.serverUrl))
+                if (loadConfig != null)
                 {
-                    serverUrl = loadConfig.serverUrl;
+                    foreach(var entry in loadConfig.serverUrls)
+                    {
+                        ServerEntries.Add(entry.label, entry.url);
+                    }
                 }
             }
             catch (Exception) { }
+        }
+    }
+
+    public string GetServerUrl()
+    {
+        var serverUrl = DefaultServerUrl;
+
+        if (ServerEntries.TryGetValue(configuration.ServerEntryLabel, out var url))
+        {
+            serverUrl = url;
+        }
+        else if (ServerEntries.Count > 0)
+        {
+            serverUrl = ServerEntries.GetAt(0).Value;
         }
 
 #if DEBUG
