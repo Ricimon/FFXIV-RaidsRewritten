@@ -23,6 +23,7 @@ namespace RaidsRewritten.Scripts.Encounters.TEA;
 public class ShanoaPark : Mechanic, IShanoaPark
 {
     public bool EasyMode { get; set; }
+    public bool OverrideAllMarkersAbsorbed { get; set; }
 
     public Entity Shanoa => shanoa;
 
@@ -78,6 +79,7 @@ public class ShanoaPark : Mechanic, IShanoaPark
             attack.SafeDestruct();
         }
         attacks.Clear();
+        OverrideAllMarkersAbsorbed = false;
         ClearGuidanceEntities();
         availableTornadoPositions.Clear();
         fluidSwingsPerformed = 0;
@@ -422,7 +424,7 @@ public class ShanoaPark : Mechanic, IShanoaPark
                         shanoa.Set(new OneTimeModelTimeline(Models.Shanoa.ScratchSelfAnimationId));
 
                         string msg;
-                        if (totalMarkersAbsorbed >= 8)
+                        if (totalMarkersAbsorbed >= 8 || OverrideAllMarkersAbsorbed)
                         {
                             msg = ShanoaAbsorbAllMarkersMessage;
                             // Super Saiyan effect
