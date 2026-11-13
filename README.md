@@ -62,3 +62,9 @@ The XIV-interfacing parts of this plugin uses implementations taken from other o
 - [ECommons](https://github.com/NightmareXIV/ECommons), for various XIV utility functions
 - [SimpleTweaks](https://github.com/Caraxi/SimpleTweaksPlugin), for hotbar gray-out functionality
 - [Moodles](https://github.com/kawaii/Moodles), for native custom status rendering
+
+## AI Usage Disclosure
+
+**No AI tools were used in the development of the primary codebase.** Everything in this repo is either hand-coded or taken from other open-source projects.
+
+Some AI tools were used to develop accompanying tools for the sake of finding in-game model and VFX paths.
