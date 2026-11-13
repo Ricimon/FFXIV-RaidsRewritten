@@ -157,22 +157,51 @@ public unsafe partial class ResourceLoader
     //
     // Local file replacement data and methods for bootstrapping adapted code
     //
-    public IReadOnlyDictionary<string, string> FileReplacements => fileReplacements;
+    public struct ReplacementEntry(string path, int count)
+    {
+        public string Path = path;
+        public int Count = count;
+    }
 
-    private readonly Dictionary<string, string> fileReplacements = [];
+    public IReadOnlyDictionary<string, ReplacementEntry> FileReplacements => fileReplacements;
+
+    private readonly Dictionary<string, ReplacementEntry> fileReplacements = [];
 
     public void AddFileReplacement(string originalPath, string replacementPath)
     {
-        this.fileReplacements[originalPath] = replacementPath;
+        var count = 0;
+        if (fileReplacements.TryGetValue(originalPath, out var replacement))
+        {
+            count = replacement.Count;
+        }
+        fileReplacements[originalPath] = new(replacementPath, count + 1);
     }
 
     public void RemoveFileReplacement(string originalPath)
     {
-        this.fileReplacements.Remove(originalPath);
+        if (fileReplacements.TryGetValue(originalPath, out var replacement))
+        {
+            var newCount = replacement.Count - 1;
+            if (newCount <= 0)
+            {
+                fileReplacements.Remove(originalPath);
+            }
+            else
+            {
+                fileReplacements[originalPath] = new(replacement.Path, newCount);
+            }
+        }
+    }
+
+    public void ClearAllFileReplacements()
+    {
+        fileReplacements.Clear();
     }
 
     private bool GetReplacePath(string gamePath, out string localPath)
     {
-        return FileReplacements.TryGetValue(gamePath, out localPath);
+        var found = FileReplacements.TryGetValue(gamePath, out var replacement);
+        localPath = replacement.Path;
+        return found;
     }
 }

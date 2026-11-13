@@ -81,16 +81,19 @@ public class NetworkClientUi(NetworkClient client, Configuration configuration)
         //    ImGui.SetTooltip("Use custom party ID.\nEnable this if custom mechanics need to be synced across non-party members.\nNOT CURRENTLY FUNCTIONAL, COMING SOON™");
         //}
 
-        var entryLabels = client.ServerEntries.AsValueEnumerable().Select(kv => kv.Key).ToList();
-        var i = entryLabels.IndexOf(configuration.ServerEntryLabel);
-        if (i < 0) i = 0;
-        ImGui.SetNextItemWidth(60 * ImGuiHelpers.GlobalScale);
-        if (ImGui.Combo("##ServerEntryLabel", ref i, entryLabels, entryLabels.Count))
+        using (ImRaii.Disabled(client.IsConnecting || client.IsConnected))
         {
-            if (i >= 0 && i < entryLabels.Count)
+            var entryLabels = client.ServerEntries.AsValueEnumerable().Select(kv => kv.Key).ToList();
+            var i = entryLabels.IndexOf(configuration.ServerEntryLabel);
+            if (i < 0) i = 0;
+            ImGui.SetNextItemWidth(60 * ImGuiHelpers.GlobalScale);
+            if (ImGui.Combo("##ServerEntryLabel", ref i, entryLabels, entryLabels.Count))
             {
-                configuration.ServerEntryLabel = entryLabels[i];
-                configuration.Save();
+                if (i >= 0 && i < entryLabels.Count)
+                {
+                    configuration.ServerEntryLabel = entryLabels[i];
+                    configuration.Save();
+                }
             }
         }
         if (ImGui.IsItemHovered())

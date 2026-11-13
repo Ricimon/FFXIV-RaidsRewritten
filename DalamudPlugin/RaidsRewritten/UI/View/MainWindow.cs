@@ -183,6 +183,7 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
                     this.World.DeleteWith<Condition.Component>();
                     this.World.DeleteWith<DelayedAction.Component>();
                     this.vfxSpawn.Clear();
+                    this.resourceLoader.ClearAllFileReplacements();
                     this.networkClient.DisconnectAsync().SafeFireAndForget();
                 }
             }
