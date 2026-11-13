@@ -78,7 +78,7 @@ public class ShanoaAndNisi : Mechanic
         photonsCasted = 0;
         //sludgePuddleCreated = false;
         nisiTowersSpawned = 0;
-        towerPositions = [];
+        towerPositions.Clear();
         towerPositionsIndex = 0;
         availableNisis = [NisiTowerOmen.Nisi.Alpha, NisiTowerOmen.Nisi.Beta, NisiTowerOmen.Nisi.Gamma, NisiTowerOmen.Nisi.Delta];
         nisiIndex = 0;
@@ -182,11 +182,11 @@ public class ShanoaAndNisi : Mechanic
                 float[] angles;
                 if (cardinalTornadoPositions.Contains(newObject.Position))
                 {
-                    angles = [-0.75f * MathF.PI, -0.25f * MathF.PI, 0.25f * MathF.PI, 0.75f * MathF.PI];
+                    angles = [-MathF.PI, -0.5f * MathF.PI, 0, 0.5f * MathF.PI];
                 }
                 else
                 {
-                    angles = [-MathF.PI, -0.5f * MathF.PI, 0, 0.5f * MathF.PI];
+                    angles = [-0.75f * MathF.PI, -0.25f * MathF.PI, 0.25f * MathF.PI, 0.75f * MathF.PI];
                 }
                 towerPositions = angles.AsValueEnumerable()
                     .Select(r => (TowerDistanceFromMiddle * MathUtilities.RotationToUnitVector(r)).ToVector3(0) + arenaMiddle)
