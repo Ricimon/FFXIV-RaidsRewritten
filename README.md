@@ -19,6 +19,8 @@ RaidsRewritten is (currently) entirely executed client-side. It hooks fight even
 
 ⚠️ ***To be clear, RaidsRewritten does not change anything about the original fight, it only adds fake mechanics on top of it. Nothing sent to and from official Square Enix game servers are modified, and overridden player controls are only capable of performing what a player is normally able to perform (ex. a fake knockback is just forced movement in the knockback direction).*** ⚠️
 
+If you want to nerd out about *exactly* how this plugin works under the hood, please visit the [wiki](https://github.com/Ricimon/FFXIV-RaidsRewritten/wiki).
+
 #### Why is there a server folder then?
 
 Please see [here](raidsrewritten_server/README.md).
