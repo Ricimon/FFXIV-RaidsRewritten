@@ -38,9 +38,7 @@ public unsafe partial class ResourceLoader
 
     // ===== FILES HOOKS =========
 
-    [Signature(GetResourceSyncSig, DetourName = nameof(GetResourceSyncDetour))]
     public readonly Hook<GetResourceSyncPrototype> GetResourceSyncHook = null;
-    [Signature(GetResourceAsyncSig, DetourName = nameof(GetResourceAsyncDetour))]
     public readonly Hook<GetResourceAsyncPrototype> GetResourceAsyncHook = null;
     [Signature(ReadSqpackSig, DetourName = nameof(ReadSqpackDetour))]
     public Hook<ReadSqpackPrototype> ReadSqpackHook = null;

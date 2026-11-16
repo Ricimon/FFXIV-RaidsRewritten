@@ -1,11 +1,14 @@
 ﻿// Adapted from https://github.com/0ceal0t/Dalamud-VFXEditor/blob/main/VFXEditor/Interop/ResourceLoader.cs
-// 8be61a5
+// 1e0e7e2 (latest)
+// 8be61a5 (pre-penumbra migration)
 // and https://github.com/0ceal0t/Dalamud-VFXEditor/blob/main/VFXEditor/Interop/Constants.cs
-// 8be61a5
+// e5675cd (latest)
+// 8be61a5 (pre-penumbra migration)
 using System;
 using System.Runtime.InteropServices;
 using ECommons.EzHookManager;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
+using FFXIVClientStructs.FFXIV.Client.System.Resource;
 using RaidsRewritten.Log;
 
 namespace RaidsRewritten.Interop;
@@ -14,17 +17,12 @@ public unsafe sealed partial class ResourceLoader : IDisposable
 {
     public const string ReadFileSig = "48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 41 54 41 55 41 56 41 57 48 81 EC ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 84 24 ?? ?? ?? ?? 48 63 42";
     public const string ReadSqpackSig = "40 56 41 56 48 83 EC ?? 0F BE 02";
-    public const string GetResourceSyncSig = "E8 ?? ?? ?? ?? 48 8B C8 8B C3 F0 0F C0 81";
-    public const string GetResourceAsyncSig = "E8 ?? ?? ?? 00 48 8B D8 EB ?? F0 FF 83 ?? ?? 00 00";
 
-    public const string StaticVfxCreateSig = "E8 ?? ?? ?? ?? F3 0F 10 35 ?? ?? ?? ?? 48 89 43 08";
     public const string StaticVfxRunSig = "E8 ?? ?? ?? ?? B0 02 EB 02";
     public const string StaticVfxRemoveSig = "40 53 48 83 EC 20 48 8B D9 48 8B 89 ?? ?? ?? ?? 48 85 C9 74 28 33 D2 E8 ?? ?? ?? ?? 48 8B 8B ?? ?? ?? ?? 48 85 C9";
 
     public const string ActorVfxCreateSig = "40 53 55 56 57 48 81 EC ?? ?? ?? ?? 0F 29 B4 24 ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 84 24 ?? ?? ?? ?? 0F B6 AC 24 ?? ?? ?? ?? 0F 28 F3 49 8B F8";
     public const string ActorVfxRemoveSig = "0F 11 48 10 48 8D 05"; // the weird one
-
-    public const string CallTriggerSig = "E8 ?? ?? ?? ?? 0F B7 43 56";
 
     // https://github.com/Ottermandias/Penumbra.GameData/blob/main/Signatures.cs
 
@@ -62,14 +60,14 @@ public unsafe sealed partial class ResourceLoader : IDisposable
         hooks.InitializeFromAttributes(this);
         EzSignatureHelper.Initialize(this);
 
-        // VFX
+        GetResourceSyncHook = hooks.HookFromAddress<GetResourceSyncPrototype>(ResourceManager.Addresses.GetResourceSync.Value, GetResourceSyncDetour);
+        GetResourceAsyncHook = hooks.HookFromAddress<GetResourceAsyncPrototype>(ResourceManager.Addresses.GetResourceAsync.Value, GetResourceAsyncDetour);
 
-        var staticVfxCreateAddress = sigScanner.ScanText(StaticVfxCreateSig);
+        var staticVfxCreateAddress = sigScanner.ScanText(VfxObject.Addresses.Create.String);
         var actorVfxRemoveAddressTemp = sigScanner.ScanText(ActorVfxRemoveSig) + 7;
         var actorVfxRemoveAddress = Marshal.ReadIntPtr(actorVfxRemoveAddressTemp + Marshal.ReadInt32(actorVfxRemoveAddressTemp) + 4);
 
         ActorVfxRemove = Marshal.GetDelegateForFunctionPointer<ActorVfxRemoveDelegate>(actorVfxRemoveAddress);
-        StaticVfxCreate = Marshal.GetDelegateForFunctionPointer<VfxObject.Delegates.Create>(staticVfxCreateAddress);
 
         StaticVfxCreateHook = hooks.HookFromAddress<VfxObject.Delegates.Create>(staticVfxCreateAddress, StaticVfxNewDetour);
         ActorVfxRemoveHook = hooks.HookFromAddress<ActorVfxRemoveDelegate>(actorVfxRemoveAddress, ActorVfxRemoveDetour);
@@ -88,7 +86,6 @@ public unsafe sealed partial class ResourceLoader : IDisposable
         TextureOnLoadHook.Enable();
         SoundOnLoadHook.Enable();
 
-        VfxUseTriggerHook.Enable();
         InitSoundHook.Enable();
 
         PathResolved += AddCrc;
@@ -112,7 +109,6 @@ public unsafe sealed partial class ResourceLoader : IDisposable
         TextureOnLoadHook.Dispose();
         SoundOnLoadHook.Dispose();
 
-        VfxUseTriggerHook.Dispose();
         InitSoundHook.Dispose();
     }
 }

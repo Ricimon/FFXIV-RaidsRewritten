@@ -9,6 +9,6 @@ public record struct ActorVfxSource(IGameObject? Source);
 public record struct ActorVfxTarget(IGameObject? Target);
 public struct EnsureModelIsDrawn;
 public record struct VfxId(BigInteger Value);
-public record struct VfxFadeOut(Interop.Structs.Vfx.BaseVfx VfxPtr, float Duration, float TimeRemaining);
+public record struct VfxFadeOut(Interop.Structs.Vfx.StaticVfx VfxPtr, float Duration, float TimeRemaining);
 public record struct VfxFadeOutDuration(float Value);
 public record struct ExpectFileReplacement(bool FilesReplaced = false);

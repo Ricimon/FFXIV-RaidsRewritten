@@ -1,9 +1,11 @@
 ﻿// Adapted from https://github.com/0ceal0t/Dalamud-VFXEditor/blob/main/VFXEditor/Interop/ResourceLoader.Vfx.cs
-// 8be61a5
+// 3d7b0eb
 using System;
 using Dalamud.Hooking;
 using Dalamud.Utility.Signatures;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
+using FFXIVClientStructs.FFXIV.Client.Graphics.Vfx;
 using InteropGenerator.Runtime;
 
 namespace RaidsRewritten.Interop;
@@ -11,8 +13,6 @@ namespace RaidsRewritten.Interop;
 public unsafe partial class ResourceLoader
 {
     //====== STATIC ===========
-    public VfxObject.Delegates.Create StaticVfxCreate;
-
     public delegate IntPtr StaticVfxRunDelegate(VfxObject* vfx, float a1, uint a2);
 
     [Signature(StaticVfxRunSig)]
@@ -28,15 +28,15 @@ public unsafe partial class ResourceLoader
 
     [Signature(StaticVfxRemoveSig, DetourName = nameof(StaticVfxRemoveDetour))]
     public readonly Hook<StaticVfxRemoveDelegate> StaticVfxRemoveHook = null;
-    public event Action<IntPtr>? OnStaticVfxRemoved;
+    public event Action<nint>? OnStaticVfxRemoved;
 
     // ======== ACTOR =============
-    public delegate VfxObject* ActorVfxCreateDelegate(string path, IntPtr a2, IntPtr a3, float a4, char a5, ushort a6, char a7);
+    public delegate VfxData* ActorVfxCreateDelegate(byte* path, GameObject* caster, GameObject* target, float a4, char a5, ushort a6, char a7);
 
     [Signature(ActorVfxCreateSig)]
     public readonly ActorVfxCreateDelegate ActorVfxCreate = null;
 
-    public delegate IntPtr ActorVfxRemoveDelegate(VfxObject* vfx, char a2);
+    public delegate IntPtr ActorVfxRemoveDelegate(VfxData* vfx, char a2);
 
     public ActorVfxRemoveDelegate ActorVfxRemove;
 
@@ -45,13 +45,7 @@ public unsafe partial class ResourceLoader
     public readonly Hook<ActorVfxCreateDelegate> ActorVfxCreateHook = null;
 
     public Hook<ActorVfxRemoveDelegate> ActorVfxRemoveHook { get; private set; }
-    public event Action<IntPtr, char>? OnActorVfxRemoved;
-
-    // ======= TRIGGERS =============
-    public delegate IntPtr VfxUseTriggerDelete(VfxObject* vfx, uint triggerId);
-
-    [Signature(CallTriggerSig, DetourName = nameof(VfxUseTriggerDetour))]
-    public readonly Hook<VfxUseTriggerDelete> VfxUseTriggerHook = null;
+    public event Action<nint, char>? OnActorVfxRemoved;
 
     // ==============================
 
@@ -60,40 +54,33 @@ public unsafe partial class ResourceLoader
         var vfx = StaticVfxCreateHook.Original(path, pool);
         //Plugin.TrackerManager?.Vfx.AddStatic(vfx, $"{path}");
 
-        //if (Plugin.Configuration?.LogVfxDebug == true) Dalamud.Log($"New Static: {path} {(nint)vfx:X8}");
+        //if (Plugin.Configuration?.LogVfxDebug == true) Dalamud.Log($"New Static: {path} {( nint )vfx:X8}");
         return vfx;
     }
 
     private IntPtr StaticVfxRemoveDetour(VfxObject* vfx)
     {
-        //VfxSpawn.InteropRemoved(vfx);
+        //VfxSpawn.InteropRemoved( ( nint )vfx);
         //Plugin.TrackerManager?.Vfx.RemoveStatic(vfx);
-        OnStaticVfxRemoved?.Invoke((IntPtr)vfx);
+        OnStaticVfxRemoved?.Invoke((nint)vfx);
         return StaticVfxRemoveHook.Original(vfx);
     }
 
-    private VfxObject* ActorVfxNewDetour(string path, IntPtr a2, IntPtr a3, float a4, char a5, ushort a6, char a7)
+    private VfxData* ActorVfxNewDetour(byte* pathPtr, GameObject* a2, GameObject* a3, float a4, char a5, ushort a6, char a7)
     {
-        var vfx = ActorVfxCreateHook.Original(path, a2, a3, a4, a5, a6, a7);
-        //Plugin.TrackerManager?.Vfx.AddActor(vfx, path);
+        var vfx = ActorVfxCreateHook.Original(pathPtr, a2, a3, a4, a5, a6, a7);
+        //var path = Marshal.PtrToStringUTF8((nint)pathPtr)
+        //Plugin.TrackerManager?.Vfx.AddActor( vfx, path, caster == null ? 0 : caster->EntityId, target == null ? 0 : target->EntityId );;
 
-        //if (Plugin.Configuration?.LogVfxDebug == true) Dalamud.Log($"New Actor: {path} {(nint)vfx:X8}");
+        //if (Plugin.Configuration?.LogVfxDebug == true) Dalamud.Log($"New Actor: {path} {( nint )vfx:X8}");
         return vfx;
     }
 
-    private IntPtr ActorVfxRemoveDetour(VfxObject* vfx, char a2)
+    private IntPtr ActorVfxRemoveDetour(VfxData* vfx, char a2)
     {
-        //VfxSpawn.InteropRemoved(vfx);
+        //VfxSpawn.InteropRemoved( ( nint )vfx);
         //Plugin.TrackerManager?.Vfx.RemoveActor(vfx);
-        OnActorVfxRemoved?.Invoke((IntPtr)vfx, a2);
+        OnActorVfxRemoved?.Invoke((nint)vfx, a2);
         return ActorVfxRemoveHook.Original(vfx, a2);
-    }
-
-    private IntPtr VfxUseTriggerDetour(VfxObject* vfx, uint triggerId)
-    {
-        var timeline = VfxUseTriggerHook.Original(vfx, triggerId);
-
-        //if (Plugin.Configuration?.LogVfxTriggers == true) Dalamud.Log($"Trigger {triggerId} on {(nint)vfx:X8}, timeline: {timeline:X8}");
-        return timeline;
     }
 }
