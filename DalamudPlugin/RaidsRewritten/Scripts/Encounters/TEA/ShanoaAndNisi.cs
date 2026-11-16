@@ -232,12 +232,12 @@ public class ShanoaAndNisi : Mechanic
 
         else if (action.RowId == PhotonActionId)
         {
-            if (ShanoaPark?.Shanoa.IsValid() ?? false)
-            {
-                ShanoaPark.Shanoa.Set(new OneTimeModelTimeline(Shanoa.StretchAnimationId));
-            }
             if (photonsCasted == 1)
             {
+                if (ShanoaPark?.Shanoa.IsValid() ?? false)
+                {
+                    ShanoaPark.Shanoa.Set(new OneTimeModelTimeline(Shanoa.StretchAnimationId));
+                }
                 NetworkClient.SendAsync(new Message
                 {
                     action = Message.Action.StartMechanic,

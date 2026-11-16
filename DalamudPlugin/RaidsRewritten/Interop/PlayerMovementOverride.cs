@@ -102,7 +102,24 @@ public unsafe sealed class PlayerMovementOverride : IDisposable
 
     private void RMIWalkDetour(void* self, float* sumLeft, float* sumForward, float* sumTurnLeft, byte* haveBackwardOrStrafe, byte* a6, byte bAdditiveUnk)
     {
-        rmiWalkHook.Original(self, sumLeft, sumForward, sumTurnLeft, haveBackwardOrStrafe, a6, bAdditiveUnk);
+        var overrideMovement = OverrideMovement != OverrideMovementState.None;
+        if (overrideMovement)
+        {
+            // Disable LMB+RMB movement
+            // https://github.com/beer-psi/NoMouseMoveForward/blob/master/NoMouseMoveForward/Hooks/NoLmbRmbWalking.cs
+            var im = InputManager.Instance();
+            var previousMouseState = im->MouseButtonHoldStateRaw;
+            if (previousMouseState == 3)
+            {
+                im->MouseButtonHoldStateRaw = 2;
+            }
+            rmiWalkHook.Original(self, sumLeft, sumForward, sumTurnLeft, haveBackwardOrStrafe, a6, bAdditiveUnk);
+            im->MouseButtonHoldStateRaw = previousMouseState;
+        }
+        else
+        {
+            rmiWalkHook.Original(self, sumLeft, sumForward, sumTurnLeft, haveBackwardOrStrafe, a6, bAdditiveUnk);
+        }
         // TODO: we really need to introduce some extra checks that PlayerMoveController::readInput does - sometimes it skips reading input, and returning something non-zero breaks stuff...
         //this.logger.Info($"WalkDetour rmi1:{rmiWalkIsInputEnabled1(self)}, rmi2: {rmiWalkIsInputEnabled2(self)}, a6: {*a6}, sumLeft:{*sumLeft}, sumForward:{*sumForward}, backOrStrafe:{*haveBackwardOrStrafe}, bAdd:{bAdditiveUnk}");
 
@@ -126,7 +143,6 @@ public unsafe sealed class PlayerMovementOverride : IDisposable
         IsMovementAllowedByGame = bAdditiveUnk == 0 && rmiWalkIsInputEnabled1(self) && rmiWalkIsInputEnabled2(self) && !isBeingKnockedBack;
         //UserInput = *sumLeft != 0 || *sumForward != 0;
 
-        var overrideMovement = OverrideMovement != OverrideMovementState.None;
         if (overrideMovement && IsMovementAllowedByGame)
         {
             if (OverrideMovement == OverrideMovementState.ForceMovementWorldDirection)
@@ -171,7 +187,7 @@ public unsafe sealed class PlayerMovementOverride : IDisposable
         if (OverrideMovement != OverrideMovementState.None)
         {
             if (keybind == KeybindType.StrafeLeft || keybind == KeybindType.StrafeRight)
-            { 
+            {
                 // Disables strafing (but does not unset the input key)
                 return false;
             }
