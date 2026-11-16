@@ -19,11 +19,13 @@ RaidsRewritten is (currently) entirely executed client-side. It hooks fight even
 
 ⚠️ ***To be clear, RaidsRewritten does not change anything about the original fight, it only adds fake mechanics on top of it. Nothing sent to and from official Square Enix game servers are modified, and overridden player controls are only capable of performing what a player is normally able to perform (ex. a fake knockback is just forced movement in the knockback direction).*** ⚠️
 
+If you want to nerd out about *exactly* how this plugin works under the hood, please visit the [wiki](https://github.com/Ricimon/FFXIV-RaidsRewritten/wiki).
+
 #### Why is there a server folder then?
 
 Please see [here](raidsrewritten_server/README.md).
 
-## Support Discord
+## Support & PF Discord
 
 [![Discord Banner](https://discord.com/api/guilds/669688899248979968/widget.png?style=banner2)](https://discord.gg/rSucAJ6A7u)
 
@@ -62,3 +64,9 @@ The XIV-interfacing parts of this plugin uses implementations taken from other o
 - [ECommons](https://github.com/NightmareXIV/ECommons), for various XIV utility functions
 - [SimpleTweaks](https://github.com/Caraxi/SimpleTweaksPlugin), for hotbar gray-out functionality
 - [Moodles](https://github.com/kawaii/Moodles), for native custom status rendering
+
+## AI Usage Disclosure
+
+**No AI tools were used in the development of the primary codebase.** Everything in this repo is either hand-coded or taken from other open-source projects.
+
+Some AI tools were used to develop accompanying tools for the sake of finding in-game model and VFX paths.

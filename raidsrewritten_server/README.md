@@ -8,6 +8,10 @@ In order to resolve position-based mechanics consistently, a custom server is re
 
 ## Status
 
-The server is in development, and RaidsRewritten client versions below 2.0 will not have server connection capabilities.
+The server is live for development and playtesting. I (Ricimon) am self-hosting the server on cloud machines that I have access to.
 
-Once the server does come online, its only purpose will be to enable fake mechanics that need a single source of truth, such as player-position mechanics. The client will launch unconnected and still be completely functional without a server connection. The player will have the option to connect to the server to enable fake mechanics that require a server.
+The server's only purpose is to enable fake mechanics that need a single source of truth, such as player-position mechanics. The client will launch unconnected and still be completely functional without a server connection. RaidsRewritten versions 2.0 and above will have the option to connect to the server to enable fake mechanics that require a server and see fake statuses that other connected players receive. At no point does the plugin client perform any direct P2P connection with another player.
+
+Communication between the plugin client and the RaidsRewritten server is completely separate from the game client and official Square Enix servers. Nothing sent between the game client and official Square Enix servers is modified from normal operation in any way.
+
+RaidsRewritten client versions below 2.0 do not have server connection capabilities.
