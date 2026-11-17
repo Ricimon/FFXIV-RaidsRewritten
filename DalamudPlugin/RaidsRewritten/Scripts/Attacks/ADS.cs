@@ -119,7 +119,7 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
                             {
                                 commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
                                 {
-                                    DelayedAction.Create(e.CsWorld(), () =>
+                                    DelayedAction.Create(e.Stage().CsWorld(), () =>
                                     {
                                         Paralysis.ApplyToTarget(e, ParalysisDuration, StunInterval, StunDuration);
                                         DamageDown.ApplyToTarget(e, PacifyDuration);
@@ -203,7 +203,7 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
                                 {
                                     commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
                                     {
-                                        DelayedAction.Create(e.CsWorld(), () =>
+                                        DelayedAction.Create(e.Stage().CsWorld(), () =>
                                         {
                                             Paralysis.ApplyToTarget(e, ParalysisDuration, StunInterval, StunDuration);
                                             DamageDown.ApplyToTarget(e, PacifyDuration);

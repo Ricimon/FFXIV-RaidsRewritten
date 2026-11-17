@@ -81,7 +81,7 @@ public class RepellingCannonADS (DalamudServices dalamud, VfxSpawn vfxSpawn, Com
                         break;
                     case Phase.Omen:
                         if (ShouldReturn(component, delay)) { return; }
-                        CircleOmen.CreateEntity(world)
+                        CircleOmen.CreateEntity(it.Stage())
                             .Set(new Position(position.Value))
                             .Set(new Scale(new Vector3(AttackScale)))
                             .Set(new OmenDuration(OmenDuration, false))
@@ -103,12 +103,12 @@ public class RepellingCannonADS (DalamudServices dalamud, VfxSpawn vfxSpawn, Com
                                 {
                                     if (player.HasTranscendance())
                                     {
-                                        DelayedAction.Create(world, () => vfxSpawn.PlayInvulnerabilityEffect(player), 0.2f).ChildOf(entity);
+                                        DelayedAction.Create(it.Stage(), () => vfxSpawn.PlayInvulnerabilityEffect(player), 0.2f).ChildOf(entity);
                                     } else
                                     {
                                         commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
                                         {
-                                            DelayedAction.Create(world, () => Hysteria.ApplyToTarget(e, HysteriaDuration, RedirectInterval), 0.2f).ChildOf(entity);
+                                            DelayedAction.Create(it.Stage(), () => Hysteria.ApplyToTarget(e, HysteriaDuration, RedirectInterval), 0.2f).ChildOf(entity);
                                         });
                                     }
                                 }

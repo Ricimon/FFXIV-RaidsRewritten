@@ -35,7 +35,7 @@ public abstract class Mechanic()
         ILogger logger)
     {
         this.Dalamud = dalamud;
-        this.World = ecsContainer.World;
+        this.World = ecsContainer.World.GetStage(0);
         this.CommonQueries = commonQueries;
         this.EntityManager = entityManager;
         this.VfxSpawn = vfxSpawn;

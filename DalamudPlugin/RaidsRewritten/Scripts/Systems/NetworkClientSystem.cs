@@ -77,7 +77,7 @@ public sealed class NetworkClientSystem(DalamudServices dalamud, NetworkClient n
                             timeRemaining = condition.TimeRemaining,
                             newlyApplied = !e.Has<Condition.SyncedToServer>(),
                         });
-                        e.Add<Condition.SyncedToServer>();
+                        e.Stage().Add<Condition.SyncedToServer>();
                     });
                     var syncConditionsOnSelf = new Message
                     {
@@ -108,7 +108,7 @@ public sealed class NetworkClientSystem(DalamudServices dalamud, NetworkClient n
                 if (!parent.IsValid()) { return; }
                 if (!parent.Has<Player.LocalPlayer>()) { return; }
 
-                parent.Add<SyncConditions>();
+                parent.Stage().Add<SyncConditions>();
             });
     }
 

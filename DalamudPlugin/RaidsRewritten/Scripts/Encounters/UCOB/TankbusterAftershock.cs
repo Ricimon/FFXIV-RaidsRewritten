@@ -204,14 +204,14 @@ public class TankbusterAftershock : Mechanic
                 if (player == null || player.IsDead) { return; }
                 if (player.HasTranscendance())
                 {
-                    DelayedAction.Create(e.CsWorld(), () =>
+                    DelayedAction.Create(e.Stage().CsWorld(), () =>
                     {
                         this.VfxSpawn.PlayInvulnerabilityEffect(player);
                     }, aftershockData.StatusDelaySeconds);
                 }
                 else
                 {
-                    DelayedAction.Create(e.CsWorld(), () =>
+                    DelayedAction.Create(e.Stage().CsWorld(), () =>
                     {
                         Heavy.ApplyToTarget(e, HeavyDurationSeconds, true);
                         DamageDown.ApplyToTarget(e, PacifyDurationSeconds, true);

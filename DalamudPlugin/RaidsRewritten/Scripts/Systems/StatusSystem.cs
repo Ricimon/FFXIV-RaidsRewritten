@@ -99,12 +99,12 @@ public unsafe class StatusSystem(
                 var chara = (Character*)dChara.Address;
                 if (!chara->IsCharacter()) { return; }
 
-                DelayedAction.Create(statusEntity.CsWorld(), () =>
+                DelayedAction.Create(statusEntity.Stage().CsWorld(), () =>
                 {
                     if (!statusEntity.IsValid()) { return; }
                     var isEnfeeblement = statusEntity.Has<Condition.StatusEnfeeblement>();
 
-                    var flytext = statusEntity.CsWorld().Entity()
+                    var flytext = statusEntity.Stage().CsWorld().Entity()
                         .Set(new FlyText(statusEntity, status, isEnfeeblement, chara->EntityId))
                         .Set(new FlyTextReady(new(status, true)))
                         .Add(Ecs.DependsOn, statusEntity);

@@ -95,7 +95,7 @@ public class TemperatureControl : Mechanic
             var player = CommonQueries.LocalPlayerQuery.First();
             if (player.IsValid())
             {
-                Temperature.SetTemperature(player);
+                Temperature.SetTemperature(player.Stage());
             }
         }
     }

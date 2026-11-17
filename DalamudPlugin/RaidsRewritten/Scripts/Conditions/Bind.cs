@@ -27,9 +27,9 @@ public class Bind
         bool overrideExistingDuration = false,
         bool isClientControlled = true)
     {
-        DelayedAction.Create(target.CsWorld(), (ref Iter it) =>
+        DelayedAction.Create(target.Stage().CsWorld(), (ref Iter it) =>
         {
-            var world = it.World();
+            var world = it.Stage();
 
             var condition = Condition.ApplyToTarget(target, "Bound", duration, id, extendDuration, overrideExistingDuration, isClientControlled);
 
@@ -52,7 +52,7 @@ public class Bind
                 DelayedAction.Create(world, (ref Iter it) =>
                 {
                     // Looped VFX
-                    it.World().Entity()
+                    it.Stage().Entity()
                         .Set(new ActorVfx("vfx/common/eff/dk10ht_bind0h.avfx"))
                         .ChildOf(condition);
                 }, 0.6f).ChildOf(condition);

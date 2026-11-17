@@ -85,30 +85,14 @@ public class DelayedAction(ILogger logger) : ISystem
         // appear on the entity until the next frame.
         Create(world, () => { }, 0, true);
 
-        world.System<Component>().Without<Immediate>()
-            .Each((Iter it, int i, ref Component component) =>
-            {
-                Run(it, i, ref component, false);
-            });
-        world.System<Component>().With<Immediate>().Immediate()
-            .Each((Iter it, int i, ref Component component) =>
-            {
-                Run(it, i, ref component, true);
-            });
+        world.System<Component>().Without<Immediate>().Each(Run);
+        world.System<Component>().With<Immediate>().Immediate().Each(Run);
 
-        world.System<IterComponent>().Without<Immediate>()
-            .Each((Iter it, int i, ref IterComponent component) =>
-            {
-                Run(it, i, ref component, false);
-            });
-        world.System<IterComponent>().With<Immediate>().Immediate()
-            .Each((Iter it, int i, ref IterComponent component) =>
-            {
-                Run(it, i, ref component, true);
-            });
+        world.System<IterComponent>().Without<Immediate>().Each(Run);
+        world.System<IterComponent>().With<Immediate>().Immediate().Each(Run);
     }
 
-    private void Run(Iter it, int i, ref Component component, bool immediate)
+    private void Run(Iter it, int i, ref Component component)
     {
         component.TimeRemaining = Math.Max(component.TimeRemaining - it.DeltaTime(), 0);
         component.FramesRemaining = Math.Max(component.FramesRemaining - 1, 0);
@@ -117,34 +101,30 @@ public class DelayedAction(ILogger logger) : ISystem
 
         try
         {
-            if (immediate) { it.World().DeferSuspend(); }
             component.Action();
-            if (immediate) { it.World().DeferResume(); }
         }
         catch (Exception e)
         {
             logger.Error(e.ToStringFull());
         }
 
-        it.Entity(i).Destruct();
+        it.Entity(i).Stage().Destruct();
     }
 
-    private void Run(Iter it, int i, ref IterComponent component, bool immediate)
+    private void Run(Iter it, int i, ref IterComponent component)
     {
         component.TimeRemaining = Math.Max(component.TimeRemaining - it.DeltaTime(), 0);
         if (component.TimeRemaining > 0) { return; }
 
         try
         {
-            if (immediate) { it.World().DeferSuspend(); }
             component.Action.Invoke(ref it);
-            if (immediate) { it.World().DeferResume(); }
         }
         catch (Exception e)
         {
             logger.Error(e.ToStringFull());
         }
 
-        it.Entity(i).Destruct();
+        it.Entity(i).Stage().Destruct();
     }
 }

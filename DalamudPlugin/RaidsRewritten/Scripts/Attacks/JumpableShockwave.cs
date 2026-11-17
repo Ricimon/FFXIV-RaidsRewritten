@@ -122,10 +122,10 @@ public sealed class JumpableShockwave(DalamudServices dalamud, CommonQueries com
                 }
 
                 // Visualization
-                //var e = CircleOmen.CreateEntity(it.World())
+                //var e = CircleOmen.CreateEntity(it.Stage())
                 //    .Set(new Position(p - radius * Vector3.UnitX));
                 //logger.Info(radius.ToString());
-                //DelayedAction.Create(world, () =>
+                //DelayedAction.Create(it.Stage(), () =>
                 //{
                 //    e.Destruct();
                 //}, 0.1f);

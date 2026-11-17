@@ -98,7 +98,7 @@ public class InputSystem : ISystem
                     return;
                 }
 
-                ref readonly var mouseRight = ref it.World().Get<MouseRightState>();
+                ref readonly var mouseRight = ref it.Stage().Get<MouseRightState>();
                 if (mouseRight.IsPressedThisTick && !IsHoveringUi())
                 {
                     entity.Destruct();
@@ -108,7 +108,7 @@ public class InputSystem : ISystem
                 // Ground target reticle
                 if (!entity.HasChild<PlacementReticle>())
                 {
-                    it.World().Entity()
+                    it.Stage().Entity()
                         .Set(new StaticVfx("vfx/common/eff/gl_target1.avfx"))
                         .Set(new Scale(place.ReticleRadius * Vector3.One))
                         .Set(new VfxFadeOutDuration(0.5f))
@@ -132,7 +132,7 @@ public class InputSystem : ISystem
                         }
                     });
 
-                    ref readonly var mouseLeft = ref it.World().Get<MouseLeftState>();
+                    ref readonly var mouseLeft = ref it.Stage().Get<MouseLeftState>();
                     if (mouseLeft.IsPressedThisTick)
                     {
                         logger.Debug("Mouse clicked at world position {0}", worldPos);
@@ -156,7 +156,7 @@ public class InputSystem : ISystem
                             // Used for testing arbitrarily placing static vfx
                             if (c.TryGet<StaticVfx>(out var sv))
                             {
-                                it.World().Entity()
+                                it.Stage().Entity()
                                     .Set(sv)
                                     .Set(new Position(worldPos))
                                     .Set(new Rotation(rotation))
@@ -185,19 +185,16 @@ public class InputSystem : ISystem
             .Event(Ecs.OnAdd)
             .Each((Iter it, int i, ref PlaceMechanicWithMouse _) =>
             {
-                var world = it.World();
+                var world = it.Stage();
                 var entity = it.Entity(i);
 
-                var isDeferrred = world.IsDeferred();
-                if (!isDeferrred) { world.DeferBegin(); }
-                it.World().Query<PlaceMechanicWithMouse>().Each((Entity e, ref PlaceMechanicWithMouse _) =>
+                world.Query<PlaceMechanicWithMouse>().Each((Entity e, ref PlaceMechanicWithMouse _) =>
                 {
                     if (entity.Id != e.Id)
                     {
                         e.Destruct();
                     }
                 });
-                if (!isDeferrred) { world.DeferEnd(); }
             });
     }
 

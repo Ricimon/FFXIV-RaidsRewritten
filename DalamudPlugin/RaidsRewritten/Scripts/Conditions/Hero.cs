@@ -66,9 +66,9 @@ file class Hero
         int iconToReplace,
         Action<Entity> actionOnEntity)
     {
-        DelayedAction.Create(target.CsWorld(), (ref Iter it) =>
+        DelayedAction.Create(target.Stage().CsWorld(), (ref Iter it) =>
         {
-            var world = it.World();
+            var world = it.Stage();
 
             var condition = Condition.ApplyToTarget(target, statusName, float.PositiveInfinity, id, false, false, isClientControlled);
 

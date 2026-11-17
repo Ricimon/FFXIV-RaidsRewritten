@@ -52,10 +52,10 @@ public class VoidGate() : IEntity, ISystem
 
                 var entity = it.Entity(i);
 
-                using var animationQuery = world.QueryBuilder().With(flecs.EcsChildOf, entity).With<AnimationActor>().Build();
+                using var animationQuery = it.Stage().QueryBuilder().With(flecs.EcsChildOf, entity).With<AnimationActor>().Build();
                 if (!animationQuery.IsTrue())
                 {
-                    animationActor = FakeActor.CreateInvalidModel(it.World())
+                    animationActor = FakeActor.CreateInvalidModel(it.Stage())
                         .Set(new Position(position.Value))
                         .Set(new Rotation(rotation.Value))
                         .Add<AnimationActor>()
@@ -66,10 +66,10 @@ public class VoidGate() : IEntity, ISystem
                     animationActor = animationQuery.First();
                 }
 
-                using var gateQuery = world.QueryBuilder().With(flecs.EcsChildOf, entity).With<GateActor>().Build();
+                using var gateQuery = it.Stage().QueryBuilder().With(flecs.EcsChildOf, entity).With<GateActor>().Build();
                 if (!gateQuery.IsTrue())
                 {
-                    gateActor = FakeActor.CreateInvalidModel(it.World())
+                    gateActor = FakeActor.CreateInvalidModel(it.Stage())
                         .Set(new Position(position.Value))
                         .Set(new Rotation(rotation.Value))
                         .Add<GateActor>()
@@ -85,7 +85,7 @@ public class VoidGate() : IEntity, ISystem
                     case Phase.Spawn:
                         if (component.ElapsedTime < spawnDelay.DelayTime) { return; }
                         AddActorVfx(animationActor, AbsorbVfx);
-                        DelayedAction.Create(world, () =>
+                        DelayedAction.Create(it.Stage(), () =>
                         {
                             AddActorVfx(gateActor, GateActorVfx);
                         }, 0.5f).ChildOf(gateActor);
@@ -98,7 +98,7 @@ public class VoidGate() : IEntity, ISystem
 
                         AddActorVfx(animationActor, ExpelVfx);
                         
-                        DelayedAction.Create(world, () =>
+                        DelayedAction.Create(it.Stage(), () =>
                         {
                             gateActor.Destruct();
                         }, 0.5f).ChildOf(gateActor);

@@ -11,6 +11,7 @@ public class ColorSystem : ISystem
     {
         world.System<Color>()
             .With<Alpha>()
+            .DetectChanges()
             .Each((Iter it, int i, ref Color color) =>
             {
                 if (it.Changed())
@@ -25,6 +26,7 @@ public class ColorSystem : ISystem
 
         world.System<Alpha>()
             .With<Color>()
+            .DetectChanges()
             .Each((Iter it, int i, ref Alpha alpha) =>
             {
                 if (it.Changed())

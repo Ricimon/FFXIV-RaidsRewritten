@@ -63,7 +63,7 @@ public sealed class LightningCorridor(DalamudServices dalamud, CommonQueries com
                     component.Phase = Phase.Omen;
 
                     var omenDuration = this.phaseTimings[Phase.Omen];
-                    var omen1 = RectangleOmen.CreateEntity(it.World());
+                    var omen1 = RectangleOmen.CreateEntity(it.Stage());
                     {
                         var r = MathUtilities.ClampRadians(rotation.Value + 0.5f * MathF.PI);
                         var p = position.Value + (0.5f * Width * MathUtilities.RotationToUnitVector(r)).ToVector3(0);
@@ -73,7 +73,7 @@ public sealed class LightningCorridor(DalamudServices dalamud, CommonQueries com
                             .Set(new OmenDuration(omenDuration, false))
                             .ChildOf(entity);
                     }
-                    var omen2 = RectangleOmen.CreateEntity(it.World());
+                    var omen2 = RectangleOmen.CreateEntity(it.Stage());
                     {
                         var r = MathUtilities.ClampRadians(rotation.Value - 0.5f * MathF.PI);
                         var p = position.Value + (0.5f * Width * MathUtilities.RotationToUnitVector(r)).ToVector3(0);
@@ -120,7 +120,7 @@ public sealed class LightningCorridor(DalamudServices dalamud, CommonQueries com
                     {
                         var p = position.Value + ((0.5f * Width + 20.0f) * MathUtilities.RotationToUnitVector(r1)).ToVector3(0);
                         var pVfx = p + (-20.0f + j * 40.0f) * MathUtilities.RotationToUnitVector(rotation.Value).ToVector3(0);
-                        var fakeActor = FakeActor.CreateInvalidModel(it.World())
+                        var fakeActor = FakeActor.CreateInvalidModel(it.Stage())
                             .Set(new Position(pVfx))
                             .Set(new Rotation(rotation.Value))
                             .Set(new ActorVfx("vfx/monster/gimmick5/eff/x6r4_b_g016_c0t1.avfx"))
@@ -129,7 +129,7 @@ public sealed class LightningCorridor(DalamudServices dalamud, CommonQueries com
                         // SFX
                         if (j == 0)
                         {
-                            var fakeSfxActor = FakeActor.CreateInvalidModel(it.World())
+                            var fakeSfxActor = FakeActor.CreateInvalidModel(it.Stage())
                                 .Set(new Position(position.Value))
                                 .Set(new Rotation(rotation.Value))
                                 //.Set(new OneTimeModelTimeline(11179))
@@ -149,7 +149,7 @@ public sealed class LightningCorridor(DalamudServices dalamud, CommonQueries com
                     {
                         var p = position.Value + ((0.5f * Width + 20.0f) * MathUtilities.RotationToUnitVector(r2)).ToVector3(0);
                         var pVfx = p + (-20.0f + j * 40.0f) * MathUtilities.RotationToUnitVector(rotation.Value).ToVector3(0);
-                        var fakeActor = FakeActor.CreateInvalidModel(it.World())
+                        var fakeActor = FakeActor.CreateInvalidModel(it.Stage())
                             .Set(new Position(pVfx))
                             .Set(new Rotation(rotation.Value))
                             .Set(new ActorVfx("vfx/monster/gimmick5/eff/x6r4_b_g016_c0t1.avfx"))

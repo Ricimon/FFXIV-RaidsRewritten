@@ -67,7 +67,7 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
                 {
                     case Phase.Omen:
                         if (ShouldReturn(donut)) { return; }
-                        ConflagDonut.CreateEntity(world)
+                        ConflagDonut.CreateEntity(it.Stage())
                             .Set(new Position(position.Value))
                             .Set(new OmenDuration(OmenDuration, false))
                             .ChildOf(e);
@@ -103,13 +103,13 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
                                 {
                                     if (player.HasTranscendance())
                                     {
-                                        DelayedAction.Create(world, () => vfxSpawn.PlayInvulnerabilityEffect(player), 0.2f).ChildOf(e);
+                                        DelayedAction.Create(it.Stage(), () => vfxSpawn.PlayInvulnerabilityEffect(player), 0.2f).ChildOf(e);
                                     }
                                     else
                                     {
                                         commonQueries.LocalPlayerQuery.Each((Entity player, ref Player.Component _) =>
                                         {
-                                            DelayedAction.Create(world, () => DamageDown.ApplyToTarget(player, PacifyDuration), 0.2f).ChildOf(player);
+                                            DelayedAction.Create(it.Stage(), () => DamageDown.ApplyToTarget(player, PacifyDuration), 0.2f).ChildOf(player);
                                         });
                                     }
                                 }
@@ -185,7 +185,7 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
                 {
                     case Phase.Omen:
                         if (ShouldReturn(donut)) { return; }
-                        Fan90Omen.CreateEntity(world)
+                        Fan90Omen.CreateEntity(it.Stage())
                             .Set(new Position(position.Value))
                             .Set(new Rotation(rotation.Value))
                             .Set(new Scale(new Vector3(40)))
@@ -214,13 +214,13 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
                                 {
                                     if (player.HasTranscendance())
                                     {
-                                        DelayedAction.Create(world, () => vfxSpawn.PlayInvulnerabilityEffect(player), 0.2f).ChildOf(e);
+                                        DelayedAction.Create(it.Stage(), () => vfxSpawn.PlayInvulnerabilityEffect(player), 0.2f).ChildOf(e);
                                     }
                                     else
                                     {
                                         commonQueries.LocalPlayerQuery.Each((Entity player, ref Player.Component _) =>
                                         {
-                                            DelayedAction.Create(world, () => Stun.ApplyToTarget(player, StunDuration), 0.2f).ChildOf(player);
+                                            DelayedAction.Create(it.Stage(), () => Stun.ApplyToTarget(player, StunDuration), 0.2f).ChildOf(player);
                                         });
                                     }
                                 }
@@ -233,7 +233,7 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
                     case Phase.Vfx:
                         if (ShouldReturn(donut)) { return; }
 
-                        var fakeActor = FakeActor.CreateInvalidModel(it.World())
+                        var fakeActor = FakeActor.CreateInvalidModel(it.Stage())
                             .Set(new Position(position.Value))
                             .Set(new Rotation(rotation.Value))
                             .ChildOf(e);
@@ -332,7 +332,7 @@ public class FireTornadoEntity (DalamudServices dalamud, VfxSpawn vfxSpawn, Comm
             {
                 commonQueries.LocalPlayerQuery.Each((Entity player, ref Player.Component _) =>
                 {
-                    DelayedAction.Create(world, () => DamageDown.ApplyToTarget(player, PunishmentDuration, overrideExistingDuration: true), 0.2f).ChildOf(player);
+                    DelayedAction.Create(it.Stage(), () => DamageDown.ApplyToTarget(player, PunishmentDuration, overrideExistingDuration: true), 0.2f).ChildOf(player);
                 });
             }
         });

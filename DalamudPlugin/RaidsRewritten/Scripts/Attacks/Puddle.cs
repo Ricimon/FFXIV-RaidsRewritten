@@ -36,7 +36,7 @@ public class Puddle(DalamudServices dalamud, CommonQueries commonQueries, ILogge
                 var entity = it.Entity(i);
                 if (!component.Vfx.IsValid())
                 {
-                    component.Vfx = it.World().Entity()
+                    component.Vfx = it.Stage().Entity()
                         .Set(new StaticVfx(component.VfxPath))
                         .ChildOf(entity);
                 }

@@ -67,12 +67,12 @@ public class Star(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn
                             {
                                 if (component.Type == Type.Short)
                                 {
-                                    component.OmenEntity = ShortStarOmen.CreateEntity(it.World())
+                                    component.OmenEntity = ShortStarOmen.CreateEntity(it.Stage())
                                         .Set(new Scale(ShortStarOmen.ScaleMultiplier * scale.Value));
                                 }
                                 else
                                 {
-                                    component.OmenEntity = LongStarOmen.CreateEntity(it.World())
+                                    component.OmenEntity = LongStarOmen.CreateEntity(it.Stage())
                                         .Set(new Scale(LongStarOmen.ScaleMultiplier * scale.Value));
                                 }
                                 component.OmenEntity
@@ -103,7 +103,7 @@ public class Star(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn
                             {
                                 for (var j = 1; j >= 0; j--)
                                 {
-                                    var fakeActor = FakeActor.CreateInvalidModel(it.World())
+                                    var fakeActor = FakeActor.CreateInvalidModel(it.Stage())
                                         .Set(new Position(position.Value))
                                         .Set(new Rotation(rotation.Value + j * 0.25f * MathF.PI))
                                         .ChildOf(entity);
@@ -137,14 +137,14 @@ public class Star(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn
             {
                 if (player.HasTranscendance() && !component.IgnoreTranscendance)
                 {
-                    DelayedAction.Create(entity.CsWorld(), () =>
+                    DelayedAction.Create(entity.Stage().CsWorld(), () =>
                     {
                         vfxSpawn.PlayInvulnerabilityEffect(player);
                     }, DamageDelay).ChildOf(entity);
                 }
                 else
                 {
-                    DelayedAction.Create(entity.CsWorld(), () =>
+                    DelayedAction.Create(entity.Stage().CsWorld(), () =>
                     {
                         commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
                         {

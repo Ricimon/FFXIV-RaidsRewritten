@@ -11,9 +11,9 @@ public class Overheat
 
     public static void ApplyToTarget(Entity target, float duration)
     {
-        DelayedAction.Create(target.CsWorld(), (ref Iter it) =>
+        DelayedAction.Create(target.Stage().CsWorld(), (ref Iter it) =>
         {
-            var world = target.CsWorld();
+            var world = it.Stage();
             var entity = Condition.ApplyToTarget(target, "Overheated", duration, ConditionTable.Id.Overheat, false, false);
 
             entity.Set(new Condition.StatusIconReplacement(IconId, ConditionTable.IconToReplace.Overheat))

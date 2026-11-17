@@ -91,7 +91,7 @@ public sealed class PartyPlayersSystem(DalamudServices dalamud, Configuration co
                     var gameObject = partyMember?.GameObject;
                     if (ShouldCreatePlayerEntity(gameObject) && gameObject is IPlayerCharacter pc)
                     {
-                        Player.Create(it.World(), false, pc, partyMember!.ContentId);
+                        Player.Create(it.Stage(), false, pc, partyMember!.ContentId);
                         logger.Info("Created a Player entity with id {0}, name {1}", gameObject.GameObjectId, pc.GetPlayerFullName()!);
                     }
                 }
@@ -110,7 +110,7 @@ public sealed class PartyPlayersSystem(DalamudServices dalamud, Configuration co
                                 if (bcp == null) { continue; }
                                 bc = *bcp;
                             }
-                            Player.Create(it.World(), false, player, bc.ContentId);
+                            Player.Create(it.Stage(), false, player, bc.ContentId);
                             logger.Info("Created a Player entity with id {0}, name {1}", player.GameObjectId, player.GetPlayerFullName()!);
                         }
                     }

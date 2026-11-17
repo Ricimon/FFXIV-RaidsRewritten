@@ -142,13 +142,13 @@ public class Screw(
                     if (!runtime.GroundIndicator.IsValid())
                     {
                         var vfxPath = "vfx/common/eff/ev_lockon_01x.avfx";
-                        runtime.GroundIndicator = FakeActor.CreateZeroAlphaModel(it.World())
+                        runtime.GroundIndicator = FakeActor.CreateZeroAlphaModel(it.Stage())
                             .Set(new ActorVfx(vfxPath))
                             .Set(new FollowPosition(component.Target))
                             .ChildOf(entity);
 
                         var replacementPath = dalamud.PluginInterface.GetResourcePath("vfx/ground_lockon.avfx");
-                        it.World().Entity()
+                        it.Stage().Entity()
                             .Set(new FileReplacement(vfxPath, replacementPath))
                             .ChildOf(runtime.GroundIndicator);
 
@@ -206,14 +206,14 @@ public class Screw(
                                 2 => "vfx/count_2_of_3.avfx",
                                 _ => "vfx/count_3_of_3.avfx",
                             };
-                            runtime.RotationIndicator = it.World().Entity()
+                            runtime.RotationIndicator = it.Stage().Entity()
                                 .Set(new ActorVfx(vfxPath))
                                 .Set(new ActorVfxSource(component.Target))
                                 .Set(new ExpectFileReplacement())
                                 .ChildOf(entity);
 
                             var replacementPath = dalamud.PluginInterface.GetResourcePath(vfxPathReplacement);
-                            it.World().Entity()
+                            it.Stage().Entity()
                                 .Set(new FileReplacement(vfxPath, replacementPath))
                                 .ChildOf(runtime.RotationIndicator);
 
@@ -259,17 +259,17 @@ public class Screw(
 
                         if (resolvedSuccess)
                         {
-                            it.World().Entity()
+                            it.Stage().Entity()
                                 .Set(new ActorVfx("vfx/lockon/eff/m0489trg_a0c.avfx"))
                                 .Set(new ActorVfxSource(component.Target));
                             runtime.Phase = Phase.ResolvedSuccess;
                         }
                         else if (resolvedFail)
                         {
-                            it.World().Entity()
+                            it.Stage().Entity()
                                 .Set(new ActorVfx("vfx/lockon/eff/m0489trg_b0c.avfx"))
                                 .Set(new ActorVfxSource(component.Target));
-                            it.World().Entity()
+                            it.Stage().Entity()
                                 .Set(new ActorVfx("vfx/monster/m0005/eff/m0005sp_15t0t.avfx"))
                                 .Set(new ActorVfxSource(component.Target));
                             runtime.Phase = Phase.ResolvedFail;
@@ -290,7 +290,7 @@ public class Screw(
                     {
                         if (linkedToId != 0)
                         {
-                            using var q = it.World().Query<Player.Component, Player.ContentId>();
+                            using var q = it.Stage().Query<Player.Component, Player.ContentId>();
                             var playerEntity = q.Find((ref pc, ref contentId) => pc.PlayerCharacter != null && contentId.Value == linkedToId);
                             if (playerEntity.IsValid() && playerEntity.TryGet(out Player.Component pc))
                             {
@@ -316,7 +316,7 @@ public class Screw(
                         {
                             var entity = it.Entity(i);
 
-                            using var q = it.World().QueryBuilder<Condition.Id>().With(Ecs.ChildOf, entity).Build();
+                            using var q = it.Stage().QueryBuilder<Condition.Id>().With(Ecs.ChildOf, entity).Build();
                             var hasBind = q.Find((ref id) => id.Value == BindId).IsValid();
                             if (!hasBind)
                             {
@@ -373,7 +373,7 @@ public class Screw(
 
                 if (!runtime.LinkVfx.IsValid())
                 {
-                    runtime.LinkVfx = it.World().Entity()
+                    runtime.LinkVfx = it.Stage().Entity()
                         .Set(new ActorVfx("vfx/channeling/eff/chn_elem0f.avfx"))
                         .Set(new ActorVfxSource(component.Target))
                         .Set(new ActorVfxTarget(linkedTo.Target))
@@ -513,7 +513,7 @@ public class Screw(
                 var player = dalamud.ObjectTable.LocalPlayer;
                 if (component.Target.GameObjectId == player?.GameObjectId)
                 {
-                    DelayedAction.Create(it.World(), RemoveBindStatus, 0);
+                    DelayedAction.Create(it.Stage(), RemoveBindStatus, 0);
                 }
             });
     }

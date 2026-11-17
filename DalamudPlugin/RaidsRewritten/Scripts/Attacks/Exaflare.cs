@@ -63,17 +63,17 @@ public class Exaflare(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogger logger
         world.System<Component, Position, Rotation, Scale>()
             .Each((Iter it, int i, ref Component component, ref Position position, ref Rotation rotation, ref Scale scale) =>
             {
+                var entity = it.Entity(i);
                 component.ElapsedTime += it.DeltaTime();
 
                 Entity fakeActor;
-                var entity = it.Entity(i);
 
                 {
-                    using var childQuery = world.QueryBuilder().With(flecs.EcsChildOf, entity).With<FakeActor.Component>().Build();
+                    using var childQuery = it.Stage().QueryBuilder().With(flecs.EcsChildOf, entity).With<FakeActor.Component>().Build();
 
                     if (!childQuery.IsTrue())
                     {
-                        fakeActor = FakeActor.CreateInvalidModel(it.World())
+                        fakeActor = FakeActor.CreateInvalidModel(it.Stage())
                             .Set(new Position(position.Value))
                             .Set(new Rotation(rotation.Value))
                             .ChildOf(entity);
@@ -88,7 +88,7 @@ public class Exaflare(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogger logger
                     case Phase.Omen:
                         component.Phase = Phase.OmenDestruct;
 
-                        var omen = ExaflareOmen.CreateEntity(world);
+                        var omen = ExaflareOmen.CreateEntity(it.Stage());
                         omen.Set(new Position(position.Value))
                             .Set(new Rotation(rotation.Value))
                             .Set(new Scale(new Vector3(ExaflareSize)))
@@ -118,7 +118,7 @@ public class Exaflare(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogger logger
                             newPos = position.Value;
                         }
 
-                        Circle.CreateEntity(world)
+                        Circle.CreateEntity(it.Stage())
                             .Set(new Position(newPos))
                             .Set(new Rotation(rotation.Value))
                             .Set(new Scale(new Vector3(ExaflareSize)))
@@ -152,11 +152,11 @@ public class Exaflare(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogger logger
         if (player == null || player.IsDead) { return; }
         if (player.HasTranscendance())
         {
-            DelayedAction.Create(e.CsWorld(), () => vfxSpawn.PlayInvulnerabilityEffect(player), StatusDelay).ChildOf(e);
+            DelayedAction.Create(e.Stage().CsWorld(), () => vfxSpawn.PlayInvulnerabilityEffect(player), StatusDelay).ChildOf(e);
         }
         else
         {
-            DelayedAction.Create(e.CsWorld(), () => {
+            DelayedAction.Create(e.Stage().CsWorld(), () => {
                 Stun.ApplyToTarget(e, StunDuration);
                 DamageDown.ApplyToTarget(e, PacifyDuration);
             }, StatusDelay)

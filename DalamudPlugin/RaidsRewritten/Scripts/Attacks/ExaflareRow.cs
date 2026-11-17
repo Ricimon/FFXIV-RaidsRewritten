@@ -36,10 +36,10 @@ public class ExaflareRow(DalamudServices dalamud, Random random, ILogger logger)
         world.System<Component, Position, Rotation>()
             .Each((Iter it, int i, ref Component component, ref Position position, ref Rotation rotation) =>
             {
-                component.ElapsedTime += it.DeltaTime();
                 var entity = it.Entity(i);
+                component.ElapsedTime += it.DeltaTime();
 
-                if (ShouldDestruct(world, component, entity))
+                if (ShouldDestruct(it.Stage(), component, entity))
                 {
                     entity.Destruct();
                     return;
@@ -78,11 +78,11 @@ public class ExaflareRow(DalamudServices dalamud, Random random, ILogger logger)
 
                 entity.Scope(() =>
                 {
-                    Exaflare.CreateEntity(world)
+                    Exaflare.CreateEntity(it.Stage())
                         .Set(new Position(exaPos1))
                         .Set(new Rotation(originalRotation));
 
-                    Exaflare.CreateEntity(world)
+                    Exaflare.CreateEntity(it.Stage())
                         .Set(new Position(exaPos2))
                         .Set(new Rotation(originalRotation));
                 });

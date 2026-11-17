@@ -107,7 +107,7 @@ public class Shanoa(ResourceLoader resourceLoader, ILogger logger) : IEntity, IS
                 var e = it.Entity(i);
                 e.Remove<Meow>();
 
-                it.World().Entity()
+                it.Stage().Entity()
                     .Set(new ActorVfx(HeartsVfxPath))
                     .ChildOf(e);
 

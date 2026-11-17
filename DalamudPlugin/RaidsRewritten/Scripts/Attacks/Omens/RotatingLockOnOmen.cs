@@ -41,6 +41,7 @@ public class RotatingLockOnOmen(DalamudServices dalamud) : IEntity, ISystem
         world.System<Component>()
             .Each((Iter it, int i, ref Component component) =>
             {
+                var world = it.Stage();
                 var entity = it.Entity(i);
 
                 if (component.LockOn == null)
@@ -58,7 +59,7 @@ public class RotatingLockOnOmen(DalamudServices dalamud) : IEntity, ISystem
                     {
                         lockOnVfx.Set(new ExpectFileReplacement());
                         var replacementPath = dalamud.PluginInterface.GetResourcePath("vfx/lockon_blue.avfx");
-                        it.World().Entity()
+                        it.Stage().Entity()
                             .Set(new FileReplacement(vfxPath, replacementPath))
                             .ChildOf(lockOnVfx);
                     }
@@ -71,7 +72,7 @@ public class RotatingLockOnOmen(DalamudServices dalamud) : IEntity, ISystem
                     var vfxPath = component.Direction == Direction.Clockwise ? RotationClockwiseVfxPath : RotationCounterclockwiseVfxPath;
                     var vfxPathReplacement = component.Direction == Direction.Clockwise ? RotationClockwiseVfxPathReplacement : RotationCounterclockwiseVfxPathReplacement;
 
-                    var rotationVfx = it.World().Entity()
+                    var rotationVfx = it.Stage().Entity()
                         .Set(new ActorVfx(vfxPath))
                         .Set(new ActorVfxSource(component.Target))
                         .Set(new ExpectFileReplacement())
@@ -80,12 +81,12 @@ public class RotatingLockOnOmen(DalamudServices dalamud) : IEntity, ISystem
                         .ChildOf(entity);
 
                     var vfxReplacementPath = dalamud.PluginInterface.GetResourcePath(vfxPathReplacement);
-                    it.World().Entity()
+                    it.Stage().Entity()
                         .Set(new FileReplacement(vfxPath, vfxReplacementPath))
                         .ChildOf(rotationVfx);
 
                     var scdReplacementPath = dalamud.PluginInterface.GetResourcePath(RotationScdPathReplacement);
-                    it.World().Entity()
+                    it.Stage().Entity()
                         .Set(new FileReplacement(RotationScdPath, scdReplacementPath))
                         .ChildOf(rotationVfx);
 

@@ -84,7 +84,7 @@ public unsafe class PlayerModelSystem(Configuration configuration) : ISystem
                 }
 
                 playerEntity.Set(new Flattened.FallingOff(status.OriginalZ, status.OriginalRotation));
-                world.Entity()
+                e.Stage().CsWorld().Entity()
                     .Set(new ActorVfx("vfx/common/eff/toad_smk0f.avfx"))
                     .Set(new Scale(new System.Numerics.Vector3(1.5f)))
                     .ChildOf(playerEntity);

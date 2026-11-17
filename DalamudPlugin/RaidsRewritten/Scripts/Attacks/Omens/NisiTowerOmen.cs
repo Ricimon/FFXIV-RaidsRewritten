@@ -80,7 +80,7 @@ public class NisiTowerOmen(DalamudServices dalamud, ILogger logger) : IEntity, I
 
                     if (!string.IsNullOrEmpty(nisiVfxPath))
                     {
-                        component.NisiVfx = FakeActor.CreateInvalidModel(it.World())
+                        component.NisiVfx = FakeActor.CreateInvalidModel(it.Stage())
                             .Set(new ActorVfx(nisiVfxPath))
                             .Set(new LocalPosition())
                             .Set(new Rotation())
@@ -89,7 +89,7 @@ public class NisiTowerOmen(DalamudServices dalamud, ILogger logger) : IEntity, I
                     }
                     else
                     {
-                        component.NisiVfx = it.World().Entity().ChildOf(e);
+                        component.NisiVfx = it.Stage().Entity().ChildOf(e);
                     }
                 }
 
@@ -145,7 +145,7 @@ public class NisiTowerOmen(DalamudServices dalamud, ILogger logger) : IEntity, I
                             _ => Vector4.One,
                         };
 
-                        component.TowerFilledVfx = it.World().Entity()
+                        component.TowerFilledVfx = it.Stage().Entity()
                             .Set(new StaticVfx("bg/ex2/05_zon_z3/common/vfx/eff/b1512pil02_u.avfx"))
                             .Set(new Color(color))
                             .Set(new Position(position.Value))

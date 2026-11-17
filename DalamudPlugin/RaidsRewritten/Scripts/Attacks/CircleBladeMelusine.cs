@@ -68,8 +68,9 @@ public class CircleBladeMelusine(DalamudServices dalamud, VfxSpawn vfxSpawn, Com
         world.System<Component, Position, AttackDelay>()
             .Each((Iter it, int i, ref Component component, ref Position position, ref AttackDelay delay) =>
             {
-                component.ElapsedTime += it.DeltaTime();
+                var world = it.Stage();
                 var entity = it.Entity(i);
+                component.ElapsedTime += it.DeltaTime();
 
                 switch (component.Phase)
                 {

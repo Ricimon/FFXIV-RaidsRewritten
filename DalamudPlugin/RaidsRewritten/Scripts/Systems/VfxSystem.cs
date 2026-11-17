@@ -1,5 +1,4 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
-using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Flecs.NET.Core;
 using RaidsRewritten.Game;
 using RaidsRewritten.Log;
@@ -18,6 +17,7 @@ public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogge
     {
         // Static VFX
         world.System<StaticVfx, Position, Rotation, Scale>()
+            .DetectChanges()
             .Each((Iter it, int i, ref StaticVfx vfx, ref Position position, ref Rotation rotation, ref Scale scale) =>
             {
                 var entity = it.Entity(i);
@@ -55,6 +55,7 @@ public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogge
             });
 
         world.System<StaticVfx, FullRotation>()
+            .DetectChanges()
             .Each((Iter it, int i, ref StaticVfx vfx, ref FullRotation rotation) =>
             {
                 if (!it.Changed()) { return; }
@@ -63,6 +64,7 @@ public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogge
             });
 
         world.System<StaticVfx, Color>()
+            .DetectChanges()
             .Each((Iter it, int i, ref StaticVfx vfx, ref Color color) =>
             {
                 if (!it.Changed()) { return; }
@@ -71,6 +73,7 @@ public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogge
             });
 
         world.System<StaticVfx, Alpha>()
+            .DetectChanges()
             .Each((Iter it, int i, ref StaticVfx vfx, ref Alpha alpha) =>
             {
                 if (!it.Changed()) { return; }
@@ -101,20 +104,20 @@ public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogge
                     Entity fadeOutEntity;
                     if (e.TryGet<VfxFadeOutDuration>(out var d))
                     {
-                        fadeOutEntity = e.CsWorld().Entity()
+                        fadeOutEntity = e.Stage().CsWorld().Entity()
                             .Set(new VfxFadeOut(vfx.VfxPtr, d.Value, d.Value));
                     }
                     else if (e.Has<Omen>())
                     {
                         // Finish the fade
                         var duration = 0.25f * a / 1.0f;
-                        fadeOutEntity = e.CsWorld().Entity()
+                        fadeOutEntity = e.Stage().CsWorld().Entity()
                             .Set(new VfxFadeOut(vfx.VfxPtr, duration, duration));
                     }
                     else
                     {
                         // Non-omen VFX may be intentionally transparent, so use the full fadeout duration
-                        fadeOutEntity = e.CsWorld().Entity()
+                        fadeOutEntity = e.Stage().CsWorld().Entity()
                             .Set(new VfxFadeOut(vfx.VfxPtr, 1.0f, 1.0f));
                     }
 
@@ -151,6 +154,7 @@ public unsafe class VfxSystem(DalamudServices dalamud, VfxSpawn vfxSpawn, ILogge
             });
 
         world.System<ActorVfx, Scale>()
+            .DetectChanges()
             .Each((Iter it, int i, ref ActorVfx vfx, ref Scale scale) =>
             {
                 if (!it.Changed()) { return; }

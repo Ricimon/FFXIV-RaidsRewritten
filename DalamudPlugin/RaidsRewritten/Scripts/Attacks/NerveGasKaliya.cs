@@ -76,7 +76,7 @@ public class NerveGasKaliya(DalamudServices dalamud, VfxSpawn vfxSpawn, CommonQu
                         break;
                     case Phase.Omen:
                         if (ShouldReturn(component, delay)) { return; }
-                        Fan120Omen.CreateEntity(world)
+                        Fan120Omen.CreateEntity(it.Stage())
                             .Set(new Position(position.Value))
                             .Set(new Rotation(rotation.Value))
                             .Set(new Scale(new Vector3(AttackScale)))
@@ -100,12 +100,12 @@ public class NerveGasKaliya(DalamudServices dalamud, VfxSpawn vfxSpawn, CommonQu
                                 {
                                     if (player.HasTranscendance())
                                     {
-                                        DelayedAction.Create(world, () => vfxSpawn.PlayInvulnerabilityEffect(player), 0.25f).ChildOf(entity);
+                                        DelayedAction.Create(it.Stage(), () => vfxSpawn.PlayInvulnerabilityEffect(player), 0.25f).ChildOf(entity);
                                     } else
                                     {
                                         commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
                                         {
-                                            DelayedAction.Create(world, () => Hysteria.ApplyToTarget(e, HysteriaDuration, RedirectInterval), 0.25f).ChildOf(entity);
+                                            DelayedAction.Create(it.Stage(), () => Hysteria.ApplyToTarget(e, HysteriaDuration, RedirectInterval), 0.25f).ChildOf(entity);
                                         });
                                     }
                                 }

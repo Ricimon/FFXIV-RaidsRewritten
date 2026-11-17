@@ -121,8 +121,8 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
                         dalamud.ChatGui.PrintSystemMessage(EnrageMessage);
                     }
                     if (animationState.Value != CastingAnimation) { entity.Set(new TimelineBase(CastingAnimation, true)); }
-                    DelayedAction.Create(world, () => AddActorVfx(entity, EnrageVfx1), EnrageVfxDelay).ChildOf(entity);
-                    DelayedAction.Create(world, () => AddActorVfx(entity, EnrageVfx2), EnrageVfxDelay).ChildOf(entity);
+                    DelayedAction.Create(it.Stage(), () => AddActorVfx(entity, EnrageVfx1), EnrageVfxDelay).ChildOf(entity);
+                    DelayedAction.Create(it.Stage(), () => AddActorVfx(entity, EnrageVfx2), EnrageVfxDelay).ChildOf(entity);
                     StunPlayer(entity, EnrageStunDuration, EnrageStunDelay);
                     component.Enrage = -1;
                     component.EnrageLoop = true;
@@ -198,50 +198,45 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
 
     public static void ApplyTarget(Entity entity, IGameObject target)
     {
-        entity.CsWorld().Defer(() => {
-            if (entity.TryGet<Component>(out var component))
+        entity = entity.Stage();
+        if (entity.TryGet<Component>(out var component))
+        {
+            if (component.Enrage == -1) { return; }
+
+            entity.DestructChildEntity<TetherVfxChild>();
+            entity.DestructChildEntity<CastingVfxChild>();
+
+            if (component.StartEnrage == -1)
             {
-                if (component.Enrage == -1) { return; }
-
-                entity.DestructChildEntity<TetherVfxChild>();
-                entity.DestructChildEntity<CastingVfxChild>();
-
-                if (component.StartEnrage == -1)
-                {
-                    AddActorVfx(entity, InterruptVfx);
-                }
+                AddActorVfx(entity, InterruptVfx);
             }
+        }
 
-            entity.Set(new Target(target));
-            AddActorVfx(entity, TetherVfx)
-                .Set(new ActorVfxTarget(target))
-                .Add<TetherVfxChild>();
-        });
+        entity.Set(new Target(target));
+        AddActorVfx(entity, TetherVfx)
+            .Set(new ActorVfxTarget(target))
+            .Add<TetherVfxChild>();
     }
 
     public static void RemoveTarget(Entity entity, TimelineBase animationState)
     {
-        entity.CsWorld().Defer(() =>
-        {
-            entity.DestructChildEntity<TetherVfxChild>();
-            Stand(entity, animationState);
-            entity.Remove<Target>();
-        });
+        entity = entity.Stage();
+        entity.DestructChildEntity<TetherVfxChild>();
+        Stand(entity, animationState);
+        entity.Remove<Target>();
     }
 
     public static void ChangeTetherVfx(Entity entity, string VfxPath = TetherVfx)
     {
-        entity.CsWorld().Defer(() =>
+        entity = entity.Stage();
+        if (entity.TryGet<Target>(out var target))
         {
-            if (entity.TryGet<Target>(out var target))
-            {
-                entity.DestructChildEntity<TetherVfxChild>();
+            entity.DestructChildEntity<TetherVfxChild>();
 
-                AddActorVfx(entity, VfxPath)
-                    .Set(new ActorVfxTarget(target.Value))
-                    .Add<TetherVfxChild>();
-            }
-        });
+            AddActorVfx(entity, VfxPath)
+                .Set(new ActorVfxTarget(target.Value))
+                .Add<TetherVfxChild>();
+        }
     }
 
     public static void SetSpeed(Entity entity, float speed)
@@ -291,7 +286,7 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
         }
     }
 
-    public static void SetTemporaryRelativeSpeed(Entity entity, float value) => entity.Set(new SpeedModifier(value));
+    public static void SetTemporaryRelativeSpeed(Entity entity, float value) => entity.Stage().Set(new SpeedModifier(value));
 
     // maybe move this to a util class?
     private void ShowTextGimmick(string text, int seconds, RaptureAtkModule.TextGimmickHintStyle style = RaptureAtkModule.TextGimmickHintStyle.Warning)
@@ -313,12 +308,12 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
         entity.CsWorld().DeleteWith(flecs.EcsChildOf, entity);
     }
 
-    // can't directly remove components, instead schedule removal from a system
-    public static void RemoveCancellableCC(Entity entity) => entity.CsWorld().Defer(() =>
+    public static void RemoveCancellableCC(Entity entity)
     {
+        entity = entity.Stage();
         entity.DestructChildEntity<Sleep.Component>();
         entity.DestructChildEntity<Bind.Component>();
-    });
+    }
 
     private void StunPlayer(Entity entity, float duration, float delay = StunDelay)
     {
@@ -326,7 +321,7 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
         if (player == null || player.IsDead) { return; }
         commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
         {
-            DelayedAction.Create(entity.CsWorld(), () => {
+            DelayedAction.Create(entity.Stage().CsWorld(), () => {
                 Stun.ApplyToTarget(e, duration);
             }, delay).ChildOf(entity);
         });

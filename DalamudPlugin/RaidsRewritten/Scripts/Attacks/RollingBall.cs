@@ -191,7 +191,7 @@ public unsafe sealed class RollingBall(DalamudServices dalamud, CommonQueries co
 
                 if (!omen.Omen.IsValid())
                 {
-                    omen.Omen = CircleOmen.CreateEntity(it.World())
+                    omen.Omen = CircleOmen.CreateEntity(it.Stage())
                         .ChildOf(it.Entity(i));
                 }
 

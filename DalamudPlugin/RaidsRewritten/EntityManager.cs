@@ -52,7 +52,7 @@ public sealed class EntityManager : IDalamudHook
 
         if (this.entityCreationFunctions.TryGetValue(typeof(T), out var createFunc))
         {
-            entity = createFunc.Invoke(this.world);
+            entity = createFunc.Invoke(this.world.GetStage(0));
             return true;
         }
         this.logger.Error("Entity of type {0} is not registered, cannot create entity", typeof(T));

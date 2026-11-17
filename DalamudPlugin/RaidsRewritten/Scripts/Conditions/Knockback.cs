@@ -43,7 +43,7 @@ public sealed class Knockback : IDalamudHook
         bool canResist,
         bool isClientControlled = true)
     {
-        DelayedAction.Create(target.CsWorld(), (ref Iter it) =>
+        DelayedAction.Create(target.Stage().CsWorld(), (ref Iter it) =>
         {
             var apply = true;
             target.Children(child =>
@@ -76,17 +76,14 @@ public sealed class Knockback : IDalamudHook
             // Remove existing knockback conditions
             target.Children(child =>
             {
-                // This operation requires deferral
                 if (child.Has<Component>())
                 {
-                    child.CsWorld().DeferResume();
                     // Avoid the knockback falloff flytext when it's getting replaced with another knockback
                     child.Children(Ecs.DependsOn, child2 =>
                     {
-                        child2.Remove<FlyText>();
+                        child2.Stage().Remove<FlyText>();
                     });
-                    child.Destruct();
-                    child.CsWorld().DeferSuspend();
+                    child.Stage().Destruct();
                 }
             });
 
@@ -204,13 +201,10 @@ public sealed class Knockback : IDalamudHook
         }
         else
         {
-            this.world.DeferBegin();
             this.commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
             {
-                // This operation requires deferral
-                e.DestructChildEntity<Component>();
+                e.Stage().DestructChildEntity<Component>();
             });
-            this.world.DeferEnd();
         }
     }
 }

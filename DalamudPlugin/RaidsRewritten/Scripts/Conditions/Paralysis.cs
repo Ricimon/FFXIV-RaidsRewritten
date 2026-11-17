@@ -34,9 +34,9 @@ public class Paralysis(Random random, ILogger logger) : ISystem
         bool overrideExistingDuration = false,
         bool isClientControlled = true)
     {
-        DelayedAction.Create(target.CsWorld(), (ref Iter it) =>
+        DelayedAction.Create(target.Stage().CsWorld(), (ref Iter it) =>
         {
-            var world = it.World();
+            var world = it.Stage();
 
             var condition = Condition.ApplyToTarget(target, "Paralyzed", duration, id, extendDuration, overrideExistingDuration, isClientControlled);
             if (!condition.Has<Component>())
@@ -61,6 +61,8 @@ public class Paralysis(Random random, ILogger logger) : ISystem
             .With<Player.LocalPlayer>().Up()
             .Each((Iter it, int i, ref Player.Component pc, ref Component component) =>
             {
+                var world = it.Stage();
+
                 component.ElapsedTime += it.DeltaTime();
 
                 if (component.StunInterval == 0 || component.StunDuration == 0)

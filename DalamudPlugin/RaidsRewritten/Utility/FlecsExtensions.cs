@@ -83,16 +83,11 @@ public static class FlecsExtensions
 
     public static void DestructChildEntity<T>(this Entity entity) where T : struct
     {
-        if (!entity.CsWorld().IsDeferred())
-        {
-            throw new Exception("Destructing entities must be done in a deferred context.");
-        }
-
         entity.Children(child =>
         {
             if (child.Has<T>())
             {
-                child.Destruct();
+                child.Stage().Destruct();
             }
         });
     }

@@ -334,10 +334,7 @@ public class ShanoaAndNisi : Mechanic
                         switch (nisi)
                         {
                             case NisiTowerOmen.Nisi.None:
-                                World.Defer(() =>
-                                {
-                                    e.DestructChildEntity<NisiVfx>();
-                                });
+                                e.Stage().DestructChildEntity<NisiVfx>();
                                 return;
                             case NisiTowerOmen.Nisi.Alpha:
                                 vfxPath = NisiTowerOmen.NisiAlphaVfxPath; break;

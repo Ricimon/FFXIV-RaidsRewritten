@@ -79,7 +79,7 @@ public class ArticulatedBit(CommonQueries commonQueries) : IEntity, ISystem
                     case Phase.Start:
                         if (!runtime.Model.IsValid())
                         {
-                            runtime.Model = it.World().Entity()
+                            runtime.Model = it.Stage().Entity()
                                 .Set(new Model(component.ModelType == ModelType.LeftHand ? 3257 : 3256))
                                 .Set(new Position(position.Value))
                                 .Set(new Rotation(rotation.Value))
@@ -87,7 +87,7 @@ public class ArticulatedBit(CommonQueries commonQueries) : IEntity, ISystem
                                 .Set(new TimelineBlend(1, 4561))
                                 .ChildOf(entity);
 
-                            it.World().Entity()
+                            it.Stage().Entity()
                                 .Set(new ActorVfx("vfx/monster/m0729/eff/m729show_sp01c0t1.avfx"))
                                 .ChildOf(runtime.Model);
                         }
@@ -120,7 +120,7 @@ public class ArticulatedBit(CommonQueries commonQueries) : IEntity, ISystem
                                     targetData.FarTether.SafeDestruct();
                                     if (!targetData.CloseTether.IsValid())
                                     {
-                                        targetData.CloseTether = it.World().Entity()
+                                        targetData.CloseTether = it.Stage().Entity()
                                             .Set(new ActorVfx("vfx/channeling/eff/chn_arrow01f.avfx"))
                                             .Set(new ActorVfxTarget(target))
                                             .ChildOf(runtime.Model);
@@ -132,7 +132,7 @@ public class ArticulatedBit(CommonQueries commonQueries) : IEntity, ISystem
                                     targetData.CloseTether.SafeDestruct();
                                     if (!targetData.FarTether.IsValid())
                                     {
-                                        targetData.FarTether = it.World().Entity()
+                                        targetData.FarTether = it.Stage().Entity()
                                             .Set(new ActorVfx("vfx/channeling/eff/chn_dark001f.avfx"))
                                             .Set(new ActorVfxTarget(target))
                                             .ChildOf(runtime.Model);
@@ -177,7 +177,7 @@ public class ArticulatedBit(CommonQueries commonQueries) : IEntity, ISystem
                         {
                             foreach (var targetData in runtime.TargetData)
                             {
-                                it.World().Entity()
+                                it.Stage().Entity()
                                     .Set(new ActorVfx("vfx/monster/m0729/eff/m0729_sp01c0t2.avfx"))
                                     .Set(new ActorVfxTarget(targetData.Target))
                                     .ChildOf(runtime.Model);
@@ -196,7 +196,7 @@ public class ArticulatedBit(CommonQueries commonQueries) : IEntity, ISystem
                                 var target = targetData.Target;
                                 if (target == null) { continue; }
 
-                                it.World().Entity()
+                                it.Stage().Entity()
                                     .Set(new ActorVfx("vfx/monster/m0729/eff/m0729_sp01t0t2.avfx"))
                                     .Set(new ActorVfxSource(target))
                                     .ChildOf(entity);

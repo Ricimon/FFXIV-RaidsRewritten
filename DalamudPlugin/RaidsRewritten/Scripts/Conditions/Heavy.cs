@@ -27,9 +27,9 @@ public class Heavy
         bool overrideExistingDuration = false,
         bool isClientControlled = true)
     {
-        DelayedAction.Create(target.CsWorld(), (ref Iter it) =>
+        DelayedAction.Create(target.Stage().CsWorld(), (ref Iter it) =>
         {
-            var world = it.World();
+            var world = it.Stage();
 
             var condition = Condition.ApplyToTarget(target, "Slowed", duration, id, extendDuration, overrideExistingDuration, isClientControlled);
 
@@ -52,7 +52,7 @@ public class Heavy
                 DelayedAction.Create(world, (ref Iter it) =>
                 {
                     // Looped VFX
-                    it.World().Entity()
+                    it.Stage().Entity()
                         .Set(new ActorVfx("vfx/common/eff/dk10ht_grv0h.avfx"))
                         .ChildOf(condition);
                 }, 0.6f).ChildOf(condition);

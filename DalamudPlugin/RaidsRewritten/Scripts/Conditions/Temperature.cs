@@ -41,8 +41,8 @@ public class Temperature(DalamudServices dalamud, CommonQueries commonQueries, I
     }
     public static void HeatChangedEvent(Entity playerEntity, float delta, float duration = 0, int id = 0)
     {
-        var world = playerEntity.CsWorld();
-        using Query<Temperature.Component> q = playerEntity.CsWorld().QueryBuilder<Temperature.Component>().With(Ecs.ChildOf, playerEntity).Build();
+        var world = playerEntity.Stage().CsWorld();
+        using Query<Temperature.Component> q = world.QueryBuilder<Temperature.Component>().With(Ecs.ChildOf, playerEntity).Build();
         if (!q.IsTrue()) { return; }
         
         Entity te = default;
@@ -154,7 +154,7 @@ public class Temperature(DalamudServices dalamud, CommonQueries commonQueries, I
                         if(deepfreezeQuery.IsTrue()) { return; }
                         commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
                         {
-                            world.DeleteWith<Overheat.Component>();
+                            it.Stage().DeleteWith<Overheat.Component>();
                             Deepfreeze.ApplyToTarget(e, float.PositiveInfinity);
                         });
                         return;
@@ -164,13 +164,13 @@ public class Temperature(DalamudServices dalamud, CommonQueries commonQueries, I
                         if (overheatQuery.IsTrue()) { return; }
                         commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
                         {
-                            world.DeleteWith<Deepfreeze.Component>();
+                            it.Stage().DeleteWith<Deepfreeze.Component>();
                             Overheat.ApplyToTarget(e, float.PositiveInfinity);
                         });
                         return;
                     }
-                    world.DeleteWith<Deepfreeze.Component>();
-                    world.DeleteWith<Overheat.Component>();
+                    it.Stage().DeleteWith<Deepfreeze.Component>();
+                    it.Stage().DeleteWith<Overheat.Component>();
                 }
                 catch (Exception ex)
                 {

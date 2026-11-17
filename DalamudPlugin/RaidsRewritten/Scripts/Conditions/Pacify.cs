@@ -29,9 +29,9 @@ public class Pacify
         bool overrideExistingDuration = false,
         bool isClientControlled = true)
     {
-        DelayedAction.Create(target.CsWorld(), (ref Iter it) =>
+        DelayedAction.Create(target.Stage().CsWorld(), (ref Iter it) =>
         {
-            var world = it.World();
+            var world = it.Stage();
 
             var condition = Condition.ApplyToTarget(target, "Pacified", duration, id, extendDuration, overrideExistingDuration, isClientControlled);
 

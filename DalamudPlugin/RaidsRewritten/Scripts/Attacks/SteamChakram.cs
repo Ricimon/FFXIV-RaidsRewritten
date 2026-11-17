@@ -47,7 +47,7 @@ public class SteamChakram(ILogger logger) : IEntity, ISystem
 
                 if (animation.TimeElapsed == 0)
                 {
-                    it.World().Entity()
+                    it.Stage().Entity()
                         .Set(new ActorVfx("vfx/monster/m0315/eff/m0315sp_pop0t.avfx"))
                         .ChildOf(entity);
 
@@ -94,7 +94,7 @@ public class SteamChakram(ILogger logger) : IEntity, ISystem
                 {
                     entity.Set(new TimelineBase(4577));
 
-                    it.World().Entity()
+                    it.Stage().Entity()
                         .Set(new ActorVfx("vfx/monster/m0315/eff/m0315hsp01c0t.avfx"))
                         .ChildOf(entity);
 

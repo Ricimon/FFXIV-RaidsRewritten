@@ -63,7 +63,7 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
                 case Phase.Omen:
                     if (ShouldReturn(component)) { return; }
 
-                    OneThirdDonutOmen.CreateEntity(world)
+                    OneThirdDonutOmen.CreateEntity(it.Stage())
                         .Set(new Position(position.Value))
                         .Set(new Scale(new Vector3(OmenScale)))
                         .Set(new OmenDuration(OmenDuration, false))
@@ -74,7 +74,7 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
                 case Phase.Snapshot:
                     if (ShouldReturn(component)) { return; }
 
-                    var fakeActor = FakeActor.CreateInvalidModel(world)
+                    var fakeActor = FakeActor.CreateInvalidModel(it.Stage())
                         .Set(new Position(position.Value))
                         .Set(new ActorVfx(AoEVfx))
                         .ChildOf(entity);
@@ -90,12 +90,12 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
                             {
                                 if (player.HasTranscendance())
                                 {
-                                    DelayedAction.Create(world, () => vfxSpawn.PlayInvulnerabilityEffect(player), 0.5f).ChildOf(entity);
+                                    DelayedAction.Create(it.Stage(), () => vfxSpawn.PlayInvulnerabilityEffect(player), 0.5f).ChildOf(entity);
                                 } else
                                 {
                                     commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
                                     {
-                                        DelayedAction.Create(world, () => Stun.ApplyToTarget(e, StunDuration), 0.5f).ChildOf(entity);
+                                        DelayedAction.Create(it.Stage(), () => Stun.ApplyToTarget(e, StunDuration), 0.5f).ChildOf(entity);
                                     });
                                 }
                             }
@@ -117,7 +117,7 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
                             position.Value.Y,
                             position.Value.Z + OuterTornadoDistance * MathF.Cos(randAngle)
                         );
-                    var tornado1 = Tornado.CreateEntity(world)
+                    var tornado1 = Tornado.CreateEntity(it.Stage())
                         .Set(new Position(p1))
                         .Set(new TornadoDirection(randBool, OuterTornadoDistance, randAngle))
                         .ChildOf(entity);
@@ -128,12 +128,12 @@ public class OctetDonut (DalamudServices dalamud, Random random, CommonQueries c
                             position.Value.Y,
                             position.Value.Z + InnerTornadoDistance * MathF.Sin(randAngle)
                         );
-                    var tornado2 = Tornado.CreateEntity(world)
+                    var tornado2 = Tornado.CreateEntity(it.Stage())
                         .Set(new Position(p2))
                         .Set(new TornadoDirection(!randBool, InnerTornadoDistance, randAngle))
                         .ChildOf(entity);
 
-                    var twisterPachinko = TwisterObstacleCourse.CreateEntity(world)
+                    var twisterPachinko = TwisterObstacleCourse.CreateEntity(it.Stage())
                         .Set(new Position(position.Value))
                         .Set(new SeededRandom(rand))
                         .ChildOf(entity);

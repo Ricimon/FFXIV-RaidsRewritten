@@ -33,7 +33,7 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
         set => this.visible = value;
     }
 
-    private World World => this.ecsContainer.World;
+    private World World => this.ecsContainer.World.GetStage(0);
 
     private readonly WindowSystem windowSystem;
     private readonly HelpWindow helpWindow;
@@ -148,9 +148,7 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
         ImGui.SetNextWindowSizeConstraints(new Vector2(width, minHeight), new Vector2(float.MaxValue, float.MaxValue));
         if (ImGui.Begin($"{this.windowName}###{PluginInitializer.Name}", ref this.visible))
         {
-            this.World.DeferBegin();
             DrawContents();
-            this.World.DeferEnd();
         }
         ImGui.End();
     }

@@ -10,7 +10,7 @@ public class Blind
 
     public static void ApplyToTarget(Entity target, float duration, bool extendDuration = false, bool overrideExistingDuration = false)
     {
-        DelayedAction.Create(target.CsWorld(), (ref Iter it) =>
+        DelayedAction.Create(target.Stage().CsWorld(), (ref Iter it) =>
         {
             var condition = Condition.ApplyToTarget(target, "Blind", duration, ConditionTable.Id.Blind, extendDuration, overrideExistingDuration);
 

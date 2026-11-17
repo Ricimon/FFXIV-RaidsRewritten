@@ -69,7 +69,7 @@ public class TetherOmen : ISystem
                     pt.GoodDistanceTether.SafeDestruct();
                     if (!pt.TooCloseTether.IsValid())
                     {
-                        pt.TooCloseTether = it.World().Entity()
+                        pt.TooCloseTether = it.Stage().Entity()
                             .Set(new ActorVfx(pt.TooCloseVfxPath))
                             .Set(new ActorVfxTarget(pt.Target))
                             .ChildOf(entity);
@@ -80,7 +80,7 @@ public class TetherOmen : ISystem
                     pt.TooCloseTether.SafeDestruct();
                     if (!pt.GoodDistanceTether.IsValid())
                     {
-                        pt.GoodDistanceTether = it.World().Entity()
+                        pt.GoodDistanceTether = it.Stage().Entity()
                             .Set(new ActorVfx(pt.GoodDistanceVfxPath))
                             .Set(new ActorVfxTarget(pt.Target))
                             .ChildOf(entity);

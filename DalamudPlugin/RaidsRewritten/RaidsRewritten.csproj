@@ -23,12 +23,12 @@
 	</PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AsyncAwaitBestPractices" Version="10.0.0" />
+    <PackageReference Include="AsyncAwaitBestPractices" Version="11.0.0" />
     <PackageReference Include="Blake3" Version="3.0.2" />
-    <PackageReference Include="Flecs.NET.Debug" Version="4.0.3" Condition="'$(Configuration)' == 'Debug'" />
-    <PackageReference Include="Flecs.NET.Release" Version="4.0.3" Condition="'$(Configuration)' == 'Release'" />
+    <PackageReference Include="Deathbeam.Flecs.NET.Debug" Version="4.2.0" Condition="'$(Configuration)' == 'Debug'" />
+    <PackageReference Include="Deathbeam.Flecs.NET.Release" Version="4.2.0" Condition="'$(Configuration)' == 'Release'" />
     <PackageReference Include="HelixToolkit.SharpDX.Core" Version="2.27.3" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.14" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="11.0.0" />
     <PackageReference Include="Ninject" Version="3.3.6" />
     <PackageReference Include="Ninject.Extensions.Factory" Version="3.3.3" />
     <PackageReference Include="NLog" Version="6.2.2" />

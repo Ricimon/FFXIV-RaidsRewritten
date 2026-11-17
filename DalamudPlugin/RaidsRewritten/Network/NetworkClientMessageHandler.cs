@@ -30,7 +30,7 @@ public sealed class NetworkClientMessageHandler(
 {
     public NetworkClient? Client { get; set; }
 
-    private World World => ecsContainer.World;
+    private World World => ecsContainer.World.GetStage(0);
 
     public void OnConnect()
     {
@@ -204,16 +204,13 @@ public sealed class NetworkClientMessageHandler(
     {
         dalamud.Framework.Run(() =>
         {
-            World.Defer(() =>
+            using var q = World.Query<VfxId>();
+            q.Each((Iter it, int i, ref VfxId vfxId) =>
             {
-                using var q = World.Query<VfxId>();
-                q.Each((Iter it, int i, ref VfxId vfxId) =>
+                if (vfxId.Value == payload.id)
                 {
-                    if (vfxId.Value == payload.id)
-                    {
-                        it.Entity(i).Destruct();
-                    }
-                });
+                    it.Entity(i).Destruct();
+                }
             });
         });
     }
@@ -222,105 +219,102 @@ public sealed class NetworkClientMessageHandler(
     {
         dalamud.Framework.Run(() =>
         {
-            World.Defer(() =>
+            foreach (var p in payload.players)
             {
-                foreach (var p in payload.players)
+                using var pq = stage.Query<Player.ContentId>();
+                var playerEntity = pq.Find((ref id) => id.Value == p.contentId);
+                if (playerEntity.IsValid())
                 {
-                    using var pq = World.Query<Player.ContentId>();
-                    var playerEntity = pq.Find((ref id) => id.Value == p.contentId);
-                    if (playerEntity.IsValid())
+                    var isLocalPlayer = playerEntity.Has<Player.LocalPlayer>();
+
+                    var conditionIds = p.conditions.AsValueEnumerable().Select(c => c.id).ToList();
+
+                    // Cleanup conditions that no longer exist
+                    using var q = stage
+                        .QueryBuilder<Condition.Component, Condition.Id>()
+                        .With<Condition.ServerCondition>()
+                        .With(flecs.EcsChildOf, playerEntity)
+                        .Build();
+
+                    q.Each((Entity e, ref Condition.Component _, ref Condition.Id id) =>
                     {
-                        var isLocalPlayer = playerEntity.Has<Player.LocalPlayer>();
-
-                        var conditionIds = p.conditions.AsValueEnumerable().Select(c => c.id).ToList();
-
-                        // Cleanup conditions that no longer exist
-                        using var q = World
-                            .QueryBuilder<Condition.Component, Condition.Id>()
-                            .With<Condition.ServerCondition>()
-                            .With(flecs.EcsChildOf, playerEntity)
-                            .Build();
-
-                        q.Each((Entity e, ref Condition.Component _, ref Condition.Id id) =>
+                        if (!conditionIds.Contains(id.Value))
                         {
-                            if (!conditionIds.Contains(id.Value))
-                            {
-                                e.Destruct();
-                            }
-                        });
+                            e.Destruct();
+                        }
+                    });
 
-                        foreach (var c in p.conditions)
+                    foreach (var c in p.conditions)
+                    {
+                        if (c.isClientControlled && isLocalPlayer)
                         {
-                            if (c.isClientControlled && isLocalPlayer)
-                            {
-                                // Ignore client controlled statuses that the local player created
-                                continue;
-                            }
+                            // Ignore client controlled statuses that the local player created
+                            continue;
+                        }
 
-                            bool foundExistingCondition = false;
+                        bool foundExistingCondition = false;
 
-                            if (!c.newlyApplied)
+                        if (!c.newlyApplied)
+                        {
+                            // Update existing condition
+                            q.Each((Entity e, ref Condition.Component condition, ref Condition.Id id) =>
                             {
-                                // Update existing condition
-                                q.Each((Entity e, ref Condition.Component condition, ref Condition.Id id) =>
+                                if (id.Value == c.id)
                                 {
-                                    if (id.Value == c.id)
-                                    {
-                                        // Note: This will NOT update the condition type if it changed for some reason
-                                        // TODO: Latency-adjust this value
-                                        condition.TimeRemaining = c.timeRemaining;
-                                        foundExistingCondition = true;
-                                    }
-                                });
-                            }
-
-                            // Create new condition
-                            if (!foundExistingCondition)
-                            {
-                                switch (c.condition)
-                                {
-                                    case Message.Condition.Stun:
-                                        Stun.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: false);
-                                        break;
-                                    case Message.Condition.Paralysis:
-                                        Paralysis.ApplyToTarget(playerEntity, c.timeRemaining, c.paralysisStunInterval, c.paralysisStunDuration, c.id, overrideExistingDuration: true, isClientControlled: false);
-                                        break;
-                                    case Message.Condition.Bind:
-                                        Bind.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: false);
-                                        break;
-                                    case Message.Condition.Heavy:
-                                        Heavy.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: false);
-                                        break;
-                                    case Message.Condition.Hysteria:
-                                        Hysteria.ApplyToTarget(playerEntity, c.timeRemaining, c.hysteriaRedirectionInterval, c.id, overrideExistingDuration: true, isClientControlled: false);
-                                        break;
-                                    case Message.Condition.Pacify:
-                                        Pacify.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: false);
-                                        break;
-                                    case Message.Condition.Sleep:
-                                        Sleep.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: false);
-                                        break;
-                                    case Message.Condition.Knockback:
-                                        Knockback.ApplyToTarget(playerEntity, new(c.knockbackDirectionX, 0, c.knockbackDirectionZ), c.timeRemaining, false, isClientControlled: false);
-                                        break;
-                                    case Message.Condition.FireResistanceDown:
-                                        FireResistanceDown.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: false);
-                                        break;
-                                    case Message.Condition.Flattened:
-                                        Flattened.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: false);
-                                        break;
-                                    case Message.Condition.MagicVulnerabilityUp:
-                                        MagicVulnerabilityUp.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: false);
-                                        break;
-                                    case Message.Condition.DamageDown:
-                                        DamageDown.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: false);
-                                        break;
+                                    // Note: This will NOT update the condition type if it changed for some reason
+                                    // TODO: Latency-adjust this value
+                                    condition.TimeRemaining = c.timeRemaining;
+                                    foundExistingCondition = true;
                                 }
+                            });
+                        }
+
+                        // Create new condition
+                        if (!foundExistingCondition)
+                        {
+                            switch (c.condition)
+                            {
+                                case Message.Condition.Stun:
+                                    Stun.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: false);
+                                    break;
+                                case Message.Condition.Paralysis:
+                                    Paralysis.ApplyToTarget(playerEntity, c.timeRemaining, c.paralysisStunInterval, c.paralysisStunDuration, c.id, overrideExistingDuration: true, isClientControlled: false);
+                                    break;
+                                case Message.Condition.Bind:
+                                    Bind.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: false);
+                                    break;
+                                case Message.Condition.Heavy:
+                                    Heavy.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: false);
+                                    break;
+                                case Message.Condition.Hysteria:
+                                    Hysteria.ApplyToTarget(playerEntity, c.timeRemaining, c.hysteriaRedirectionInterval, c.id, overrideExistingDuration: true, isClientControlled: false);
+                                    break;
+                                case Message.Condition.Pacify:
+                                    Pacify.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: false);
+                                    break;
+                                case Message.Condition.Sleep:
+                                    Sleep.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: false);
+                                    break;
+                                case Message.Condition.Knockback:
+                                    Knockback.ApplyToTarget(playerEntity, new(c.knockbackDirectionX, 0, c.knockbackDirectionZ), c.timeRemaining, false, isClientControlled: false);
+                                    break;
+                                case Message.Condition.FireResistanceDown:
+                                    FireResistanceDown.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: false);
+                                    break;
+                                case Message.Condition.Flattened:
+                                    Flattened.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: false);
+                                    break;
+                                case Message.Condition.MagicVulnerabilityUp:
+                                    MagicVulnerabilityUp.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: false);
+                                    break;
+                                case Message.Condition.DamageDown:
+                                    DamageDown.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: false);
+                                    break;
                             }
                         }
                     }
                 }
-            });
+            }
         });
     }
 

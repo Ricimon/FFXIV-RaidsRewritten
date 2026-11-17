@@ -138,6 +138,7 @@ public unsafe sealed class ModelSystem(
             });
 
         world.System<Model, FullRotation>()
+            .DetectChanges()
             .Each((Iter it, int i, ref Model model, ref FullRotation rotation) =>
             {
                 if (!it.Changed()) { return; }
@@ -156,6 +157,7 @@ public unsafe sealed class ModelSystem(
             });
 
         world.System<Model, ModelHeight>()
+            .DetectChanges()
             .Each((Iter it, int i, ref Model model, ref ModelHeight height) =>
             {
                 if (!it.Changed()) { return; }
@@ -170,6 +172,7 @@ public unsafe sealed class ModelSystem(
             });
 
         world.System<Model, Alpha>()
+            .DetectChanges()
             .Each((Iter it, int i, ref Model model, ref Alpha alpha) =>
             {
                 if (!it.Changed()) { return; }
@@ -279,7 +282,7 @@ public unsafe sealed class ModelSystem(
                         }
                     }
                     var duration = a / 1.0f;
-                    var fadeOut = e.CsWorld().Entity()
+                    var fadeOut = e.Stage().CsWorld().Entity()
                         .Set(new ModelFadeOut(model.ObjectIndex, duration, duration, a));
 
                     if (e.TryGet(out ModelTimelineSpeed speed))

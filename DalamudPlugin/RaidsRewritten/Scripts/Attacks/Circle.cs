@@ -58,7 +58,7 @@ public class Circle(DalamudServices dalamud, CommonQueries commonQueries, ILogge
                 {
                     if (!runtime.Omen.IsValid())
                     {
-                        runtime.Omen = CircleOmen.CreateEntity(it.World())
+                        runtime.Omen = CircleOmen.CreateEntity(it.Stage())
                             .Set(new Position(position.Value))
                             .Set(new Rotation(rotation.Value))
                             .Set(new Scale(scale.Value))
@@ -117,7 +117,7 @@ public class Circle(DalamudServices dalamud, CommonQueries commonQueries, ILogge
                         runtime.AttackVfxPlayed = true;
                         if (!string.IsNullOrEmpty(component.AttackVfxPath))
                         {
-                            runtime.AttackVfx = FakeActor.CreateInvalidModel(it.World())
+                            runtime.AttackVfx = FakeActor.CreateInvalidModel(it.Stage())
                                 .Set(new Position(position.Value))
                                 .Set(new Rotation(rotation.Value))
                                 .Set(new ActorVfx(component.AttackVfxPath))
