@@ -221,7 +221,7 @@ public sealed class NetworkClientMessageHandler(
         {
             foreach (var p in payload.players)
             {
-                using var pq = stage.Query<Player.ContentId>();
+                using var pq = World.Query<Player.ContentId>();
                 var playerEntity = pq.Find((ref id) => id.Value == p.contentId);
                 if (playerEntity.IsValid())
                 {
@@ -230,7 +230,7 @@ public sealed class NetworkClientMessageHandler(
                     var conditionIds = p.conditions.AsValueEnumerable().Select(c => c.id).ToList();
 
                     // Cleanup conditions that no longer exist
-                    using var q = stage
+                    using var q = World
                         .QueryBuilder<Condition.Component, Condition.Id>()
                         .With<Condition.ServerCondition>()
                         .With(flecs.EcsChildOf, playerEntity)
