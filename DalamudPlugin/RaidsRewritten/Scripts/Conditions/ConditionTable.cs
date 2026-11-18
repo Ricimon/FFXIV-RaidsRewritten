@@ -26,6 +26,7 @@ public class ConditionTable
     
     public class IconToReplace
     {
+        // Icons are from 210000 to 230000 in the /xldata Icon Browser
         public const int Bind = 210257;
         public const int Blind = 210258;
         public const int Deepfreeze = 210259;
