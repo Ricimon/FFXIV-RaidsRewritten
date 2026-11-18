@@ -186,7 +186,7 @@ public class JunctionCoils : Mechanic
                 random = new Random(RngSeed + 5330);
                 int OctetTelegraph = random.Next(0, Table.Count);
 
-                var da = DelayedAction.Create(World, () =>
+                var da = DelayedAction.Create(Stage, () =>
                 {
                     Dalamud.ToastGui.ShowNormal(OctetMessage);
                     Dalamud.ChatGui.PrintSystemMessage(OctetMessage);
@@ -213,14 +213,14 @@ public class JunctionCoils : Mechanic
                     playerNumber = 0;
                 }
 
-                var da1 = DelayedAction.Create(World, () => 
+                var da1 = DelayedAction.Create(Stage, () => 
                 {
                     Dalamud.ToastGui.ShowNormal(PhoenixMessage);
                     Dalamud.ChatGui.PrintSystemMessage(PhoenixMessage);
                     ShowAds(telegraphs[playerNumber], TelegraphDelay);
                 }, SpawnDelay);
 
-                var da2 = DelayedAction.Create(World, () => 
+                var da2 = DelayedAction.Create(Stage, () => 
                 {
                     for (int i = 0; i < 8; i++)
                     {
@@ -241,30 +241,30 @@ public class JunctionCoils : Mechanic
                     }
                     CommonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component pc) =>
                     {
-                        var lc = this.World.Entity()
+                        var lc = this.Stage.Entity()
                             .Set(new ActorVfx(SymbolPaths[SymbolNumber[playerNumber]]))
                             .ChildOf(e);
                         attacks.Add(lc);
                     });
                 }, GateMarkerDelay);
 
-                var da3 = DelayedAction.Create(World, () => 
+                var da3 = DelayedAction.Create(Stage, () => 
                 {
                     foreach (var gate in gates)
                     {
-                        var lc = this.World.Entity()
+                        var lc = this.Stage.Entity()
                                 .Set(new ActorVfx(SymbolPaths[SymbolNumber[resolution]]))
                                 .ChildOf(gate);
                         attacks.Add(lc);
                     }
                 }, PortalMarkerDelay);
 
-                var da4 = DelayedAction.Create(World, () => 
+                var da4 = DelayedAction.Create(Stage, () => 
                 {
                     ShowAds(telegraphs[resolution], 0.0f);
                 }, ResolutionDelay);
 
-                var da5 = DelayedAction.Create(World, () =>
+                var da5 = DelayedAction.Create(Stage, () =>
                 {
                     Reset();
                 }, ResetDelay);

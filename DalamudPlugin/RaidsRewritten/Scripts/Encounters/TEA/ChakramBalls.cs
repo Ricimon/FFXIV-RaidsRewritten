@@ -139,7 +139,7 @@ public class ChakramBalls : Mechanic
         var ball1Direction = new Vector2(player1Position.X - ball1Position.X, player1Position.Z - ball1Position.Z);
         var ball2Direction = new Vector2(player2Position.X - ball2Position.X, player2Position.Z - ball2Position.Z);
 
-        var spawnAction = DelayedAction.Create(World, () =>
+        var spawnAction = DelayedAction.Create(Stage, () =>
         {
             if (!EntityManager.TryCreateEntity<RollingBall>(out var ball1)) { return; }
             ball1.Set(new RollingBall.Component(TimeUntilRolling: rollingDelay))

@@ -11,11 +11,12 @@ using RaidsRewritten.Spawn;
 
 namespace RaidsRewritten.Scripts;
 
-public abstract class Mechanic()
+public abstract class Mechanic
 {
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
     protected DalamudServices Dalamud { get; private set; }
     protected Flecs.NET.Core.World World { get; private set; }
+    protected Flecs.NET.Core.World Stage { get; private set; }
     protected CommonQueries CommonQueries { get; private set; }
     protected EntityManager EntityManager { get; private set; }
     protected VfxSpawn VfxSpawn { get; private set; }
@@ -35,7 +36,8 @@ public abstract class Mechanic()
         ILogger logger)
     {
         this.Dalamud = dalamud;
-        this.World = ecsContainer.World.GetStage(0);
+        this.World = ecsContainer.World;
+        this.Stage = World.GetStage(0);
         this.CommonQueries = commonQueries;
         this.EntityManager = entityManager;
         this.VfxSpawn = vfxSpawn;

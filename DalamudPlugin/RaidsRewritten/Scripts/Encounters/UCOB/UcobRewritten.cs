@@ -428,7 +428,7 @@ public class UcobRewritten : IEncounter
             configuration.Save();
             if (!temperatureControl)
             {
-                ecsContainer.World.DeleteWith<Temperature.Component>();
+                ecsContainer.Stage.DeleteWith<Temperature.Component>();
             }
             RefreshMechanics();
         }

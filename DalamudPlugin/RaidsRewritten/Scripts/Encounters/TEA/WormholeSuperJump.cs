@@ -178,7 +178,7 @@ public class WormholeSuperJump : Mechanic
         if (t < 1.0f) { return; }
 
         jumping = false;
-        World.Entity()
+        Stage.Entity()
             .Set(new ActorVfx(LandingVfx))
             .ChildOf(bruteJustice);
         CreateDynamo();
@@ -198,7 +198,7 @@ public class WormholeSuperJump : Mechanic
         var center = FindAlexanderPrime()?.Position ?? new Vector3(100.0f, 0.0f, 100.0f);
 
         dynamo.SafeDestruct();
-        dynamo = World.Entity()
+        dynamo = Stage.Entity()
             .Set(new StaticVfx(DynamoVfx))
             .Set(new Position(center))
             .Set(new Rotation(0.0f))
@@ -221,7 +221,7 @@ public class WormholeSuperJump : Mechanic
         }
         else
         {
-            attacks.Add(FakeActor.CreateInvalidModel(World)
+            attacks.Add(FakeActor.CreateInvalidModel(Stage)
                 .Set(new Position(center.Value))
                 .Set(new ActorVfx(DynamoAttackVfx)));
         }
@@ -286,7 +286,7 @@ public class WormholeSuperJump : Mechanic
             timesTargetable++;
             if (timesTargetable == TargetableAfterWormhole)
             {
-                attacks.Add(DelayedAction.Create(World, StartMechanic, SpawnDelay));
+                attacks.Add(DelayedAction.Create(Stage, StartMechanic, SpawnDelay));
             }
         }
     }
@@ -366,7 +366,7 @@ public class WormholeSuperJump : Mechanic
     private void Spawn(Vector3 position, float rotation, Vector3 wormholePosition, Vector3 exitWormholePosition)
     {
         bruteJustice.SafeDestruct();
-        bruteJustice = World.Entity()
+        bruteJustice = Stage.Entity()
             .Set(new Model(BruteJusticeModelId))
             .Set(new Position(position))
             .Set(new Rotation(rotation))
@@ -376,7 +376,7 @@ public class WormholeSuperJump : Mechanic
             .Add<Attack>();
         attacks.Add(bruteJustice);
 
-        var cast = DelayedAction.Create(World, () =>
+        var cast = DelayedAction.Create(Stage, () =>
         {
             if (!bruteJustice.IsValid()) { return; }
             bruteJustice
@@ -399,7 +399,7 @@ public class WormholeSuperJump : Mechanic
     // Arena vfx, only shows up as a static vfx, not on an actor
     private Entity CreateWormhole(Vector3 position, float scale)
     {
-        return World.Entity()
+        return Stage.Entity()
             .Set(new StaticVfx(WormholeVfx))
             .Set(new Position(position))
             .Set(new Rotation(0.0f))
@@ -410,7 +410,7 @@ public class WormholeSuperJump : Mechanic
     private void StartCastingVfx()
     {
         castingVfx.SafeDestruct();
-        castingVfx = World.Entity()
+        castingVfx = Stage.Entity()
             .Set(new ActorVfx(CastingVfx))
             .ChildOf(bruteJustice);
     }
@@ -420,7 +420,7 @@ public class WormholeSuperJump : Mechanic
         if (!bruteJustice.IsValid() || !bruteJustice.TryGet(out Position start)) { return; }
 
         castingVfx.SafeDestruct();
-        World.Entity()
+        Stage.Entity()
             .Set(new ActorVfx(TakeOffVfx))
             .ChildOf(bruteJustice);
         bruteJustice
@@ -432,7 +432,7 @@ public class WormholeSuperJump : Mechanic
         jumpStart = start.Value;
         jumpEnd = landingPosition;
         jumpElapsed = 0.0f;
-        var takeOff = DelayedAction.Create(World, () => jumping = true, JumpWindup);
+        var takeOff = DelayedAction.Create(Stage, () => jumping = true, JumpWindup);
         attacks.Add(takeOff);
     }
 
@@ -446,7 +446,7 @@ public class WormholeSuperJump : Mechanic
         attacks.Add(CreateWarpVfx(WarpOutVfx, entry.Value));
         bruteJusticeTargetAlpha = 0.0f;
 
-        var move = DelayedAction.Create(World, () =>
+        var move = DelayedAction.Create(Stage, () =>
         {
             if (!bruteJustice.IsValid()) { return; }
             bruteJustice
@@ -466,14 +466,14 @@ public class WormholeSuperJump : Mechanic
     // Left behind where he warps instead of following him around
     private Entity CreateWarpVfx(string path, Vector3 position)
     {
-        return FakeActor.CreateInvalidModel(World)
+        return FakeActor.CreateInvalidModel(Stage)
             .Set(new Position(position))
             .Set(new ActorVfx(path));
     }
 
     private Entity CreateTeleportVfx(Vector3 position)
     {
-        return FakeActor.CreateInvalidModel(World)
+        return FakeActor.CreateInvalidModel(Stage)
             .Set(new Position(position))
             .Set(new ActorVfx(TeleportVfx));
     }
@@ -490,7 +490,7 @@ public class WormholeSuperJump : Mechanic
             .Set(new TimelineBase(IdleTimeline))
             .Set(new OneTimeModelTimeline(ApocalypticRayTimeline));
         // The timeline doesn't play its own vfx on our model
-        World.Entity()
+        Stage.Entity()
             .Set(new ActorVfx(ApocalypticRayVfx))
             .ChildOf(bruteJustice);
 
@@ -498,7 +498,7 @@ public class WormholeSuperJump : Mechanic
         // Lingers, so tick it like the real thing
         for (var t = 0.0f; t < duration; t += ApocalypticRayTickInterval)
         {
-            var tick = DelayedAction.Create(World, () =>
+            var tick = DelayedAction.Create(Stage, () =>
             {
                 if (EntityManager.TryCreateEntity<Fan>(out var fan))
                 {
@@ -532,7 +532,7 @@ public class WormholeSuperJump : Mechanic
     {
         if (!wormhole.TryGet(out Position wormholePosition)) { return; }
 
-        var explosion = FakeActor.CreateInvalidModel(World)
+        var explosion = FakeActor.CreateInvalidModel(Stage)
             .Set(new Position(wormholePosition.Value))
             .Set(new ActorVfx(WormholeExplosionVfx));
         attacks.Add(explosion);
@@ -548,7 +548,7 @@ public class WormholeSuperJump : Mechanic
                 .Set(new ModelFadeOut(model.ObjectIndex, FadeOutDuration, FadeOutDuration));
         }
 
-        var cleanup = DelayedAction.Create(World, () =>
+        var cleanup = DelayedAction.Create(Stage, () =>
         {
             wormhole.SafeDestruct();
             exitWormhole.SafeDestruct();

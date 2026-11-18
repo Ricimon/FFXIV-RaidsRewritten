@@ -105,13 +105,13 @@ public class FireTornado : Mechanic
             attacks.Add(tornado);
             this.tornado = tornado;
 
-            var action1 = DelayedAction.Create(World, () =>
+            var action1 = DelayedAction.Create(Stage, () =>
             {
                 if (!tornado.IsValid()) { return; }
                 var donut = FireTornadoEntity.DonutMech(tornado);
                 attacks.Add(donut);
 
-                var action2 = DelayedAction.Create(World, () =>
+                var action2 = DelayedAction.Create(Stage, () =>
                 {
                     if (!tornado.IsValid()) { return; }
                     FireTornadoEntity.NetworkedAttack1(tornado, typeof(FireTornadoEntity.NetworkedAttack1Trigger).FullName! + "_1");
@@ -133,18 +133,18 @@ public class FireTornado : Mechanic
                 numSplashes++;
                 if (numSplashes == 5)
                 {
-                    var action1 = DelayedAction.Create(World, () =>
+                    var action1 = DelayedAction.Create(Stage, () =>
                     {
                         if (!tornado.IsValid()) { return; }
                         var donut = FireTornadoEntity.DonutMech(tornado);
                         attacks.Add(donut);
 
-                        var action2 = DelayedAction.Create(World, () =>
+                        var action2 = DelayedAction.Create(Stage, () =>
                         {
                             if (!tornado.IsValid()) { return; }
                             FireTornadoEntity.NetworkedAttack1(tornado, typeof(FireTornadoEntity.NetworkedAttack1Trigger).FullName! + "_2");
 
-                            var action3 = DelayedAction.Create(World, () =>
+                            var action3 = DelayedAction.Create(Stage, () =>
                             {
                                 if (!tornado.IsValid()) { return; }
                                 tornado.Destruct();

@@ -183,7 +183,7 @@ public class DreadknightInUCoB : Mechanic
     {
         if (weather == AddsWeather)
         {
-            attacks.Add(DelayedAction.Create(World, SpawnDreadknight, AddsDreadknightSpawnDelay));
+            attacks.Add(DelayedAction.Create(Stage, SpawnDreadknight, AddsDreadknightSpawnDelay));
         }
     }
 

@@ -100,14 +100,14 @@ public class MoreChakrams : Mechanic
                 attacks.Add(chakram);
 
                 // Cast VFX
-                var action1 = DelayedAction.Create(World, () =>
+                var action1 = DelayedAction.Create(Stage, () =>
                 {
-                    var castVfx = World.Entity()
+                    var castVfx = Stage.Entity()
                         .Set(new ActorVfx("vfx/common/eff/cmml_castx1f.avfx"))
                         .ChildOf(chakram);
 
                     // Delete Cast VFX
-                    var action = DelayedAction.Create(World, () =>
+                    var action = DelayedAction.Create(Stage, () =>
                     {
                         castVfx.SafeDestruct();
                     }, ChakramCastDuration);
@@ -116,7 +116,7 @@ public class MoreChakrams : Mechanic
                 attacks.Add(action1);
 
                 // Omen
-                var action2 = DelayedAction.Create(World, () =>
+                var action2 = DelayedAction.Create(Stage, () =>
                 {
                     if (EntityManager.TryCreateEntity<RectangleOmen>(out var rect))
                     {
@@ -127,7 +127,7 @@ public class MoreChakrams : Mechanic
                         attacks.Add(rect);
 
                         // Snapshot
-                        var action = DelayedAction.Create(World, () =>
+                        var action = DelayedAction.Create(Stage, () =>
                         {
                             var player = Dalamud.ObjectTable.LocalPlayer;
                             if (player == null || player.IsDead) { return; }
@@ -148,7 +148,7 @@ public class MoreChakrams : Mechanic
                                         Knockback.ApplyToTarget(e, MathUtilities.RotationToUnitVector(rotationOffset + MathF.PI).ToVector3(position.Y), 5.0f, false);
                                     });
                                 }
-                                var delayedAction = DelayedAction.Create(World, action, 0.5f);
+                                var delayedAction = DelayedAction.Create(Stage, action, 0.5f);
                                 attacks.Add(delayedAction);
                             }
                         }, OmenDuration);
@@ -158,7 +158,7 @@ public class MoreChakrams : Mechanic
                 attacks.Add(action2);
 
                 // Attack
-                var action3 = DelayedAction.Create(World, () =>
+                var action3 = DelayedAction.Create(Stage, () =>
                 {
                     if (chakram.IsValid())
                     {
@@ -168,7 +168,7 @@ public class MoreChakrams : Mechanic
                 attacks.Add(action3);
 
                 // Cleanup
-                var action4 = DelayedAction.Create(World, () =>
+                var action4 = DelayedAction.Create(Stage, () =>
                 {
                     chakram.SafeDestruct();
                 }, ChakramCastDelay + ChakramCastDuration + 2.0f);

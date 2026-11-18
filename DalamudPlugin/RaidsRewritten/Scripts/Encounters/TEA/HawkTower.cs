@@ -91,7 +91,7 @@ public class HawkTower : Mechanic
 
             if (hawkBlasterCount == 9 || hawkBlasterCount == 18)
             {
-                var a = DelayedAction.Create(World, () =>
+                var a = DelayedAction.Create(Stage, () =>
                 {
                     NetworkClient.SendAsync(new Message
                     {

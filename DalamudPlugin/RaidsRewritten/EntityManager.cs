@@ -11,7 +11,7 @@ namespace RaidsRewritten;
 public sealed class EntityManager : IDalamudHook
 {
     private readonly DalamudServices dalamud;
-    private readonly World world;
+    private readonly World stage;
     private readonly Configuration configuration;
     private readonly ILogger logger;
 
@@ -25,7 +25,7 @@ public sealed class EntityManager : IDalamudHook
         ILogger logger)
     {
         this.dalamud = dalamud;
-        this.world = container.World;
+        this.stage = container.Stage;
         this.configuration = configuration;
         this.logger = logger;
 
@@ -52,7 +52,7 @@ public sealed class EntityManager : IDalamudHook
 
         if (this.entityCreationFunctions.TryGetValue(typeof(T), out var createFunc))
         {
-            entity = createFunc.Invoke(this.world.GetStage(0));
+            entity = createFunc.Invoke(this.stage);
             return true;
         }
         this.logger.Error("Entity of type {0} is not registered, cannot create entity", typeof(T));
@@ -62,8 +62,8 @@ public sealed class EntityManager : IDalamudHook
 
     public void ClearAllManagedEntities()
     {
-        this.world.DeleteWith<Model>();
-        this.world.DeleteWith<Attack>();
+        this.stage.DeleteWith<Model>();
+        this.stage.DeleteWith<Attack>();
     }
 
     private void OnTerritoryChanged(uint obj)

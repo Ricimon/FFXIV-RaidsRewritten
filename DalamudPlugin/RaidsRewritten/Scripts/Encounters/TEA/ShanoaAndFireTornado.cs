@@ -97,18 +97,18 @@ public class ShanoaAndFireTornado : Mechanic
                     {
                         var fireTornadoGo = Dalamud.ObjectTable.GetGameObjectByIndex(fireTornadoModel.ObjectIndex);
                         var shanoaGo = Dalamud.ObjectTable.GetGameObjectByIndex(shanoaModel.ObjectIndex);
-                        var tether = World.Entity().Set(new TetherOmen.ProximityTether(
+                        var tether = Stage.Entity().Set(new TetherOmen.ProximityTether(
                             DistanceThreshold: distanceThreshold,
                             Source: fireTornadoGo, Target: shanoaGo))
                             .ChildOf(fireTornado);
                         attacks.Add(tether);
 
-                        var action1 = DelayedAction.Create(World, () =>
+                        var action1 = DelayedAction.Create(Stage, () =>
                         {
                             tether.SafeDestruct();
                             if (fireTornado.IsValid() && shanoa.IsValid())
                             {
-                                World.Entity()
+                                Stage.Entity()
                                     .Set(new ActorVfx("vfx/monster/gimmick4/eff/w5d1_bb_g02c0c.avfx"))
                                     .Set(new ActorVfxTarget(shanoaGo))
                                     .ChildOf(fireTornado);

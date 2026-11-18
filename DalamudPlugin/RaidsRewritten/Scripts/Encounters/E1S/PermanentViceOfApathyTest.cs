@@ -56,7 +56,7 @@ public class PermanentViceOfApathyTest : Mechanic
             }
         }
 
-        var delayedAction = DelayedAction.Create(this.World, CreateTwister, SpawnDelay);
+        var delayedAction = DelayedAction.Create(this.Stage, CreateTwister, SpawnDelay);
         entities.Add(delayedAction);
     }
 }

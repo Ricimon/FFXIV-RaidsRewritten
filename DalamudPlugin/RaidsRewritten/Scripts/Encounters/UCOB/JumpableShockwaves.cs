@@ -50,7 +50,7 @@ public class JumpableShockwaves : Mechanic
         if (set.Target == null) { return; }
         if (!HookedActions.TryGetValue(set.Action.Value.RowId, out var delay)) { return; }
 
-        var da = DelayedAction.Create(this.World, () =>
+        var da = DelayedAction.Create(this.Stage, () =>
         {
             if (this.EntityManager.TryCreateEntity<JumpableShockwave>(out var jumpwave))
             {

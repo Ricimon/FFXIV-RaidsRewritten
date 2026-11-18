@@ -86,19 +86,19 @@ public partial class MainWindow
 
         if (ImGui.Button("Clear All Attacks"))
         {
-            this.World.DeleteWith<Attack>();
+            this.Stage.DeleteWith<Attack>();
         }
         if (debug)
         {
             SameLineIfFits("Clear All Statuses");
             if (ImGui.Button("Clear All Statuses"))
             {
-                this.World.DeleteWith<Condition.Component>();
+                this.Stage.DeleteWith<Condition.Component>();
             }
             SameLineIfFits("Clear All Models");
             if (ImGui.Button("Clear All Models"))
             {
-                this.World.DeleteWith<Model>();
+                this.Stage.DeleteWith<Model>();
             }
         }
 
@@ -909,7 +909,7 @@ public partial class MainWindow
                     using var q = World.Query<Shanoa.Component>();
                     q.Each((Entity e, ref Shanoa.Component _) =>
                     {
-                        e.Set(new OneTimeModelTimeline(Shanoa.ScratchSelfAnimationId));
+                        e.Stage().Set(new OneTimeModelTimeline(Shanoa.ScratchSelfAnimationId));
                     });
                 }
                 SameLineIfFits("stretch");
@@ -918,7 +918,7 @@ public partial class MainWindow
                     using var q = World.Query<Shanoa.Component>();
                     q.Each((Entity e, ref Shanoa.Component _) =>
                     {
-                        e.Set(new OneTimeModelTimeline(Shanoa.StretchAnimationId));
+                        e.Stage().Set(new OneTimeModelTimeline(Shanoa.StretchAnimationId));
                     });
                 }
                 SameLineIfFits("attack");
@@ -927,7 +927,7 @@ public partial class MainWindow
                     using var q = World.Query<Shanoa.Component>();
                     q.Each((Entity e, ref Shanoa.Component _) =>
                     {
-                        e.Set(new OneTimeModelTimeline(Shanoa.AttackAnimationId));
+                        e.Stage().Set(new OneTimeModelTimeline(Shanoa.AttackAnimationId));
                     });
                 }
                 SameLineIfFits("Looper");

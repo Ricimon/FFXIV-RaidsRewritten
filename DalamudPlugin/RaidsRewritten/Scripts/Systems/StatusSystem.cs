@@ -91,20 +91,21 @@ public unsafe class StatusSystem(
                 child.Destruct();
             });
 
-            commonQueries.AllPlayersQuery.Each((Entity pEntity, ref Player.Component player) =>
+            commonQueries.AllPlayersQuery.Each((Iter it, int i, ref Player.Component player) =>
             {
+                var pEntity = it.Entity(i);
                 if (!statusEntity.IsChildOf(pEntity)) { return; }
                 var dChara = player.PlayerCharacter;
                 if (dChara == null || !dChara.IsValid()) { return; }
                 var chara = (Character*)dChara.Address;
                 if (!chara->IsCharacter()) { return; }
 
-                DelayedAction.Create(statusEntity.Stage().CsWorld(), () =>
+                DelayedAction.Create(it.Stage(), (ref Iter it) =>
                 {
                     if (!statusEntity.IsValid()) { return; }
                     var isEnfeeblement = statusEntity.Has<Condition.StatusEnfeeblement>();
 
-                    var flytext = statusEntity.Stage().CsWorld().Entity()
+                    var flytext = it.World().Entity()
                         .Set(new FlyText(statusEntity, status, isEnfeeblement, chara->EntityId))
                         .Set(new FlyTextReady(new(status, true)))
                         .Add(Ecs.DependsOn, statusEntity);

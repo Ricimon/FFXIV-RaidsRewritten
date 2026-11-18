@@ -62,7 +62,7 @@ public class OctetObstacleCourse : Mechanic
         if (set.Action == null) { return; }
         if (set.Action.Value.RowId == MegaflareDive)
         {
-            DelayedAction.Create(World, () =>
+            DelayedAction.Create(Stage, () =>
             {
                 Reset();
             }, 0.5f);

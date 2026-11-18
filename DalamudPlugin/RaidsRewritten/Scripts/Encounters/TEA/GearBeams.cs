@@ -130,7 +130,7 @@ public class GearBeams : Mechanic
             }
 
             var j = i;
-            var action = DelayedAction.Create(World, () =>
+            var action = DelayedAction.Create(Stage, () =>
             {
                 var rotation = j switch
                 {
@@ -173,7 +173,7 @@ public class GearBeams : Mechanic
                     // Attack Omen
                     var attackOmenDelay = 0.75f;
                     var attackOmenDuration = 5.5f;
-                    var action = DelayedAction.Create(World, () =>
+                    var action = DelayedAction.Create(Stage, () =>
                     {
                         if (!gear.IsValid()) { return; }
 
@@ -188,13 +188,13 @@ public class GearBeams : Mechanic
                         }
                         else if (index == 1 && j == 1)
                         {
-                            var rotationOmen = FakeActor.CreateInvalidModel(World)
+                            var rotationOmen = FakeActor.CreateInvalidModel(Stage)
                                 .Set(new Position(position))
                                 .Set(new Rotation(rotation))
                                 .Set(new ActorVfx(rotationOmenVfxPath));
                             attacks.Add(rotationOmen);
 
-                            var rotationOmen2 = FakeActor.CreateZeroScaleModel(World)
+                            var rotationOmen2 = FakeActor.CreateZeroScaleModel(Stage)
                                 .Set(new Position(position))
                                 .Set(new Rotation(rotation))
                                 .Set(new ActorVfx(rotationOmen2VfxPath));
@@ -205,14 +205,14 @@ public class GearBeams : Mechanic
                             position += 0.5f * gearPositionVector;
                             var fr = Quaternion.CreateFromAxisAngle(Vector3.UnitY, rotation);
                             fr *= Quaternion.CreateFromAxisAngle(Vector3.UnitX, 0.5f * MathF.PI);
-                            var rotationOmen = FakeActor.CreateZeroAlphaModel(World)
+                            var rotationOmen = FakeActor.CreateZeroAlphaModel(Stage)
                                 .Set(new Position(position))
                                 .Set(new Rotation(rotation))
                                 .Set(new ActorVfx(rotationOmenVfxPath))
                                 .Set(new FullRotation(fr));
                             attacks.Add(rotationOmen);
 
-                            var rotationOmen2 = FakeActor.CreateZeroScaleModel(World)
+                            var rotationOmen2 = FakeActor.CreateZeroScaleModel(Stage)
                                 .Set(new Position(position))
                                 .Set(new Rotation(rotation))
                                 .Set(new ActorVfx(rotationOmen2VfxPath));
@@ -222,7 +222,7 @@ public class GearBeams : Mechanic
                         // Execute attack
                         var attackDuration = 6.0f;
                         var rotationVelocity = 1.0f / attackDuration * MathF.PI * (attackRotation == 0 ? 1 : -1);
-                        var action = DelayedAction.Create(World, () =>
+                        var action = DelayedAction.Create(Stage, () =>
                         {
                             if (!gear.IsValid()) { return; }
 
@@ -241,7 +241,7 @@ public class GearBeams : Mechanic
                             }
 
                             // Stop attack
-                            var action = DelayedAction.Create(World, () =>
+                            var action = DelayedAction.Create(Stage, () =>
                             {
                                 if (!gear.IsValid()) { return; }
 
@@ -251,7 +251,7 @@ public class GearBeams : Mechanic
 
                                 // Cleanup
                                 var cleanupDelay = 0.25f;
-                                var action = DelayedAction.Create(World, () =>
+                                var action = DelayedAction.Create(Stage, () =>
                                 {
                                     gear.SafeDestruct();
                                     puddle.SafeDestruct();

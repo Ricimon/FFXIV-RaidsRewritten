@@ -30,9 +30,10 @@ public sealed class EcsRunner : IDalamudHook
 
         commonQueries.CreateQueries(world);
 
-//#if DEBUG
-//        this.World.Set<flecs.EcsRest>(default);
-//#endif
+#if DEBUG
+        // https://flecs.dev/explorer
+        world.Set<Flecs.NET.Bindings.flecs.EcsRest>(default);
+#endif
 
         // Register all systems
         foreach (var system in systems)

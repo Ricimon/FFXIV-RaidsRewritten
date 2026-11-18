@@ -33,7 +33,8 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
         set => this.visible = value;
     }
 
-    private World World => this.ecsContainer.World.GetStage(0);
+    private World World => this.ecsContainer.World;
+    private World Stage => this.ecsContainer.Stage;
 
     private readonly WindowSystem windowSystem;
     private readonly HelpWindow helpWindow;
@@ -178,8 +179,8 @@ public sealed partial class MainWindow : Window, IPluginUIView, IDisposable
                     // Delete everything
                     this.statusManager.HideAll();
                     this.entityManager.ClearAllManagedEntities();
-                    this.World.DeleteWith<Condition.Component>();
-                    this.World.DeleteWith<DelayedAction.Component>();
+                    this.Stage.DeleteWith<Condition.Component>();
+                    this.Stage.DeleteWith<DelayedAction.Component>();
                     this.vfxSpawn.Clear();
                     this.resourceLoader.ClearAllFileReplacements();
                     this.networkClient.DisconnectAsync().SafeFireAndForget();

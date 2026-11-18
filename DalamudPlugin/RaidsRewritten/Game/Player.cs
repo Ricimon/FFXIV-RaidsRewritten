@@ -31,7 +31,8 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
 
     public static Entity Create(World world, bool isLocalPlayer, IPlayerCharacter? playerCharacter = null, ulong? contentId = null)
     {
-        var entity = world.Entity().Set(new Component(playerCharacter));
+        var name = isLocalPlayer ? "Local player" : playerCharacter?.Name.TextValue ?? "Unknown player";
+        var entity = world.Entity(name).Set(new Component(playerCharacter));
         if (isLocalPlayer)
         {
             entity.Add<LocalPlayer>();
@@ -118,7 +119,7 @@ public sealed class Player(DalamudServices dalamud, PlayerManager playerManager,
                         }
                         if (destroy)
                         {
-                            c.Destruct();
+                            c.Stage().Destruct();
                         }
                     });
 

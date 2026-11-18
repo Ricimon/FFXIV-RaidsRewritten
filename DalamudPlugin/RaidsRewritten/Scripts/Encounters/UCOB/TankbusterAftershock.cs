@@ -95,7 +95,7 @@ public class TankbusterAftershock : Mechanic
 
         List<Entity> ToDestruct = [];
         void execAttack() => ExecuteAttack(Aftershock, set.Source, ToDestruct);
-        var delayedAction = DelayedAction.Create(this.World, execAttack, TurnDelaySeconds);
+        var delayedAction = DelayedAction.Create(this.Stage, execAttack, TurnDelaySeconds);
         ToDestruct.Add(delayedAction);
         attacks.Add(ToDestruct);
     }
@@ -107,38 +107,38 @@ public class TankbusterAftershock : Mechanic
         var backAngle = MathUtilities.ClampRadians(originalRotation + MathF.PI);
 
         // create fake actors to keep vfxes in place if boss turns/moves
-        var fakeActorFront = FakeActor.CreateInvalidModel(this.World)
+        var fakeActorFront = FakeActor.CreateInvalidModel(this.Stage)
             .Set(new Position(originalPosition))
             .Set(new Rotation(originalRotation));
         ToDestruct.Add(fakeActorFront);
 
-        var fakeActorBack = FakeActor.CreateInvalidModel(this.World)
+        var fakeActorBack = FakeActor.CreateInvalidModel(this.Stage)
             .Set(new Position(originalPosition))
             .Set(new Rotation(backAngle));
         ToDestruct.Add(fakeActorBack);
 
 
         // show a quick telegraph
-        var delayedAction = DelayedAction.Create(this.World, () => Telegraph(aftershockData, originalPosition, originalRotation, ToDestruct), aftershockData.DelaySeconds);
+        var delayedAction = DelayedAction.Create(this.Stage, () => Telegraph(aftershockData, originalPosition, originalRotation, ToDestruct), aftershockData.DelaySeconds);
         ToDestruct.Add(delayedAction);
-        delayedAction = DelayedAction.Create(this.World, () => Telegraph(aftershockData, originalPosition, backAngle, ToDestruct), aftershockData.DelaySeconds);
+        delayedAction = DelayedAction.Create(this.Stage, () => Telegraph(aftershockData, originalPosition, backAngle, ToDestruct), aftershockData.DelaySeconds);
         ToDestruct.Add(delayedAction);
 
         // check if player is in telegraph
-        delayedAction = DelayedAction.Create(this.World, () => 
+        delayedAction = DelayedAction.Create(this.Stage, () => 
             Aftershock(aftershockData, fakeActorFront, originalPosition, originalRotation, ToDestruct),
             aftershockData.DelaySeconds + aftershockData.OmenVisibleSeconds + OmenSnapshotDelay
         );
         ToDestruct.Add(delayedAction);
 
-        delayedAction = DelayedAction.Create(this.World, () =>
+        delayedAction = DelayedAction.Create(this.Stage, () =>
             Aftershock(aftershockData, fakeActorBack, originalPosition, backAngle, ToDestruct),
             aftershockData.DelaySeconds + aftershockData.OmenVisibleSeconds + OmenSnapshotDelay
         );
         ToDestruct.Add(delayedAction);
 
         // cleanup
-        delayedAction = DelayedAction.Create(this.World, () => Reset(ToDestruct), 5);
+        delayedAction = DelayedAction.Create(this.Stage, () => Reset(ToDestruct), 5);
         ToDestruct.Add(delayedAction);
     }
 
@@ -172,7 +172,7 @@ public class TankbusterAftershock : Mechanic
             FanOmen.Destruct();
         }
 
-        var delayedAction = DelayedAction.Create(this.World, DestroyTelegraph, aftershockData.OmenVisibleSeconds);
+        var delayedAction = DelayedAction.Create(this.Stage, DestroyTelegraph, aftershockData.OmenVisibleSeconds);
     }
 
     private bool SpawnOmen<T>(out Entity FanOmen, AftershockData aftershockData, Vector3 position, float rotation, List<Entity> ToDestruct)
@@ -226,7 +226,7 @@ public class TankbusterAftershock : Mechanic
 
             ToDestruct.Add(AftershockAoE);
 
-            var delayedAction = DelayedAction.Create(this.World, () => fakeActor.Set(new ActorVfx(aftershockData.VfxPath)), aftershockData.VfxDelaySeconds);
+            var delayedAction = DelayedAction.Create(this.Stage, () => fakeActor.Set(new ActorVfx(aftershockData.VfxPath)), aftershockData.VfxDelaySeconds);
             ToDestruct.Add(delayedAction);
         }
     }

@@ -58,7 +58,7 @@ public static class FlecsExtensions
 
     public static void SafeDestruct(this Entity entity)
     {
-        if (entity.IsValid()) { entity.Destruct(); }
+        if (entity.IsValid()) { entity.Stage().Destruct(); }
     }
 
     public static bool HasChildren(this Entity entity)

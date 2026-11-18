@@ -151,7 +151,7 @@ public class ADSSquared : Mechanic
                 isLine = false;
                 break;
             case FellruinTrio:
-                attacks.Add(DelayedAction.Create(World, () =>
+                attacks.Add(DelayedAction.Create(Stage, () =>
                 {
                     stopCasting = true;
                 }, 5f));
@@ -161,11 +161,11 @@ public class ADSSquared : Mechanic
                 difficulty = 2;
                 break;
             case TenstrikeTrio:
-                attacks.Add(DelayedAction.Create(World, () =>
+                attacks.Add(DelayedAction.Create(Stage, () =>
                 {
                     stopCasting = true;
                 }, 5f));
-                attacks.Add(DelayedAction.Create(World, SoftReset, 8f));
+                attacks.Add(DelayedAction.Create(Stage, SoftReset, 8f));
                 break;
         }
     }
@@ -277,7 +277,7 @@ public class ADSSquared : Mechanic
     private void RemoveADSFromAvailablePool((int, Entity) pair)
     {
         availableADS.Remove(pair);
-        attacks.Add(DelayedAction.Create(World, () =>
+        attacks.Add(DelayedAction.Create(Stage, () =>
         {
             availableADS.Add(pair);
         }, ADSReuseDelay));

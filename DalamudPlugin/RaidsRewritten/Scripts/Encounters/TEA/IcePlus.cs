@@ -104,11 +104,11 @@ public class IcePlus : Mechanic
             }
         }
 
-        var action = DelayedAction.Create(World, () =>
+        var action = DelayedAction.Create(Stage, () =>
         {
             for (var i = 0; i < 2; i++)
             {
-                var v = FakeActor.CreateInvalidModel(World)
+                var v = FakeActor.CreateInvalidModel(Stage)
                     .Set(new ActorVfx(AttackVfx))
                     .Set(new Position(position))
                     .Set(new Rotation(rotationOffset + i * 0.25f * MathF.PI));

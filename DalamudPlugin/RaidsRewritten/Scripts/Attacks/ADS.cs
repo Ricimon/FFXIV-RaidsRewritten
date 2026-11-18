@@ -78,7 +78,7 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
                 case Phase.Omen:
                     if (ShouldReturn(component)) { return; }
                     AddActorVfx(entity, CastingVfx);
-                    var omen = RectangleOmen.CreateEntity(world);
+                    var omen = RectangleOmen.CreateEntity(it.Stage());
                     {
                         omen.Set(new Position(position.Value))
                             .Set(new Rotation(component.Angle))
@@ -113,7 +113,7 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
                         {
                             if (player.HasTranscendance())
                             {
-                                DelayedAction.Create(world, () => vfxSpawn.PlayInvulnerabilityEffect(player), SnapshotEffectDelay).ChildOf(entity);
+                                DelayedAction.Create(it.Stage(), () => vfxSpawn.PlayInvulnerabilityEffect(player), SnapshotEffectDelay).ChildOf(entity);
                             }
                             else
                             {
@@ -156,7 +156,7 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
                     case Phase.Omen:
                         if (ShouldReturn(component)) { return; }
                         AddActorVfx(entity, CastingVfx);
-                        CircleOmen.CreateEntity(world)
+                        CircleOmen.CreateEntity(it.Stage())
                             .Set(new Position(component.TargetPosition1))
                             .Set(new Scale(new Vector3(2f)))
                             .Set(new OmenDuration(OmenDuration, false))
@@ -164,7 +164,7 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
 
                         if (component.TargetPosition2.HasValue)
                         {
-                            CircleOmen.CreateEntity(world)
+                            CircleOmen.CreateEntity(it.Stage())
                                 .Set(new Position(component.TargetPosition2.Value))
                                 .Set(new Scale(new Vector3(2f)))
                                 .Set(new OmenDuration(OmenDuration, false))
@@ -198,7 +198,7 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
                             {
                                 if (player.HasTranscendance())
                                 {
-                                    DelayedAction.Create(world, () => vfxSpawn.PlayInvulnerabilityEffect(player), SnapshotEffectDelay).ChildOf(entity);
+                                    DelayedAction.Create(it.Stage(), () => vfxSpawn.PlayInvulnerabilityEffect(player), SnapshotEffectDelay).ChildOf(entity);
                                 } else
                                 {
                                     commonQueries.LocalPlayerQuery.Each((Entity e, ref Player.Component _) =>
@@ -218,13 +218,13 @@ public class ADS(DalamudServices dalamud, CommonQueries commonQueries, VfxSpawn 
                         break;
                     case Phase.Vfx:
                         if (ShouldReturn(component)) { return; }
-                        FakeActor.CreateInvalidModel(world)
+                        FakeActor.CreateInvalidModel(it.Stage())
                             .Set(new Position(component.TargetPosition1))
                             .Set(new ActorVfx(CircleActionVfx))
                             .ChildOf(entity);
                         if (component.TargetPosition2.HasValue)
                         {
-                            FakeActor.CreateInvalidModel(world)
+                            FakeActor.CreateInvalidModel(it.Stage())
                                 .Set(new Position(component.TargetPosition2.Value))
                                 .Set(new ActorVfx(CircleActionVfx))
                                 .ChildOf(entity);

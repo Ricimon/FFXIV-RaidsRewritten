@@ -18,9 +18,9 @@
     <DebugType>none</DebugType>
   </PropertyGroup>
 
-	<PropertyGroup>
-		<DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
-	</PropertyGroup>
+  <PropertyGroup>
+    <DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
+  </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="AsyncAwaitBestPractices" Version="11.0.0" />
@@ -44,21 +44,22 @@
     <ProjectReference Include="..\Penumbra.String\Penumbra.String.csproj" />
   </ItemGroup>
 
-	<ItemGroup>
-		<Reference Include="Reloaded.Hooks.Definitions">
-			<HintPath>$(DalamudLibPath)Reloaded.Hooks.Definitions.dll</HintPath>
-			<Private>False</Private>
-		</Reference>
-		<Reference Include="TerraFX.Interop.Windows">
-			<HintPath>$(DalamudLibPath)TerraFX.Interop.Windows.dll</HintPath>
-			<Private>False</Private>
-		</Reference>
-	</ItemGroup>
+  <ItemGroup>
+    <Reference Include="Reloaded.Hooks.Definitions">
+      <HintPath>$(DalamudLibPath)Reloaded.Hooks.Definitions.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="TerraFX.Interop.Windows">
+      <HintPath>$(DalamudLibPath)TerraFX.Interop.Windows.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
 
   <ItemGroup>
     <Content Include="Resources\**\*.*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="notes.txt" />
     <Content Include="RaidsRewritten.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

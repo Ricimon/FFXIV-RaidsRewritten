@@ -55,7 +55,7 @@ public class JWaveSpreads : Mechanic
         var position = bruteJustice.Position;
         var rotation = bruteJustice.Rotation;
 
-        var delayedSend = DelayedAction.Create(World, () =>
+        var delayedSend = DelayedAction.Create(Stage, () =>
         {
             NetworkClient.SendAsync(new Message
             {

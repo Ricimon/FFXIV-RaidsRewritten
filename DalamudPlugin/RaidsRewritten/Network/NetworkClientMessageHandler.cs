@@ -30,7 +30,8 @@ public sealed class NetworkClientMessageHandler(
 {
     public NetworkClient? Client { get; set; }
 
-    private World World => ecsContainer.World.GetStage(0);
+    private World World => ecsContainer.World;
+    private World Stage => ecsContainer.Stage;
 
     public void OnConnect()
     {
@@ -133,7 +134,7 @@ public sealed class NetworkClientMessageHandler(
 
         dalamud.Framework.Run(() =>
         {
-            var e = World.Entity()
+            var e = Stage.Entity()
                 .Set(new StaticVfx(payload.vfxPath))
                 .Set(new VfxId(payload.id))
                 .Set(new Position(new(payload.worldPositionX, payload.worldPositionY, payload.worldPositionZ)))
@@ -193,7 +194,7 @@ public sealed class NetworkClientMessageHandler(
 
         dalamud.Framework.Run(() =>
         {
-            FakeActor.CreateInvalidModel(World)
+            FakeActor.CreateInvalidModel(Stage)
                 .Set(new ActorVfx(payload.vfxPath))
                 .Set(new Position(new(payload.worldPositionX, payload.worldPositionY, payload.worldPositionZ)))
                 .Set(new Rotation(payload.rotation));
@@ -209,7 +210,7 @@ public sealed class NetworkClientMessageHandler(
             {
                 if (vfxId.Value == payload.id)
                 {
-                    it.Entity(i).Destruct();
+                    it.Entity(i).Stage().Destruct();
                 }
             });
         });
@@ -240,7 +241,7 @@ public sealed class NetworkClientMessageHandler(
                     {
                         if (!conditionIds.Contains(id.Value))
                         {
-                            e.Destruct();
+                            e.Stage().Destruct();
                         }
                     });
 

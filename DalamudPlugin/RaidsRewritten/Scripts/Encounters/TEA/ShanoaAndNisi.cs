@@ -261,7 +261,7 @@ public class ShanoaAndNisi : Mechanic
             if (eyeOfTheChakramCasted) { return; }
             eyeOfTheChakramCasted = true;
 
-            var action1 = DelayedAction.Create(World, () =>
+            var action1 = DelayedAction.Create(Stage, () =>
             {
                 var nisiTowerPosition = towerPositions.SafeSelect(towerPositionsIndex);
                 var rotation = MathUtilities.VectorToRotation((nisiTowerPosition - arenaMiddle).ToVector2());
@@ -292,7 +292,7 @@ public class ShanoaAndNisi : Mechanic
 
             ShanoaPark?.AttackMarkers("photon");
 
-            var action2 = DelayedAction.Create(World, () =>
+            var action2 = DelayedAction.Create(Stage, () =>
             {
                 SendSpawnNextPositionNisiTower();
             }, 2.0f);
@@ -301,7 +301,7 @@ public class ShanoaAndNisi : Mechanic
 
         else if (set.Action.Value.RowId == MissileCommandActionId)
         {
-            var action = DelayedAction.Create(World, () =>
+            var action = DelayedAction.Create(Stage, () =>
             {
                 ShanoaPark?.AttackMarkers("missilecommand");
             }, 1.0f);
@@ -310,7 +310,7 @@ public class ShanoaAndNisi : Mechanic
 
         else if (set.Action.Value.RowId == FlarethrowerActionId)
         {
-            var action = DelayedAction.Create(World, () =>
+            var action = DelayedAction.Create(Stage, () =>
             {
                 ShanoaPark?.AttackMarkers("flarethrower");
             }, 1.0f);
@@ -347,11 +347,11 @@ public class ShanoaAndNisi : Mechanic
                             default:
                                 return;
                         }
-                        World.Entity()
+                        Stage.Entity()
                             .Set(new ActorVfx(vfxPath))
                             .Add<NisiVfx>()
                             .ChildOf(e);
-                        World.Entity()
+                        Stage.Entity()
                             .Set(new ActorVfx("vfx/common/eff/dk05th_stdn0t.avfx"))
                             .ChildOf(e);
                     });

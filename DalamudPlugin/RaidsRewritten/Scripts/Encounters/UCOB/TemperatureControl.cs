@@ -78,7 +78,7 @@ public class TemperatureControl : Mechanic
         }
         this.attacks.Clear();
 
-        World.DeleteWith<Temperature.Component>();
+        Stage.DeleteWith<Temperature.Component>();
     }
 
     public override void OnFrameworkUpdate(IFramework framework)
@@ -125,7 +125,7 @@ public class TemperatureControl : Mechanic
             var localPlayer = Dalamud.ObjectTable.LocalPlayer;
             if (localPlayer == null) { return; }
 
-            var da = DelayedAction.Create(this.World, () =>     
+            var da = DelayedAction.Create(this.Stage, () =>     
             {
                 foreach (var targetEffects in set.TargetEffects)
                 {

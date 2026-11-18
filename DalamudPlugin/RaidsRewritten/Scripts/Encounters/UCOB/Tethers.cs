@@ -133,7 +133,7 @@ public class Tethers : Mechanic
         switch (set.Action.Value.RowId)
         {
             case TwistingDive:
-                attacks.Add(DelayedAction.Create(World,
+                attacks.Add(DelayedAction.Create(Stage,
                     () => {
                         foreach (var tether in tethers)
                         {

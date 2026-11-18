@@ -54,7 +54,7 @@ public class Screwdriver : Mechanic
         // This is on castbar because Chastening Heat can fizzle if its target dies before the cast finishes.
         if (action.RowId == ChasteningHeatActionId)
         {
-            var da = DelayedAction.Create(World, StartMechanic, 5.0f);
+            var da = DelayedAction.Create(Stage, StartMechanic, 5.0f);
             attacks.Add(da);
         }
     }

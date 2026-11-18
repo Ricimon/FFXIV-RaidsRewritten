@@ -80,7 +80,7 @@ public class ShanoaAndAlexPrime : Mechanic
 
         if (set.Action.Value.RowId == JStormActionId)
         {
-            var action = DelayedAction.Create(World, () =>
+            var action = DelayedAction.Create(Stage, () =>
             {
                 ShanoaPark?.AttackMarkers("jstorm");
             }, 1.0f);

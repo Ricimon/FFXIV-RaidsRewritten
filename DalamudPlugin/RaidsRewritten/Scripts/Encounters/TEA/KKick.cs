@@ -55,7 +55,7 @@ public class KKick : Mechanic
                     .Set(new OmenDuration(OmenDuration, true));
                 attacks.Add(omen);
 
-                var action = DelayedAction.Create(World, () =>
+                var action = DelayedAction.Create(Stage, () =>
                 {
                     var player = Dalamud.ObjectTable.LocalPlayer;
                     if (player == null || player.IsDead) { return; }

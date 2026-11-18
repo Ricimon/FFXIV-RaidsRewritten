@@ -305,7 +305,7 @@ public class Dreadknight(DalamudServices dalamud, CommonQueries commonQueries) :
 
     public static void RemoveChildren(Entity entity)
     {
-        entity.CsWorld().DeleteWith(flecs.EcsChildOf, entity);
+        entity.Stage().CsWorld().DeleteWith(flecs.EcsChildOf, entity);
     }
 
     public static void RemoveCancellableCC(Entity entity)

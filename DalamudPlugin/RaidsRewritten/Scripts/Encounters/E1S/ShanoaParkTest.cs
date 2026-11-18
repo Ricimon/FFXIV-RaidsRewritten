@@ -201,7 +201,7 @@ public class ShanoaParkTest : Mechanic, IShanoaPark
                             .Add<Attack>();
                         if (mode == 1)
                         {
-                            World.Entity()
+                            Stage.Entity()
                                 .Set(new Model(392))
                                 .Set(new LocalPosition(new(0, -0.1f, 0)))
                                 .Set(new Rotation())
@@ -250,7 +250,7 @@ public class ShanoaParkTest : Mechanic, IShanoaPark
                             shanoa.Set(new Shanoa.Component(movementSpeed, rotationSpeed));
                         }
                     }
-                    var destinationArrow = FakeActor.CreateInvalidModel(World)
+                    var destinationArrow = FakeActor.CreateInvalidModel(Stage)
                         .Set(new ActorVfx(DestinationArrowVfxPath))
                         .Set(new Position(position + 1.0f * Vector3.UnitY));
                     attacks.Add(destinationArrow);
@@ -289,17 +289,17 @@ public class ShanoaParkTest : Mechanic, IShanoaPark
                         {
                             delay = 0.75f;
                             var shanoaEntity = e.Parent();
-                            World.Entity()
+                            Stage.Entity()
                                 .Set(new ActorVfx(FinalSentenceVfxPath))
                                 .ChildOf(shanoaEntity);
                             ResourceLoader.PlaySound(FinalSentenceSfxPath, 0);
-                            DelayedAction.Create(World, () =>
+                            DelayedAction.Create(Stage, () =>
                             {
                                 e.SafeDestruct();
                             }, 0.75f);
                         });
                     }
-                    var action = DelayedAction.Create(World, () =>
+                    var action = DelayedAction.Create(Stage, () =>
                     {
                         var shanoaFound = false;
                         using var q = World.Query<Shanoa.Component, Model, Position, Rotation>();
@@ -308,7 +308,7 @@ public class ShanoaParkTest : Mechanic, IShanoaPark
                             shanoaFound = true;
                             var forward = MathUtilities.RotationToUnitVector(rotation.Value);
                             var targetPosition = position.Value + 1000.0f * forward.ToVector3(position.Value.Y);
-                            entity
+                            entity.Stage()
                                 .Set(new Shanoa.TargetPosition(targetPosition))
                                 .Set(new Shanoa.Component(movementSpeed, rotationSpeed))
                                 .Set(new ModelFadeOut(model.ObjectIndex, 1.5f, 1.5f))
@@ -337,15 +337,15 @@ public class ShanoaParkTest : Mechanic, IShanoaPark
                     if (shanoa.TryGet(out Model shanoaModel))
                     {
                         var shanoaGo = Dalamud.ObjectTable.GetGameObjectByIndex(shanoaModel.ObjectIndex);
-                        FakeActor.CreateInvalidModel(World)
+                        FakeActor.CreateInvalidModel(Stage)
                             .Set(new Position(markerPosition))
                             .Set(new ActorVfx(AbsorbMarkerVfxPath1))
                             .Set(new ActorVfxTarget(shanoaGo));
-                        var action = DelayedAction.Create(World, () =>
+                        var action = DelayedAction.Create(Stage, () =>
                         {
                             if (shanoa.IsValid())
                             {
-                                World.Entity().Set(new ActorVfx(AbsorbMarkerVfxPath2)).ChildOf(shanoa);
+                                Stage.Entity().Set(new ActorVfx(AbsorbMarkerVfxPath2)).ChildOf(shanoa);
                             }
                         }, 0.4f);
                         attacks.Add(action);
@@ -356,7 +356,7 @@ public class ShanoaParkTest : Mechanic, IShanoaPark
                         {
                             msg = ShanoaAbsorbAllMarkersMessage;
                             // Super Saiyan effect
-                            var action2 = DelayedAction.Create(World, () =>
+                            var action2 = DelayedAction.Create(Stage, () =>
                             {
                                 if (shanoaGo != null)
                                 {
@@ -401,7 +401,7 @@ public class ShanoaParkTest : Mechanic, IShanoaPark
                 var position = marker.Position;
                 position.Y = arenaMiddle.Y; // in case markers are illegally placed
 
-                var circleAttack = Circle.CreateEntity(World)
+                var circleAttack = Circle.CreateEntity(Stage)
                     .Set(new Position(position))
                     .Set(new Scale(5.0f * Vector3.One))
                     .Set(new Circle.Component(2.8f, 0.3f, MarkerAttackVfxPath, 0.3f, (e) =>
@@ -421,7 +421,7 @@ public class ShanoaParkTest : Mechanic, IShanoaPark
             }
         }
 
-        var action = DelayedAction.Create(World, () =>
+        var action = DelayedAction.Create(Stage, () =>
         {
             NetworkClient.SendAsync(new Message
             {
@@ -455,9 +455,9 @@ public class ShanoaParkTest : Mechanic, IShanoaPark
 
                 // Sometimes drawing too many static vfx's in one frame will drop some of the vfx's,
                 // so spread these out over multiple frames
-                var action = DelayedAction.Create(World, () =>
+                var action = DelayedAction.Create(Stage, () =>
                 {
-                    var ring = World.Entity()
+                    var ring = Stage.Entity()
                         .Set(new StaticVfx(AetherCompassLocationVfxPath))
                         .Set(new Position(position))
                         .Set(new Rotation())
@@ -466,7 +466,7 @@ public class ShanoaParkTest : Mechanic, IShanoaPark
                     attacks.Add(ring);
                     guidanceEntities.Add(ring);
 
-                    var arrows = World.Entity()
+                    var arrows = Stage.Entity()
                         .Set(new StaticVfx(AetherCompassLocationArrowsVfxPath))
                         .Set(new Position(position))
                         .Set(new Rotation())
@@ -485,7 +485,7 @@ public class ShanoaParkTest : Mechanic, IShanoaPark
 
         if (guidanceEntities.Count > 0)
         {
-            var action = DelayedAction.Create(World, ClearGuidanceEntities, duration);
+            var action = DelayedAction.Create(Stage, ClearGuidanceEntities, duration);
             attacks.Add(action);
             guidanceEntities.Add(action);
 

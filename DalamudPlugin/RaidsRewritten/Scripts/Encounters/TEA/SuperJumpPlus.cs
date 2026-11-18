@@ -66,7 +66,7 @@ public class SuperJumpPlus : Mechanic
                 //targets = [Dalamud.PlayerState.ContentId];
                 if (targets.Count > 0)
                 {
-                    var action = DelayedAction.Create(World, () =>
+                    var action = DelayedAction.Create(Stage, () =>
                     {
                         NetworkClient.SendAsync(new Message
                         {

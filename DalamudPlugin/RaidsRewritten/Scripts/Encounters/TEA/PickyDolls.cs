@@ -53,8 +53,8 @@ public class PickyDolls : Mechanic
         dolls.Clear();
         debuffsAssigned = false;
 
-        World.DeleteWith<EpicHero.Component>();
-        World.DeleteWith<FatedHero.Component>();
+        Stage.DeleteWith<EpicHero.Component>();
+        Stage.DeleteWith<FatedHero.Component>();
     }
 
     public override void OnDirectorUpdate(DirectorUpdateCategory a3)
@@ -134,10 +134,10 @@ public class PickyDolls : Mechanic
                     fatedVillainsToAssign--;
                 }
 
-                var action = DelayedAction.Create(World, () =>
+                var action = DelayedAction.Create(Stage, () =>
                 {
                     var dollObject = Dalamud.ObjectTable.SearchByEntityId(dollId);
-                    var vfx = World.Entity()
+                    var vfx = Stage.Entity()
                         .Set(new ActorVfx(vfxPath))
                         .Set(new ActorVfxSource(dollObject));
                     attacks.Add(vfx);
@@ -177,7 +177,7 @@ public class PickyDolls : Mechanic
             var feedTarget = doll.Value.Villain == Villain.Epic ? LIVING_LIQUID_BASE_ID : LIQUID_HAND_BASE_ID;
             if (target.BaseId != feedTarget)
             {
-                var action = DelayedAction.Create(World, () =>
+                var action = DelayedAction.Create(Stage, () =>
                 {
                     DollFeedFailure(source);
                 }, 1.7f);
@@ -196,7 +196,7 @@ public class PickyDolls : Mechanic
         if (debuffsAssigned) { return; }
         debuffsAssigned = true;
 
-        var action = DelayedAction.Create(World, () =>
+        var action = DelayedAction.Create(Stage, () =>
         {
             var mainTargets = new List<Target>();
             var backupTargets = new List<Target>();
@@ -305,14 +305,14 @@ public class PickyDolls : Mechanic
 
         if (dolls.Count == 0)
         {
-            World.DeleteWith<EpicHero.Component>();
-            World.DeleteWith<FatedHero.Component>();
+            Stage.DeleteWith<EpicHero.Component>();
+            Stage.DeleteWith<FatedHero.Component>();
         }
     }
 
     private void DollFeedFailure(IGameObject doll)
     {
-        var vfx = World.Entity()
+        var vfx = Stage.Entity()
             .Set(new ActorVfx(FEED_FAIL))
             .Set(new ActorVfxSource(doll));
         attacks.Add(vfx);

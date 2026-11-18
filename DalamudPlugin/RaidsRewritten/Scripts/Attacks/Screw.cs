@@ -526,7 +526,7 @@ public class Screw(
             {
                 if (child.TryGet(out Condition.Id id) && id.Value == BindId)
                 {
-                    child.Destruct();
+                    child.Stage().Destruct();
                 }
             });
         });

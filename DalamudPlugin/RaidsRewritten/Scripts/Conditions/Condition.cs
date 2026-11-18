@@ -55,7 +55,7 @@ public class Condition(NetworkClient networkClient, ILogger logger) : ISystem
         }
         else
         {
-            e = world.Entity()
+            e = world.Entity(name)
                 .Set(new Component(name, duration, DateTime.UtcNow))
                 .Set(new Id(id))
                 .ChildOf(target);
