@@ -38,6 +38,12 @@ public class ChangelogWindow : IPluginUIView
         {
             if (child)
             {
+                ImGui.Text("v1.2.3");
+                using (var i = ImRaii.PushIndent())
+                {
+                    ImGui.TextWrapped("Movement override now properly disables LMB+RMB character control.");
+                }
+
                 ImGui.Text("v1.1.2");
                 using (var i = ImRaii.PushIndent())
                 {
