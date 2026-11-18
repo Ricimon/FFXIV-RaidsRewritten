@@ -1,5 +1,5 @@
 ﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/MathHelpers/Number.cs
-// 78da16b
+// c423e3a
 using FFXIVClientStructs;
 using System;
 using System.Collections.Generic;
@@ -13,6 +13,7 @@ namespace ECommons.MathHelpers;
 /// Ultimate number union. Offers same performance as using numbers directly.
 /// </summary>
 [StructLayout(LayoutKind.Explicit, Size = 8)]
+[Obsolete]
 public readonly unsafe struct Number : IEquatable<Number>
 {
     [FieldOffset(0)] private readonly long LongValue;

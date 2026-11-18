@@ -1,5 +1,5 @@
 ﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/Hooks/ActionEffectTypes/EffectHeader.cs
-// 47a5366
+// 26d30b9
 using FFXIVClientStructs.FFXIV.Client.Game;
 using System;
 using System.Runtime.InteropServices;
@@ -18,7 +18,8 @@ public struct EffectHeader
     [FieldOffset(26)] public ushort Rotation;
     [FieldOffset(28)] public ushort AnimationId;
     [FieldOffset(30)] public byte Variation;
-    [FieldOffset(31)] public ActionType ActionType;
+    public ActionType ActionType => (ActionType)ActionTypeByte;
+    [FieldOffset(31)] public byte ActionTypeByte;
     [FieldOffset(33)] public byte TargetCount;
 
 

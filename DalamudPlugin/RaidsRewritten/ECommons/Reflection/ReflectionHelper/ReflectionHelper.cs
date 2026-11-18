@@ -1,5 +1,5 @@
 ﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/Reflection/ReflectionHelper/ReflectionHelper.cs
-// 7f7b741
+// d6c9418
 using ECommons.Logging;
 using System;
 using System.Linq;
@@ -147,5 +147,13 @@ public static partial class ReflectionHelper
     public static T Call<T>(this object obj, string name, object[] @params, bool matchExactArgumentTypes = false)
     {
         return (T)Call(obj, name, @params, matchExactArgumentTypes);
+    }
+
+    public static MethodInfo? GetAccessibleSetMethod(PropertyInfo property)
+    {
+        var setMethod = property.GetSetMethod(true);
+        if(setMethod != null) return setMethod;
+        var declaringProperty = property.DeclaringType?.GetProperty(property.Name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
+        return declaringProperty?.GetSetMethod(true);
     }
 }

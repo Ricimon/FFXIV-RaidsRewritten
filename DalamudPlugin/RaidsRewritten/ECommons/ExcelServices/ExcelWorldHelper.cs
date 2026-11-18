@@ -1,5 +1,5 @@
 ﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/ExcelServices/ExcelWorldHelper.cs
-// 96d2467
+// f0b90ef
 using ECommons.DalamudServices;
 using Lumina.Excel.Sheets;
 using System;
@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using static FFXIVClientStructs.FFXIV.Client.UI.Misc.DataCenterHelper;
 
 namespace ECommons.ExcelServices;
@@ -94,9 +95,19 @@ public static class ExcelWorldHelper
         return Svc.Data.GetExcelSheet<World>().Where(x => x.IsPublic() && (dataCenter == 0 || x.DataCenter.RowId == dataCenter)).ToArray();
     }
 
+    public static World[] GetVisualPublicWorlds(uint dataCenter)
+    {
+        return Svc.Data.GetExcelSheet<World>().Where(x => x.IsPublic() && (dataCenter == 0 || x.Unknown0 == dataCenter)).ToArray();
+    }
+
     public static WorldDCGroupType[] GetDataCenters(Region? region = null, bool checkForPublicWorlds = false)
     {
         return Svc.Data.GetExcelSheet<WorldDCGroupType>().Where(x => (region == null || (Region)x.Region.RowId == region.Value) && (!checkForPublicWorlds || GetPublicWorlds(x.RowId).Length > 0)).ToArray();
+    }
+
+    public static WorldDCGroupType[] GetVisualDataCenters(Region? region = null, bool checkForPublicWorlds = false)
+    {
+        return Svc.Data.GetExcelSheet<WorldDCGroupType>().Where(x => (region == null || (Region)x.Region.RowId == region.Value) && (!checkForPublicWorlds || GetVisualPublicWorlds(x.RowId).Length > 0)).ToArray();
     }
 
     public static WorldDCGroupType[] GetDataCenters(System.Collections.Generic.IEnumerable<Region> regions, bool checkForPublicWorlds = false)
@@ -114,10 +125,16 @@ public static class ExcelWorldHelper
 
     [Obsolete("Please use GetName")]
     public static string GetWorldNameById(uint id) => GetName(id);
-    public static string GetName(int id) => GetName((uint)id);
-    public static string GetName(uint id)
+    [OverloadResolutionPriority(0)]
+    public static string GetName(int id) => GetName((uint)id, false);
+    [OverloadResolutionPriority(1)]
+    public static string GetName(uint id) => GetName((uint)id, false);
+    [OverloadResolutionPriority(0)]
+    public static string GetName(int id, bool includeId) => GetName((uint)id, includeId);
+    [OverloadResolutionPriority(1)]
+    public static string GetName(uint id, bool includeId)
     {
-        return Get(id)?.Name.ToString();
+        return Get(id)?.Name.ToString() + (includeId?$"#{id}":"");
     }
 
     [Obsolete("Please use Get")]
