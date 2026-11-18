@@ -1,5 +1,5 @@
 ﻿// Adapted from https://github.com/0ceal0t/Dalamud-VFXEditor/blob/main/VFXEditor/Spawn/VfxSpawn.cs
-// 70661e3
+// 5dabc40
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -45,10 +45,22 @@ public class VfxLoopItem
     }
 }
 
-public unsafe sealed class VfxSpawn(ResourceLoader resourceLoader, ILogger logger) : IDisposable
+public unsafe sealed class VfxSpawn : IDisposable
 {
     public readonly Dictionary<BaseVfx, VfxSpawnItem> Vfxs = [];
-    public readonly List<VfxLoopItem> ToLoop = [];
+    //public readonly List<VfxLoopItem> ToLoop = [];
+
+    private readonly ResourceLoader resourceLoader;
+    private readonly ILogger logger;
+
+    public VfxSpawn(ResourceLoader resourceLoader, ILogger logger)
+    {
+        this.resourceLoader = resourceLoader;
+        this.logger = logger;
+
+        resourceLoader.OnStaticVfxRemoved += InteropRemoved;
+        resourceLoader.OnActorVfxRemoved += InteropRemoved;
+    }
 
     public StaticVfx SpawnStaticVfx(string path, Vector3 position, float rotation)
     {
@@ -60,13 +72,8 @@ public unsafe sealed class VfxSpawn(ResourceLoader resourceLoader, ILogger logge
 
     public ActorVfx SpawnActorVfx(string path, IGameObject caster, IGameObject target)
     {
-        return SpawnActorVfx(path, caster.Address, target.Address);
-    }
-
-    public ActorVfx SpawnActorVfx(string path, nint casterAddress, nint targetAddress)
-    {
         var vfx = new ActorVfx(resourceLoader, path);
-        vfx.Create(casterAddress, targetAddress);
+        vfx.Create(caster, target);
         Vfxs.Add(vfx, new(path, SpawnType.Target, false));
         return vfx;
     }
@@ -74,6 +81,8 @@ public unsafe sealed class VfxSpawn(ResourceLoader resourceLoader, ILogger logge
     public void Dispose()
     {
         Clear();
+        resourceLoader.OnStaticVfxRemoved -= InteropRemoved;
+        resourceLoader.OnActorVfxRemoved -= InteropRemoved;
     }
 
     public void Clear()
@@ -83,10 +92,10 @@ public unsafe sealed class VfxSpawn(ResourceLoader resourceLoader, ILogger logge
             vfx.Key?.Remove();
         }
         Vfxs.Clear();
-        ToLoop.Clear();
+        //ToLoop.Clear();
     }
 
-    public void InteropRemoved(IntPtr data)
+    public void InteropRemoved(nint data)
     {
         if (!GetVfx(data, out var vfx)) { return; }
 
@@ -103,10 +112,15 @@ public unsafe sealed class VfxSpawn(ResourceLoader resourceLoader, ILogger logge
         }
     }
 
-    public bool GetVfx(IntPtr data, out BaseVfx vfx)
+    public bool GetVfx(nint data, out BaseVfx vfx)
     {
         vfx = null!;
         if (data == IntPtr.Zero || Vfxs.Count == 0) { return false; }
-        return Vfxs.Keys.FindFirst(x => data == x.GetVfxPointer(), out vfx!);
+        return Vfxs.Keys.FindFirst(x => data == x.GetAddress(), out vfx!);
+    }
+
+    private void InteropRemoved(nint data, char a2)
+    {
+        InteropRemoved(data);
     }
 }

@@ -1,88 +1,24 @@
 ﻿// Adapted from https://github.com/0ceal0t/Dalamud-VFXEditor/blob/main/VFXEditor/Interop/Structs/Vfx/StaticVfx.cs
-// 2f6a2ba
-using System;
+// 5dabc40
 using System.Numerics;
-using System.Runtime.InteropServices;
-using Dalamud.Game.ClientState.Objects.Types;
+using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
 
 namespace RaidsRewritten.Interop.Structs.Vfx;
 
-// Offsets from https://git.anna.lgbt/anna/OrangeGuidanceTomestone/src/branch/main/client/Vfx.cs
-// 0d69e4b9b0
-[StructLayout(LayoutKind.Explicit)]
-public unsafe struct StaticVfxStruct
+public unsafe class StaticVfx(ResourceLoader resourceLoader, string path) : BaseVfx(path)
 {
-    [FieldOffset(0x38)] public byte Flags;
-    [FieldOffset(0x50)] public Vector3 Position;
-    [FieldOffset(0x60)] public Quat Rotation;
-    [FieldOffset(0x70)] public Vector3 Scale;
-
-    [FieldOffset(0x128)] public int ActorCaster;
-    [FieldOffset(0x130)] public int ActorTarget;
-
-    [FieldOffset(0x1B8)] public int StaticCaster;
-    [FieldOffset(0x1C0)] public int StaticTarget;
-
-    [FieldOffset(0x248)] public byte SomeFlags;
-
-    [FieldOffset(0x260)] public byte Red;
-    [FieldOffset(0x264)] public byte Green;
-    [FieldOffset(0x268)] public byte Blue;
-    [FieldOffset(0x26C)] public float Alpha;
-}
-
-public unsafe class StaticVfx : BaseVfx
-{
-    public StaticVfxStruct* Vfx;
-
-    private readonly ResourceLoader resourceLoader;
-
-    public StaticVfx(ResourceLoader resourceLoader, string path) : base(path)
-    {
-        this.resourceLoader = resourceLoader;
-    }
+    public VfxObject* Vfx;
 
     public void Create(Vector3 position, float rotation)
     {
         if (Vfx != null) { return; }
-        Vfx = (StaticVfxStruct*)this.resourceLoader.StaticVfxCreateString(this.Path, "Client.System.Scheduler.Instance.VfxObject");
+        Vfx = VfxObject.Create(Path, "Client.System.Scheduler.Instance.VfxObject");
+
+        resourceLoader.StaticVfxRun(Vfx, 0.0f, 0xFFFFFFFF);
 
         UpdatePosition(position);
-        UpdateRotation(new Vector3(0, 0, rotation));
+        UpdateRotation(rotation);
         Update();
-
-        this.resourceLoader.StaticVfxRun((IntPtr)Vfx, 0.0f, 0xFFFFFFFF);
-    }
-
-    public override IntPtr GetVfxPointer()
-    {
-        return (IntPtr)Vfx;
-    }
-
-    public override void Remove()
-    {
-        if (Vfx == null) { return; }
-        this.resourceLoader.StaticVfxRemove((IntPtr)Vfx);
-        Vfx = null;
-    }
-
-    public override void UpdateScale(Vector3 scale)
-    {
-        if (Vfx == null) { return; }
-        Vfx->Scale = new Vector3
-        {
-            X = scale.X,
-            Y = scale.Y,
-            Z = scale.Z
-        };
-    }
-
-    public void Update()
-    {
-        if (Vfx == null) { return; }
-        Vfx->Flags |= 0x2;
-        // Remove flag that sometimes causes vfx to not appear?
-        Vfx->SomeFlags &= 0xF7;
     }
 
     public void UpdatePosition(Vector3 position)
@@ -96,29 +32,63 @@ public unsafe class StaticVfx : BaseVfx
         };
     }
 
-    public void UpdatePosition(IGameObject actor)
+    public void UpdateScale(Vector3 scale)
     {
         if (Vfx == null) { return; }
-        Vfx->Position = actor.Position;
+        Vfx->Scale = new Vector3
+        {
+            X = scale.X,
+            Y = scale.Y,
+            Z = scale.Z
+        };
     }
 
-    public void UpdateRotation(Vector3 rotation)
+    public void UpdateRotation(float rotation)
     {
         if (Vfx == null) { return; }
 
-        var q = Quaternion.CreateFromYawPitchRoll(rotation.X, rotation.Y, rotation.Z);
-        Vfx->Rotation = new Quat
-        {
-            X = q.X,
-            Y = q.Y,
-            Z = q.Z,
-            W = q.W
-        };
+        Vfx->Rotation = FFXIVClientStructs.FFXIV.Common.Math.Quaternion.CreateFromYawPitchRoll(
+            rotation,
+            0,
+            0
+        );
+    }
+
+    public void UpdateRotation(Quaternion rotation)
+    {
+        if (Vfx == null) { return; }
+
+        Vfx->Rotation = rotation;
+    }
+
+    public void UpdateColor(Vector4 color)
+    {
+        if (Vfx == null) { return; }
+        Vfx->Color = color;
     }
 
     public void UpdateAlpha(float alpha)
     {
         if (Vfx == null) { return; }
-        Vfx->Alpha = alpha;
+        Vfx->Color.W = alpha;
+        //Vfx->SetTransparency(alpha); // this seems to do nothing
+    }
+
+    public void Update()
+    {
+        if (Vfx == null) { return; }
+        Vfx->UpdateTransforms(true);
+        //Vfx->Flags |= 0x2;
+        // Remove flag that sometimes causes vfx to not appear?
+        Vfx->SomeFlags &= 0xF7;
+    }
+
+    public override nint GetAddress() => (nint)Vfx;
+
+    public override void Remove()
+    {
+        if (Vfx == null) { return; }
+        resourceLoader.StaticVfxRemove(Vfx);
+        Vfx = null;
     }
 }

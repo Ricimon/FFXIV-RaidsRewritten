@@ -1,5 +1,5 @@
 ﻿// Adapted from https://github.com/0ceal0t/Dalamud-VFXEditor/blob/main/VFXEditor/Interop/ResourceLoader.Utils.cs
-// d0c9072
+// c0fe6d0
 namespace RaidsRewritten.Interop;
 
 public unsafe partial class ResourceLoader
