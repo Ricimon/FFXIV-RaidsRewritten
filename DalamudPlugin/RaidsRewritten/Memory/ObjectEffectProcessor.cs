@@ -1,30 +1,27 @@
 ﻿// Adapted from https://github.com/PunishXIV/Splatoon/blob/main/Splatoon/Memory/ObjectEffectProcessor.cs
-// 0054cc3
+// 6173f05
 using System;
 using Dalamud.Hooking;
-using Dalamud.Utility.Signatures;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using RaidsRewritten.Log;
 using RaidsRewritten.Utility;
 
 namespace RaidsRewritten.Memory;
 
-public unsafe class ObjectEffectProcessor(DalamudServices dalamud, ILogger logger) : IDisposable
+public unsafe sealed class ObjectEffectProcessor(DalamudServices dalamud, ILogger logger) : IDisposable
 {
-    internal delegate void ProcessObjectEffect(EventObject* a1, uint a2, uint a3, ulong a4);
-    [Signature("4C 8B DC 53 48 81 EC ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 84 24 ?? ?? ?? ?? 49 89 6B F0 48 8B D9 49 89 7B E0", DetourName = nameof(ProcessObjectEffectDetour), Fallibility = Fallibility.Fallible)]
-    internal Hook<ProcessObjectEffect> ProcessObjectEffectHook = null;
-    internal void ProcessObjectEffectDetour(EventObject* a1, uint a2, uint a3, ulong a4)
+    internal Hook<EventObject.Delegates.PlayAnimation> ProcessObjectEffectHook = null;
+    internal void ProcessObjectEffectDetour(EventObject* thisPtr, uint entityId, uint actionId, ulong a4)
     {
         try
         {
-            //if (P.Config.Logging)
+            //if(P.Config.Logging)
             //{
-            //    var text = $"ObjectEffect: on {a1->Name.Read()} 0x{a1->EntityId:X}/0x{a1->BaseId:X} data {a2}, {a3}";
-            //    this.logger.Info(text);
-            //    if (a1->ObjectKind != FFXIVClientStructs.FFXIV.Client.Game.Object.ObjectKind.Pc) P.LogWindow.Log(text);
+            //    var text = $"ObjectEffect: on {thisPtr->Name.Read()} {thisPtr->EntityId.Format()}/{thisPtr->BaseId.Format()} data {entityId}, {actionId}";
+            //    Logger.Log(text);
+            //    if(thisPtr->ObjectKind != ObjectKind.Pc) P.LogWindow.Log(text);
             //}
-            var ptr = (nint)a1;
+            var ptr = (nint)thisPtr;
             if (!AttachedInfo.ObjectEffectInfos.ContainsKey(ptr))
             {
                 AttachedInfo.ObjectEffectInfos[ptr] = [];
@@ -32,16 +29,16 @@ public unsafe class ObjectEffectProcessor(DalamudServices dalamud, ILogger logge
             AttachedInfo.ObjectEffectInfos[ptr].Add(new()
             {
                 StartTime = Environment.TickCount64,
-                data1 = (ushort)a2,
-                data2 = (ushort)a3
+                data1 = entityId,
+                data2 = actionId
             });
-            this.callback?.Invoke(a1->EntityId, a2, a3);
+            this.callback?.Invoke(thisPtr->EntityId, entityId, actionId);
         }
         catch (Exception e)
         {
             logger.Info(e.ToStringFull());
         }
-        ProcessObjectEffectHook.Original(a1, a2, a3, a4);
+        ProcessObjectEffectHook.Original(thisPtr, entityId, actionId, a4);
     }
 
     private Action<uint, uint, uint>? callback;
@@ -51,49 +48,18 @@ public unsafe class ObjectEffectProcessor(DalamudServices dalamud, ILogger logge
         this.callback = callback;
         try
         {
-            dalamud.GameInteropProvider.InitializeFromAttributes(this);
+            ProcessObjectEffectHook = dalamud.GameInteropProvider.HookFromAddress<EventObject.Delegates.PlayAnimation>(EventObject.Addresses.PlayAnimation.Value, this.ProcessObjectEffectDetour);
+            ProcessObjectEffectHook.Enable();
         }
         catch (Exception e)
         {
             logger.Warn(e.ToStringFull());
         }
-        Enable();
     }
 
     public void Dispose()
     {
-        try
-        {
-            Disable();
-            ProcessObjectEffectHook.Dispose();
-        }
-        catch (Exception e)
-        {
-            logger.Warn(e.ToStringFull());
-        }
-    }
-
-    internal void Enable()
-    {
-        try
-        {
-            if (!ProcessObjectEffectHook.IsEnabled) ProcessObjectEffectHook.Enable();
-        }
-        catch (Exception e)
-        {
-            logger.Warn(e.ToStringFull());
-        }
-    }
-
-    internal void Disable()
-    {
-        try
-        {
-            if (ProcessObjectEffectHook.IsEnabled) ProcessObjectEffectHook.Disable();
-        }
-        catch (Exception e)
-        {
-            logger.Warn(e.ToStringFull());
-        }
+        ProcessObjectEffectHook?.Disable();
+        ProcessObjectEffectHook?.Dispose();
     }
 }

@@ -1,11 +1,12 @@
 ﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/GameHelpers/LegacyPlayer.cs
-// d435e12
+// e76756e
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.ClientState.Statuses;
 using Dalamud.Game.Player;
 using ECommons.DalamudServices;
+using ECommons.DalamudServices.Legacy;
 using ECommons.ExcelServices;
 using ECommons.GameFunctions;
 using ECommons.MathHelpers;
@@ -57,10 +58,10 @@ public static unsafe class Player
 
     public static bool IsInHomeWorld => Available && Object.CurrentWorld.RowId == Object.HomeWorld.RowId;
     public static bool IsInHomeDC => Available && Object.CurrentWorld.Value.DataCenter.RowId == Object.HomeWorld.Value.DataCenter.RowId;
-    public static string HomeWorld => Object?.HomeWorld.Value.Name.ToString();
-    public static string CurrentWorld => Object?.CurrentWorld.Value.Name.ToString();
-    public static string HomeDataCenter => Object?.HomeWorld.Value.DataCenter.Value.Name.ToString();
-    public static string CurrentDataCenter => Object?.CurrentWorld.Value.DataCenter.Value.Name.ToString();
+    public static string HomeWorld => Object?.HomeWorld.ValueNullable?.Name.ToString();
+    public static string CurrentWorld => Object?.CurrentWorld.ValueNullable?.Name.ToString();
+    public static string HomeDataCenter => Object?.HomeWorld.ValueNullable?.DataCenter.ValueNullable?.Name.ToString();
+    public static string CurrentDataCenter => Object?.CurrentWorld.ValueNullable?.DataCenter.ValueNullable?.Name.ToString();
 
     public static Character* Character => (Character*)Object.Address;
     public static BattleChara* BattleChara => (BattleChara*)Object.Address;
@@ -68,7 +69,7 @@ public static unsafe class Player
 
     public static uint Territory => Svc.ClientState.TerritoryType;
     public static TerritoryIntendedUseEnum TerritoryIntendedUse => (TerritoryIntendedUseEnum)(Svc.Data.GetExcelSheet<TerritoryType>().GetRowOrDefault(Territory)?.TerritoryIntendedUse.ValueNullable?.RowId ?? default);
-    public static uint HomeAetheryteTerritory => Svc.Data.GetExcelSheet<Aetheryte>().GetRowOrDefault(PlayerState.Instance()->HomeAetheryteId).Value.Territory.RowId;
+    public static uint HomeAetheryteTerritory => Svc.Data.GetExcelSheet<Aetheryte>().GetRowOrDefault(PlayerState.Instance()->HomeAetheryteId)?.Territory.RowId ?? 0;
     public static bool IsInDuty => GameMain.Instance()->CurrentContentFinderConditionId != 0;
     public static bool IsOnIsland => MJIManager.Instance()->IsPlayerInSanctuary;
     public static bool IsInPvP => GameMain.IsInPvPInstance();
@@ -78,9 +79,9 @@ public static unsafe class Player
     public static GrandCompany GrandCompany => (GrandCompany)PlayerState.Instance()->GrandCompany;
     public static Job GetJob(this IPlayerCharacter pc) => (Job)(pc?.ClassJob.RowId ?? 0);
 
-    public static uint HomeWorldId => Object.HomeWorld.RowId;
-    public static uint CurrentWorldId => Object.CurrentWorld.RowId;
-    public static uint JobId => Object.ClassJob.RowId;
+    public static uint HomeWorldId => Object?.HomeWorld.RowId ?? 0;
+    public static uint CurrentWorldId => Object?.CurrentWorld.RowId ?? 0;
+    public static uint JobId => Object?.ClassJob.RowId ?? 0;
     public static uint OnlineStatus => Player.Object?.OnlineStatus.RowId ?? 0;
 
     public static Vector3 Position => Available ? Object.Position : Vector3.Zero;
@@ -103,7 +104,7 @@ public static unsafe class Player
     public static float DistanceTo(IGameObject other) => Vector3.Distance(Position, other.Position);
 
     [Obsolete("Use IsJumping", true)]
-    public static unsafe bool Dismounting => **(byte**)(Svc.Objects.LocalPlayer!.Address + 1400) == 1;
+    public static unsafe bool Dismounting => **(byte**)(Svc.ClientState.LocalPlayer.Address + 1400) == 1;
     [Obsolete("Use IsJumping", true)]
     public static bool Jumping => Svc.Condition[ConditionFlag.Jumping] || Svc.Condition[ConditionFlag.Jumping61];
 }

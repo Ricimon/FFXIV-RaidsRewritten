@@ -1,6 +1,7 @@
 ﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/Hooks/ActionEffectTypes/EffectHeader.cs
-// a285c30
+// 47a5366
 using FFXIVClientStructs.FFXIV.Client.Game;
+using System;
 using System.Runtime.InteropServices;
 
 namespace ECommons.Hooks.ActionEffectTypes;
@@ -19,4 +20,25 @@ public struct EffectHeader
     [FieldOffset(30)] public byte Variation;
     [FieldOffset(31)] public ActionType ActionType;
     [FieldOffset(33)] public byte TargetCount;
+
+
+
+    /// <summary>
+    /// Radians
+    /// </summary>
+    public readonly float RealRotation => ((Rotation * 0.0095875263f) * 0.0099999998f) - MathF.PI;
+    /// <summary>
+    /// Radians
+    /// </summary>
+    public readonly float RealRotationD => (float)(((Rotation * 0.0095875263d) * 0.0099999998d) - Math.PI);
+    /// <summary>
+    /// Radians
+    /// </summary>
+    public readonly float RotationFromNorth
+    {
+        get
+        {
+            return -Rotation + MathF.PI;
+        }
+    }
 }

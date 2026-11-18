@@ -41,7 +41,8 @@ public class ChangelogWindow : IPluginUIView
                 ImGui.Text("v1.2.3");
                 using (var i = ImRaii.PushIndent())
                 {
-                    ImGui.TextWrapped("Movement override now properly disables LMB+RMB character control.");
+                    ImGui.TextWrapped("Movement override now properly disables LMB+RMB character control." +
+                        "\nFix improperly grayed out buttons on cross hotbar.");
                 }
 
                 ImGui.Text("v1.1.2");

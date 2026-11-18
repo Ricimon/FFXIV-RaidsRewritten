@@ -1,100 +1,241 @@
 ﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/GameFunctions/CharacterFunctions.cs
-// e87cec7
+// 6d8ab09
 using Dalamud.Game.ClientState.Objects.Types;
+using ECommons.DalamudServices;
 using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 
 namespace ECommons.GameFunctions;
 
 public static unsafe class CharacterFunctions
 {
+
     public static ushort GetVFXId(void* VfxData)
     {
-        if (VfxData == null) return 0;
-        return *(ushort*)((IntPtr)(VfxData) + 8);
+        return VfxData == null ? (ushort)0 : *(ushort*)((IntPtr)VfxData + 8);
     }
 
-    public static FFXIVClientStructs.FFXIV.Client.Game.Character.Character* Struct(this ICharacter o)
-    {
-        return (FFXIVClientStructs.FFXIV.Client.Game.Character.Character*)o.Address;
-    }
 
-    public static FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara* Struct(this IBattleChara o)
+    extension(IBattleChara chr)
     {
-        return (FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara*)o.Address;
-    }
+        public float RemainingCastTime => chr.CastInfo.TotalCastTime - chr.CastInfo.CurrentCastTime;
+        public CastInfo CastInfo
+        {
+            get
+            {
+                var info = chr.Struct()->GetCastInfo();
+                if(info == null)
+                {
+                    return default;
+                }
+                var ret = *info;
+                //ret.ActionType = (*(byte*)(((nint)info) + 1));
+                return ret;
+            }
+        }
 
-    public static FFXIVClientStructs.FFXIV.Client.Game.Character.Character* Character(this IBattleChara o)
-    {
-        return (FFXIVClientStructs.FFXIV.Client.Game.Character.Character*)o.Address;
-    }
+        public BattleChara* Struct()
+        {
+            return (BattleChara*)chr.Address;
+        }
 
-    public static FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject* GameObject(this IBattleChara o)
-    {
-        return (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)o.Address;
-    }
+        public Character* Character()
+        {
+            return (Character*)chr.Address;
+        }
 
-    public static FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject* IGameObject(this ICharacter o)
-    {
-        return (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)o.Address;
-    }
+        public GameObject* GameObject()
+        {
+            return (GameObject*)chr.Address;
+        }
 
-    public static bool IsCharacterVisible(this ICharacter chr)
-    {
-        var v = (IntPtr)(((FFXIVClientStructs.FFXIV.Client.Game.Character.Character*)chr.Address)->GameObject.DrawObject);
-        if (v == IntPtr.Zero) return false;
-        return Bitmask.IsBitSet(*(byte*)(v + 136), 0);
-    }
+        public bool HasStatus(uint id, float? lessThan = null, float? moreThan = null)
+        {
+            foreach(var x in chr.StatusList)
+            {
+                if(x.StatusId == id)
+                {
+                    if(lessThan != null && x.RemainingTime > lessThan.Value)
+                    {
+                        continue;
+                    }
 
-    public static byte GetTransformationID(this ICharacter chr)
-    {
-        return chr.Struct()->Timeline.ModelState;
-        //return *(byte*)(chr.Address + 2480 + 704);
-    }
+                    if(moreThan != null && x.RemainingTime < moreThan.Value)
+                    {
+                        continue;
+                    }
 
-    public static bool IsInWater(this ICharacter chr)
-    {
-        return *(byte*)(chr.Address + 1452) == 1;
-    }
+                    return true;
+                }
+            }
+            return false;
+        }
 
-    public static CombatRole GetRole(this ICharacter c)
-    {
-        if (c.ClassJob.ValueNullable?.Role == 1) return CombatRole.Tank;
-        if (c.ClassJob.ValueNullable?.Role == 2) return CombatRole.DPS;
-        if (c.ClassJob.ValueNullable?.Role == 3) return CombatRole.DPS;
-        if (c.ClassJob.ValueNullable?.Role == 4) return CombatRole.Healer;
-        return CombatRole.NonCombat;
-    }
+        public bool HasStatus(uint id, out float time, float? lessThan = null, float? moreThan = null)
+        {
+            foreach(var x in chr.StatusList)
+            {
+                if(x.StatusId == id)
+                {
+                    if(lessThan != null && x.RemainingTime > lessThan.Value)
+                    {
+                        continue;
+                    }
 
-    public static bool IsCasting(this IBattleChara c, uint spellId = 0, ActionType? type = null)
-    {
-        if (c.Struct()->GetCastInfo() == null) return false;
-        return c.IsCasting && (spellId == 0 || (c.CastActionId.EqualsAny(spellId) && (type == null || c.CastActionType == (byte)type.Value)));
-    }
+                    if(moreThan != null && x.RemainingTime < moreThan.Value)
+                    {
+                        continue;
+                    }
 
-    public static bool IsCasting(this IBattleChara c, params uint[] spellId)
-    {
-        if (c.Struct()->GetCastInfo() == null) return false;
-        return c.IsCasting && c.CastActionId.EqualsAny(spellId);
-    }
+                    time = x.RemainingTime;
+                    return true;
+                }
+            }
+            time = default;
+            return false;
+        }
 
-    public static bool IsCasting(this IBattleChara c, IEnumerable<uint> spellId)
-    {
-        if (c.Struct()->GetCastInfo() == null) return false;
-        return c.IsCasting && c.CastActionId.EqualsAny(spellId);
+        public bool HasStatus(IEnumerable<uint> id, float? lessThan = null, float? moreThan = null)
+        {
+            foreach(var x in id)
+            {
+                if(chr.HasStatus(x, lessThan, moreThan))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public bool HasStatus(IEnumerable<uint> id, out List<(uint ID, float Time)> foundStatus, float? lessThan = null, float? moreThan = null)
+        {
+            foundStatus = [];
+            foreach(var x in id)
+            {
+                if(chr.HasStatus(x, out var time, lessThan, moreThan))
+                {
+                    foundStatus.Add((x, time));
+                }
+            }
+            return foundStatus.Count > 0;
+        }
+
+        public bool IsCasting(uint spellId = 0, ActionType? type = null)
+        {
+            var info = chr.CastInfo;
+            return info.ActionId == 0
+                ? false
+                : chr.IsCasting && (spellId == 0 || (info.ActionId.EqualsAny(spellId) && (type == null || info.ActionType == (byte)type.Value)));
+        }
+
+        public bool IsCasting(params uint[] spellId)
+        {
+            var info = chr.CastInfo;
+            return info.ActionId == 0 ? false : chr.IsCasting && info.ActionId.EqualsAny(spellId);
+        }
+
+        public bool IsCasting(IEnumerable<uint> spellId)
+        {
+            var info = chr.CastInfo;
+            return info.ActionId == 0 ? false : chr.IsCasting && info.ActionId.EqualsAny(spellId);
+        }
     }
 
     extension(IGameObject obj)
     {
         public uint ObjectId => obj.EntityId;
+        public Vector2 Position2 => obj.Position.ToVector2();
     }
 
     extension(ICharacter chr)
     {
         public float Health => (float)chr.CurrentHp / (float)chr.MaxHp;
         public uint MissingHp => chr.MaxHp - chr.CurrentHp;
+        public uint StatusLoop => chr.Struct()->StatusLoopVfxId;
+        public int ModelId => chr.Struct()->ModelContainer.ModelCharaId;
+
+        public Character* Struct()
+        {
+            return (Character*)chr.Address;
+        }
+
+        public GameObject* IGameObject()
+        {
+            return (GameObject*)chr.Address;
+        }
+
+        public bool IsCharacterVisible()
+        {
+            var v = (IntPtr)((Character*)chr.Address)->GameObject.DrawObject;
+            return v == IntPtr.Zero ? false : Bitmask.IsBitSet(*(byte*)(v + 136), 0);
+        }
+
+        public byte GetTransformationID()
+        {
+            return chr.Struct()->Timeline.ModelState;
+            //return *(byte*)(chr.Address + 2480 + 704);
+        }
+
+        public bool IsInWater()
+        {
+            return *(byte*)(chr.Address + 1452) == 1;
+        }
+
+        public CombatRole GetRole()
+        {
+            if(chr.ClassJob.ValueNullable?.Role == 1)
+            {
+                return CombatRole.Tank;
+            }
+
+            if(chr.ClassJob.ValueNullable?.Role == 2)
+            {
+                return CombatRole.DPS;
+            }
+
+            if(chr.ClassJob.ValueNullable?.Role == 3)
+            {
+                return CombatRole.DPS;
+            }
+
+            return chr.ClassJob.ValueNullable?.Role == 4 ? CombatRole.Healer : CombatRole.NonCombat;
+        }
+        public List<TetherInfo> GetTethers(bool onlySource = false)
+        {
+            List<TetherInfo> ret = [];
+            {
+                var t = chr.Struct()->Vfx.Tethers;
+                for(var i = 0; i < t.Length; i++)
+                {
+                    if(t[i].Id != 0)
+                    {
+                        ret.Add(new(t[i], t[i].TargetId.ObjectId, true));
+                    }
+                }
+            }
+            if(!onlySource)
+            {
+                foreach(var obj in Svc.Objects)
+                {
+                    if(obj is ICharacter targetChara)
+                    {
+                        var t = targetChara.Struct()->Vfx.Tethers;
+                        for(var i = 0; i < t.Length; i++)
+                        {
+                            if(t[i].Id != 0 && t[i].TargetId == chr.GameObjectId)
+                            {
+                                ret.Add(new(t[i], targetChara.ObjectId, false));
+                            }
+                        }
+                    }
+                }
+            }
+            return ret;
+        }
     }
 }
