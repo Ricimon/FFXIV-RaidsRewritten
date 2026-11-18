@@ -1,5 +1,5 @@
 ﻿// Adapted from https://github.com/NightmareXIV/ECommons/blob/master/ECommons/GenericHelpers/GenericHelpers.cs
-// 4228802
+// 64aa68e
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
@@ -38,6 +38,16 @@ public static unsafe partial class GenericHelpers
     private static string UidPrefix = $"{Random.Shared.Next(0, 0xFFFF):X4}";
     private static ulong UidCnt = 0;
     public static string GetTemporaryId() => $"{UidPrefix}{UidCnt++:X}";
+    
+    public static T Run<T>(Func<T> func)
+    {
+        return func();
+    }
+
+    public static void Run(System.Action action)
+    {
+        action();
+    }
 
     public static bool NextBool(this Random random)
     {
@@ -106,7 +116,7 @@ public static unsafe partial class GenericHelpers
     public static uint Sum(this IEnumerable<uint> sequence)
     {
         uint ret = 0u;
-        foreach (var x in sequence)
+        foreach(var x in sequence)
         {
             ret += x;
         }
@@ -123,11 +133,11 @@ public static unsafe partial class GenericHelpers
     public static void RemoveAll<K, V>(this IDictionary<K, V> dictionary, Predicate<KeyValuePair<K, V>> predicate)
     {
         var lst = new List<K>();
-        foreach (var x in dictionary)
+        foreach(var x in dictionary)
         {
-            if (predicate(x)) lst.Add(x.Key);
+            if(predicate(x)) lst.Add(x.Key);
         }
-        foreach (var x in lst)
+        foreach(var x in lst)
         {
             dictionary.Remove(x);
         }
@@ -141,11 +151,11 @@ public static unsafe partial class GenericHelpers
     /// <returns></returns>
     public static T MaxSafe<T>(this IEnumerable<T> collection) where T : IComparable<T>
     {
-        if (collection == null) return default;
+        if(collection == null) return default;
         T value = default;
-        foreach (var x in collection)
+        foreach(var x in collection)
         {
-            if (x.CompareTo(value) > 0) value = x;
+            if(x.CompareTo(value) > 0) value = x;
         }
         return value;
     }
@@ -158,11 +168,11 @@ public static unsafe partial class GenericHelpers
     /// <returns></returns>
     public static T MinSafe<T>(this IEnumerable<T> collection) where T : IComparable<T>
     {
-        if (collection == null) return default;
+        if(collection == null) return default;
         T value = default;
-        foreach (var x in collection)
+        foreach(var x in collection)
         {
-            if (x.CompareTo(value) < 0) value = x;
+            if(x.CompareTo(value) < 0) value = x;
         }
         return value;
     }
@@ -177,12 +187,12 @@ public static unsafe partial class GenericHelpers
     /// <returns></returns>
     public static K MaxSafe<T, K>(this IEnumerable<T> collection, Func<T, K> selector) where K : IComparable<K>
     {
-        if (collection == null) return default;
+        if(collection == null) return default;
         K value = default;
-        foreach (var x in collection)
+        foreach(var x in collection)
         {
             var candidate = selector(x);
-            if (candidate.CompareTo(value) > 0) value = candidate;
+            if(candidate.CompareTo(value) > 0) value = candidate;
         }
         return value;
     }
@@ -197,12 +207,12 @@ public static unsafe partial class GenericHelpers
     /// <returns></returns>
     public static K MinSafe<T, K>(this IEnumerable<T> collection, Func<T, K> selector) where K : IComparable<K>
     {
-        if (collection == null) return default;
+        if(collection == null) return default;
         K value = default;
-        foreach (var x in collection)
+        foreach(var x in collection)
         {
             var candidate = selector(x);
-            if (candidate.CompareTo(value) < 0) value = candidate;
+            if(candidate.CompareTo(value) < 0) value = candidate;
         }
         return value;
     }
@@ -240,7 +250,7 @@ public static unsafe partial class GenericHelpers
     /// <returns></returns>
     public static bool TryGetValue<T>(this T? nullable, out T value) where T : struct
     {
-        if (nullable.HasValue)
+        if(nullable.HasValue)
         {
             value = nullable.Value;
             return true;
@@ -258,7 +268,7 @@ public static unsafe partial class GenericHelpers
     public static uint[] Range(uint inclusiveStart, uint inclusiveEnd)
     {
         var ret = new uint[inclusiveEnd - inclusiveStart + 1];
-        for (var i = 0; i < ret.Length; i++)
+        for(var i = 0; i < ret.Length; i++)
         {
             ret[i] = (uint)(inclusiveStart + i);
         }
@@ -274,7 +284,7 @@ public static unsafe partial class GenericHelpers
     public static int[] Range(int inclusiveStart, int inclusiveEnd)
     {
         var ret = new int[inclusiveEnd - inclusiveStart + 1];
-        for (var i = 0; i < ret.Length; i++)
+        for(var i = 0; i < ret.Length; i++)
         {
             ret[i] = (int)(inclusiveStart + i);
         }
@@ -301,7 +311,7 @@ public static unsafe partial class GenericHelpers
     {
         try
         {
-            if (maxFrames == 0)
+            if(maxFrames == 0)
             {
                 maxFrames = int.MaxValue;
             }
@@ -310,12 +320,12 @@ public static unsafe partial class GenericHelpers
                 maxFrames--;
             }
             var stack = new StackTrace().GetFrames();
-            if (stack.Length > 1)
+            if(stack.Length > 1)
             {
                 return stack[1..Math.Min(stack.Length, maxFrames)].Select(x => x.GetMethod() == null ? "<unknown>" : $"{x.GetMethod().DeclaringType?.FullName}.{x.GetMethod().Name}").Join(" <- ");
             }
         }
-        catch (Exception e)
+        catch(Exception e)
         {
             e.Log();
         }
@@ -336,8 +346,8 @@ public static unsafe partial class GenericHelpers
     /// <returns>Whether the key is currently pressed</returns>
     public static bool IsKeyPressed(int key)
     {
-        if (key == 0) return false;
-        if (UseAsyncKeyCheck)
+        if(key == 0) return false;
+        if(UseAsyncKeyCheck)
         {
             return Bitmask.IsBitSet((uint)TerraFX.Interop.Windows.Windows.GetKeyState(key), 15);
         }
@@ -364,9 +374,9 @@ public static unsafe partial class GenericHelpers
     /// <returns></returns>
     public static bool IsKeyPressed(IEnumerable<LimitedKeys> keys)
     {
-        foreach (var x in keys)
+        foreach(var x in keys)
         {
-            if (IsKeyPressed(x)) return true;
+            if(IsKeyPressed(x)) return true;
         }
         return false;
     }
@@ -378,9 +388,9 @@ public static unsafe partial class GenericHelpers
     /// <returns></returns>
     public static bool IsKeyPressed(IEnumerable<int> keys)
     {
-        foreach (var x in keys)
+        foreach(var x in keys)
         {
-            if (IsKeyPressed(x)) return true;
+            if(IsKeyPressed(x)) return true;
         }
         return false;
     }
@@ -419,7 +429,7 @@ public static unsafe partial class GenericHelpers
     public static T[] CreateArray<T>(this T element, uint num)
     {
         var arr = new T[num];
-        for (var i = 0; i < arr.Length; i++)
+        for(var i = 0; i < arr.Length; i++)
         {
             arr[i] = element;
         }
@@ -459,7 +469,7 @@ public static unsafe partial class GenericHelpers
         {
             Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(path, Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs, Microsoft.VisualBasic.FileIO.RecycleOption.SendToRecycleBin);
         }
-        catch (Exception e)
+        catch(Exception e)
         {
             e.LogWarning();
         }
@@ -542,14 +552,14 @@ public static unsafe partial class GenericHelpers
     /// <returns>Whether operation succeeded</returns>
     public static bool TryDecodeSender(SeString sender, out Sender senderStruct)
     {
-        if (sender == null)
+        if(sender == null)
         {
             senderStruct = default;
             return false;
         }
-        foreach (var x in sender.Payloads)
+        foreach(var x in sender.Payloads)
         {
-            if (x is PlayerPayload p)
+            if(x is PlayerPayload p)
             {
                 senderStruct = new(p.PlayerName, p.World.RowId);
                 return true;
@@ -567,7 +577,7 @@ public static unsafe partial class GenericHelpers
     /// <returns></returns>
     public static SeStringBuilder Add(this SeStringBuilder seStringBuilder, IEnumerable<Payload> payloads)
     {
-        foreach (var x in payloads)
+        foreach(var x in payloads)
         {
             seStringBuilder = seStringBuilder.Add(x);
         }
@@ -603,26 +613,26 @@ public static unsafe partial class GenericHelpers
     /// <returns></returns>
     public static ref int ValidateRange(this ref int i, int min, int max)
     {
-        if (i > max) i = max;
-        if (i < min) i = min;
+        if(i > max) i = max;
+        if(i < min) i = min;
         return ref i;
     }
 
     /// <inheritdoc cref="GenericHelpers.ValidateRange(ref int, int, int)"/>
     public static ref float ValidateRange(this ref float i, float min, float max)
     {
-        if (i > max) i = max;
-        if (i < min) i = min;
+        if(i > max) i = max;
+        if(i < min) i = min;
         return ref i;
     }
 
     public static bool IsNoConditions()
     {
-        if (!Svc.Condition[ConditionFlag.NormalConditions]) return false;
-        for (var i = 2; i < 100; i++)
+        if(!Svc.Condition[ConditionFlag.NormalConditions]) return false;
+        for(var i = 2; i < 100; i++)
         {
-            if (i == (int)ConditionFlag.ParticipatingInCrossWorldPartyOrAlliance) continue;
-            if (Svc.Condition[i]) return false;
+            if(i == (int)ConditionFlag.ParticipatingInCrossWorldPartyOrAlliance) continue;
+            if(Svc.Condition[i]) return false;
         }
         return true;
     }
@@ -634,6 +644,7 @@ public static unsafe partial class GenericHelpers
     }
 
     /// <summary>
+    /// Starts a process with UseShellExecute set to true.
     /// </summary>
     /// <param name="s"></param>
     //public static void ShellStart(string s)
@@ -655,31 +666,31 @@ public static unsafe partial class GenericHelpers
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ushort GetParsedSeSetingColor(int percent)
     {
-        if (percent < 25)
+        if(percent < 25)
         {
             return 3;
         }
-        else if (percent < 50)
+        else if(percent < 50)
         {
             return 45;
         }
-        else if (percent < 75)
+        else if(percent < 75)
         {
             return 37;
         }
-        else if (percent < 95)
+        else if(percent < 95)
         {
             return 541;
         }
-        else if (percent < 99)
+        else if(percent < 99)
         {
             return 500;
         }
-        else if (percent == 99)
+        else if(percent == 99)
         {
             return 561;
         }
-        else if (percent == 100)
+        else if(percent == 100)
         {
             return 573;
         }
@@ -701,9 +712,9 @@ public static unsafe partial class GenericHelpers
         {
             action();
         }
-        catch (Exception e)
+        catch(Exception e)
         {
-            if (!suppressErrors) PluginLog.Error($"{e.Message}\n{e.StackTrace ?? ""}");
+            if(!suppressErrors) PluginLog.Error($"{e.Message}\n{e.StackTrace ?? ""}");
         }
     }
 
@@ -715,7 +726,7 @@ public static unsafe partial class GenericHelpers
         {
             a();
         }
-        catch (Exception e)
+        catch(Exception e)
         {
             logAction($"{e.Message}\n{e.StackTrace ?? ""}", Array.Empty<object>());
         }
@@ -729,19 +740,19 @@ public static unsafe partial class GenericHelpers
         {
             a();
         }
-        catch (Exception e)
+        catch(Exception e)
         {
             try
             {
                 fail(e.Message);
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
                 PluginLog.Error("Error while trying to process error handler:");
                 PluginLog.Error($"{ex.Message}\n{ex.StackTrace ?? ""}");
                 suppressErrors = false;
             }
-            if (!suppressErrors) PluginLog.Error($"{e.Message}\n{e.StackTrace ?? ""}");
+            if(!suppressErrors) PluginLog.Error($"{e.Message}\n{e.StackTrace ?? ""}");
         }
     }
 
@@ -757,7 +768,7 @@ public static unsafe partial class GenericHelpers
             action();
             return true;
         }
-        catch (Exception e)
+        catch(Exception e)
         {
             PluginLog.Error($"{e.Message}\n{e.StackTrace ?? ""}");
             return false;
@@ -777,7 +788,7 @@ public static unsafe partial class GenericHelpers
             result = function();
             return true;
         }
-        catch (Exception e)
+        catch(Exception e)
         {
             PluginLog.Error($"{e.Message}\n{e.StackTrace ?? ""}");
             result = default;

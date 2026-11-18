@@ -1,5 +1,5 @@
 ﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/GenericHelpers/ExcelHelpers.cs
-// c9aa589
+// ce2dcca
 using Dalamud.Game;
 using ECommons.DalamudServices;
 using ECommons.ExcelServices.Sheets;
@@ -328,6 +328,11 @@ public static unsafe partial class GenericHelpers
         public static T Get(uint id, Dalamud.Game.ClientLanguage? language = null)
         {
             return Svc.Data.GetExcelSheet<T>(language: language).GetRow(id);
+        }
+
+        public static bool TryGet(uint id, out T value, Dalamud.Game.ClientLanguage? language = null)
+        {
+            return Svc.Data.GetExcelSheet<T>(language: language).TryGetRow(id, out value);
         }
 
         public static ExcelSheet<T> Values

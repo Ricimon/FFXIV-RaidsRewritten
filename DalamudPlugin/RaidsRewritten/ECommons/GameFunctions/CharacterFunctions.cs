@@ -1,5 +1,5 @@
 ﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/GameFunctions/CharacterFunctions.cs
-// 6d8ab09
+// 00693e9
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons.DalamudServices;
 using ECommons.MathHelpers;
@@ -41,17 +41,17 @@ public static unsafe class CharacterFunctions
 
         public BattleChara* Struct()
         {
-            return (BattleChara*)chr.Address;
+            return (BattleChara*)chr?.Address;
         }
 
         public Character* Character()
         {
-            return (Character*)chr.Address;
+            return (Character*)chr?.Address;
         }
 
         public GameObject* GameObject()
         {
-            return (GameObject*)chr.Address;
+            return (GameObject*)chr?.Address;
         }
 
         public bool HasStatus(uint id, float? lessThan = null, float? moreThan = null)
@@ -161,12 +161,12 @@ public static unsafe class CharacterFunctions
 
         public Character* Struct()
         {
-            return (Character*)chr.Address;
+            return (Character*)chr?.Address;
         }
 
         public GameObject* IGameObject()
         {
-            return (GameObject*)chr.Address;
+            return (GameObject*)chr?.Address;
         }
 
         public bool IsCharacterVisible()

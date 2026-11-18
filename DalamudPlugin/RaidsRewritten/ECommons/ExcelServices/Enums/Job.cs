@@ -1,5 +1,5 @@
 ﻿// https://github.com/NightmareXIV/ECommons/blob/master/ECommons/ExcelServices/Enums/Job.cs
-// c1dbc18
+// db65f14
 using ECommons.DalamudServices;
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
@@ -224,6 +224,11 @@ public enum Job : byte
     /// Pictomancer 
     /// </summary>
     PCT = 42,
+
+    /// <summary>
+    /// Beastmaster
+    /// </summary>
+    BST = 43,
 }
 
 public static class JobExtensions
