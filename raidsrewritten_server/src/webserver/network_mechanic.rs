@@ -11,4 +11,6 @@ pub enum NetworkMechanicCommand {
     TeaUpdateNisiTower = -1029,
     TeaUpdateWormholeSuperJump = -1053,
     TeaUpdateScrewdriverState = -1060,
+    TeaSpawnLightDarkTower = -1070,
+    TeaPopLightDarkTower = -1071,
 }

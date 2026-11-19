@@ -22,6 +22,8 @@ public class ConditionTable
         public const int Flattened = 0xF1410D;
         public const int MagicVulnerabilityUp = 60;
         public const int DamageDown = 62;
+        public const int UmbralTilt = 3576;
+        public const int AstralTilt = 3577;
     }
     
     public class IconToReplace
@@ -43,5 +45,7 @@ public class ConditionTable
         public const int Flattened = 216577;
         public const int MagicVulnerabilityUp = 216578;
         public const int DamageDown = 216579;
+        public const int UmbralTilt = 216580;
+        public const int AstralTilt = 216581;
     }
 }
