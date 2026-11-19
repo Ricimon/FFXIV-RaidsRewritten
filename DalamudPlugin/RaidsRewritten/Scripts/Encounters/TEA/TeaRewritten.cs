@@ -193,7 +193,9 @@ public class TeaRewritten : IEncounter
         }
         if (GetEncounterSetting(LightDarkTowersKey))
         {
-            mechanics.Add(mechanicFactory.Create<LightDarkTowers>());
+            var lightDarkTowers = mechanicFactory.Create<LightDarkTowers>();
+            lightDarkTowers.RngSeed = rngSeed;
+            mechanics.Add(lightDarkTowers);
         }
     }
 

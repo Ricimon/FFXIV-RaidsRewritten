@@ -9,7 +9,6 @@ use crate::{
 };
 use flecs_ecs::prelude::*;
 use nalgebra::Vector2;
-use std::f32::consts::FRAC_PI_4;
 use tracing::{info, warn};
 use uuid::Uuid;
 
@@ -57,10 +56,6 @@ enum Phase {
     Attack,
     Failure,
 }
-
-const ARENA_CENTER: Vector2<f32> = Vector2::new(100.0, 100.0);
-// Same as the Nisi towers
-const TOWER_DISTANCE: f32 = 15.0;
 
 // The P12S Engravement of Souls towers
 const LIGHT_TOWER_VFX: &str = "vfx/monster/gimmick4/eff/n5rc_b_g06_c0v.avfx";
@@ -145,12 +140,6 @@ fn expire_condition(player: &EntityView<'_>, tilt: condition::Condition) {
         });
 }
 
-// 0 is north, going clockwise in 45 degree steps
-fn tower_position(direction: usize) -> Vector2<f32> {
-    let angle = direction as f32 * FRAC_PI_4;
-    ARENA_CENTER + TOWER_DISTANCE * Vector2::new(angle.sin(), -angle.cos())
-}
-
 pub fn create_systems(world: &World) {
     world
         .system::<(&Mechanic, &Party, Option<&ExtraMechanicData>)>()
@@ -159,8 +148,8 @@ pub fn create_systems(world: &World) {
             let entity = it.entity(index);
             let world = &it.world();
 
-            // Light beacon content ID, dark beacon content ID, then "on_beacons" from the debug
-            // simulate to drop each tower on its beacon holder
+            // Light and dark beacon content IDs, then the light and dark tower X/Z. The client
+            // picks the spots from the encounter's RNG seed so Shanoa can match them
             let arguments: Vec<&str> = extra_data
                 .map(|d| d.value.split(',').collect())
                 .unwrap_or_default();
@@ -169,18 +158,23 @@ pub fn create_systems(world: &World) {
                 .take(2)
                 .filter_map(|s| s.parse().ok())
                 .collect();
-            let on_beacons = arguments.get(2) == Some(&"on_beacons");
-            if soakers.len() != 2 {
+            let coordinates: Vec<f32> = arguments
+                .iter()
+                .skip(2)
+                .filter_map(|s| s.parse().ok())
+                .collect();
+            if soakers.len() != 2 || coordinates.len() != 4 {
                 warn!(
                     mechanic.request_id,
-                    mechanic.mechanic_id, party.id, "Missing beacon holders, completing mechanic"
+                    mechanic.mechanic_id,
+                    party.id,
+                    "Missing beacon holders or tower positions, completing mechanic"
                 );
                 entity.remove(SpawnLightDarkTowers);
                 return;
             }
-
-            // Any two different cardinals or intercardinals
-            let directions = rand::seq::index::sample(&mut rand::rng(), 8, 2);
+            let light_tower_position = Vector2::new(coordinates[0], coordinates[1]);
+            let dark_tower_position = Vector2::new(coordinates[2], coordinates[3]);
 
             // Light beacon starts Umbral and takes the dark tower, dark beacon starts Astral and
             // takes the light tower. Taking it flips the tilt
@@ -193,7 +187,7 @@ pub fn create_systems(world: &World) {
                     DARK_TOWER_VFX,
                     DARK_TOWER_POP_VFX,
                     DARK_TOWER_FAILURE_VFX,
-                    directions.index(0),
+                    dark_tower_position,
                 ),
                 (
                     "light",
@@ -203,7 +197,7 @@ pub fn create_systems(world: &World) {
                     LIGHT_TOWER_VFX,
                     LIGHT_TOWER_POP_VFX,
                     LIGHT_TOWER_FAILURE_VFX,
-                    directions.index(1),
+                    light_tower_position,
                 ),
             ];
             for (
@@ -214,21 +208,9 @@ pub fn create_systems(world: &World) {
                 tower_vfx,
                 pop_vfx,
                 failure_vfx,
-                direction,
+                position,
             ) in towers
             {
-                let mut position = tower_position(direction);
-                if on_beacons
-                    && let Some(pc) = find_party_container(world, &party.id)
-                {
-                    pc.each_child(|c| {
-                        c.try_get::<(&Player, &Position)>(|(player, p)| {
-                            if soaker != 0 && player.content_id == soaker {
-                                position = Vector2::new(p.x, p.z);
-                            }
-                        });
-                    });
-                }
                 create_generic_mechanic(
                     world,
                     format!("{}_{}", mechanic.request_id, name),

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Numerics;
 using AsyncAwaitBestPractices;
 using ECommons.Hooks;
@@ -22,6 +23,10 @@ public class LightDarkTowers : Mechanic
     // Lands between the Ordained Motion/Stillness checks at 7s and 17s after Final Word
     private const float TowerSpawnDelay = 10.0f;
 
+    private static readonly Vector3 ArenaCenter = new(100, 0, 100);
+    // Same as the Nisi towers
+    private const float TowerDistance = 15.0f;
+
     // m0196, the folder the pop effects come from
     private const byte MonsterModelType = 3;
     private const ushort AthenaModel = 196;
@@ -29,6 +34,8 @@ public class LightDarkTowers : Mechanic
     private readonly List<Entity> attacks = [];
 
     private int? athenaModelCharaId;
+
+    public int RngSeed { get; set; }
 
     public override void Reset()
     {
@@ -80,9 +87,27 @@ public class LightDarkTowers : Mechanic
                 }
             });
 
-            SendStartMechanic("LightDarkTowers", lightBeacon, darkBeacon);
+            var (lightTowerDirection, darkTowerDirection) = GetTowerDirections(RngSeed);
+            SendStartMechanic("LightDarkTowers", lightBeacon, darkBeacon,
+                GetTowerPosition(lightTowerDirection), GetTowerPosition(darkTowerDirection));
         }, TowerSpawnDelay);
         attacks.Add(delayedSend);
+    }
+
+    // Any two different cardinals or intercardinals, 0 is north going clockwise.
+    // Shanoa's mechanic can call this with the same seed to know where the towers go
+    public static (int Light, int Dark) GetTowerDirections(int rngSeed)
+    {
+        var random = new Random(rngSeed + 0x70E5);
+        var light = random.Next(8);
+        var dark = (light + random.Next(1, 8)) % 8;
+        return (light, dark);
+    }
+
+    public static Vector3 GetTowerPosition(int direction)
+    {
+        var angle = direction * 0.25f * MathF.PI;
+        return ArenaCenter + TowerDistance * new Vector3(MathF.Sin(angle), 0, -MathF.Cos(angle));
     }
 
     // Happy path: you're the light beacon, the first other party member found is the dark
@@ -90,16 +115,26 @@ public class LightDarkTowers : Mechanic
     public override void DebugSimulate()
     {
         var localContentId = Dalamud.PlayerState.ContentId;
+        var (lightTowerDirection, darkTowerDirection) = GetTowerDirections(RngSeed);
+        var lightTowerPosition = GetTowerPosition(lightTowerDirection);
+        var darkTowerPosition = GetTowerPosition(darkTowerDirection);
         ulong darkBeacon = 0;
-        CommonQueries.AllPlayersQuery.Each((Entity e, ref Player.Component _) =>
+        CommonQueries.AllPlayersQuery.Each((Entity e, ref Player.Component player) =>
         {
-            if (darkBeacon != 0) { return; }
+            if (player.PlayerCharacter == null) { return; }
             if (!e.TryGet(out Player.ContentId contentId)) { return; }
-            if (contentId.Value == localContentId) { return; }
-            darkBeacon = contentId.Value;
+            if (contentId.Value == localContentId)
+            {
+                darkTowerPosition = player.PlayerCharacter.Position;
+            }
+            else if (darkBeacon == 0)
+            {
+                darkBeacon = contentId.Value;
+                lightTowerPosition = player.PlayerCharacter.Position;
+            }
         });
 
-        SendStartMechanic(Guid.NewGuid().ToString(), localContentId, darkBeacon, onBeacons: true);
+        SendStartMechanic(Guid.NewGuid().ToString(), localContentId, darkBeacon, lightTowerPosition, darkTowerPosition);
     }
 
     public override void OnNetworkMechanicCommand(Message.RunMechanicCommandPayload payload)
@@ -172,7 +207,7 @@ public class LightDarkTowers : Mechanic
         return athenaModelCharaId;
     }
 
-    private void SendStartMechanic(string requestId, ulong lightBeacon, ulong darkBeacon, bool onBeacons = false)
+    private void SendStartMechanic(string requestId, ulong lightBeacon, ulong darkBeacon, Vector3 lightTower, Vector3 darkTower)
     {
         NetworkClient.SendAsync(new Message
         {
@@ -181,7 +216,13 @@ public class LightDarkTowers : Mechanic
             {
                 requestId = requestId,
                 mechanicId = (uint)NetworkMechanic.TeaLightDarkTowers,
-                extraData = onBeacons ? $"{lightBeacon},{darkBeacon},on_beacons" : $"{lightBeacon},{darkBeacon}",
+                extraData = string.Join(',',
+                    lightBeacon,
+                    darkBeacon,
+                    lightTower.X.ToString(CultureInfo.InvariantCulture),
+                    lightTower.Z.ToString(CultureInfo.InvariantCulture),
+                    darkTower.X.ToString(CultureInfo.InvariantCulture),
+                    darkTower.Z.ToString(CultureInfo.InvariantCulture)),
             }
         }).SafeFireAndForget();
     }
