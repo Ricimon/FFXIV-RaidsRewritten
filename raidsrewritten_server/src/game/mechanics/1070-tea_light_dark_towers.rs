@@ -321,12 +321,10 @@ pub fn create_systems(world: &World) {
                     tower.tilt_delay -= it.delta_time();
                     if !tower.tilt_applied && tower.tilt_delay <= 0.0 {
                         tower.tilt_applied = true;
-                        if let Some(soaker) = tower.soaker_entity {
-                            apply_tilt(
-                                &soaker.entity_view(world),
-                                tower.soaker_tilt,
-                                tower.tilt_duration,
-                            );
+                        if let Some(soaker) = tower.soaker_entity
+                            && let Some(soaker) = get_entity_view(&soaker, world)
+                        {
+                            apply_tilt(&soaker, tower.soaker_tilt, tower.tilt_duration);
                         }
                     }
 
@@ -415,13 +413,15 @@ pub fn create_systems(world: &World) {
                     }
 
                     for intruder in &tower.intruders {
-                        apply_hysteria(&intruder.entity_view(world), tower);
+                        if let Some(intruder) = get_entity_view(intruder, world) {
+                            apply_hysteria(&intruder, tower);
+                        }
                     }
 
                     if tower.succeeded
                         && let Some(soaker) = tower.soaker_entity
+                        && let Some(soaker) = get_entity_view(&soaker, world)
                     {
-                        let soaker = soaker.entity_view(world);
                         expire_condition(&soaker, tower.soaker_tilt);
                         apply_tilt(&soaker, tower.tilt_after_soak, tower.tilt_duration);
                     }
@@ -467,13 +467,12 @@ pub fn create_systems(world: &World) {
                         // Both towers can fail on the same tick, and a condition the other tower
                         // just applied isn't visible yet, so only the first one punishes the party
                         let mut already_punished = true;
-                        tower
-                            .spawner
-                            .entity_view(world)
-                            .try_get::<&mut PartyPunished>(|punished| {
+                        if let Some(spawner) = get_entity_view(&tower.spawner, world) {
+                            spawner.try_get::<&mut PartyPunished>(|punished| {
                                 already_punished = punished.value;
                                 punished.value = true;
                             });
+                        }
                         if !already_punished {
                             pc.each_child(|c| {
                                 c.try_get::<(&Player, &State)>(|(_, s)| {
