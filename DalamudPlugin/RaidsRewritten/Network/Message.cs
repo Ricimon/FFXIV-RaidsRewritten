@@ -58,6 +58,8 @@ public struct Message
         Flattened = 10,
         MagicVulnerabilityUp = 11,
         DamageDown = 12,
+        UmbralTilt = 13,
+        AstralTilt = 14,
     }
 
     // To server ============
