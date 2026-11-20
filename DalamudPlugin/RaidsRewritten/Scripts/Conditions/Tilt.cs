@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Numerics;
 using Flecs.NET.Core;
+using RaidsRewritten.Scripts.Components;
 
 namespace RaidsRewritten.Scripts.Conditions;
 
@@ -82,6 +83,8 @@ file class Tilt
     {
         DelayedAction.Create(target.Stage().CsWorld(), (ref Iter it) =>
         {
+            var world = it.Stage();
+
             var condition = Condition.ApplyToTarget(target, name, duration, id, extendDuration, overrideExistingDuration, isClientControlled);
 
             condition
@@ -91,6 +94,11 @@ file class Tilt
                 .Add<Condition.StatusEnfeeblement>();
 
             addComponent(condition);
+
+            // Application VFX
+            world.Entity()
+                .Set(new ActorVfx("vfx/common/eff/dk05th_stdn0t.avfx"))
+                .ChildOf(condition);
         }, 0, true).ChildOf(target);
     }
 }
