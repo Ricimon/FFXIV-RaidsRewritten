@@ -30,6 +30,9 @@ struct LightDarkTower {
     // The soaker shows this tilt until they take the tower, which flips it to the other one
     soaker_tilt: condition::Condition,
     tilt_after_soak: condition::Condition,
+    // Held back until the beacon locks the holder in place, so it can't help them plan
+    tilt_delay: f32,
+    tilt_applied: bool,
     tilt_duration: f32,
     time_to_snapshot: f32,
     attack_delay: f32,
@@ -86,6 +89,8 @@ fn create_tower(
         soaker_entity: None,
         soaker_tilt,
         tilt_after_soak,
+        tilt_delay: 0.5,
+        tilt_applied: false,
         tilt_duration: 5.0,
         // The P12S tower effect lasts about 3s, the pop starts while it fades out
         time_to_snapshot: 2.3,
@@ -153,22 +158,20 @@ pub fn create_systems(world: &World) {
             let arguments: Vec<&str> = extra_data
                 .map(|d| d.value.split(',').collect())
                 .unwrap_or_default();
-            let soakers: Vec<u64> = arguments
-                .iter()
-                .take(2)
-                .filter_map(|s| s.parse().ok())
+            // A missing beacon holder, like one who died before the towers, leaves that tower
+            // with nobody who can take it, so it still drops and fails
+            let soakers: Vec<u64> = (0..2)
+                .map(|i| arguments.get(i).and_then(|s| s.parse().ok()).unwrap_or(0))
                 .collect();
             let coordinates: Vec<f32> = arguments
                 .iter()
                 .skip(2)
                 .filter_map(|s| s.parse().ok())
                 .collect();
-            if soakers.len() != 2 || coordinates.len() != 4 {
+            if coordinates.len() != 4 {
                 warn!(
                     mechanic.request_id,
-                    mechanic.mechanic_id,
-                    party.id,
-                    "Missing beacon holders or tower positions, completing mechanic"
+                    mechanic.mechanic_id, party.id, "Missing tower positions, completing mechanic"
                 );
                 entity.remove(SpawnLightDarkTowers);
                 return;
@@ -268,7 +271,6 @@ pub fn create_systems(world: &World) {
                                 c.try_get::<&Player>(|player| {
                                     if player.content_id == tower.soaker {
                                         tower.soaker_entity = Some(c.id());
-                                        apply_tilt(&c, tower.soaker_tilt, tower.tilt_duration);
                                     }
                                 });
                             });
@@ -313,6 +315,18 @@ pub fn create_systems(world: &World) {
                                     );
                                 });
                             });
+                        }
+                    }
+
+                    tower.tilt_delay -= it.delta_time();
+                    if !tower.tilt_applied && tower.tilt_delay <= 0.0 {
+                        tower.tilt_applied = true;
+                        if let Some(soaker) = tower.soaker_entity {
+                            apply_tilt(
+                                &soaker.entity_view(world),
+                                tower.soaker_tilt,
+                                tower.tilt_duration,
+                            );
                         }
                     }
 
