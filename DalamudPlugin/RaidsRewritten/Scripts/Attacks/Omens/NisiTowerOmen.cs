@@ -18,7 +18,7 @@ public class NisiTowerOmen(DalamudServices dalamud, ILogger logger) : IEntity, I
 
     public static readonly Vector4 NisiAlphaColor = new(0.106f, 0.518f, 1.75f, 1.0f);
     public static readonly Vector4 NisiBetaColor = new(1.0f, 0.624f, 0.196f, 1.0f);
-    public static readonly Vector4 NisiGammaColor = new(1.0f, 0.439f, 1.0f, 1.0f);
+    public static readonly Vector4 NisiGammaColor = new(0.5f, 0.239f, 1.5f, 1.0f);
     public static readonly Vector4 NisiDeltaColor = new(0.525f, 1.0f, 0.49f, 1.0f);
 
     private const float Radius = 3.0f;
