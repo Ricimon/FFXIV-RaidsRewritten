@@ -43,6 +43,7 @@ pub fn create_systems(world: &World) {
         .up()
         .with(PartyContainer)
         .up()
+        .write(BroadcastConditions::id())
         .each_iter(|it, i, (condition, state)| {
             condition.time_remaining = f32::max(condition.time_remaining - it.delta_time(), 0.0);
 
@@ -72,6 +73,7 @@ pub fn create_systems(world: &World) {
         .without(BroadcastedCondition)
         .with(PartyContainer)
         .up()
+        .write(BroadcastConditions::id())
         .each_iter(|it, i, _| {
             let e = it.entity(i);
             // Traverse up 2 parents to get to the PartyContainer
