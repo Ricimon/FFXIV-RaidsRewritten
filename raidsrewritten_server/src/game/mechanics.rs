@@ -38,6 +38,8 @@ pub mod m1052_tea_jwave_spread;
 pub mod m1053_tea_wormhole_super_jump;
 #[path = "mechanics/1060-tea_screwdriver_target.rs"]
 pub mod m1060_tea_screwdriver_target;
+#[path = "mechanics/1070-tea_light_dark_towers.rs"]
+pub mod m1070_tea_light_dark_towers;
 
 use crate::{
     game::{components::*, utils::*},
@@ -78,6 +80,7 @@ pub fn create_mechanic(
         1052 => Some(m1052_tea_jwave_spread::create_mechanic),
         1053 => Some(m1053_tea_wormhole_super_jump::create_mechanic),
         1060 => Some(m1060_tea_screwdriver_target::create_mechanic),
+        1070 => Some(m1070_tea_light_dark_towers::create_mechanic),
         _ => None,
     };
     if let Some(f) = mechanic_fn {
@@ -148,6 +151,7 @@ pub fn create_systems(world: &World) {
     m1052_tea_jwave_spread::create_systems(world);
     m1053_tea_wormhole_super_jump::create_systems(world);
     m1060_tea_screwdriver_target::create_systems(world);
+    m1070_tea_light_dark_towers::create_systems(world);
 }
 
 pub fn create_observers(world: &World) {

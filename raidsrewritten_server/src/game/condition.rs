@@ -34,6 +34,8 @@ pub enum Condition {
     Flattened = 10,
     MagicVulnerabilityUp = 11,
     DamageDown = 12,
+    UmbralTilt = 13,
+    AstralTilt = 14,
 }
 
 pub fn create_systems(world: &World) {

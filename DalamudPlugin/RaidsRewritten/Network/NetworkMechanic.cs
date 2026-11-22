@@ -25,6 +25,7 @@ public enum NetworkMechanic : uint
     TeaJWaveSpread = 1052,
     TeaWormholeSuperJump = 1053,
     TeaScrewdriverTarget = 1060,
+    TeaLightDarkTowers = 1070,
 }
 
 // To client
@@ -42,4 +43,6 @@ public enum NetworkMechanicCommand : int
     TeaUpdateNisiTower = -1029,
     TeaUpdateWormholeSuperJump = -1053,
     TeaUpdateScrewdriverState = -1060,
+    TeaSpawnLightDarkTower = -1070,
+    TeaPopLightDarkTower = -1071,
 }

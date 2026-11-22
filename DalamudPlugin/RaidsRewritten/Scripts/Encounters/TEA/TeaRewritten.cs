@@ -32,6 +32,7 @@ public class TeaRewritten : IEncounter
     private string ScrewdriverKey => $"{Name}.Screwdriver";
     private string JWaveSpreadsKey => $"{Name}.JWaveSpreads";
     private string WormholeSuperJumpKey => $"{Name}.WormholeSuperJump";
+    private string LightDarkTowersKey => $"{Name}.LightDarkTowers";
 
     private readonly Mechanic.Factory mechanicFactory;
     private readonly DalamudServices dalamud;
@@ -69,6 +70,7 @@ public class TeaRewritten : IEncounter
             { ScrewdriverKey, true },
             { JWaveSpreadsKey, true },
             { WormholeSuperJumpKey, true },
+            { LightDarkTowersKey, true },
         };
 
         this.defaultIntSettings = new()
@@ -84,6 +86,7 @@ public class TeaRewritten : IEncounter
             ScrewdriverKey,
             JWaveSpreadsKey,
             WormholeSuperJumpKey,
+            LightDarkTowersKey,
             ];
     }
 
@@ -187,6 +190,12 @@ public class TeaRewritten : IEncounter
         if (GetEncounterSetting(WormholeSuperJumpKey))
         {
             mechanics.Add(mechanicFactory.Create<WormholeSuperJump>());
+        }
+        if (GetEncounterSetting(LightDarkTowersKey))
+        {
+            var lightDarkTowers = mechanicFactory.Create<LightDarkTowers>();
+            lightDarkTowers.RngSeed = rngSeed;
+            mechanics.Add(lightDarkTowers);
         }
     }
 
@@ -444,6 +453,19 @@ public class TeaRewritten : IEncounter
             {
                 configuration.EncounterSettings[WormholeSuperJumpKey] =
                     wormholeSuperJump ? bool.TrueString : bool.FalseString;
+                configuration.Save();
+                RefreshMechanics();
+            }
+        }
+        ServerRequiredTooltip();
+
+        bool lightDarkTowers = GetEncounterSetting(LightDarkTowersKey);
+        using (ImRaii.Disabled(!networkClient.IsConnected))
+        {
+            if (ImGui.Checkbox("Light/Dark Towers", ref lightDarkTowers))
+            {
+                configuration.EncounterSettings[LightDarkTowersKey] =
+                    lightDarkTowers ? bool.TrueString : bool.FalseString;
                 configuration.Save();
                 RefreshMechanics();
             }

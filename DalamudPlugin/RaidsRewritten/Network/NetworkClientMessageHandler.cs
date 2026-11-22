@@ -311,6 +311,12 @@ public sealed class NetworkClientMessageHandler(
                                 case Message.Condition.DamageDown:
                                     DamageDown.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: false);
                                     break;
+                                case Message.Condition.AstralTilt:
+                                    AstralTilt.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: false);
+                                    break;
+                                case Message.Condition.UmbralTilt:
+                                    UmbralTilt.ApplyToTarget(playerEntity, c.timeRemaining, c.id, overrideExistingDuration: true, isClientControlled: false);
+                                    break;
                             }
                         }
                     }

@@ -54,7 +54,7 @@ jobs:
 
       # Keep in sync with the Dockerfile
       - name: Set up Rust
-        uses: dtolnay/rust-toolchain@1.92.0
+        uses: dtolnay/rust-toolchain@1.99
 
       - name: Cache Rust build
         uses: Swatinem/rust-cache@v2
