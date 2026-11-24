@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
+using System.Text.RegularExpressions;
 using AsyncAwaitBestPractices;
 using Dalamud.Game.ClientState.Conditions;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
@@ -84,7 +86,7 @@ public sealed class NetworkClientSystem(DalamudServices dalamud, NetworkClient n
                         action = Message.Action.SyncConditionsOnSelf,
                         syncConditionsOnSelf = new Message.SyncConditionsOnSelf
                         {
-                            conditions = [..conditions],
+                            conditions = [.. conditions],
                         }
                     };
                     networkClient.SendAsync(syncConditionsOnSelf).SafeFireAndForget();
@@ -136,13 +138,25 @@ public sealed class NetworkClientSystem(DalamudServices dalamud, NetworkClient n
             }
         }
 
+        var playerName = dalamud.PlayerState.CharacterName;
+        var playerInitials = new StringBuilder();
+        foreach (var match in Regex.EnumerateMatches(playerName, @"\w+"))
+        {
+            if (playerInitials.Length > 0)
+            {
+                playerInitials.Append(' ');
+            }
+            playerInitials.Append(playerName[match.Index]);
+            playerInitials.Append('.');
+        }
+
         var updatePlayer = new Message
         {
             action = Message.Action.UpdatePlayer,
             updatePlayer = new Message.UpdatePlayerPayload
             {
                 contentId = dalamud.PlayerState.ContentId,
-                name = dalamud.PlayerState.CharacterName,
+                name = playerInitials.ToString(),
                 role = GetRole(dalamud.PlayerState.ClassJob.Value.JobType),
                 party = configuration.UseCustomPartyId ? configuration.CustomPartyId : CalculatePartyHash(),
             },
