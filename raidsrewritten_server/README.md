@@ -24,7 +24,7 @@ There's 2 main options to host the RaidsRewritten server: through Docker or bare
 
 Here you can either use the GitHub CI-built Docker image or build it yourself.
 
-To use the GitHub CI-built image, I recommend writing a Docker Compose file:
+To use the [GitHub CI-built image](https://github.com/Ricimon/FFXIV-RaidsRewritten/pkgs/container/ffxiv-raidsrewritten-server), I recommend writing a Docker Compose file:
 
 ```yml
 services:
