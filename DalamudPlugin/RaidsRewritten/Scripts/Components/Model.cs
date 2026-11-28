@@ -1,4 +1,6 @@
-﻿namespace RaidsRewritten.Scripts.Components;
+﻿using Dalamud.Game.ClientState.Objects.SubKinds;
+
+namespace RaidsRewritten.Scripts.Components;
 
 public record struct Model(
     int ModelCharaId,
@@ -10,6 +12,8 @@ public record struct NpcEquipRow(uint Value);
 
 public record struct ModelFadeOut(ushort ObjectIndex, float Duration, float TimeRemaining, float Alpha = 1f);
 
+public struct SkipFade;
+
 public record struct OneTimeModelTimeline(ushort Id, bool Played = false);
 
 public record struct ModelTimelineSpeed(float Value);
@@ -19,6 +23,8 @@ public record struct TimelineBlend(uint Slot, ushort Value);
 
 // this only applies on model creation. will do more research if we ever need to update after model has already spawned
 public record struct AnimationState(byte Value1, byte Value2 = 0);
+
+public record struct InheritAnimations(IPlayerCharacter? Character);
 
 public record struct ModelHeight(float Value);
 

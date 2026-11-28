@@ -250,6 +250,33 @@ public unsafe sealed class ModelSystem(
                 }
             });
 
+        world.System<Model, InheritAnimations>()
+            .Each((Iter it, int i, ref Model model, ref InheritAnimations inheritAnimations) =>
+            {
+                var clientObjectManager = ClientObjectManager.Instance();
+                if (clientObjectManager == null) { return; }
+
+                var chara = clientObjectManager->GetObjectByIndex(model.ObjectIndex);
+                if (chara == null) { return; }
+
+                if (inheritAnimations.Character == null)
+                {
+                    it.Entity(i).Remove<InheritAnimations>();
+                    return;
+                }
+                var anim = ((Character*)inheritAnimations.Character.Native())->Timeline.TimelineSequencer.GetSlotTimeline(0);
+                // These are windup run animations
+                if (anim == 25 || anim == 26 || anim == 27)
+                {
+                    anim = 22; // this is the run animation
+                }
+                var modelAnim = chara->Timeline.TimelineSequencer.GetSlotTimeline(0);
+                if (modelAnim != anim)
+                {
+                    it.Entity(i).Set(new TimelineBase(anim, true));
+                }
+            });
+
         world.System<Model, ChatBubble>()
             .Each((Iter it, int i, ref Model model, ref ChatBubble chatBubble) =>
             {
@@ -271,6 +298,12 @@ public unsafe sealed class ModelSystem(
                 var model = e.Get<Model>();
                 if (model.Spawned)
                 {
+                    if (e.Has<SkipFade>())
+                    {
+                        DeleteModel(model.ObjectIndex);
+                        return;
+                    }
+
                     float a = 1.0f;
                     if (e.TryGet(out Alpha alpha))
                     {

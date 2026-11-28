@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Text;
@@ -99,5 +100,10 @@ public static class DalamudExtensions
         }
         var chara = ClientObjectManager.Instance()->GetObjectByIndex((ushort)index);
         return chara != null;
+    }
+
+    public static Quaternion ToSystemQuaternion(this FFXIVClientStructs.FFXIV.Common.Math.Quaternion quaternion)
+    {
+        return new(quaternion.X, quaternion.Y, quaternion.Z, quaternion.W);
     }
 }

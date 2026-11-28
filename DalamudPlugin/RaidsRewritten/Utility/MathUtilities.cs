@@ -83,6 +83,34 @@ public static class MathUtilities
         return ClampRadians((to - from + MathF.PI) % (2 * MathF.PI) - MathF.PI);
     }
 
+    // https://github.com/danielanywhere/Geometry/blob/main/Source/Geometry/FQuaternion.cs#L1488
+    /// <param name="angle">In radians</param>
+    public static void ToAxisAngle(this Quaternion quaternion, out Vector3 axis, out float angle)
+    {
+        axis = Vector3.Zero;
+        angle = 0;
+
+        double dAngle = 0d;
+        double divider = 0d;
+
+        double w = quaternion.W;
+        dAngle = Math.Acos(w) * 2d;
+        divider = Math.Sqrt(1d - (w * w));
+
+        if (divider != 0)
+        {
+            divider = 1d / divider;
+            axis.X = (float)(quaternion.X * divider);
+            axis.Y = (float)(quaternion.Y * divider);
+            axis.Z = (float)(quaternion.Z * divider);
+            angle = (float)dAngle;
+        }
+        else
+        {
+            axis.X = 1f;
+        }
+    }
+
     public static float Lerp(float start, float end, float value)
     {
         value = Math.Clamp(value, 0.0f, 1.0f);

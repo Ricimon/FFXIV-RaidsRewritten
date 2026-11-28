@@ -28,6 +28,23 @@ public class TransformSystem : ISystem
                 e.Set(new Position(parentPosition + localPosition.Value));
             });
 
+        world.System<LocalRotation>()
+            .Each((Entity e, ref LocalRotation localRotation) =>
+            {
+                float parentRotation = 0;
+                var parent = e.Parent();
+                while (parent.IsValid())
+                {
+                    if (parent.TryGet(out Rotation r))
+                    {
+                        parentRotation += r.Value;
+                    }
+                    parent = parent.Parent();
+                }
+
+                e.Set(new Rotation(parentRotation + localRotation.Value));
+            });
+
         world.System<AngularVelocity, Rotation>()
             .Each((Iter it, int i, ref AngularVelocity angularVelocity, ref Rotation rotation) =>
             {
@@ -63,6 +80,25 @@ public class TransformSystem : ISystem
                 }
 
                 position.Value = follow.Target.Position;
+            });
+
+        world.System<FollowDrawObject>()
+            .Each((Entity e, ref FollowDrawObject fdo) =>
+            {
+                unsafe
+                {
+                    var drawObject = (FFXIVClientStructs.FFXIV.Client.Graphics.Scene.DrawObject*)fdo.DrawObjectPointer;
+                    if (drawObject == null)
+                    {
+                        e.Remove<FollowDrawObject>();
+                        return;
+                    }
+
+                    drawObject->Rotation.ToSystemQuaternion().ToAxisAngle(out var axis, out var angle);
+                    angle *= Vector3.Dot(Vector3.Normalize(axis), Vector3.UnitY);
+                    e.Set(new Position(drawObject->Position + (FFXIVClientStructs.FFXIV.Common.Math.Vector3)fdo.PositionOffset));
+                    e.Set(new Rotation(angle));
+                }
             });
     }
 }

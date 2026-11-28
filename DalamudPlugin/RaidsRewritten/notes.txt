@@ -91,6 +91,7 @@ Final Sentence: sound/vfx/monster3/SE_Vfx_Monster_QuadrupedMachine_Judgement_c.s
 Shanoa meow: sound/vfx/monster4/SE_Vfx_Monster_GoblinKaniTank_CoeurlCheer_c.scd
 Shanoa hearts: vfx/monster/m0331/eff/m0331sp_01c1h.avfx (actor)
 PA stack/spread: vfx/monster/m0117/eff/baha_bahamut_lenge_gt_c0s.avfx (actor)
+Almighty Judgment: vfx/monster/gimmick3/eff/d2az_b0_g01t0c.avfx (actor), 6y radius
 
 E5N
 Thunderstorm small AOE: vfx/monster/m0234/eff/ryu_no_su_tatumaki_pc_rakurai_c0s.avfx (actor), 3y radius
@@ -188,6 +189,11 @@ HP equalization Deep Blue: vfx/monster/m0982/eff/m0982sp006c0c.avfx (actor, sour
 HP equalization Deep Blue: vfx/monster/m0982/eff/m0982sp006t0c.avfx (actor)
 HP equalization Red Hot: vfx/monster/m0982/eff/m0982sp005c0c.avfx (actor, source & target)
 HP equalization Red Hot: vfx/monster/m0982/eff/m0982sp005t0c.avfx (actor)
+
+Third Board of the Unbroken
+Siren piece dynamo omen: vfx/omen/eff/gl_sircle_5003bf.avfx (static), 3y radius, 43 scale
+Siren piece dynamo attack: vfx/monster/m0069/eff/m0069sp_14c0y2.avfx (actor) & vfx/monster/m0069/eff/m0069sp_14c1y2.avfx (actor)
+Siren piece dynamo attack: sound/vfx/monster10/SE_Vfx_Monster_m0069_sp14.scd
 
 
 Rectangle omen: vfx/omen/eff/general02f.avfx (static)

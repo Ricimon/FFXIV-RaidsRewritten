@@ -9,9 +9,11 @@ public record struct Scale(Vector3 Value);
 public record struct UniformScale(float Value);
 
 public record struct LocalPosition(Vector3 Value);
+public record struct LocalRotation(float Value);
 public record struct FullRotation(Quaternion Value);
 
 public record struct AngularVelocity(float Value);
 public record struct FullAngularVelocity(Vector3 Value);
 
 public record struct FollowPosition(IGameObject Target);
+public record struct FollowDrawObject(nint DrawObjectPointer, Vector3 PositionOffset = default);
